@@ -53,36 +53,6 @@ class _MainWrapperState extends State<MainWrapper> {
       body: Column(
         children: [
           Expanded(child: widget.child),
-          // Indicateur de page au-dessus de la bottom bar
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              border: Border(
-                top: BorderSide(
-                  color: AppTheme.lightGray,
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getCurrentPageName(context),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppTheme.primaryBlue,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
       // Bottom bar style LinkedIn

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../core/constants/car_parts_list.dart';
 
@@ -10,13 +11,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Couleurs calibrées pour matcher le screen
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _blueDark = Color(0xFF0F57A6);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  // Design moderne et cohérent
+  static const Color _primary = Color(0xFF007AFF);
+  static const Color _primaryLight = Color(0xFFE8F4FD);
+  static const Color _success = Color(0xFF34C759);
+  static const Color _successLight = Color(0xFFE8F7EA);
+  static const Color _textPrimary = Color(0xFF1D1D1F);
+  static const Color _textSecondary = Color(0xFF8E8E93);
+  static const Color _background = Color(0xFFF8F9FA);
+  static const Color _cardBackground = Colors.white;
+  static const double _radius = 20;
 
   String _selectedType = 'engine';
   bool _isManualMode = false;
@@ -58,273 +62,320 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final double hPadding = 24;
+    final size = MediaQuery.of(context).size;
+    final s = size.width / 390.0; // Facteur de scale responsive
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      // Pas d'AppBar : on crée un header bleu custom comme sur le screen
+      backgroundColor: _background,
       body: Column(
         children: [
-          // HEADER BLEU
+          // HEADER simple avec indicateur de page
           Container(
             width: double.infinity,
             padding: EdgeInsets.only(
-              top: media.padding.top + 14,
-              bottom: 18,
+              top: MediaQuery.of(context).padding.top + 16 * s,
+              bottom: 16 * s,
+              left: 16 * s,
+              right: 16 * s,
             ),
-            color: _blue,
+            color: _background,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Spacer(),
-                const Text(
-                  'Auto Pièces',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 26,
-                    height: 1.1,
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16 * s,
+                    vertical: 8 * s,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20 * s),
+                    border: Border.all(
+                      color: _primary.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'Accueil',
+                    style: GoogleFonts.inter(
+                      color: _primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14 * s,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: AppMenu(),
-                ),
+                const AppMenu(),
               ],
             ),
           ),
 
-          // CONTENU
+          // CONTENU principal
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
-              padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Titre
-                  const Text(
-                    'Quel type de pièce\nrecherchez-vous ?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      height: 1.25,
-                      color: _textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 2 CARTES (sélection)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _TypeCard(
-                          selected: _selectedType == 'engine',
-                          icon: Icons.settings,
-                          title: 'Pièces moteur',
-                          onTap: () => setState(() => _selectedType = 'engine'),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _TypeCard(
-                          selected: _selectedType == 'body',
-                          icon: Icons.car_repair,
-                          title: 'Pièces carrosserie\n/ interieures',
-                          onTap: () => setState(() => _selectedType = 'body'),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // Libellé plaque (par défaut)
-                  if (!_isManualMode) ...[
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Merci de renseigner votre plaque\nd\'immatriculation',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          height: 1.3,
-                          color: _textDark,
-                        ),
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.all(16 * s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Titre principal
+                    Text(
+                      'Quel type de pièce recherchez-vous ?',
+                      style: GoogleFonts.inter(
+                        fontSize: 22 * s,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                        color: _textPrimary,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 6 * s),
+                    Text(
+                      'Sélectionnez le type de pièce pour commencer',
+                      style: GoogleFonts.inter(
+                        fontSize: 14 * s,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                    SizedBox(height: 20 * s),
 
-                    // Champ plaque avec bouton OK
+                    // Cartes de sélection modernes
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(_radius),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x14000000),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _plate,
-                              textAlign: TextAlign.center,
-                              textCapitalization: TextCapitalization.characters,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 2,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'AA-456-BB',
-                                hintStyle: TextStyle(
-                                  color: _textGray.withOpacity(0.7),
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 2,
-                                  fontSize: 20,
-                                ),
-                                prefixIcon: const Icon(Icons.directions_car, color: _blue),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                  horizontal: 20,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(_radius),
-                                  borderSide: const BorderSide(color: _border),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(_radius),
-                                  borderSide: const BorderSide(color: _border),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(_radius),
-                                  borderSide: const BorderSide(color: _blue, width: 2),
-                                ),
-                              ),
-                              onChanged: (v) => setState(() {}),
-                              onSubmitted: (v) => _validatePlateAndScroll(),
-                            ),
+                          child: _ModernTypeCard(
+                            selected: _selectedType == 'engine',
+                            icon: Icons.precision_manufacturing_outlined,
+                            title: 'Pièces moteur',
+                            subtitle: 'Moteur, transmission',
+                            color: _primary,
+                            scale: s,
+                            onTap: () => setState(() => _selectedType = 'engine'),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Container(
-                          height: 56,
-                          width: 56,
-                          decoration: BoxDecoration(
-                            color: _plate.text.isNotEmpty ? _blue : _border,
-                            borderRadius: BorderRadius.circular(_radius),
-                            boxShadow: _plate.text.isNotEmpty ? const [
-                              BoxShadow(
-                                color: Color(0x14000000),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ] : null,
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(_radius),
-                              onTap: _plate.text.isNotEmpty ? _validatePlateAndScroll : null,
-                              child: Icon(
-                                Icons.check,
-                                color: _plate.text.isNotEmpty ? Colors.white : _textGray,
-                                size: 24,
-                              ),
-                            ),
+                        SizedBox(width: 16 * s),
+                        Expanded(
+                          child: _ModernTypeCard(
+                            selected: _selectedType == 'body',
+                            icon: Icons.directions_car_outlined,
+                            title: 'Carrosserie',
+                            subtitle: 'Extérieur, intérieur',
+                            color: _primary,
+                            scale: s,
+                            onTap: () => setState(() => _selectedType = 'body'),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    
-                    // Texte "ou remplir manuellement"
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Ou remplir les informations manuellement',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: _textGray,
+
+                    SizedBox(height: 16 * s),
+
+                    // Section identification du véhicule
+                    if (!_isManualMode) ...[
+                      _SectionCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(8 * s),
+                                  decoration: BoxDecoration(
+                                    color: _primaryLight,
+                                    borderRadius: BorderRadius.circular(12 * s),
+                                  ),
+                                  child: Icon(
+                                    Icons.search,
+                                    color: _primary,
+                                    size: 20 * s,
+                                  ),
+                                ),
+                                SizedBox(width: 12 * s),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Identification automatique',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16 * s,
+                                          fontWeight: FontWeight.w700,
+                                          color: _textPrimary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 1 * s),
+                                      Text(
+                                        'Entrez votre plaque d\'immatriculation',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12 * s,
+                                          fontWeight: FontWeight.w500,
+                                          color: _textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 14 * s),
+
+                            // Champ de saisie moderne
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: _background,
+                                      borderRadius: BorderRadius.circular(16 * s),
+                                      border: Border.all(
+                                        color: _plate.text.isNotEmpty 
+                                            ? _primary.withOpacity(0.3) 
+                                            : Colors.grey.withOpacity(0.2),
+                                      ),
+                                    ),
+                                    child: TextField(
+                                      controller: _plate,
+                                      textAlign: TextAlign.center,
+                                      textCapitalization: TextCapitalization.characters,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 20 * s,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 2,
+                                        color: _textPrimary,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'AA-123-BB',
+                                        hintStyle: GoogleFonts.inter(
+                                          color: _textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 2,
+                                          fontSize: 20 * s,
+                                        ),
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 18 * s,
+                                          horizontal: 20 * s,
+                                        ),
+                                      ),
+                                      onChanged: (v) => setState(() {}),
+                                      onSubmitted: (v) => _validatePlateAndScroll(),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 12 * s),
+                                _AnimatedButton(
+                                  isActive: _plate.text.isNotEmpty,
+                                  onTap: _plate.text.isNotEmpty ? _validatePlateAndScroll : null,
+                                  child: Icon(
+                                    Icons.arrow_forward,
+                                    color: _plate.text.isNotEmpty ? Colors.white : _textSecondary,
+                                    size: 24 * s,
+                                  ),
+                                  scale: s,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20 * s),
+                            
+                            // Option alternative avec design amélioré
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: 1,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.grey.withOpacity(0.3),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20 * s),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16 * s,
+                                      vertical: 8 * s,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _background,
+                                      borderRadius: BorderRadius.circular(20 * s),
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.15),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'ou remplir manuellement',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12 * s,
+                                        fontWeight: FontWeight.w600,
+                                        color: _textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    height: 1,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.grey.withOpacity(0.3),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20 * s),
+                            
+                            // Bouton manuel élégant
+                            _ModernButton(
+                              label: 'Saisie manuelle',
+                              icon: Icons.edit_outlined,
+                              isOutlined: true,
+                              onTap: () {
+                                setState(() {
+                                  _isManualMode = true;
+                                  _showDescription = false;
+                                });
+                              },
+                              scale: s,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                    ],
+
+                    // Espacement dynamique selon l'état
+                    if (!_isManualMode && !_canContinue())
+                      SizedBox(height: 24 * s)
+                    else if (_isManualMode || _canContinue())
+                      SizedBox(height: 12 * s),
+
+                    // Mode manuel moderne
+                    if (_isManualMode) ...[
+                      ..._buildModernManualFields(s),
+                      if (_canContinue()) SizedBox(height: 24 * s),
+                    ],
+
+                    // Section de description moderne (affichage automatique)
+                    if (_canContinue()) ..._buildModernDescriptionSection(s),
+
+                    // Espace final
+                    SizedBox(height: 20 * s + MediaQuery.of(context).padding.bottom),
                   ],
-
-                  // BOUTON "Manuel"
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isManualMode = true;
-                          _showDescription = false;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isManualMode ? _blue : Colors.white,
-                        foregroundColor: _isManualMode ? Colors.white : _textDark,
-                        elevation: 0,
-                        side: !_isManualMode ? const BorderSide(color: _border, width: 1) : null,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(_radius),
-                        ),
-                        textStyle: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
-                        ),
-                      ),
-                      child: const Text('Manuel'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Champs manuels - Mode manuel
-                  if (_isManualMode) ..._buildManualFields(),
-
-                  // Section description et validation
-                  if (_canContinue()) ..._buildDescriptionSection(),
-
-                  // Bouton continuer
-                  if (!_showDescription) ...[  
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _canContinue() ? _continueToDescription : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(_radius),
-                          ),
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
-                          ),
-                        ),
-                        child: const Text('Continuer'),
-                      ),
-                    ),
-                  ],
-
-                  // Espace bas pour resp. safe area
-                  SizedBox(height: media.padding.bottom + 8),
-                ],
+                ),
               ),
             ),
           ),
@@ -333,276 +384,275 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Méthodes pour la logique de l'application
-
-  List<Widget> _buildManualFields() {
+  // Nouvelle méthode pour les champs manuels modernes
+  List<Widget> _buildModernManualFields(double s) {
     return [
-      // Bouton pour revenir au mode plaque + titre
-      Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _isManualMode = false;
-                _showDescription = false;
-              });
-            },
-            child: Row(
+      _SectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header avec bouton retour
+            Row(
               children: [
-                Icon(
-                  Icons.arrow_back_ios,
-                  size: 16,
-                  color: _blue,
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isManualMode = false;
+                      _showDescription = false;
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(8 * s),
+                    decoration: BoxDecoration(
+                      color: _primaryLight,
+                      borderRadius: BorderRadius.circular(12 * s),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: _primary,
+                      size: 20 * s,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  'Retour plaque d\'immatriculation',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: _blue,
+                SizedBox(width: 12 * s),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Saisie manuelle',
+                        style: GoogleFonts.inter(
+                          fontSize: 18 * s,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 2 * s),
+                      Text(
+                        'Renseignez les informations de votre véhicule',
+                        style: GoogleFonts.inter(
+                          fontSize: 14 * s,
+                          fontWeight: FontWeight.w500,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 20),
-      
-      // Titre pour les champs manuels
-      const Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'Informations du véhicule',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: _textDark,
-          ),
+            
+            SizedBox(height: 16 * s),
+            
+            // Champs en grille moderne
+            Row(
+              children: [
+                Expanded(
+                  child: _ModernTextField(
+                    controller: _marqueController,
+                    label: 'Marque',
+                    hint: 'Ex: Renault',
+                    icon: Icons.branding_watermark_outlined,
+                    scale: s,
+                    onChanged: () {
+                      setState(() {});
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        _autoShowDescriptionIfReady();
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: 16 * s),
+                Expanded(
+                  child: _ModernTextField(
+                    controller: _modeleController,
+                    label: 'Modèle',
+                    hint: 'Ex: Clio',
+                    icon: Icons.model_training_outlined,
+                    scale: s,
+                    onChanged: () {
+                      setState(() {});
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        _autoShowDescriptionIfReady();
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 16 * s),
+            
+            Row(
+              children: [
+                Expanded(
+                  child: _ModernTextField(
+                    controller: _anneeController,
+                    label: 'Année',
+                    hint: 'Ex: 2020',
+                    icon: Icons.calendar_today_outlined,
+                    keyboardType: TextInputType.number,
+                    scale: s,
+                    onChanged: () {
+                      setState(() {});
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        _autoShowDescriptionIfReady();
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: 16 * s),
+                Expanded(
+                  child: _ModernTextField(
+                    controller: _motorisationController,
+                    label: 'Motorisation',
+                    hint: 'Ex: 1.6L Essence',
+                    icon: Icons.speed_outlined,
+                    scale: s,
+                    onChanged: () {
+                      setState(() {});
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        _autoShowDescriptionIfReady();
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-      ),
-      const SizedBox(height: 16),
-      
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _marqueController,
-              label: 'Marque',
-              hint: 'Ex: Renault',
-              icon: Icons.directions_car,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _modeleController,
-              label: 'Modèle',
-              hint: 'Ex: Clio',
-              icon: Icons.model_training,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _anneeController,
-              label: 'Année',
-              hint: 'Ex: 2020',
-              icon: Icons.calendar_today,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _motorisationController,
-              label: 'Motorisation',
-              hint: 'Ex: 1.6L Essence',
-              icon: Icons.speed,
-            ),
-          ),
-        ],
       ),
     ];
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: _textDark,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: _textGray.withOpacity(0.7),
-                fontSize: 16,
-              ),
-              prefixIcon: Icon(icon, color: _blue, size: 20),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
-              ),
-            ),
-            onChanged: (value) => setState(() {}),
-          ),
-        ),
-      ],
-    );
-  }
 
-  List<Widget> _buildDescriptionSection() {
+  List<Widget> _buildModernDescriptionSection(double s) {
     if (!_showDescription) return [];
     
     return [
-      const SizedBox(height: 32),
-      // Véhicule identifié
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(_radius),
-          border: Border.all(color: Colors.green.withOpacity(0.3)),
-        ),
+      SizedBox(height: 20 * s),
+      
+      // Véhicule identifié - Version moderne
+      _SectionCard(
         child: Column(
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green.shade600,
-                  size: 24,
+                Container(
+                  padding: EdgeInsets.all(12 * s),
+                  decoration: BoxDecoration(
+                    color: _successLight,
+                    borderRadius: BorderRadius.circular(16 * s),
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: _success,
+                    size: 24 * s,
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Véhicule identifié',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: Colors.green.shade600,
+                SizedBox(width: 16 * s),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Véhicule identifié',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18 * s,
+                          color: _success,
+                        ),
+                      ),
+                      SizedBox(height: 4 * s),
+                      Text(
+                        _getVehicleInfo(),
+                        style: GoogleFonts.inter(
+                          color: _textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16 * s,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _getVehicleInfo(),
-              style: const TextStyle(
-                color: _textDark,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
             ),
           ],
         ),
       ),
       
-      const SizedBox(height: 24),
+      SizedBox(height: 20 * s),
       
-      // Titre pièces recherchées
-      const Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'Quelles pièces recherchez-vous ?',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: _textDark,
-          ),
+      // Section pièces recherchées
+      _SectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12 * s),
+                  decoration: BoxDecoration(
+                    color: _primaryLight,
+                    borderRadius: BorderRadius.circular(16 * s),
+                  ),
+                  child: Icon(
+                    Icons.search,
+                    color: _primary,
+                    size: 24 * s,
+                  ),
+                ),
+                SizedBox(width: 16 * s),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pièces recherchées',
+                        style: GoogleFonts.inter(
+                          fontSize: 18 * s,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 2 * s),
+                      Text(
+                        'Indiquez les pièces dont vous avez besoin',
+                        style: GoogleFonts.inter(
+                          fontSize: 14 * s,
+                          fontWeight: FontWeight.w500,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 16 * s),
+            
+            // Champ de recherche moderne
+            _buildModernPartTextField(s),
+            
+            // Tags des pièces sélectionnées
+            if (_selectedParts.isNotEmpty) ...[
+              SizedBox(height: 20 * s),
+              _buildModernSelectedPartsTags(s),
+            ],
+          ],
         ),
       ),
       
-      const SizedBox(height: 12),
+      SizedBox(height: 20 * s),
       
-      // Champ de recherche de pièces avec suggestions
-      _buildPartTextFieldWithSuggestions(),
-      
-      // Tags des pièces sélectionnées
-      if (_selectedParts.isNotEmpty) ...[
-        const SizedBox(height: 16),
-        _buildSelectedPartsTags(),
-      ],
-      
-      const SizedBox(height: 24),
-      
-      // Bouton poster la demande
-      SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton(
-          onPressed: _canSubmit() ? _submitRequest : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green.shade600,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(_radius),
-            ),
-            textStyle: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.send, size: 20),
-              SizedBox(width: 8),
-              Text('Poster ma demande'),
-            ],
-          ),
-        ),
+      // Bouton poster la demande moderne
+      _ModernButton(
+        label: 'Poster ma demande',
+        icon: Icons.rocket_launch_outlined,
+        onTap: _canSubmit() ? _submitRequest : null,
+        isEnabled: _canSubmit(),
+        scale: s,
       ),
     ];
   }
@@ -657,12 +707,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _continueToDescription() {
-    setState(() {
-      _showDescription = true;
-    });
-  }
-
   void _validatePlateAndScroll() {
     if (_plate.text.isNotEmpty) {
       setState(() {
@@ -670,12 +714,31 @@ class _HomePageState extends State<HomePage> {
       });
       
       // Scroll automatique vers la section description
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
+          duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
+      });
+    }
+  }
+
+  void _autoShowDescriptionIfReady() {
+    if (_canContinue() && !_showDescription) {
+      setState(() {
+        _showDescription = true;
+      });
+      
+      // Scroll automatique vers la section description
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
       });
     }
   }
@@ -711,113 +774,127 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildPartTextFieldWithSuggestions() {
+  Widget _buildModernPartTextField(double s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
+            color: _background,
+            borderRadius: BorderRadius.circular(16 * s),
+            border: Border.all(
+              color: _focusNode.hasFocus ? _primary.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+            ),
           ),
           child: TextField(
             controller: _partController,
             focusNode: _focusNode,
-            style: const TextStyle(
-              fontSize: 16,
+            style: GoogleFonts.inter(
+              fontSize: 16 * s,
+              fontWeight: FontWeight.w500,
+              color: _textPrimary,
             ),
             decoration: InputDecoration(
-              hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(
-                color: _textGray.withOpacity(0.7),
+              hintText: 'Ex: moteur, phare, pare-choc...',
+              hintStyle: GoogleFonts.inter(
+                fontSize: 16 * s,
+                fontWeight: FontWeight.w400,
+                color: _textSecondary,
               ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.all(16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+              prefixIcon: Icon(
+                Icons.auto_fix_high,
+                color: _primary,
+                size: 20 * s,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16 * s,
+                vertical: 18 * s,
               ),
             ),
             onChanged: (value) => setState(() {}),
           ),
         ),
-        if (_showSuggestions) _buildSuggestionsList(),
+        if (_showSuggestions) _buildModernSuggestionsList(s),
       ],
     );
   }
 
-  Widget _buildSuggestionsList() {
+  Widget _buildModernSuggestionsList(double s) {
     return Container(
-      margin: const EdgeInsets.only(top: 4),
+      margin: EdgeInsets.only(top: 8 * s),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(_radius),
-        boxShadow: const [
+        color: _cardBackground,
+        borderRadius: BorderRadius.circular(16 * s),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: ListView.separated(
         shrinkWrap: true,
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.all(8 * s),
         itemCount: _suggestions.length,
-        separatorBuilder: (context, index) => const Divider(
-          height: 1,
-          color: _border,
-        ),
+        separatorBuilder: (context, index) => SizedBox(height: 4 * s),
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
-          return ListTile(
-            dense: true,
-            title: Text(
-              suggestion,
-              style: const TextStyle(
-                fontSize: 14,
-                color: _textDark,
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12 * s),
+              onTap: () => _selectSuggestion(suggestion),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16 * s,
+                  vertical: 12 * s,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search,
+                      size: 16 * s,
+                      color: _textSecondary,
+                    ),
+                    SizedBox(width: 12 * s),
+                    Expanded(
+                      child: Text(
+                        suggestion,
+                        style: GoogleFonts.inter(
+                          fontSize: 14 * s,
+                          fontWeight: FontWeight.w500,
+                          color: _textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            onTap: () => _selectSuggestion(suggestion),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           );
         },
       ),
     );
   }
 
-  Widget _buildSelectedPartsTags() {
+  Widget _buildModernSelectedPartsTags(double s) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _selectedParts.map((part) => _buildPartTag(part)).toList(),
+      spacing: 12 * s,
+      runSpacing: 12 * s,
+      children: _selectedParts.map((part) => _buildModernPartTag(part, s)).toList(),
     );
   }
 
-  Widget _buildPartTag(String part) {
+  Widget _buildModernPartTag(String part, double s) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 16 * s, vertical: 10 * s),
       decoration: BoxDecoration(
-        color: _blue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: _primaryLight,
+        borderRadius: BorderRadius.circular(25 * s),
         border: Border.all(
-          color: _blue.withOpacity(0.3),
+          color: _primary.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -826,26 +903,25 @@ class _HomePageState extends State<HomePage> {
         children: [
           Text(
             part,
-            style: TextStyle(
-              fontSize: 14,
-              color: _blue,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.inter(
+              fontSize: 14 * s,
+              color: _primary,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 8 * s),
           GestureDetector(
             onTap: () => _removePart(part),
             child: Container(
-              width: 18,
-              height: 18,
+              padding: EdgeInsets.all(2 * s),
               decoration: BoxDecoration(
-                color: _blue.withOpacity(0.2),
+                color: _primary.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.close,
-                size: 12,
-                color: _blue,
+                size: 14 * s,
+                color: _primary,
               ),
             ),
           ),
@@ -863,74 +939,328 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-/// Carte de sélection (moteur / carrosserie) fidèle au screen
-class _TypeCard extends StatelessWidget {
-  const _TypeCard({
+// =============================================================================
+// NOUVEAUX COMPOSANTS MODERNES
+// =============================================================================
+
+/// Card wrapper moderne avec ombres et coins arrondis
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+  
+  final Widget child;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _HomePageState._cardBackground,
+        borderRadius: BorderRadius.circular(_HomePageState._radius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Carte de sélection moderne avec animations et nouveau design
+class _ModernTypeCard extends StatelessWidget {
+  const _ModernTypeCard({
     required this.selected,
     required this.icon,
     required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.scale,
     required this.onTap,
   });
 
   final bool selected;
   final IconData icon;
   final String title;
+  final String subtitle;
+  final Color color;
+  final double scale;
   final VoidCallback onTap;
-
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _bgSelected = Color(0xFFEAF2FF);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? _bgSelected : Colors.white,
-      borderRadius: BorderRadius.circular(_radius),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(_radius),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 120),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius),
-            border: Border.all(
-              color: selected ? _blue : _border,
-              width: selected ? 2 : 1,
-            ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: selected ? _HomePageState._primaryLight : _HomePageState._cardBackground,
+        borderRadius: BorderRadius.circular(20 * scale),
+        border: Border.all(
+          color: selected ? color : Colors.grey.withOpacity(0.2),
+          width: selected ? 2 : 1,
+        ),
+        boxShadow: selected ? [
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: selected ? _blue.withOpacity(0.12) : _blue.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
+        ] : [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20 * scale),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20 * scale),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.all(16 * scale),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12 * scale),
+                  decoration: BoxDecoration(
+                    color: selected ? color.withOpacity(0.15) : color.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12 * scale),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24 * scale,
+                    color: color,
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: selected ? _blue : _blue,
+                SizedBox(height: 8 * scale),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 14 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: _HomePageState._textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  height: 1.2,
-                  color: Color(0xFF1C1C1E),
+                SizedBox(height: 2 * scale),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 11 * scale,
+                    fontWeight: FontWeight.w500,
+                    color: _HomePageState._textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+/// Bouton moderne avec animations
+class _ModernButton extends StatelessWidget {
+  const _ModernButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    required this.scale,
+    this.isOutlined = false,
+    this.isEnabled = true,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool isOutlined;
+  final bool isEnabled;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isEnabled ? _HomePageState._primary : _HomePageState._textSecondary;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: double.infinity,
+      height: 56 * scale,
+      decoration: BoxDecoration(
+        color: isOutlined ? Colors.transparent : color,
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: isOutlined ? Border.all(color: color, width: 2) : null,
+        boxShadow: !isOutlined && isEnabled ? [
+          BoxShadow(
+            color: color.withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ] : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16 * scale),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16 * scale),
+          onTap: isEnabled ? onTap : null,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isOutlined ? color : Colors.white,
+                  size: 20 * scale,
+                ),
+                SizedBox(width: 8 * scale),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 16 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: isOutlined ? color : Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Champ de texte moderne
+class _ModernTextField extends StatelessWidget {
+  const _ModernTextField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    required this.scale,
+    required this.onChanged,
+    this.keyboardType,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final double scale;
+  final VoidCallback onChanged;
+  final TextInputType? keyboardType;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w600,
+            color: _HomePageState._textPrimary,
+          ),
+        ),
+        SizedBox(height: 8 * scale),
+        Container(
+          decoration: BoxDecoration(
+            color: _HomePageState._background,
+            borderRadius: BorderRadius.circular(12 * scale),
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.2),
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: GoogleFonts.inter(
+              fontSize: 16 * scale,
+              fontWeight: FontWeight.w500,
+              color: _HomePageState._textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.inter(
+                fontSize: 16 * scale,
+                fontWeight: FontWeight.w400,
+                color: _HomePageState._textSecondary,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: _HomePageState._primary,
+                size: 20 * scale,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16 * scale,
+                vertical: 16 * scale,
+              ),
+            ),
+            onChanged: (value) => onChanged(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bouton animé pour actions
+class _AnimatedButton extends StatelessWidget {
+  const _AnimatedButton({
+    required this.isActive,
+    required this.onTap,
+    required this.child,
+    required this.scale,
+  });
+
+  final bool isActive;
+  final VoidCallback? onTap;
+  final Widget child;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: 56 * scale,
+      width: 56 * scale,
+      decoration: BoxDecoration(
+        color: isActive ? _HomePageState._primary : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16 * scale),
+        boxShadow: isActive ? [
+          BoxShadow(
+            color: _HomePageState._primary.withOpacity(0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ] : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16 * scale),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16 * scale),
+          onTap: isActive ? onTap : null,
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
