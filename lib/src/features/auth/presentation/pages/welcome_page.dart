@@ -1,0 +1,196 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../controllers/auth_controller.dart';
+
+class WelcomePage extends ConsumerWidget {
+  const WelcomePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const Spacer(),
+              
+              // Logo et titre
+              const Icon(
+                Icons.car_repair,
+                size: 100,
+                color: AppTheme.primaryBlue,
+              ),
+              
+              const SizedBox(height: 24),
+              
+              Text(
+                'Pièces d\'Occasion',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.darkBlue,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 12),
+              
+              Text(
+                'Trouvez les pièces automobiles dont vous avez besoin',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.gray,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const Spacer(),
+              
+              // Boutons de choix
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightGray,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Vous êtes :',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.darkGray,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Bouton Particulier
+                    _buildUserTypeButton(
+                      context: context,
+                      ref: ref,
+                      title: 'Particulier',
+                      subtitle: 'Je recherche des pièces',
+                      icon: Icons.person,
+                      onTap: () => _loginAsParticulier(ref, context),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Bouton Vendeur
+                    _buildUserTypeButton(
+                      context: context,
+                      ref: ref,
+                      title: 'Vendeur',
+                      subtitle: 'Je vends des pièces',
+                      icon: Icons.store,
+                      onTap: () => _goToSellerLogin(context),
+                      isOutlined: true,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserTypeButton({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isOutlined = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isOutlined ? Colors.transparent : AppTheme.primaryBlue,
+            border: isOutlined 
+                ? Border.all(color: AppTheme.primaryBlue, width: 2)
+                : null,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isOutlined 
+                      ? AppTheme.primaryBlue.withOpacity(0.1)
+                      : AppTheme.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
+                  size: 28,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isOutlined 
+                            ? AppTheme.gray 
+                            : AppTheme.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              Icon(
+                Icons.arrow_forward_ios,
+                color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _loginAsParticulier(WidgetRef ref, BuildContext context) {
+    ref.read(authStateProvider.notifier).loginParticulier();
+  }
+
+  void _goToSellerLogin(BuildContext context) {
+    // TODO: Implémenter la page de connexion vendeur
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Connexion vendeur - À implémenter'),
+        backgroundColor: AppTheme.warning,
+      ),
+    );
+  }
+}
