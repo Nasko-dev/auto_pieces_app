@@ -24,9 +24,7 @@ mixin _$PartRequestState {
   String? get error => throw _privateConstructorUsedError;
   PartRequest? get selectedRequest => throw _privateConstructorUsedError;
 
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PartRequestStateCopyWith<PartRequestState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -59,8 +57,6 @@ class _$PartRequestStateCopyWithImpl<$Res, $Val extends PartRequestState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -104,8 +100,6 @@ class _$PartRequestStateCopyWithImpl<$Res, $Val extends PartRequestState>
     ) as $Val);
   }
 
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PartRequestCopyWith<$Res>? get selectedRequest {
@@ -148,8 +142,6 @@ class __$$PartRequestStateImplCopyWithImpl<$Res>
       $Res Function(_$PartRequestStateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -275,9 +267,7 @@ class _$PartRequestStateImpl implements _PartRequestState {
       error,
       selectedRequest);
 
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PartRequestStateImplCopyWith<_$PartRequestStateImpl> get copyWith =>
@@ -309,11 +299,8 @@ abstract class _PartRequestState implements PartRequestState {
   String? get error;
   @override
   PartRequest? get selectedRequest;
-
-  /// Create a copy of PartRequestState
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PartRequestStateImplCopyWith<_$PartRequestStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

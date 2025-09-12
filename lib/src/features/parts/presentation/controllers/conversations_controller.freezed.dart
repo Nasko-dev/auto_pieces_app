@@ -26,9 +26,7 @@ mixin _$ConversationsState {
   String? get activeConversationId => throw _privateConstructorUsedError;
   int get totalUnreadCount => throw _privateConstructorUsedError;
 
-  /// Create a copy of ConversationsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ConversationsStateCopyWith<ConversationsState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -60,8 +58,6 @@ class _$ConversationsStateCopyWithImpl<$Res, $Val extends ConversationsState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ConversationsState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -138,8 +134,6 @@ class __$$ConversationsStateImplCopyWithImpl<$Res>
       $Res Function(_$ConversationsStateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ConversationsState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -279,9 +273,7 @@ class _$ConversationsStateImpl implements _ConversationsState {
       activeConversationId,
       totalUnreadCount);
 
-  /// Create a copy of ConversationsState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ConversationsStateImplCopyWith<_$ConversationsStateImpl> get copyWith =>
@@ -316,11 +308,8 @@ abstract class _ConversationsState implements ConversationsState {
   String? get activeConversationId;
   @override
   int get totalUnreadCount;
-
-  /// Create a copy of ConversationsState
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ConversationsStateImplCopyWith<_$ConversationsStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

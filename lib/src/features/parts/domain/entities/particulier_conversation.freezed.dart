@@ -34,9 +34,7 @@ mixin _$ParticulierConversation {
   List<String>? get partNames => throw _privateConstructorUsedError;
   bool? get hasNewMessages => throw _privateConstructorUsedError;
 
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ParticulierConversationCopyWith<ParticulierConversation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -80,8 +78,6 @@ class _$ParticulierConversationCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -175,8 +171,6 @@ class _$ParticulierConversationCopyWithImpl<$Res,
     ) as $Val);
   }
 
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PartRequestCopyWith<$Res> get partRequest {
@@ -228,8 +222,6 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
       $Res Function(_$ParticulierConversationImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -464,9 +456,7 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
       const DeepCollectionEquality().hash(_partNames),
       hasNewMessages);
 
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ParticulierConversationImplCopyWith<_$ParticulierConversationImpl>
@@ -528,11 +518,8 @@ abstract class _ParticulierConversation implements ParticulierConversation {
   List<String>? get partNames;
   @override
   bool? get hasNewMessages;
-
-  /// Create a copy of ParticulierConversation
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ParticulierConversationImplCopyWith<_$ParticulierConversationImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
