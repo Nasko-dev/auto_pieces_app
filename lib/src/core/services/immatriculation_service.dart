@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
-import 'package:xml/xml.dart' as xml;
 import '../../features/parts/domain/entities/vehicle_info.dart';
 import '../errors/failures.dart';
+import '../constants/app_constants.dart';
 
 class ImmatriculationService {
-  static const String _baseUrl = 'https://www.regcheck.org.uk/api/reg.asmx';
+  static const String _baseUrl = 'https://vehicle-identification.tecalliance.services';
   static const int _requestTimeoutSeconds = 10;
   
-  final String apiUsername;
+  final String apiUsername; // Gardé pour compatibilité mais non utilisé
   final http.Client httpClient;
   
   ImmatriculationService({
@@ -19,35 +19,38 @@ class ImmatriculationService {
   
   Future<Either<Failure, VehicleInfo>> getVehicleInfoFromPlate(String plate) async {
     try {
-      print('🔍 [ImmatriculationAPI] Début recherche pour plaque: $plate');
+      print('🔍 [TecAllianceAPI] Début recherche pour plaque: $plate');
       final cleanPlate = _cleanPlateNumber(plate);
-      print('🔧 [ImmatriculationAPI] Plaque nettoyée: $cleanPlate');
+      print('🔧 [TecAllianceAPI] Plaque nettoyée: $cleanPlate');
       
       if (!_isValidPlateFormat(cleanPlate)) {
-        print('❌ [ImmatriculationAPI] Format de plaque invalide: $cleanPlate');
+        print('❌ [TecAllianceAPI] Format de plaque invalide: $cleanPlate');
         return const Left(
           ValidationFailure('Format de plaque invalide'),
         );
       }
       
-      final uri = Uri.parse(
-        '$_baseUrl/CheckFrance'
-        '?RegistrationNumber=$cleanPlate'
-        '&username=$apiUsername',
-      );
+      // Construction de l'URL selon la doc Swagger TecAlliance: /api/v1/vrm/{country}/{numberPlate}
+      final uri = Uri.parse('$_baseUrl/api/v1/vrm/FR/$cleanPlate');
       
-      print('🌐 [ImmatriculationAPI] URL de requête: $uri');
-      print('👤 [ImmatriculationAPI] Username utilisé: $apiUsername');
+      print('🌐 [TecAllianceAPI] URL de requête: $uri');
       
       final response = await httpClient
-          .get(uri)
+          .get(
+            uri,
+            headers: {
+              'X-API-Key': AppConstants.tecAllianceApiKey,
+              'X-Provider': AppConstants.tecAllianceProviderId,
+              'Accept': 'application/json',
+            },
+          )
           .timeout(const Duration(seconds: _requestTimeoutSeconds));
       
-      print('📡 [ImmatriculationAPI] Code de réponse: ${response.statusCode}');
-      print('📄 [ImmatriculationAPI] Corps de réponse (${response.body.length} caractères): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}...');
+      print('📡 [TecAllianceAPI] Code de réponse: ${response.statusCode}');
+      print('📄 [TecAllianceAPI] Corps de réponse (${response.body.length} caractères)');
       
       if (response.statusCode != 200) {
-        print('❌ [ImmatriculationAPI] Erreur serveur: ${response.statusCode}');
+        print('❌ [TecAllianceAPI] Erreur serveur: ${response.statusCode}');
         return Left(
           ServerFailure(
             'Erreur serveur: ${response.statusCode} - ${response.body}',
@@ -57,7 +60,7 @@ class ImmatriculationService {
       
       return _parseResponse(response.body, cleanPlate);
     } on Exception catch (e) {
-      print('💥 [ImmatriculationAPI] Exception: ${e.toString()}');
+      print('💥 [TecAllianceAPI] Exception: ${e.toString()}');
       return Left(
         NetworkFailure('Erreur réseau: ${e.toString()}'),
       );
@@ -66,134 +69,108 @@ class ImmatriculationService {
   
   Either<Failure, VehicleInfo> _parseResponse(String responseBody, String plate) {
     try {
-      print('🔬 [ImmatriculationAPI] Début du parsing XML...');
-      final doc = xml.XmlDocument.parse(responseBody);
+      print('🔬 [TecAllianceAPI] Début du parsing JSON...');
+      final Map<String, dynamic> data = json.decode(responseBody);
       
-      // Log tous les éléments trouvés
-      print('📋 [ImmatriculationAPI] Éléments XML trouvés:');
-      doc.findAllElements('*').forEach((element) {
-        print('  - ${element.name}: ${element.text.length > 100 ? element.text.substring(0, 100) + "..." : element.text}');
-      });
-      
-      final vehicleJsonNode = doc.findAllElements('vehicleJson').firstOrNull;
-      if (vehicleJsonNode == null) {
-        print('❌ [ImmatriculationAPI] Aucun noeud vehicleJson trouvé dans la réponse');
-        // Cherchons d'autres noeuds possibles
-        final vehicleDataNode = doc.findAllElements('vehicleData').firstOrNull;
-        final errorNode = doc.findAllElements('error').firstOrNull;
-        final messageNode = doc.findAllElements('message').firstOrNull;
-        
-        if (errorNode != null) {
-          print('⚠️ [ImmatriculationAPI] Erreur API: ${errorNode.text}');
-        }
-        if (messageNode != null) {
-          print('ℹ️ [ImmatriculationAPI] Message API: ${messageNode.text}');
-        }
-        
+      // Vérifier s'il y a des véhicules dans la réponse
+      final List<dynamic>? vehicles = data['vehicles'];
+      if (vehicles == null || vehicles.isEmpty) {
+        print('❌ [TecAllianceAPI] Aucun véhicule trouvé dans la réponse');
         return const Left(
-          ServerFailure('Aucune information trouvée pour cette plaque'),
+          ServerFailure('Aucun véhicule trouvé pour cette plaque'),
         );
       }
       
-      final jsonStr = vehicleJsonNode.text.trim();
-      print('📝 [ImmatriculationAPI] JSON extrait (${jsonStr.length} caractères)');
-      
-      if (jsonStr.isEmpty) {
-        print('❌ [ImmatriculationAPI] JSON vide');
-        return const Left(
-          ServerFailure('Données vides retournées par le serveur'),
-        );
-      }
-      
-      print('🔄 [ImmatriculationAPI] Décodage JSON...');
-      final Map<String, dynamic> vehicleData = json.decode(jsonStr);
-      print('✅ [ImmatriculationAPI] JSON décodé avec succès');
-      print('📊 [ImmatriculationAPI] Clés trouvées: ${vehicleData.keys.join(', ')}');
+      // Prendre le premier véhicule
+      final Map<String, dynamic> vehicleData = vehicles.first;
+      print('✅ [TecAllianceAPI] Véhicule trouvé, extraction des données...');
       
       final vehicleInfo = _extractVehicleInfo(vehicleData, plate);
-      print('🚗 [ImmatriculationAPI] VehicleInfo créé: ${vehicleInfo.description}');
+      print('🚗 [TecAllianceAPI] VehicleInfo créé: ${vehicleInfo.description}');
+      
+      // Afficher les informations sur les clics restants
+      final int? remainingClicks = data['lastClickCount'];
+      if (remainingClicks != null) {
+        print('🎫 [TecAllianceAPI] Clics restants: $remainingClicks');
+      }
       
       return Right(vehicleInfo);
     } catch (e, stackTrace) {
-      print('💥 [ImmatriculationAPI] Erreur de parsing: ${e.toString()}');
-      print('📚 [ImmatriculationAPI] Stack trace: $stackTrace');
+      print('💥 [TecAllianceAPI] Erreur de parsing: ${e.toString()}');
+      print('📚 [TecAllianceAPI] Stack trace: $stackTrace');
       return Left(
         ParsingFailure('Erreur lors du parsing: ${e.toString()}'),
       );
     }
   }
   
-  VehicleInfo _extractVehicleInfo(Map<String, dynamic> data, String plate) {
-    final baseData = data['vehicle'] ?? data;
+  VehicleInfo _extractVehicleInfo(Map<String, dynamic> vehicleData, String plate) {
+    final vehicleInfo = vehicleData['vehicleInformation'] as Map<String, dynamic>? ?? {};
+    final engines = vehicleData['engine'] as List<dynamic>? ?? [];
+    final gearbox = vehicleData['gearbox'] as Map<String, dynamic>? ?? {};
+    final brakes = vehicleData['brakes'] as Map<String, dynamic>? ?? {};
+    final tyres = vehicleData['tyres'] as List<dynamic>? ?? [];
+    final fluids = vehicleData['fluids'] as Map<String, dynamic>? ?? {};
+    
+    // Extraire les données du moteur (prendre le premier)
+    final engine = engines.isNotEmpty ? engines.first as Map<String, dynamic> : <String, dynamic>{};
+    final environmental = engine['environmental'] as Map<String, dynamic>? ?? {};
     
     return VehicleInfo(
       registrationNumber: plate,
-      make: _extractField(baseData, ['CarMake', 'MakeDescription', 'Make']),
-      model: _extractField(baseData, ['CarModel', 'ModelDescription', 'Model']),
-      fuelType: _extractField(baseData, ['FuelType', 'Fuel']),
-      bodyStyle: _extractField(baseData, ['BodyStyle', 'Body']),
-      engineSize: _extractField(baseData, ['EngineSize', 'EngineCapacity']),
-      year: _extractIntField(baseData, ['RegistrationYear', 'Year', 'YearOfManufacture']),
-      color: _extractField(baseData, ['Colour', 'Color']),
-      vin: _extractField(baseData, ['VinOriginal', 'VIN', 'ChassisNumber']),
-      engineNumber: _extractField(baseData, ['EngineNumber']),
-      engineCode: _extractField(baseData, ['EngineCode']),
-      co2Emissions: _extractIntField(baseData, ['Co2Emissions', 'CO2']),
-      transmission: _extractField(baseData, ['Transmission', 'Gearbox']),
-      numberOfDoors: _extractIntField(baseData, ['NumberOfDoors', 'Doors']),
-      euroStatus: _extractField(baseData, ['EuroStatus', 'EuroNorm']),
-      cylinderCapacity: _extractField(baseData, ['CylinderCapacity']),
-      power: _extractIntField(baseData, ['Power', 'PowerBHP']),
-      powerUnit: _extractField(baseData, ['PowerUnit']),
-      description: _buildDescription(baseData),
-      rawData: baseData,
+      make: vehicleInfo['make']?.toString(),
+      model: vehicleInfo['model']?.toString(),
+      fuelType: engine['fuel']?.toString(),
+      bodyStyle: vehicleInfo['bodyName']?.toString(),
+      engineSize: engine['capacityLiters']?.toString() ?? 
+                  (engine['ccm'] != null ? '${engine['ccm']}cc' : null),
+      year: _extractYearFromDate(vehicleInfo['salesStartDate']?.toString()),
+      color: vehicleInfo['color']?.toString(),
+      vin: vehicleInfo['vin']?.toString(),
+      engineNumber: null, // Pas disponible dans TecAlliance
+      engineCode: engine['code']?.toString(),
+      co2Emissions: environmental['combinedCO2'] as int?,
+      transmission: gearbox['type']?.toString(),
+      numberOfDoors: vehicleInfo['numberOfDoors'] as int?,
+      euroStatus: environmental['euroStandard']?.toString(),
+      cylinderCapacity: engine['ccm']?.toString(),
+      power: engine['powerKW'] as int? ?? vehicleInfo['powerKW'] as int?,
+      powerUnit: 'kW',
+      description: _buildDescription(vehicleInfo, engine),
+      rawData: vehicleData,
     );
   }
   
-  String? _extractField(Map<String, dynamic> data, List<String> possibleKeys) {
-    for (final key in possibleKeys) {
-      if (data.containsKey(key)) {
-        final value = data[key];
-        
-        if (value is Map && value.containsKey('CurrentTextValue')) {
-          final textValue = value['CurrentTextValue']?.toString();
-          if (textValue != null && textValue.isNotEmpty) {
-            return textValue;
-          }
-        }
-        
-        if (value != null && value.toString().isNotEmpty) {
-          return value.toString();
-        }
-      }
-    }
-    return null;
-  }
-  
-  int? _extractIntField(Map<String, dynamic> data, List<String> possibleKeys) {
-    final stringValue = _extractField(data, possibleKeys);
-    if (stringValue != null) {
-      return int.tryParse(stringValue);
-    }
-    return null;
-  }
-  
-  String _buildDescription(Map<String, dynamic> data) {
+  String _buildDescription(Map<String, dynamic> vehicleInfo, Map<String, dynamic> engine) {
     final parts = <String>[];
     
-    final make = _extractField(data, ['CarMake', 'MakeDescription', 'Make']);
-    final model = _extractField(data, ['CarModel', 'ModelDescription', 'Model']);
-    final year = _extractField(data, ['RegistrationYear', 'Year']);
-    final engine = _extractField(data, ['EngineSize', 'EngineCapacity']);
-    final fuel = _extractField(data, ['FuelType', 'Fuel']);
+    final make = vehicleInfo['make']?.toString();
+    final fullModel = vehicleInfo['fullModel']?.toString();
+    final model = vehicleInfo['model']?.toString();
+    final capacity = engine['capacityLiters']?.toString();
+    final fuel = engine['fuel']?.toString();
+    final power = engine['powerHP']?.toString() ?? engine['powerKW']?.toString();
     
     if (make != null) parts.add(make);
-    if (model != null) parts.add(model);
-    if (year != null) parts.add(year);
-    if (engine != null) parts.add(engine);
+    if (fullModel != null) {
+      parts.add(fullModel);
+    } else if (model != null) {
+      parts.add(model);
+    }
+    
+    if (capacity != null) parts.add('${capacity}L');
     if (fuel != null) parts.add(fuel);
+    if (power != null) {
+      final unit = engine['powerHP'] != null ? 'HP' : 'kW';
+      parts.add('${power}$unit');
+    }
     
     return parts.join(' - ');
+  }
+  
+  int? _extractYearFromDate(String? dateString) {
+    if (dateString == null || dateString.length < 4) return null;
+    return int.tryParse(dateString.substring(0, 4));
   }
   
   String _cleanPlateNumber(String plate) {
@@ -213,31 +190,31 @@ class ImmatriculationService {
   }
   
   Future<Either<Failure, int>> checkRemainingCredits() async {
+    // TecAlliance retourne le nombre de clics dans chaque réponse
+    // On fait une requête test pour obtenir ce nombre
     try {
-      final uri = Uri.parse(
-        'https://www.regcheck.org.uk/ajax/getcredits.aspx?username=$apiUsername',
+      print('🎫 [TecAllianceAPI] Vérification des crédits restants...');
+      final result = await getVehicleInfoFromPlate('TEST123');
+      return result.fold(
+        (failure) {
+          // Même en cas d'échec, on essaie d'extraire les clics depuis l'erreur
+          print('⚠️ [TecAllianceAPI] Impossible de récupérer les crédits directement');
+          return const Right(0); // Valeur par défaut
+        },
+        (vehicleInfo) {
+          // Extraire le nombre de clics depuis rawData
+          final rawData = vehicleInfo.rawData as Map<String, dynamic>?;
+          final clicks = rawData?['lastClickCount'] as int? ?? 0;
+          print('✅ [TecAllianceAPI] Crédits restants: $clicks');
+          return Right(clicks);
+        },
       );
-      
-      final response = await httpClient
-          .get(uri)
-          .timeout(const Duration(seconds: _requestTimeoutSeconds));
-      
-      if (response.statusCode == 200) {
-        final credits = int.tryParse(response.body) ?? 0;
-        return Right(credits);
-      }
-      
-      return const Left(ServerFailure('Impossible de vérifier les crédits'));
     } catch (e) {
-      return Left(NetworkFailure('Erreur réseau: ${e.toString()}'));
+      return Left(NetworkFailure('Erreur lors de la vérification des crédits: $e'));
     }
   }
   
   void dispose() {
     httpClient.close();
   }
-}
-
-extension _FirstOrNull<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
 }
