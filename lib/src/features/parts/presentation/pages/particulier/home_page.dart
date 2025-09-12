@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
-import '../../../../../core/constants/car_parts_list.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
+
+// Provider pour le client Supabase
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -522,12 +527,53 @@ class _HomePageState extends ConsumerState<HomePage> {
     return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
   }
 
-  void _onTextChanged() {
+  void _onTextChanged() async {
     final query = _partController.text;
-    setState(() {
-      _suggestions = CarPartsList.searchParts(query);
-      _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
-    });
+    
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    // Déterminer la catégorie selon le type sélectionné
+    String? categoryFilter;
+    if (_selectedType == 'engine') {
+      categoryFilter = 'moteur';
+    } else if (_selectedType == 'body') {
+      categoryFilter = 'interieur'; // Pour les pièces carrosserie/intérieur
+    }
+
+    try {
+      // Recherche dans la base de données avec catégorie
+      final response = await ref.read(supabaseClientProvider).rpc('search_parts', params: {
+        'search_query': query,
+        'filter_category': categoryFilter,
+        'limit_results': 8,
+      });
+
+      if (response != null && mounted) {
+        final parts = (response as List)
+            .map((data) => data['name'] as String)
+            .take(8)
+            .toList();
+
+        setState(() {
+          _suggestions = parts;
+          _showSuggestions = parts.isNotEmpty && _focusNode.hasFocus;
+        });
+      }
+    } catch (e) {
+      // En cas d'erreur, on affiche une liste vide
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+      }
+    }
   }
 
   void _onFocusChanged() {
