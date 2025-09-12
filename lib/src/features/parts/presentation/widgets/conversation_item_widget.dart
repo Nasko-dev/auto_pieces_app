@@ -227,12 +227,13 @@ class ConversationItemWidget extends ConsumerWidget {
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final localTimestamp = timestamp.toLocal(); // Conversion UTC vers heure locale
+    final difference = now.difference(localTimestamp);
 
     if (difference.inDays > 0) {
       if (difference.inDays == 1) return 'Hier';
       if (difference.inDays < 7) return '${difference.inDays}j';
-      return '${timestamp.day}/${timestamp.month}';
+      return '${localTimestamp.day}/${localTimestamp.month}';
     }
     
     if (difference.inHours > 0) {

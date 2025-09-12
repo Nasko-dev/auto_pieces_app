@@ -215,6 +215,7 @@ class MessageBubbleWidget extends StatelessWidget {
   }
 
   String _formatTime(DateTime timestamp) {
-    return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+    final localTime = timestamp.toLocal(); // Conversion UTC vers heure locale du téléphone
+    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
   }
 }

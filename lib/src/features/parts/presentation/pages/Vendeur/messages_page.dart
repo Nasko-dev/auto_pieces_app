@@ -143,7 +143,8 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     if (dateTime == null) return '2h';
 
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final localDateTime = dateTime.toLocal(); // Conversion UTC vers heure locale
+    final difference = now.difference(localDateTime);
 
     if (difference.inDays > 0) {
       return '${difference.inDays}j';
