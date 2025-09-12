@@ -21,10 +21,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Testing and Quality
 - `flutter test` - Run all tests
+- `flutter test test/src/core/services/` - Run service tests only
+- `flutter test test/src/features/` - Run feature tests only
 - `flutter analyze` - Run static analysis (linting)
 - `dart format .` - Format all Dart code
 - `flutter pub get` - Install dependencies
 - `flutter pub upgrade` - Upgrade dependencies
+
+### Automated Testing Strategy
+- **Unit Tests**: All services and controllers must have comprehensive tests
+- **Widget Tests**: Critical UI components should have interaction tests
+- **Integration Tests**: End-to-end user flows for core features
+- **Test Coverage**: Aim for >80% coverage on business logic
+- **CI/CD**: Tests run automatically on code changes
 
 ### Build Commands
 - `flutter build apk` - Build Android APK
@@ -84,6 +93,7 @@ lib/src/
 - **Navigation**: Use `context.go()` for navigation, avoid `Navigator.push`
 - **Async**: Always handle loading/error states in UI
 - **Testing**: Write tests for use cases, repositories, and controllers
+- **App Launch**: NEVER use `flutter run` commands - only the user should launch the app
 
 ## Development Guidelines
 
@@ -106,3 +116,23 @@ lib/src/
 - Follow Supabase security best practices
 
 See `PROGRESS.md` for current development status and next steps.
+
+## Claude Code Instructions
+
+### Communication Rules
+- **Language**: Always communicate ONLY in French
+- **Role**: Act as a Senior Developer with expertise in Flutter, Dart, and Clean Architecture
+- **Tone**: Professional, concise, and technical
+
+### Git Workflow
+- **Automatic Commits**: When user confirms a task is complete, automatically commit and push to GitHub
+- **Commit Author**: All commits must be authored as "William Le Gall" only
+- **NO Claude References**: Never include "Claude", "AI", "Assistant" or any Claude-related references in commit messages
+- **Commit Message Format**: Use conventional commits (feat:, fix:, refactor:, etc.) with clear, professional descriptions
+
+### Development Behavior
+- Act proactively as a senior developer would
+- Make architectural decisions based on best practices
+- Optimize code for production without being asked
+- Anticipate potential issues and address them preemptively
+- Focus on performance, scalability, and maintainability
