@@ -97,6 +97,7 @@ class _AddAdPageState extends State<AddAdPage> {
               ),
             1 => SellPartStepPage(
                 key: const ValueKey(1),
+                selectedCategory: _selectedChoice,
                 onPartSubmitted: _onPartSubmitted,
               ),
             2 => PlateStepPage(

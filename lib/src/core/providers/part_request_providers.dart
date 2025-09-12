@@ -7,7 +7,6 @@ import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/usecases/create_part_request.dart';
 import '../../features/parts/domain/usecases/get_user_part_requests.dart';
 import '../../features/parts/domain/usecases/get_part_request_responses.dart';
-import 'providers.dart';
 
 // ========================================
 // DataSources
