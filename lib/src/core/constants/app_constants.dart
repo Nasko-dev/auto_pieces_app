@@ -10,11 +10,16 @@ class AppConstants {
   // API Endpoints
   static const String baseUrl = 'https://api.example.com';
 
-  // Immatriculation API Configuration
+  // Immatriculation API Configuration - LEGACY (RegCheck)
   static const String immatriculationApiUsername =
       'Moïse134'; // À remplacer par votre username
   static const bool immatriculationApiEnabled =
-      true; // Pour activer/désactiver l'API en production
+      false; // Désactivé - remplacé par TecAlliance
+  
+  // TecAlliance API Configuration
+  static const String tecAllianceProviderId = '25200';
+  static const String tecAllianceApiKey = '2BeBXg6RC5myrQufHsxH8BsjG4BuhvU2Z1zn9fBukD4argoKAzJC';
+  static const bool tecAllianceApiEnabled = true;
 
   // Storage Keys
   static const String userTokenKey = 'user_token';
