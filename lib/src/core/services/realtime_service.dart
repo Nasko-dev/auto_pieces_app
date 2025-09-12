@@ -41,8 +41,11 @@ class RealtimeService {
             event: PostgresChangeEvent.insert,
             schema: 'public',
             table: 'messages',
-            filter: 'conversation_id=eq.$conversationId',
             callback: (payload) {
+              // Vérifier manuellement que c'est pour notre conversation
+              if (payload.newRecord?['conversation_id'] != conversationId) {
+                return;
+              }
               print('🎉 [Realtime] *** NOUVEAU MESSAGE REÇU *** ');
               print('🔍 [Realtime] Conversation: $conversationId');
               print('🔍 [Realtime] Message ID: ${payload.newRecord?['id']}');
@@ -59,6 +62,10 @@ class RealtimeService {
             schema: 'public',
             table: 'messages',
             callback: (payload) {
+              // Vérifier manuellement que c'est pour notre conversation
+              if (payload.newRecord?['conversation_id'] != conversationId) {
+                return;
+              }
               print('📝 [Realtime] Message mis à jour: ${payload.newRecord}');
               _messageStreamController.add({
                 'type': 'update',
@@ -100,8 +107,11 @@ class RealtimeService {
             event: PostgresChangeEvent.insert,
             schema: 'public',
             table: 'conversations',
-            filter: 'user_id=eq.$userId',
             callback: (payload) {
+              // Vérifier manuellement que c'est pour notre utilisateur
+              if (payload.newRecord?['user_id'] != userId) {
+                return;
+              }
               print('💬 [Realtime] Nouvelle conversation pour user $userId');
               _conversationStreamController.add({
                 'type': 'insert',
@@ -115,6 +125,10 @@ class RealtimeService {
             schema: 'public',
             table: 'conversations',
             callback: (payload) {
+              // Vérifier manuellement que c'est pour notre utilisateur
+              if (payload.newRecord?['user_id'] != userId) {
+                return;
+              }
               print('🔄 [Realtime] Conversation mise à jour: ${payload.newRecord}');
               _conversationStreamController.add({
                 'type': 'update',

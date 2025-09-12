@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
@@ -9,7 +10,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
-import 'conversation_detail_page.dart';
+import '../../../data/datasources/conversations_remote_datasource.dart';
 
 class HomeSellerPage extends ConsumerStatefulWidget {
   const HomeSellerPage({super.key});
@@ -597,13 +598,75 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     );
   }
 
-  void _acceptAndRespond(BuildContext context, PartRequest partRequest) {
-    // TODO: Créer une conversation et y amener le vendeur pour répondre
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonction répondre en cours de développement')),
-    );
-    // Rafraîchir les notifications
-    ref.read(sellerDashboardControllerProvider.notifier).refresh();
+  void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
+    try {
+      // Récupérer l'ID du vendeur connecté
+      final sellerId = Supabase.instance.client.auth.currentUser?.id;
+      if (sellerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur : Vendeur non connecté'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Récupérer les informations du vendeur (nom par défaut pour l'instant)
+      String sellerName = 'Vendeur';
+      String? sellerCompany;
+      
+      // TODO: Récupérer les vraies infos du vendeur depuis le provider
+      // Utiliser un nom par défaut pour l'instant
+      try {
+        // Ici on pourrait récupérer les infos depuis un provider ou la DB
+        sellerName = 'Vendeur Professionnel';
+      } catch (e) {
+        print('⚠️ [HomeSellerPage] Impossible de récupérer les infos vendeur: $e');
+      }
+
+      // Créer ou récupérer la conversation
+      print('🚀 [HomeSellerPage] Création conversation pour request: ${partRequest.id}');
+      
+      final dataSource = ConversationsRemoteDataSourceImpl(
+        supabaseClient: Supabase.instance.client,
+      );
+
+      // Vérifier que l'on a bien l'ID du particulier
+      if (partRequest.userId == null) {
+        throw Exception('ID utilisateur manquant dans la demande');
+      }
+
+      final conversation = await dataSource.createOrGetConversation(
+        requestId: partRequest.id,
+        userId: partRequest.userId!, // L'ID du particulier qui a fait la demande
+        sellerId: sellerId,
+        sellerName: sellerName,
+        sellerCompany: sellerCompany,
+        requestTitle: partRequest.partNames.join(', '),
+      );
+
+      print('✅ [HomeSellerPage] Conversation créée/récupérée: ${conversation.id}');
+
+      // Naviguer vers la conversation
+      if (mounted) {
+        context.push('/seller/conversation/${conversation.id}');
+      }
+
+      // Rafraîchir les notifications
+      ref.read(sellerDashboardControllerProvider.notifier).refresh();
+      
+    } catch (e) {
+      print('❌ [HomeSellerPage] Erreur création conversation: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur : ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _rejectRequest(BuildContext context, PartRequest partRequest) {

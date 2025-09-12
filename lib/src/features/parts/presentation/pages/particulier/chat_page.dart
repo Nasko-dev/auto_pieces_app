@@ -109,8 +109,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         return MessageType.text;
       case 'offer':
         return MessageType.offer;
-      case 'system':
-        return MessageType.system;
+      case 'image':
+        return MessageType.image;
       default:
         return MessageType.text;
     }

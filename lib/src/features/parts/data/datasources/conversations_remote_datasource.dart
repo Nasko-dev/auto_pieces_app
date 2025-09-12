@@ -32,6 +32,14 @@ abstract class ConversationsRemoteDataSource {
   Future<void> blockConversation({required String conversationId});
   Stream<Message> subscribeToNewMessages({required String conversationId});
   Stream<Conversation> subscribeToConversationUpdates({required String userId});
+  Future<Conversation> createOrGetConversation({
+    required String requestId,
+    required String userId,
+    required String sellerId,
+    required String sellerName,
+    String? sellerCompany,
+    required String requestTitle,
+  });
 }
 
 class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource {
@@ -563,6 +571,82 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return MessageType.offer;
       default:
         return MessageType.text;
+    }
+  }
+
+  @override
+  Future<Conversation> createOrGetConversation({
+    required String requestId,
+    required String userId,
+    required String sellerId,
+    required String sellerName,
+    String? sellerCompany,
+    required String requestTitle,
+  }) async {
+    print('🔍 [Datasource] Vérification conversation existante pour request: $requestId');
+    
+    try {
+      // 1. Vérifier si une conversation existe déjà pour cette demande spécifique
+      final existingConversations = await _supabaseClient
+          .from('conversations')
+          .select('''
+            id,
+            request_id,
+            user_id,
+            seller_id,
+            status,
+            last_message_at,
+            created_at,
+            updated_at,
+            seller_name,
+            seller_company,
+            request_title,
+            last_message_content,
+            last_message_sender_type,
+            last_message_created_at,
+            unread_count,
+            total_messages
+          ''')
+          .eq('request_id', requestId)
+          .eq('user_id', userId)
+          .eq('seller_id', sellerId);
+
+      if (existingConversations.isNotEmpty) {
+        print('✅ [Datasource] Conversation existante trouvée');
+        return Conversation.fromJson(_mapSupabaseToConversation(existingConversations.first));
+      }
+
+      // 2. Créer une nouvelle conversation pour cette demande
+      print('📝 [Datasource] Création nouvelle conversation pour request: $requestId');
+      
+      final newConversation = {
+        'request_id': requestId,
+        'user_id': userId,
+        'seller_id': sellerId,
+        'status': 'active',
+        'seller_name': sellerName,
+        'seller_company': sellerCompany,
+        'request_title': requestTitle,
+        'last_message_at': DateTime.now().toIso8601String(),
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'unread_count': 0,
+        'total_messages': 0,
+      };
+
+      final response = await _supabaseClient
+          .from('conversations')
+          .insert(newConversation)
+          .select()
+          .single();
+
+      print('✅ [Datasource] Nouvelle conversation créée: ${response['id']}');
+      
+      return Conversation.fromJson(_mapSupabaseToConversation(response));
+      
+    } catch (e) {
+      print('❌ [Datasource] Erreur création/récupération conversation: $e');
+      throw ServerException('Erreur lors de la création de la conversation: $e');
     }
   }
 }
