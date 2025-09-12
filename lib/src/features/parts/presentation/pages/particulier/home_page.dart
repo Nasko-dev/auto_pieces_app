@@ -567,11 +567,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         });
       }
     } catch (e) {
-      // Fallback sur la liste locale en cas d'erreur
-      setState(() {
-        _suggestions = CarPartsList.searchParts(query);
-        _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
-      });
+      // En cas d'erreur, on affiche une liste vide
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+      }
+      print('Erreur recherche BDD: $e');
     }
   }
 

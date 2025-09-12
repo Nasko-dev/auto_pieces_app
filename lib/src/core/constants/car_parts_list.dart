@@ -1,52 +1,6 @@
 class CarPartsList {
   static const List<String> allParts = [
     // Moteur
-    'Moteur',
-    'Bloc moteur',
-    'Culasse',
-    'Vilebrequin',
-    'Bielles',
-    'Pistons',
-    'Segments',
-    'Soupapes',
-    'Arbre à cames',
-    'Courroie de distribution',
-    'Chaîne de distribution',
-    'Pompe à eau',
-    'Thermostat',
-    'Radiateur',
-    'Ventilateur de refroidissement',
-    'Durite de refroidissement',
-    'Réservoir expansion',
-    'Pompe à huile',
-    'Carter d\'huile',
-    'Joint de culasse',
-    'Joint d\'étanchéité',
-    'Filtre à huile',
-    'Filtre à air',
-    'Filtre à carburant',
-    'Injecteur',
-    'Pompe à injection',
-    'Turbocompresseur',
-    'Compresseur',
-    'Intercooler',
-    'Collecteur d\'admission',
-    'Collecteur d\'échappement',
-    'Catalyseur',
-    'Pot d\'échappement',
-    'Silencieux',
-    'Ligne d\'échappement',
-    'Sonde lambda',
-    'Bobine d\'allumage',
-    'Bougie d\'allumage',
-    'Bougie de préchauffage',
-    'Alternateur',
-    'Démarreur',
-    'Batterie',
-    'Courroie accessoire',
-    'Poulie',
-    'Galet tendeur',
-    'Support moteur',
 
     // Transmission
     'Boîte de vitesses',
@@ -251,7 +205,7 @@ class CarPartsList {
 
   static List<String> searchParts(String query) {
     if (query.isEmpty) return [];
-    
+
     final lowercaseQuery = query.toLowerCase();
     return allParts
         .where((part) => part.toLowerCase().contains(lowercaseQuery))
