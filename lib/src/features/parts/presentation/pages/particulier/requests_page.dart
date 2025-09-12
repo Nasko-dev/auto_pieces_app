@@ -42,13 +42,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
         ),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            iconSize: 24,
-            color: AppTheme.primaryBlue,
-            onPressed: () => context.go('/'),
-            tooltip: 'Nouvelle demande',
-          ),
           const AppMenu(),
         ],
       ),
