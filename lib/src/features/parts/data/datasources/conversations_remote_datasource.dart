@@ -286,8 +286,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         'offer_price': offerPrice,
         'offer_availability': offerAvailability,
         'offer_delivery_days': offerDeliveryDays,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        // Laisser Supabase générer les timestamps (UTC) pour éviter les problèmes de fuseau horaire
+        // 'created_at' et 'updated_at' seront générés automatiquement par Supabase
       };
 
       final response = await _supabaseClient
@@ -315,10 +315,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('conversations')
           .update({
             'last_message_content': content,
-            'last_message_at': DateTime.now().toIso8601String(),
+            'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
             'last_message_sender_type': 'user',
-            'last_message_created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
+            'last_message_created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+            'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
       
@@ -341,7 +341,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('messages')
           .update({
             'is_read': true,
-            'read_at': DateTime.now().toIso8601String(),
+            'read_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('conversation_id', conversationId)
           .eq('sender_type', 'seller')
@@ -373,7 +373,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('conversations')
           .update({
             'status': _conversationStatusToString(status),
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
 
@@ -662,9 +662,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         'seller_name': sellerName,
         'seller_company': sellerCompany,
         'request_title': requestTitle,
-        'last_message_at': DateTime.now().toIso8601String(),
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+        'created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+        'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
         'unread_count': 0,
         'total_messages': 0,
       };

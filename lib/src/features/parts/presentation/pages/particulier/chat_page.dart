@@ -25,6 +25,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
+  int _previousMessageCount = 0;
 
   @override
   void initState() {
@@ -36,7 +37,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
       
-      // S'abonner aux messages en temps réel pour cette conversation
+      // S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
     });
   }
@@ -49,71 +50,32 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // S'abonner aux messages de cette conversation spécifique
     realtimeService.subscribeToMessages(widget.conversationId);
     
-    // Écouter les nouveaux messages
-    _messageSubscription = realtimeService.messageStream.listen((event) {
-      if (event['type'] == 'insert' && event['record'] != null) {
-        final messageData = event['record'] as Map<String, dynamic>;
+    // Écouter les nouveaux messages via le stream spécifique à cette conversation
+    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+      (message) {
+        print('🔍 [ChatPage] Message stream reçu - ID: ${message.id}, Conv: ${message.conversationId}');
         
         // Vérifier que c'est bien pour notre conversation
-        if (messageData['conversation_id'] == widget.conversationId) {
-          print('🎆 [ChatPage] Nouveau message reçu en temps réel!');
+        if (message.conversationId == widget.conversationId) {
+          print('🎆 [ChatPage] Message pour notre conversation - Traitement!');
           
-          // Convertir en objet Message
-          final newMessage = Message.fromJson(_mapSupabaseToMessage(messageData));
-          
-          // Ajouter le message à la liste via le controller
+          // Envoyer au controller via la méthode unifiée
           ref.read(conversationsControllerProvider.notifier)
-              .addRealtimeMessage(newMessage);
+              .handleIncomingMessage(message);
           
           // Faire défiler vers le bas
           _scrollToBottom();
+        } else {
+          print('⚠️ [ChatPage] Message pour autre conversation (${message.conversationId} != ${widget.conversationId})');
         }
-      }
-    });
-  }
-  
-  Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {
-    return {
-      'id': json['id'],
-      'conversationId': json['conversation_id'],
-      'senderId': json['sender_id'],
-      'senderType': _parseSenderType(json['sender_type']),
-      'content': json['content'],
-      'messageType': _parseMessageType(json['message_type']),
-      'attachments': json['attachments'] ?? [],
-      'metadata': json['metadata'] ?? {},
-      'isRead': json['is_read'] ?? false,
-      'readAt': json['read_at'] != null ? DateTime.parse(json['read_at']) : null,
-      'createdAt': DateTime.parse(json['created_at']),
-      'updatedAt': DateTime.parse(json['updated_at']),
-      'offerPrice': json['offer_price']?.toDouble(),
-      'offerAvailability': json['offer_availability'],
-      'offerDeliveryDays': json['offer_delivery_days'],
-    };
-  }
-  
-  MessageSenderType _parseSenderType(String? type) {
-    switch (type) {
-      case 'user':
-        return MessageSenderType.user;
-      case 'seller':
-        return MessageSenderType.seller;
-      default:
-        return MessageSenderType.user;
-    }
-  }
-  
-  MessageType _parseMessageType(String? type) {
-    switch (type) {
-      case 'text':
-        return MessageType.text;
-      case 'offer':
-        return MessageType.offer;
-      case 'image':
-        return MessageType.image;
-      default:
-        return MessageType.text;
-    }
+      },
+      onError: (error) {
+        print('❌ [ChatPage] Erreur stream messages: $error');
+      },
+      onDone: () {
+        print('🏁 [ChatPage] Stream messages terminé');
+      },
+    );
   }
   
   void _scrollToBottom() {
@@ -142,6 +104,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isLoadingMessages = ref.watch(isLoadingMessagesProvider);
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
+
+    // Auto-scroll quand de nouveaux messages arrivent
+    if (messages.length > _previousMessageCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+      _previousMessageCount = messages.length;
+    }
 
     // Trouver la conversation pour le titre
     final conversations = ref.watch(conversationsListProvider);

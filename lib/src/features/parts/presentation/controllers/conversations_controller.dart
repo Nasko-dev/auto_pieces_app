@@ -38,8 +38,6 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   final CloseConversation _closeConversation;
   final ConversationsRemoteDataSource _dataSource;
 
-  StreamSubscription? _conversationsSubscription;
-  StreamSubscription? _messagesSubscription;
   Timer? _refreshTimer;
 
   ConversationsController({
@@ -61,87 +59,36 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         _dataSource = dataSource,
         super(const ConversationsState());
 
-  // Initialiser les abonnements realtime
+  // Initialiser le refresh timer uniquement
   void initializeRealtime(String userId) {
-    print('📡 [Controller] Initialisation realtime pour: $userId');
-    _setupConversationsSubscription(userId);
+    print('📡 [Controller] Initialisation refresh timer pour: $userId');
     _startRefreshTimer();
   }
 
-  void _setupConversationsSubscription(String userId) {
-    _conversationsSubscription?.cancel();
+  // Méthode simplifiée pour recevoir des messages du RealtimeService
+  void handleIncomingMessage(Message newMessage) {
+    print('📨 [Controller] Message reçu du RealtimeService: ${newMessage.content}');
     
-    print('🔄 [Controller] Configuration abonnement conversations');
-    _conversationsSubscription = _dataSource
-        .subscribeToConversationUpdates(userId: userId)
-        .listen(
-          (updatedConversation) {
-            print('📨 [Realtime] Conversation mise à jour reçue');
-            _handleConversationUpdate(updatedConversation);
-          },
-          onError: (error) {
-            print('❌ [Realtime] Erreur conversations: $error');
-          },
-        );
-  }
-
-  void _setupMessagesSubscription(String conversationId) {
-    _messagesSubscription?.cancel();
-    
-    print('💬 [Controller] Configuration abonnement messages: $conversationId');
-    _messagesSubscription = _dataSource
-        .subscribeToNewMessages(conversationId: conversationId)
-        .listen(
-          (newMessage) {
-            print('📨 [Realtime] Nouveau message reçu');
-            _handleNewMessage(newMessage);
-          },
-          onError: (error) {
-            print('❌ [Realtime] Erreur messages: $error');
-          },
-        );
-  }
-
-  void _handleConversationUpdate(Conversation updatedConversation) {
-    final currentConversations = state.conversations;
-    final index = currentConversations.indexWhere((c) => c.id == updatedConversation.id);
-    
-    if (index != -1) {
-      final updatedConversations = [...currentConversations];
-      updatedConversations[index] = updatedConversation;
-      
-      state = state.copyWith(conversations: updatedConversations);
-      print('✅ [Controller] Conversation mise à jour dans la liste');
-    } else {
-      // Nouvelle conversation
-      state = state.copyWith(
-        conversations: [updatedConversation, ...currentConversations]
-      );
-      print('✅ [Controller] Nouvelle conversation ajoutée');
-    }
-    
-    _updateUnreadCount();
-  }
-
-  void _handleNewMessage(Message newMessage) {
-    // Mettre à jour les messages de la conversation
     final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
     final conversationMessages = currentMessages[newMessage.conversationId] ?? [];
     
     if (!conversationMessages.any((m) => m.id == newMessage.id)) {
-      currentMessages[newMessage.conversationId] = [...conversationMessages, newMessage];
+      final updatedMessages = [...conversationMessages, newMessage];
+      // Tri par timestamp Supabase (UTC) - fiable car généré côté serveur
+      updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      currentMessages[newMessage.conversationId] = updatedMessages;
       
       state = state.copyWith(conversationMessages: currentMessages);
-      print('✅ [Controller] Nouveau message ajouté à la conversation');
+      print('✅ [Controller] Message ajouté à la conversation');
       
       // Marquer automatiquement comme lu si la conversation est active
       if (state.activeConversationId == newMessage.conversationId && 
           newMessage.senderType == MessageSenderType.seller) {
         _autoMarkAsRead(newMessage.conversationId);
       }
+      
+      _updateUnreadCount();
     }
-    
-    _updateUnreadCount();
   }
 
   void _startRefreshTimer() {
@@ -197,7 +144,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         );
         _updateUnreadCount();
         
-        // Initialiser le realtime après le premier chargement
+        // Initialiser le refresh timer après le premier chargement
         initializeRealtime(userId);
       },
     );
@@ -234,9 +181,6 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           isLoadingMessages: false,
           error: null,
         );
-        
-        // Configuration realtime pour cette conversation
-        _setupMessagesSubscription(conversationId);
         
         // Marquer comme lu automatiquement
         _autoMarkAsRead(conversationId);
@@ -288,52 +232,48 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         );
       },
       (message) {
-        print('✅ [Controller] Message envoyé avec succès');
-        
-        // Ajouter le message à la liste locale
-        final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
-        final currentMessages = updatedMessages[conversationId] ?? [];
-        updatedMessages[conversationId] = [...currentMessages, message];
-        
-        state = state.copyWith(
-          conversationMessages: updatedMessages,
-          isSendingMessage: false,
-          error: null,
-        );
-        
-        // Recharger les conversations pour mettre à jour l'aperçu
-        _refreshConversationsQuietly();
+        try {
+          print('✅ [Controller] Message envoyé avec succès');
+          
+          // Ajouter le message localement pour l'expéditeur immédiatement
+          // Le RealtimeService le recevra aussi mais _handleNewMessage évite la duplication
+          final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
+          final conversationMessages = currentMessages[conversationId] ?? [];
+          
+          if (!conversationMessages.any((m) => m.id == message.id)) {
+            final updatedMessages = [...conversationMessages, message];
+            // Tri par timestamp Supabase (UTC) - fiable car généré côté serveur
+            updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+            currentMessages[conversationId] = updatedMessages;
+            
+            print('🕒 [Controller] Message local timestamp: ${message.createdAt.toIso8601String()}');
+            print('📋 [Controller] Ordre final messages: ${updatedMessages.map((m) => '${m.content.length > 10 ? m.content.substring(0, 10) : m.content}... - ${m.createdAt.toIso8601String()}').join(', ')}');
+            
+            state = state.copyWith(
+              conversationMessages: currentMessages,
+              isSendingMessage: false,
+              error: null,
+            );
+          } else {
+            state = state.copyWith(
+              isSendingMessage: false,
+              error: null,
+            );
+          }
+          
+          // Recharger les conversations pour mettre à jour l'aperçu
+          _refreshConversationsQuietly();
+        } catch (e) {
+          print('❌ [Controller] Erreur lors du traitement local: $e');
+          state = state.copyWith(
+            isSendingMessage: false,
+            error: 'Erreur lors du traitement du message',
+          );
+        }
       },
     );
   }
 
-  // Ajouter un message reçu en temps réel
-  void addRealtimeMessage(Message message) {
-    print('🎉 [Controller] Ajout message realtime: ${message.content}');
-    
-    final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
-    final conversationMessages = currentMessages[message.conversationId] ?? [];
-    
-    // Vérifier que le message n'existe pas déjà
-    if (!conversationMessages.any((m) => m.id == message.id)) {
-      currentMessages[message.conversationId] = [...conversationMessages, message];
-      
-      state = state.copyWith(conversationMessages: currentMessages);
-      print('✅ [Controller] Message realtime ajouté à la conversation');
-      
-      // Marquer automatiquement comme lu si la conversation est active
-      if (state.activeConversationId == message.conversationId && 
-          message.senderType == MessageSenderType.seller) {
-        _autoMarkAsRead(message.conversationId);
-      }
-      
-      // Mettre à jour le compteur de messages non lus
-      _updateUnreadCount();
-      
-      // Rafraîchir les conversations pour mettre à jour l'aperçu
-      _refreshConversationsQuietly();
-    }
-  }
   
   // Marquer comme lu
   Future<void> markAsRead(String conversationId) async {
@@ -493,8 +433,6 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   @override
   void dispose() {
     print('🧹 [Controller] Nettoyage ressources');
-    _conversationsSubscription?.cancel();
-    _messagesSubscription?.cancel();
     _refreshTimer?.cancel();
     super.dispose();
   }

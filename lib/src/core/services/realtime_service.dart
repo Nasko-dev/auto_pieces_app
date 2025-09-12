@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../features/parts/domain/entities/message.dart';
+import '../../features/parts/domain/entities/conversation_enums.dart';
 
 class RealtimeService {
   static final RealtimeService _instance = RealtimeService._internal();
@@ -11,13 +13,49 @@ class RealtimeService {
   RealtimeChannel? _conversationsChannel;
 
   // Streams pour les messages et conversations
-  final StreamController<Map<String, dynamic>> _messageStreamController = 
-      StreamController<Map<String, dynamic>>.broadcast();
+  final Map<String, StreamController<Message>> _messageStreamControllers = {};
   final StreamController<Map<String, dynamic>> _conversationStreamController = 
       StreamController<Map<String, dynamic>>.broadcast();
 
-  Stream<Map<String, dynamic>> get messageStream => _messageStreamController.stream;
+  Stream<Message> get messageStream => throw UnimplementedError('Utiliser getMessageStreamForConversation');
   Stream<Map<String, dynamic>> get conversationStream => _conversationStreamController.stream;
+  
+  // Obtenir le stream pour une conversation spécifique
+  Stream<Message> getMessageStreamForConversation(String conversationId) {
+    if (!_messageStreamControllers.containsKey(conversationId)) {
+      _messageStreamControllers[conversationId] = StreamController<Message>.broadcast();
+    }
+    return _messageStreamControllers[conversationId]!.stream;
+  }
+
+  // Mapper les données Supabase vers Message
+  Message _mapSupabaseToMessage(Map<String, dynamic> json) {
+    return Message.fromJson({
+      'id': json['id'],
+      'conversationId': json['conversation_id'],
+      'senderId': json['sender_id'],
+      'senderType': json['sender_type'],  // Garder la string, Message.fromJson se chargera de la conversion
+      'content': json['content'],
+      'messageType': json['message_type'],  // Garder la string, Message.fromJson se chargera de la conversion
+      'attachments': json['attachments'] ?? [],
+      'metadata': json['metadata'] ?? {},
+      'isRead': json['is_read'] ?? false,
+      'readAt': json['read_at'] != null 
+          ? (json['read_at'] is DateTime 
+              ? (json['read_at'] as DateTime).toIso8601String()
+              : json['read_at'])
+          : null,
+      'createdAt': json['created_at'] is DateTime 
+          ? (json['created_at'] as DateTime).toIso8601String()
+          : json['created_at'],
+      'updatedAt': json['updated_at'] is DateTime 
+          ? (json['updated_at'] as DateTime).toIso8601String()
+          : json['updated_at'],
+      'offerPrice': json['offer_price']?.toDouble(),
+      'offerAvailability': json['offer_availability'],
+      'offerDeliveryDays': json['offer_delivery_days'],
+    });
+  }
 
   /// S'abonner aux changements de messages en temps réel pour une conversation spécifique
   Future<void> subscribeToMessagesForConversation(String? conversationId) async {
@@ -50,11 +88,21 @@ class RealtimeService {
               print('🔍 [Realtime] Conversation: $conversationId');
               print('🔍 [Realtime] Message ID: ${payload.newRecord?['id']}');
               print('🔍 [Realtime] Contenu: ${payload.newRecord?['content']}');
-              _messageStreamController.add({
-                'type': 'insert',
-                'table': 'messages',
-                'record': payload.newRecord,
-              });
+              
+              // Mapper et envoyer le message au stream spécifique
+              try {
+                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                
+                // Envoyer au stream de cette conversation spécifique
+                if (_messageStreamControllers.containsKey(conversationId)) {
+                  _messageStreamControllers[conversationId]!.add(message);
+                  print('📨 [Realtime] Message envoyé au stream conversation $conversationId');
+                } else {
+                  print('⚠️ [Realtime] Aucun listener pour conversation $conversationId');
+                }
+              } catch (e) {
+                print('❌ [Realtime] Erreur mapping message: $e');
+              }
             },
           )
           .onPostgresChanges(
@@ -67,11 +115,18 @@ class RealtimeService {
                 return;
               }
               print('📝 [Realtime] Message mis à jour: ${payload.newRecord}');
-              _messageStreamController.add({
-                'type': 'update',
-                'table': 'messages',
-                'record': payload.newRecord,
-              });
+              // Pour les updates, envoyer aussi au stream spécifique
+              try {
+                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                
+                // Envoyer au stream de cette conversation spécifique
+                if (_messageStreamControllers.containsKey(conversationId)) {
+                  _messageStreamControllers[conversationId]!.add(message);
+                  print('🔄 [Realtime] Message update envoyé au stream conversation $conversationId');
+                }
+              } catch (e) {
+                print('❌ [Realtime] Erreur mapping message update: $e');
+              }
             },
           );
 
@@ -186,8 +241,22 @@ class RealtimeService {
 
   /// Nettoyer les ressources
   void dispose() {
-    _messageStreamController.close();
+    // Fermer tous les stream controllers de conversations
+    for (final controller in _messageStreamControllers.values) {
+      controller.close();
+    }
+    _messageStreamControllers.clear();
+    
     _conversationStreamController.close();
     stopRealtimeSubscriptions();
+  }
+  
+  /// Nettoyer le stream d'une conversation spécifique
+  void disposeConversationStream(String conversationId) {
+    if (_messageStreamControllers.containsKey(conversationId)) {
+      _messageStreamControllers[conversationId]!.close();
+      _messageStreamControllers.remove(conversationId);
+      print('🧹 [Realtime] Stream conversation $conversationId fermé');
+    }
   }
 }
