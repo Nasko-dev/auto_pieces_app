@@ -125,10 +125,42 @@ See `PROGRESS.md` for current development status and next steps.
 - **Tone**: Professional, concise, and technical
 
 ### Git Workflow
-- **Automatic Commits**: When user confirms a task is complete, automatically commit and push to GitHub
-- **Commit Author**: All commits must be authored as "William Le Gall" only
-- **NO Claude References**: Never include "Claude", "AI", "Assistant" or any Claude-related references in commit messages
-- **Commit Message Format**: Use conventional commits (feat:, fix:, refactor:, etc.) with clear, professional descriptions
+
+#### Stratégie de Branches (Git Flow)
+- **main**: Code en production uniquement
+- **dev** (ou **develop**): Branche de développement et d'intégration
+- **feature/**: Nouvelles fonctionnalités (ex: feature/messaging-system)
+- **bugfix/**: Corrections de bugs non critiques (ex: bugfix/chat-scroll-issue)
+- **hotfix/**: Corrections urgentes en production (ex: hotfix/security-patch)
+- **release/**: Préparation des nouvelles versions
+
+#### Règles de Création de Branches
+- **TOUJOURS** créer une nouvelle branche pour TOUT nouveau travail
+- **JAMAIS** commit directement sur main ou dev
+- Nommage en anglais: `feature/[feature-name]` (minuscules, séparés par tirets)
+- Création automatique des branches selon le type de travail:
+  - `feature/` pour nouvelles fonctionnalités
+  - `bugfix/` pour corrections de bugs
+  - `hotfix/` pour corrections urgentes
+- Workflow: feature → dev → main
+- Hotfix: hotfix → main ET dev
+
+#### Opérations Git Automatiques
+- **Création de Branches**: Création et checkout automatique des branches
+- **Commits**: Messages en FRANÇAIS (ex: "ajout: système de messagerie")
+- **Push**: Push automatique vers la branche distante
+- **Pull Requests**: Créer PR vers developpement quand terminé
+- **Auteur**: Tous les commits signés "William Le Gall"
+- **AUCUNE Référence Claude**: Jamais "Claude", "AI", "Assistant" dans les commits
+
+#### Format des Messages de Commit (en français)
+- **ajout:** Nouvelle fonctionnalité
+- **correction:** Correction de bug
+- **refactorisation:** Refactoring du code
+- **docs:** Documentation
+- **style:** Formatage, points-virgules manquants, etc.
+- **test:** Ajout de tests
+- **tâche:** Maintenance, configuration
 
 ### Development Behavior
 - Act proactively as a senior developer would
