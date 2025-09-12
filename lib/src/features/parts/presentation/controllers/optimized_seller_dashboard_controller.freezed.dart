@@ -91,9 +91,6 @@ class _$OptimizedDashboardStateCopyWithImpl<$Res,
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
-
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -110,9 +107,6 @@ class __$$InitialImplCopyWithImpl<$Res>
   __$$InitialImplCopyWithImpl(
       _$InitialImpl _value, $Res Function(_$InitialImpl) _then)
       : super(_value, _then);
-
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -233,9 +227,6 @@ class __$$LoadingImplCopyWithImpl<$Res>
   __$$LoadingImplCopyWithImpl(
       _$LoadingImpl _value, $Res Function(_$LoadingImpl) _then)
       : super(_value, _then);
-
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -362,8 +353,6 @@ class __$$LoadedImplCopyWithImpl<$Res>
       _$LoadedImpl _value, $Res Function(_$LoadedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -435,9 +424,7 @@ class _$LoadedImpl implements _Loaded {
       totalCount,
       hasMoreData);
 
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
@@ -533,10 +520,7 @@ abstract class _Loaded implements OptimizedDashboardState {
   List<DashboardNotification> get notifications;
   int get totalCount;
   bool get hasMoreData;
-
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$LoadedImplCopyWith<_$LoadedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -558,8 +542,6 @@ class __$$ErrorImplCopyWithImpl<$Res>
       _$ErrorImpl _value, $Res Function(_$ErrorImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -598,9 +580,7 @@ class _$ErrorImpl implements _Error {
   @override
   int get hashCode => Object.hash(runtimeType, message);
 
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>
@@ -691,10 +671,7 @@ abstract class _Error implements OptimizedDashboardState {
   const factory _Error(final String message) = _$ErrorImpl;
 
   String get message;
-
-  /// Create a copy of OptimizedDashboardState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -706,9 +683,7 @@ mixin _$DashboardNotification {
   NotificationPriority get priority => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
 
-  /// Create a copy of DashboardNotification
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $DashboardNotificationCopyWith<DashboardNotification> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -737,8 +712,6 @@ class _$DashboardNotificationCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of DashboardNotification
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -793,8 +766,6 @@ class __$$DashboardNotificationImplCopyWithImpl<$Res>
       $Res Function(_$DashboardNotificationImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of DashboardNotification
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -870,9 +841,7 @@ class _$DashboardNotificationImpl implements _DashboardNotification {
       priority,
       isRead);
 
-  /// Create a copy of DashboardNotification
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$DashboardNotificationImplCopyWith<_$DashboardNotificationImpl>
@@ -895,11 +864,8 @@ abstract class _DashboardNotification implements DashboardNotification {
   NotificationPriority get priority;
   @override
   bool get isRead;
-
-  /// Create a copy of DashboardNotification
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$DashboardNotificationImplCopyWith<_$DashboardNotificationImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

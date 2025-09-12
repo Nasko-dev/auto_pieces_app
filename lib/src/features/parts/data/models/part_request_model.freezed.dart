@@ -57,12 +57,8 @@ mixin _$PartRequestModel {
   @JsonKey(name: 'expires_at')
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
-  /// Serializes this PartRequestModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of PartRequestModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PartRequestModelCopyWith<PartRequestModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -103,8 +99,6 @@ class _$PartRequestModelCopyWithImpl<$Res, $Val extends PartRequestModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PartRequestModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -235,8 +229,6 @@ class __$$PartRequestModelImplCopyWithImpl<$Res>
       $Res Function(_$PartRequestModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PartRequestModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -462,7 +454,7 @@ class _$PartRequestModelImpl extends _PartRequestModel {
                 other.expiresAt == expiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -484,9 +476,7 @@ class _$PartRequestModelImpl extends _PartRequestModel {
       updatedAt,
       expiresAt);
 
-  /// Create a copy of PartRequestModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PartRequestModelImplCopyWith<_$PartRequestModelImpl> get copyWith =>
@@ -530,8 +520,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   String get id;
   @override
   @JsonKey(name: 'user_id')
-  String? get userId; // Informations du véhicule
-  @override
+  String? get userId;
+  @override // Informations du véhicule
   @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate;
   @override
@@ -545,8 +535,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   int? get vehicleYear;
   @override
   @JsonKey(name: 'vehicle_engine')
-  String? get vehicleEngine; // Type de pièce recherchée
-  @override
+  String? get vehicleEngine;
+  @override // Type de pièce recherchée
   @JsonKey(name: 'part_type')
   String get partType;
   @override
@@ -554,8 +544,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   List<String> get partNames;
   @override
   @JsonKey(name: 'additional_info')
-  String? get additionalInfo; // Métadonnées
-  @override
+  String? get additionalInfo;
+  @override // Métadonnées
   String get status;
   @override
   @JsonKey(name: 'is_anonymous')
@@ -565,8 +555,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   int get responseCount;
   @override
   @JsonKey(name: 'pending_response_count')
-  int get pendingResponseCount; // Timestamps
-  @override
+  int get pendingResponseCount;
+  @override // Timestamps
   @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
@@ -575,11 +565,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   @override
   @JsonKey(name: 'expires_at')
   DateTime? get expiresAt;
-
-  /// Create a copy of PartRequestModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PartRequestModelImplCopyWith<_$PartRequestModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

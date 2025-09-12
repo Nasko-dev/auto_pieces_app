@@ -260,12 +260,14 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       const SizedBox(height: 20),
 
-      // Titre pour les champs manuels
-      const Align(
+      // Titre pour les champs manuels selon le type
+      Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          'Informations du véhicule',
-          style: TextStyle(
+          _selectedType == 'engine' 
+            ? 'Informations de motorisation'
+            : 'Informations du véhicule',
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: _textDark,
@@ -274,50 +276,47 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       const SizedBox(height: 16),
 
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _marqueController,
-              label: 'Marque',
-              hint: 'Ex: Renault',
-              icon: Icons.directions_car,
+      // Champs selon le type de pièce sélectionné
+      if (_selectedType == 'engine') ...[
+        // Pièces moteur : uniquement motorisation
+        _buildTextField(
+          controller: _motorisationController,
+          label: 'Motorisation',
+          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
+          icon: Icons.speed,
+        ),
+      ] else ...[
+        // Pièces carrosserie/intérieur : marque, modèle, année
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _marqueController,
+                label: 'Marque',
+                hint: 'Ex: Renault',
+                icon: Icons.directions_car,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _modeleController,
-              label: 'Modèle',
-              hint: 'Ex: Clio',
-              icon: Icons.model_training,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTextField(
+                controller: _modeleController,
+                label: 'Modèle',
+                hint: 'Ex: Clio',
+                icon: Icons.model_training,
+              ),
             ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _anneeController,
-              label: 'Année',
-              hint: 'Ex: 2020',
-              icon: Icons.calendar_today,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _motorisationController,
-              label: 'Motorisation',
-              hint: 'Ex: 1.6L Essence',
-              icon: Icons.speed,
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _anneeController,
+          label: 'Année',
+          hint: 'Ex: 2020',
+          icon: Icons.calendar_today,
+          keyboardType: TextInputType.number,
+        ),
+      ],
     ];
   }
 
@@ -522,10 +521,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canContinueManual() {
-    return _marqueController.text.isNotEmpty &&
-        _modeleController.text.isNotEmpty &&
-        _anneeController.text.isNotEmpty &&
-        _motorisationController.text.isNotEmpty;
+    if (_selectedType == 'engine') {
+      // Pièces moteur : seulement motorisation requise
+      return _motorisationController.text.isNotEmpty;
+    } else {
+      // Pièces carrosserie/intérieur : marque, modèle, année requises
+      return _marqueController.text.isNotEmpty &&
+          _modeleController.text.isNotEmpty &&
+          _anneeController.text.isNotEmpty;
+    }
   }
 
   bool _canSubmit() {
@@ -668,9 +672,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         vehicleBrand = _marqueController.text.isNotEmpty ? _marqueController.text : null;
         vehicleModel = _modeleController.text.isNotEmpty ? _modeleController.text : null;
         vehicleYear = _anneeController.text.isNotEmpty ? int.tryParse(_anneeController.text) : null;
+        print('🚗 [HomePage] Mode manuel carrosserie - Marque: $vehicleBrand, Modèle: $vehicleModel, Année: $vehicleYear');
       } else if (_selectedType == 'engine') {
         // Moteur : motorisation seulement
         vehicleEngine = _motorisationController.text.isNotEmpty ? _motorisationController.text : null;
+        print('🔧 [HomePage] Mode manuel moteur - Motorisation: $vehicleEngine');
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
