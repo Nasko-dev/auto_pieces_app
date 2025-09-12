@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
+import 'auth_loading_screen.dart';
 
 class AuthWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -25,13 +26,18 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
     final authState = ref.watch(particulierAuthControllerProvider);
 
     return authState.when(
-      initial: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      initial: () => const AuthLoadingScreen(
+        message: 'Initialisation...',
+        showLogo: true,
       ),
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      loading: () => const AuthLoadingScreen(
+        message: 'Connexion en cours...',
+        showLogo: true,
       ),
-      anonymousAuthenticated: (_) => widget.child,
+      anonymousAuthenticated: (_) => AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: widget.child,
+      ),
       error: (message) => _buildErrorView(context, message),
     );
   }

@@ -23,7 +23,8 @@
       "Bash(flutter build:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "WebFetch(domain:vehicle-identification.tecalliance.services)"
+      "WebFetch(domain:vehicle-identification.tecalliance.services)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],

@@ -111,73 +111,140 @@ class WelcomePage extends ConsumerWidget {
     required VoidCallback onTap,
     bool isOutlined = false,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isOutlined ? Colors.transparent : AppTheme.primaryBlue,
-            border: isOutlined 
-                ? Border.all(color: AppTheme.primaryBlue, width: 2)
-                : null,
-            borderRadius: BorderRadius.circular(16),
+    final authState = ref.watch(particulierAuthControllerProvider);
+    final isLoadingParticulier = authState.maybeWhen(
+      loading: () => true,
+      orElse: () => false,
+    );
+    
+    // Désactiver le bouton particulier pendant le chargement
+    final isEnabled = !(isLoadingParticulier && title == 'Particulier');
+    final isLoading = isLoadingParticulier && title == 'Particulier';
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isEnabled ? onTap : null,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isEnabled 
+                  ? (isOutlined ? Colors.transparent : AppTheme.primaryBlue)
+                  : Colors.grey.shade200,
+              border: isOutlined 
+                  ? Border.all(
+                      color: isEnabled ? AppTheme.primaryBlue : Colors.grey.shade400,
+                      width: 2
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: isLoading 
+                ? _buildLoadingContent()
+                : _buildNormalContent(context, title, subtitle, icon, isOutlined, isEnabled),
           ),
-          child: Row(
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildLoadingContent() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+        SizedBox(width: 12),
+        Text(
+          'Connexion en cours...',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildNormalContent(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    bool isOutlined,
+    bool isEnabled,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isEnabled 
+                ? (isOutlined 
+                    ? AppTheme.primaryBlue.withOpacity(0.1)
+                    : AppTheme.white.withOpacity(0.2))
+                : Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: isEnabled 
+                ? (isOutlined ? AppTheme.primaryBlue : AppTheme.white)
+                : Colors.grey.shade500,
+            size: 28,
+          ),
+        ),
+        
+        const SizedBox(width: 16),
+        
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isOutlined 
-                      ? AppTheme.primaryBlue.withOpacity(0.1)
-                      : AppTheme.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
-                  size: 28,
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isEnabled 
+                      ? (isOutlined ? AppTheme.primaryBlue : AppTheme.white)
+                      : Colors.grey.shade500,
                 ),
               ),
-              
-              const SizedBox(width: 16),
-              
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isOutlined 
-                            ? AppTheme.gray 
-                            : AppTheme.white.withOpacity(0.8),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isEnabled 
+                      ? (isOutlined 
+                          ? AppTheme.gray 
+                          : AppTheme.white.withOpacity(0.8))
+                      : Colors.grey.shade500,
                 ),
-              ),
-              
-              Icon(
-                Icons.arrow_forward_ios,
-                color: isOutlined ? AppTheme.primaryBlue : AppTheme.white,
-                size: 20,
               ),
             ],
           ),
         ),
-      ),
+        
+        Icon(
+          Icons.arrow_forward_ios,
+          color: isEnabled 
+              ? (isOutlined ? AppTheme.primaryBlue : AppTheme.white)
+              : Colors.grey.shade500,
+          size: 20,
+        ),
+      ],
     );
   }
 

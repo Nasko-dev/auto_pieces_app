@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
+import '../../../../shared/presentation/widgets/loading_button.dart';
 
 class SellerLoginPage extends ConsumerStatefulWidget {
   const SellerLoginPage({super.key});
@@ -216,39 +217,16 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
 
                 SizedBox(height: 32 * s),
 
-                // Bouton de connexion
+                // Bouton de connexion avec LoadingButton
                 SizedBox(
                   width: double.infinity,
-                  height: 56 * s,
-                  child: ElevatedButton(
+                  child: LoadingButton(
+                    text: 'Se connecter',
                     onPressed: authState.isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16 * s),
-                      ),
-                      disabledBackgroundColor: _primaryBlue.withOpacity(0.6),
-                    ),
-                    child: authState.isLoading
-                        ? SizedBox(
-                            width: 24 * s,
-                            height: 24 * s,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : Text(
-                            'Se connecter',
-                            style: GoogleFonts.inter(
-                              fontSize: 18 * s,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                    isLoading: authState.isLoading,
+                    backgroundColor: _primaryBlue,
+                    height: 56 * s,
+                    borderRadius: BorderRadius.circular(16 * s),
                   ),
                 ),
 
