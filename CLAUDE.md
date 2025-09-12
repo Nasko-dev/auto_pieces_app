@@ -168,3 +168,21 @@ See `PROGRESS.md` for current development status and next steps.
 - Optimize code for production without being asked
 - Anticipate potential issues and address them preemptively
 - Focus on performance, scalability, and maintainability
+
+### RÈGLES CRITIQUES - À RESPECTER ABSOLUMENT
+
+#### Avant TOUTE modification ou création
+1. **COMPRENDRE D'ABORD** : TOUJOURS analyser et comprendre la logique existante
+2. **NE JAMAIS** créer de fichiers si la fonctionnalité existe déjà
+3. **VÉRIFIER** que le code existant fonctionne avant de le modifier
+4. **DEMANDER** confirmation avant de créer de nouveaux fichiers
+5. **ANALYSER** l'architecture et les patterns utilisés dans le projet
+6. **RESPECTER** les conventions et structures existantes
+7. **NE PAS RÉINVENTER** ce qui fonctionne déjà parfaitement
+
+#### Processus obligatoire avant modification
+1. Lire et comprendre TOUS les fichiers liés à la feature
+2. Identifier les dépendances et impacts
+3. Comprendre le flux de données existant
+4. Vérifier si la fonctionnalité n'existe pas déjà
+5. Proposer les changements AVANT de les implémenter
