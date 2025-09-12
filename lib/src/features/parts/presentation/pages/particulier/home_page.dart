@@ -852,11 +852,31 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-        if (info.make != null) parts.add(info.make!);
-        if (info.model != null) parts.add(info.model!);
-        if (info.year != null) parts.add(info.year.toString());
-        if (info.engineSize != null) parts.add(info.engineSize!);
-        if (info.fuelType != null) parts.add(info.fuelType!);
+        
+        // Affichage différentiel selon le type de pièce
+        if (_selectedType == 'engine') {
+          // Pour les pièces moteur : afficher uniquement la motorisation
+          if (info.engineSize != null) parts.add(info.engineSize!);
+          if (info.fuelType != null) parts.add(info.fuelType!);
+          if (info.engineCode != null) parts.add(info.engineCode!);
+        } else {
+          // Pour les pièces carrosserie/intérieur : afficher marque, modèle, année, version et finition
+          if (info.make != null) parts.add(info.make!);
+          if (info.model != null) parts.add(info.model!);
+          if (info.year != null) parts.add(info.year.toString());
+          if (info.bodyStyle != null) parts.add(info.bodyStyle!);
+          // Version et finition peuvent être extraites du rawData si disponibles
+          final rawData = info.rawData as Map<String, dynamic>?;
+          if (rawData != null) {
+            final vehicleInfo = rawData['vehicleInformation'] as Map<String, dynamic>?;
+            if (vehicleInfo != null) {
+              final version = vehicleInfo['version']?.toString();
+              final finition = vehicleInfo['trim']?.toString() ?? vehicleInfo['finition']?.toString();
+              if (version != null) parts.add(version);
+              if (finition != null) parts.add(finition);
+            }
+          }
+        }
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
