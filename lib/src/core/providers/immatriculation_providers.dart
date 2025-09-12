@@ -5,6 +5,7 @@ import '../../features/parts/domain/entities/vehicle_info.dart';
 import '../errors/failures.dart';
 import '../constants/app_constants.dart';
 import 'particulier_auth_providers.dart';
+import 'part_request_providers.dart';
 
 final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   final username = const String.fromEnvironment(
@@ -33,6 +34,8 @@ class VehicleSearchState {
   final int remainingAttempts;
   final int timeUntilReset;
   final bool isRateLimited;
+  final bool hasActiveRequest;
+  final bool isCheckingActiveRequest;
 
   const VehicleSearchState({
     this.isLoading = false,
@@ -42,6 +45,8 @@ class VehicleSearchState {
     this.remainingAttempts = 3,
     this.timeUntilReset = 0,
     this.isRateLimited = false,
+    this.hasActiveRequest = false,
+    this.isCheckingActiveRequest = false,
   });
 
   VehicleSearchState copyWith({
@@ -52,6 +57,8 @@ class VehicleSearchState {
     int? remainingAttempts,
     int? timeUntilReset,
     bool? isRateLimited,
+    bool? hasActiveRequest,
+    bool? isCheckingActiveRequest,
     bool clearVehicleInfo = false,
     bool clearError = false,
   }) {
@@ -63,6 +70,8 @@ class VehicleSearchState {
       remainingAttempts: remainingAttempts ?? this.remainingAttempts,
       timeUntilReset: timeUntilReset ?? this.timeUntilReset,
       isRateLimited: isRateLimited ?? this.isRateLimited,
+      hasActiveRequest: hasActiveRequest ?? this.hasActiveRequest,
+      isCheckingActiveRequest: isCheckingActiveRequest ?? this.isCheckingActiveRequest,
     );
   }
 }
@@ -70,14 +79,26 @@ class VehicleSearchState {
 class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   final ImmatriculationService _service;
   final RateLimiterService _rateLimiter;
+  final Ref _ref;
   final Map<String, VehicleInfo> _cache = {};
 
-  VehicleSearchNotifier(this._service, this._rateLimiter) : super(const VehicleSearchState()) {
+  VehicleSearchNotifier(this._service, this._rateLimiter, this._ref) : super(const VehicleSearchState()) {
     _updateRateLimitStatus();
+    _checkActiveRequest();
   }
 
   Future<void> searchVehicle(String plate) async {
     print('🔍 [VehicleSearchNotifier] Début recherche pour: $plate');
+    
+    // Vérification s'il y a déjà une demande active
+    if (state.hasActiveRequest) {
+      print('🚫 [VehicleSearchNotifier] Demande active existante');
+      state = state.copyWith(
+        error: 'Une demande est déjà en cours',
+        clearVehicleInfo: true,
+      );
+      return;
+    }
     
     // Mise à jour du status de limitation
     await _updateRateLimitStatus();
@@ -230,13 +251,71 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   Future<void> updateRateLimitStatus() async {
     await _updateRateLimitStatus();
   }
+
+  /// Vérifie s'il y a une demande active
+  Future<void> _checkActiveRequest() async {
+    print('🔍 [VehicleSearchNotifier] Vérification demande active...');
+    state = state.copyWith(isCheckingActiveRequest: true);
+    
+    try {
+      final repository = _ref.read(partRequestRepositoryProvider);
+      
+      // D'abord récupérer toutes les demandes pour compter
+      final allRequestsResult = await repository.getUserPartRequests();
+      allRequestsResult.fold(
+        (failure) {
+          print('❌ [VehicleSearchNotifier] Erreur récupération demandes: ${failure.message}');
+        },
+        (requests) {
+          final activeRequests = requests.where((r) => r.status == 'active').toList();
+          print('📊 [VehicleSearchNotifier] Nombre total de demandes: ${requests.length}');
+          print('🔥 [VehicleSearchNotifier] Nombre de demandes actives: ${activeRequests.length}');
+          
+          // Afficher les détails des demandes actives
+          for (final request in activeRequests) {
+            print('  -> ID: ${request.id}, Pièces: ${request.partNames.join(", ")}, Status: ${request.status}');
+          }
+          
+          // Vérification et blocage si >= 1 demande active
+          if (activeRequests.length >= 1) {
+            print('🚫 [VehicleSearchNotifier] BLOCAGE ACTIVÉ - ${activeRequests.length} demande(s) active(s) détectée(s)');
+            print('🔒 [VehicleSearchNotifier] Champ plaque d\'immatriculation sera bloqué');
+            
+            state = state.copyWith(
+              hasActiveRequest: true,
+              isCheckingActiveRequest: false,
+            );
+            return; // Sortir ici, pas besoin de faire la vérification hasActivePartRequest
+          } else {
+            print('✅ [VehicleSearchNotifier] Aucune demande active - champ plaque autorisé');
+            state = state.copyWith(
+              hasActiveRequest: false,
+              isCheckingActiveRequest: false,
+            );
+            return; // Sortir ici aussi
+          }
+        },
+      );
+    } catch (e) {
+      print('💥 [VehicleSearchNotifier] Exception: $e');
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+
+  /// Force la vérification de la demande active (pour l'UI)
+  Future<void> checkActiveRequest() async {
+    await _checkActiveRequest();
+  }
 }
 
 final vehicleSearchProvider =
     StateNotifierProvider<VehicleSearchNotifier, VehicleSearchState>((ref) {
       final service = ref.watch(immatriculationServiceProvider);
       final rateLimiter = ref.watch(rateLimiterServiceProvider);
-      return VehicleSearchNotifier(service, rateLimiter);
+      return VehicleSearchNotifier(service, rateLimiter, ref);
     });
 
 final remainingCreditsProvider = FutureProvider<int>((ref) async {

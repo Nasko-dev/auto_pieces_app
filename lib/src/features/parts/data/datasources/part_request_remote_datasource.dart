@@ -16,6 +16,7 @@ abstract class PartRequestRemoteDataSource {
   Future<PartRequestModel> getPartRequestById(String id);
   Future<PartRequestModel> updatePartRequestStatus(String id, String status);
   Future<void> deletePartRequest(String id);
+  Future<bool> hasActivePartRequest();
   Future<List<Map<String, dynamic>>> getPartRequestResponses(String requestId);
   Future<List<PartRequestModel>> searchPartRequests({
     String? partType,
@@ -264,6 +265,54 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .eq('id', id);
     } catch (e) {
       throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<bool> hasActivePartRequest() async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        // Pour les utilisateurs anonymes, vérifier par device_id
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+        
+        // Récupérer les particuliers avec ce device_id
+        final particuliersResponse = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+            
+        final userIds = particuliersResponse
+            .map((p) => p['id'] as String)
+            .toList();
+            
+        if (userIds.isEmpty) return false;
+        
+        // Vérifier s'il y a une demande active pour ces user_ids
+        final response = await _supabase
+            .from('part_requests')
+            .select('id')
+            .inFilter('user_id', userIds)
+            .eq('status', 'active')
+            .limit(1);
+            
+        return (response as List).isNotEmpty;
+      } else {
+        // Pour les utilisateurs authentifiés, vérifier par user_id
+        final response = await _supabase
+            .from('part_requests')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('status', 'active')
+            .limit(1);
+            
+        return (response as List).isNotEmpty;
+      }
+    } catch (e) {
+      print('❌ [DataSource] Erreur vérification demande active: $e');
+      return false;
     }
   }
 

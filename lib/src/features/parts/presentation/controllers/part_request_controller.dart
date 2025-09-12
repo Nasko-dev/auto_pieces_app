@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/providers/part_request_providers.dart';
+import '../../../../core/providers/immatriculation_providers.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
@@ -27,19 +28,46 @@ class PartRequestController extends StateNotifier<PartRequestState> {
   final CreatePartRequest _createPartRequest;
   final GetUserPartRequests _getUserPartRequests;
   final GetPartRequestResponses _getPartRequestResponses;
+  final Ref _ref;
 
   PartRequestController({
     required CreatePartRequest createPartRequest,
     required GetUserPartRequests getUserPartRequests,
     required GetPartRequestResponses getPartRequestResponses,
+    required Ref ref,
   })  : _createPartRequest = createPartRequest,
         _getUserPartRequests = getUserPartRequests,
         _getPartRequestResponses = getPartRequestResponses,
+        _ref = ref,
         super(const PartRequestState());
 
   // Créer une nouvelle demande
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
     print('🚀 [PartRequest] Début création de demande');
+    
+    // Vérifier d'abord s'il y a déjà une demande active
+    print('🔍 [PartRequest] Vérification demande active...');
+    final repository = _ref.read(partRequestRepositoryProvider);
+    final hasActiveResult = await repository.hasActivePartRequest();
+    
+    final hasActive = hasActiveResult.fold(
+      (failure) {
+        print('⚠️ [PartRequest] Erreur vérification: ${failure.message}');
+        return false; // En cas d'erreur, on laisse continuer
+      },
+      (hasActive) => hasActive,
+    );
+    
+    if (hasActive) {
+      print('🚫 [PartRequest] Demande active existante - création bloquée');
+      state = state.copyWith(
+        isCreating: false,
+        error: 'Une demande est déjà en cours. Veuillez attendre sa clôture.',
+      );
+      return false;
+    }
+    
+    print('✅ [PartRequest] Aucune demande active - création autorisée');
     print('📋 [PartRequest] Paramètres: ${params.toString()}');
     print('🔧 [PartRequest] Type: ${params.partType}');
     print('🔩 [PartRequest] Pièces: ${params.partNames.join(", ")}');
@@ -72,6 +100,10 @@ class PartRequestController extends StateNotifier<PartRequestState> {
           requests: updatedRequests,
           error: null,
         );
+        
+        // Mettre à jour le statut des demandes actives dans le provider de recherche
+        print('🔄 [PartRequest] Mise à jour du statut des demandes actives...');
+        _ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
         
         print('📝 [PartRequest] Nombre total de demandes: ${updatedRequests.length}');
         return true;
@@ -181,5 +213,6 @@ final partRequestControllerProvider = StateNotifierProvider<PartRequestControlle
     createPartRequest: ref.read(createPartRequestProvider),
     getUserPartRequests: ref.read(getUserPartRequestsProvider),
     getPartRequestResponses: ref.read(getPartRequestResponsesProvider),
+    ref: ref,
   );
 });

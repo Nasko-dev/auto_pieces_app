@@ -50,6 +50,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
+    
+    // Vérifier les demandes actives dès l'arrivée sur la page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+    });
   }
 
   @override
