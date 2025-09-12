@@ -307,6 +307,34 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     );
   }
 
+  // Ajouter un message reçu en temps réel
+  void addRealtimeMessage(Message message) {
+    print('🎉 [Controller] Ajout message realtime: ${message.content}');
+    
+    final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
+    final conversationMessages = currentMessages[message.conversationId] ?? [];
+    
+    // Vérifier que le message n'existe pas déjà
+    if (!conversationMessages.any((m) => m.id == message.id)) {
+      currentMessages[message.conversationId] = [...conversationMessages, message];
+      
+      state = state.copyWith(conversationMessages: currentMessages);
+      print('✅ [Controller] Message realtime ajouté à la conversation');
+      
+      // Marquer automatiquement comme lu si la conversation est active
+      if (state.activeConversationId == message.conversationId && 
+          message.senderType == MessageSenderType.seller) {
+        _autoMarkAsRead(message.conversationId);
+      }
+      
+      // Mettre à jour le compteur de messages non lus
+      _updateUnreadCount();
+      
+      // Rafraîchir les conversations pour mettre à jour l'aperçu
+      _refreshConversationsQuietly();
+    }
+  }
+  
   // Marquer comme lu
   Future<void> markAsRead(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
@@ -6,6 +7,7 @@ import '../../providers/conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
+import '../../../../../core/providers/providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -22,6 +24,7 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
+  StreamSubscription? _messageSubscription;
 
   @override
   void initState() {
@@ -32,11 +35,102 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
+      
+      // S'abonner aux messages en temps réel pour cette conversation
+      _subscribeToRealtimeMessages();
     });
+  }
+  
+  void _subscribeToRealtimeMessages() {
+    print('🔔 [ChatPage] Abonnement realtime pour conversation: ${widget.conversationId}');
+    
+    final realtimeService = ref.read(realtimeServiceProvider);
+    
+    // S'abonner aux messages de cette conversation spécifique
+    realtimeService.subscribeToMessages(widget.conversationId);
+    
+    // Écouter les nouveaux messages
+    _messageSubscription = realtimeService.messageStream.listen((event) {
+      if (event['type'] == 'insert' && event['record'] != null) {
+        final messageData = event['record'] as Map<String, dynamic>;
+        
+        // Vérifier que c'est bien pour notre conversation
+        if (messageData['conversation_id'] == widget.conversationId) {
+          print('🎆 [ChatPage] Nouveau message reçu en temps réel!');
+          
+          // Convertir en objet Message
+          final newMessage = Message.fromJson(_mapSupabaseToMessage(messageData));
+          
+          // Ajouter le message à la liste via le controller
+          ref.read(conversationsControllerProvider.notifier)
+              .addRealtimeMessage(newMessage);
+          
+          // Faire défiler vers le bas
+          _scrollToBottom();
+        }
+      }
+    });
+  }
+  
+  Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {
+    return {
+      'id': json['id'],
+      'conversationId': json['conversation_id'],
+      'senderId': json['sender_id'],
+      'senderType': _parseSenderType(json['sender_type']),
+      'content': json['content'],
+      'messageType': _parseMessageType(json['message_type']),
+      'attachments': json['attachments'] ?? [],
+      'metadata': json['metadata'] ?? {},
+      'isRead': json['is_read'] ?? false,
+      'readAt': json['read_at'] != null ? DateTime.parse(json['read_at']) : null,
+      'createdAt': DateTime.parse(json['created_at']),
+      'updatedAt': DateTime.parse(json['updated_at']),
+      'offerPrice': json['offer_price']?.toDouble(),
+      'offerAvailability': json['offer_availability'],
+      'offerDeliveryDays': json['offer_delivery_days'],
+    };
+  }
+  
+  MessageSenderType _parseSenderType(String? type) {
+    switch (type) {
+      case 'user':
+        return MessageSenderType.user;
+      case 'seller':
+        return MessageSenderType.seller;
+      default:
+        return MessageSenderType.user;
+    }
+  }
+  
+  MessageType _parseMessageType(String? type) {
+    switch (type) {
+      case 'text':
+        return MessageType.text;
+      case 'offer':
+        return MessageType.offer;
+      case 'system':
+        return MessageType.system;
+      default:
+        return MessageType.text;
+    }
+  }
+  
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
     super.dispose();
