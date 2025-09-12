@@ -8,6 +8,7 @@ class SellOnePartCardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SellPartStepPage(
+      selectedCategory: 'lesdeux', // Pas de filtre sur cette page générique
       onClose: () => Navigator.of(context).maybePop(),
       onPartSubmitted: (partName, hasMultiple) {
         // TODO: brancher avec l'étape suivante ou fermer selon les besoins

@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import '../../../core/errors/failures.dart';
+import '../../../../core/errors/failures.dart';
 import '../entities/part_advertisement.dart';
 import '../../data/models/part_advertisement_model.dart';
 

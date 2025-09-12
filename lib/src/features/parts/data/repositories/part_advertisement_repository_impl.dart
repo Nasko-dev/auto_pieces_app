@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import '../../../core/errors/failures.dart';
-import '../../../core/errors/exceptions.dart';
-import '../../../core/network/network_info.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/network/network_info.dart';
 import '../../domain/entities/part_advertisement.dart';
 import '../../domain/repositories/part_advertisement_repository.dart';
 import '../datasources/part_advertisement_remote_datasource.dart';

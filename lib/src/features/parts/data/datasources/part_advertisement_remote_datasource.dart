@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/errors/exceptions.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../models/part_advertisement_model.dart';
 
 abstract class PartAdvertisementRemoteDataSource {
@@ -53,7 +53,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       });
 
       if (response == null) {
-        throw ServerException(message: 'Erreur lors de la création de l\'annonce');
+        throw ServerException('Erreur lors de la création de l\'annonce');
       }
 
       final adId = response as String;
@@ -61,7 +61,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       // Récupérer l'annonce créée
       return getPartAdvertisementById(adId);
     } catch (e) {
-      throw ServerException(message: 'Erreur lors de la création: $e');
+      throw ServerException('Erreur lors de la création: $e');
     }
   }
 
@@ -76,7 +76,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
 
       return PartAdvertisementModel.fromSupabase(response);
     } catch (e) {
-      throw ServerException(message: 'Annonce non trouvée: $e');
+      throw ServerException('Annonce non trouvée: $e');
     }
   }
 
@@ -93,7 +93,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
           .map((data) => PartAdvertisementModel.fromSupabase(data))
           .toList();
     } catch (e) {
-      throw ServerException(message: 'Erreur lors de la récupération: $e');
+      throw ServerException('Erreur lors de la récupération: $e');
     }
   }
 
@@ -119,7 +119,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
           .map((data) => PartAdvertisementModel.fromSupabase(data))
           .toList();
     } catch (e) {
-      throw ServerException(message: 'Erreur lors de la recherche: $e');
+      throw ServerException('Erreur lors de la recherche: $e');
     }
   }
 
@@ -141,7 +141,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
 
       return PartAdvertisementModel.fromSupabase(response);
     } catch (e) {
-      throw ServerException(message: 'Erreur lors de la mise à jour: $e');
+      throw ServerException('Erreur lors de la mise à jour: $e');
     }
   }
 
@@ -153,7 +153,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
           .delete()
           .eq('id', id);
     } catch (e) {
-      throw ServerException(message: 'Erreur lors de la suppression: $e');
+      throw ServerException('Erreur lors de la suppression: $e');
     }
   }
 
@@ -168,7 +168,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
           })
           .eq('id', id);
     } catch (e) {
-      throw ServerException(message: 'Erreur lors du marquage: $e');
+      throw ServerException('Erreur lors du marquage: $e');
     }
   }
 

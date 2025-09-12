@@ -4,7 +4,7 @@ import '../../features/parts/data/datasources/part_advertisement_remote_datasour
 import '../../features/parts/data/repositories/part_advertisement_repository_impl.dart';
 import '../../features/parts/domain/entities/part_advertisement.dart';
 import '../../features/parts/domain/repositories/part_advertisement_repository.dart';
-import '../../features/parts/data/models/part_advertisement_model.dart';
+import '../../features/parts/data/models/part_advertisement_model.dart' as models;
 import '../network/network_info.dart';
 
 // Providers de base
@@ -24,7 +24,7 @@ final partAdvertisementRepositoryProvider = Provider<PartAdvertisementRepository
 });
 
 // Provider pour créer une annonce
-final createPartAdvertisementProvider = FutureProvider.family<PartAdvertisement, CreatePartAdvertisementParams>(
+final createPartAdvertisementProvider = FutureProvider.family<PartAdvertisement, models.CreatePartAdvertisementParams>(
   (ref, params) async {
     final repository = ref.watch(partAdvertisementRepositoryProvider);
     
@@ -64,7 +64,7 @@ final myPartAdvertisementsProvider = FutureProvider<List<PartAdvertisement>>((re
 });
 
 // Provider pour rechercher des annonces
-final searchPartAdvertisementsProvider = FutureProvider.family<List<PartAdvertisement>, SearchPartAdvertisementsParams>(
+final searchPartAdvertisementsProvider = FutureProvider.family<List<PartAdvertisement>, models.SearchPartAdvertisementsParams>(
   (ref, params) async {
     final repository = ref.watch(partAdvertisementRepositoryProvider);
     
