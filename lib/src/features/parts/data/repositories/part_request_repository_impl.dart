@@ -434,4 +434,19 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> hasActivePartRequest() async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      final hasActive = await _remoteDataSource.hasActivePartRequest();
+      return Right(hasActive);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

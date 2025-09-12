@@ -75,6 +75,14 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
   @override
   Widget build(BuildContext context) {
     final vehicleState = ref.watch(vehicleSearchProvider);
+    
+    // Debug prints pour diagnostiquer l'état
+    print('🔍 [LicensePlateInput] État du widget :');
+    print('   - hasActiveRequest: ${vehicleState.hasActiveRequest}');
+    print('   - isLoading: ${vehicleState.isLoading}');
+    print('   - isCheckingActiveRequest: ${vehicleState.isCheckingActiveRequest}');
+    print('   - isRateLimited: ${vehicleState.isRateLimited}');
+    print('   - remainingAttempts: ${vehicleState.remainingAttempts}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,12 +100,12 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
 
         FrenchLicensePlate(
           controller: _plateController,
-          enabled: !vehicleState.isLoading,
-          isLoading: vehicleState.isLoading,
+          enabled: !vehicleState.isLoading && !vehicleState.hasActiveRequest,
+          isLoading: vehicleState.isLoading || vehicleState.isCheckingActiveRequest,
           errorText: vehicleState.error != null && _hasSearched
               ? vehicleState.error
               : null,
-          onChanged: (value) {
+          onChanged: vehicleState.hasActiveRequest ? null : (value) {
             setState(() {
               _hasSearched = false;
             });
@@ -107,19 +115,26 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
               _handleSearch();
             }
           },
-          onSubmitted: (_) => _handleSearch(),
+          onSubmitted: vehicleState.hasActiveRequest ? null : (_) => _handleSearch(),
         ),
 
-        // Affichage des limitations de tentatives
-        if (vehicleState.isRateLimited) ...[
+        // Affichage du blocage pour demande active (PRIORITÉ)
+        if (vehicleState.hasActiveRequest) ...[
           const SizedBox(height: 12),
-          _RateLimitWarning(
-            remainingAttempts: vehicleState.remainingAttempts,
-            timeUntilReset: vehicleState.timeUntilReset,
-          ),
-        ] else if (vehicleState.remainingAttempts < 3) ...[
-          const SizedBox(height: 12),
-          _RemainingAttemptsInfo(remainingAttempts: vehicleState.remainingAttempts),
+          _ActiveRequestWarning(),
+        ]
+        // Affichage des limitations de tentatives SEULEMENT si pas de demande active
+        else ...[
+          if (vehicleState.isRateLimited) ...[
+            const SizedBox(height: 12),
+            _RateLimitWarning(
+              remainingAttempts: vehicleState.remainingAttempts,
+              timeUntilReset: vehicleState.timeUntilReset,
+            ),
+          ] else if (vehicleState.remainingAttempts < 3) ...[
+            const SizedBox(height: 12),
+            _RemainingAttemptsInfo(remainingAttempts: vehicleState.remainingAttempts),
+          ],
         ],
 
         // if (vehicleState.vehicleInfo != null) ...[
@@ -249,6 +264,60 @@ class _RemainingAttemptsInfo extends StatelessWidget {
                 fontSize: 14,
                 color: _textDark,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveRequestWarning extends StatelessWidget {
+  static const Color _info = Color(0xFF007AFF);
+  static const Color _textDark = Color(0xFF1C1C1E);
+  static const double _radius = 12;
+
+  const _ActiveRequestWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _info.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: _info.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.block,
+                color: _info,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Une demande est déjà en cours',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: _textDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vous ne pouvez pas créer une nouvelle demande tant qu\'une demande est active. Consultez vos demandes dans l\'onglet "Mes demandes".',
+            style: TextStyle(
+              fontSize: 13,
+              color: _textDark.withOpacity(0.8),
             ),
           ),
         ],
