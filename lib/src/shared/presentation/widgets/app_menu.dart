@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/presentation/controllers/auth_controller.dart';
+import '../../../core/providers/particulier_auth_providers.dart';
 
 class AppMenu extends ConsumerWidget {
   const AppMenu({super.key});
@@ -196,7 +196,7 @@ class AppMenu extends ConsumerWidget {
 
   void _logout(BuildContext context, WidgetRef ref) {
     // Déconnexion via le contrôleur auth
-    ref.read(authStateProvider.notifier).logout();
+    ref.read(particulierAuthControllerProvider.notifier).logout();
     
     // Navigation vers la page d'accueil
     if (context.mounted) {

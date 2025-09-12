@@ -6,9 +6,9 @@ class YannkoWelcomePage extends StatelessWidget {
   const YannkoWelcomePage({super.key});
 
   // Couleurs (eyedrop approximatifs du visuel)
-  static const _bg = Color(0xFF0C1F2F);        // bleu nuit
-  static const _green = Color(0xFF2CC36B);     // bouton "Pièce neuve"
-  static const _orange = Color(0xFFFFB129);    // bouton "Pièce occasion"
+  static const _bg = Color(0xFF0C1F2F); // bleu nuit
+  static const _green = Color(0xFF2CC36B); // bouton "Pièce neuve"
+  static const _orange = Color(0xFFFFB129); // bouton "Pièce occasion"
   static const _textPrimary = Colors.white;
 
   @override
@@ -18,24 +18,24 @@ class YannkoWelcomePage extends StatelessWidget {
     final s = size.width / 390.0;
 
     TextStyle h1(double f) => GoogleFonts.inter(
-          fontSize: f * s,
-          fontWeight: FontWeight.w800,
-          height: 1.0,
-          color: _textPrimary,
-          letterSpacing: -0.5 * s,
-        );
+      fontSize: f * s,
+      fontWeight: FontWeight.w800,
+      height: 1.0,
+      color: _textPrimary,
+      letterSpacing: -0.5 * s,
+    );
     TextStyle h2(double f) => GoogleFonts.inter(
-          fontSize: f * s,
-          fontWeight: FontWeight.w700,
-          color: _textPrimary,
-          letterSpacing: -0.2 * s,
-        );
+      fontSize: f * s,
+      fontWeight: FontWeight.w700,
+      color: _textPrimary,
+      letterSpacing: -0.2 * s,
+    );
     TextStyle body(double f) => GoogleFonts.inter(
-          fontSize: f * s,
-          fontWeight: FontWeight.w500,
-          height: 1.35,
-          color: _textPrimary.withOpacity(0.92),
-        );
+      fontSize: f * s,
+      fontWeight: FontWeight.w500,
+      height: 1.35,
+      color: _textPrimary.withOpacity(0.92),
+    );
 
     return Scaffold(
       backgroundColor: _bg,
@@ -43,7 +43,7 @@ class YannkoWelcomePage extends StatelessWidget {
         children: [
           // Contenu principal
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 24 * s),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,11 +56,12 @@ class YannkoWelcomePage extends StatelessWidget {
                       'assets/images/cheetah_head.png',
                       height: 112 * s,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.pets_rounded,
-                        color: Colors.amber.shade300,
-                        size: 96 * s,
-                      ),
+                      errorBuilder:
+                          (_, __, ___) => Icon(
+                            Icons.pets_rounded,
+                            color: Colors.amber.shade300,
+                            size: 96 * s,
+                          ),
                     ),
                   ),
 
@@ -88,7 +89,7 @@ class YannkoWelcomePage extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: 28 * s),
+                  SizedBox(height: 20 * s),
 
                   // Bouton "Pièce neuve"
                   _YButton(
@@ -102,7 +103,7 @@ class YannkoWelcomePage extends StatelessWidget {
                     },
                   ),
 
-                  SizedBox(height: 16 * s),
+                  SizedBox(height: 12 * s),
 
                   // Bouton "Pièce occasion"
                   _YButton(
@@ -115,10 +116,6 @@ class YannkoWelcomePage extends StatelessWidget {
                       context.go('/welcome');
                     },
                   ),
-
-                  // On laisse de l'espace pour l'illustration scooter
-                  const Spacer(),
-                  SizedBox(height: 140 * s),
                 ],
               ),
             ),

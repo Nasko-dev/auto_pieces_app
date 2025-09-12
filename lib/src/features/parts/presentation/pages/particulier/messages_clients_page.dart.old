@@ -1,0 +1,350 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/conversations_providers.dart';
+import 'package:cente_pice/src/features/parts/domain/entities/conversation.dart';
+
+class MessagesClientsPage extends ConsumerStatefulWidget {
+  const MessagesClientsPage({super.key});
+
+  @override
+  ConsumerState<MessagesClientsPage> createState() => _MessagesClientsPageState();
+}
+
+class _MessagesClientsPageState extends ConsumerState<MessagesClientsPage> {
+  List<int> _expandedCategories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Charger les conversations au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(conversationsControllerProvider.notifier).loadConversations();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conversationsState = ref.watch(conversationsControllerProvider);
+    
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF4A90E2),
+        title: const Text(
+          'Messages clients',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+        elevation: 0,
+      ),
+      body: conversationsState.isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : conversationsState.error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text('Erreur: ${conversationsState.error}'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.read(conversationsControllerProvider.notifier).loadConversations();
+                      },
+                      child: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
+              )
+            : _buildConversationsList(conversationsState.conversations),
+    );
+  }
+
+  Widget _buildConversationsList(List<Conversation> conversations) {
+    if (conversations.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.message_outlined, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Aucune conversation pour le moment',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Grouper les conversations par demande de pièce (par partRequest)
+    final Map<String, List<Conversation>> groupedConversations = {};
+    
+    for (final conversation in conversations) {
+      final key = '${conversation.partRequest.partNames.join(", ")} ${conversation.partRequest.vehicleBrand ?? ""} ${conversation.partRequest.vehicleModel ?? ""} ${conversation.partRequest.vehicleYear ?? ""}';
+      if (groupedConversations.containsKey(key)) {
+        groupedConversations[key]!.add(conversation);
+      } else {
+        groupedConversations[key] = [conversation];
+      }
+    }
+
+    // Initialiser toutes les catégories comme ouvertes
+    if (_expandedCategories.isEmpty) {
+      _expandedCategories = List.generate(groupedConversations.length, (index) => index);
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: groupedConversations.length,
+      itemBuilder: (context, index) {
+        final entry = groupedConversations.entries.elementAt(index);
+        final categoryTitle = entry.key;
+        final categoryConversations = entry.value;
+        
+        return Column(
+          children: [
+            _buildVehicleCategory(
+              index,
+              categoryTitle,
+              _getIconForPartType(categoryConversations.first.partRequest.partType),
+              categoryConversations.length,
+              categoryConversations,
+            ),
+            const SizedBox(height: 12),
+          ],
+        );
+      },
+    );
+  }
+
+  IconData _getIconForPartType(String partType) {
+    switch (partType.toLowerCase()) {
+      case 'engine':
+        return Icons.settings;
+      case 'body':
+        return Icons.directions_car;
+      case 'electrical':
+        return Icons.electrical_services;
+      default:
+        return Icons.build;
+    }
+  }
+
+  Widget _buildVehicleCategory(
+    int index,
+    String title,
+    IconData icon,
+    int messageCount,
+    List<Conversation> conversations,
+  ) {
+    final isExpanded = _expandedCategories.contains(index);
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header de la catégorie
+          InkWell(
+            onTap: () {
+              setState(() {
+                if (isExpanded) {
+                  _expandedCategories.remove(index);
+                } else {
+                  _expandedCategories.add(index);
+                }
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Icône de la pièce
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A90E2).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: const Color(0xFF4A90E2),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Titre de la pièce
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2C3E50),
+                      ),
+                    ),
+                  ),
+                  // Badge nombre de messages
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A90E2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$messageCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Icône expand/collapse
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Conversations (si expandé)
+          if (isExpanded) ...[
+            const Divider(height: 1, color: Color(0xFFE5E5E5)),
+            ...conversations.map((conversation) => _buildConversationItem(conversation)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConversationItem(Conversation conversation) {
+    final lastMessage = conversation.messages.isNotEmpty 
+        ? conversation.messages.last
+        : null;
+    
+    return InkWell(
+      onTap: () {
+        // Navigation vers le détail de la conversation
+        // context.push('/conversation/${conversation.id}');
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            // Avatar du vendeur
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.grey[300],
+              child: Icon(
+                Icons.person,
+                color: Colors.grey[600],
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Contenu de la conversation
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    conversation.sellerName,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C3E50),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          lastMessage?.content ?? 'Aucun message encore...',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (conversation.status.name == 'rejected') ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Refusé',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.red[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Timestamp
+            Text(
+              _getTimeAgo(conversation.lastMessageAt),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}j';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}min';
+    } else {
+      return 'À l\'instant';
+    }
+  }
+
+}

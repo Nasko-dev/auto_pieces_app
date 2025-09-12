@@ -43,9 +43,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   AuthNotifier({
     required this.loginAsParticulier,
     required this.repository,
-  }) : super(const AsyncValue.loading()) {
-    _checkAuthStatus();
-  }
+  }) : super(const AsyncValue.data(null));
 
   Future<void> _checkAuthStatus() async {
     final result = await repository.getCurrentUser();

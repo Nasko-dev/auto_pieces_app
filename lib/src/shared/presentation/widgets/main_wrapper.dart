@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import 'auth_wrapper.dart';
 
 class MainWrapper extends StatefulWidget {
   final Widget child;
@@ -22,7 +23,7 @@ class _MainWrapperState extends State<MainWrapper> {
         return 0;
       case '/requests':
         return 1;
-      case '/conversations':
+      case '/messages-clients':
         return 2;
       case '/become-seller':
         return 3;
@@ -31,112 +32,65 @@ class _MainWrapperState extends State<MainWrapper> {
     }
   }
 
-  String _getCurrentPageName(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    switch (location) {
-      case '/home':
-        return 'Accueil';
-      case '/requests':
-        return 'Mes Demandes';
-      case '/conversations':
-        return 'Messages';
-      case '/become-seller':
-        return 'Devenir Vendeur';
-      default:
-        return 'Accueil';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Expanded(child: widget.child),
-          // Indicateur de page au-dessus de la bottom bar
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              border: Border(
-                top: BorderSide(
-                  color: AppTheme.lightGray,
-                  width: 0.5,
-                ),
+    return AuthWrapper(
+      child: Scaffold(
+        body: widget.child,
+        // Bottom bar style LinkedIn
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.black.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
               ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getCurrentPageName(context),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppTheme.primaryBlue,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
-      // Bottom bar style LinkedIn
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.home_outlined,
-                  selectedIcon: Icons.home,
-                  label: 'Accueil',
-                  route: '/home',
-                  index: 0,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.description_outlined,
-                  selectedIcon: Icons.description,
-                  label: 'Demandes',
-                  route: '/requests',
-                  index: 1,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.chat_bubble_outline,
-                  selectedIcon: Icons.chat_bubble,
-                  label: 'Messages',
-                  route: '/conversations',
-                  index: 2,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.store_outlined,
-                  selectedIcon: Icons.store,
-                  label: 'Vendeur',
-                  route: '/become-seller',
-                  index: 3,
-                ),
-              ],
+          child: SafeArea(
+            child: Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.home_outlined,
+                    selectedIcon: Icons.home,
+                    label: 'Accueil',
+                    route: '/home',
+                    index: 0,
+                  ),
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.description_outlined,
+                    selectedIcon: Icons.description,
+                    label: 'Demandes',
+                    route: '/requests',
+                    index: 1,
+                  ),
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.chat_bubble_outline,
+                    selectedIcon: Icons.chat_bubble,
+                    label: 'Messages',
+                    route: '/messages-clients',
+                    index: 2,
+                  ),
+                  _buildNavItem(
+                    context: context,
+                    icon: Icons.store_outlined,
+                    selectedIcon: Icons.store,
+                    label: 'Vendeur',
+                    route: '/become-seller',
+                    index: 3,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

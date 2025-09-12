@@ -1,11 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:codewithandrea.com)",
+      "Write(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\**)",
       "Bash(flutter pub:*)",
       "Bash(flutter analyze:*)",
       "Bash(dart run build_runner build:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(flutter run:*)",
+      "Bash(npm install:*)",
+      "Bash(flutter clean:*)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\core\\services/**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\features\\parts\\presentation\\controllers/**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\features\\parts\\domain\\repositories/**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\features\\parts\\presentation/**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src/**)",
+      "Read(/C:\\Users\\willi\\Documents\\Client\\Mois\\cente_pice\\lib\\src\\features\\parts\\presentation/**)",
+      "Bash(sort:*)",
+      "Bash(flutter test:*)",
+      "Bash(find:*)",
+      "Bash(flutter build:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": [],

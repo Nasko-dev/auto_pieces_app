@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../controllers/auth_controller.dart';
+import '../../../../core/providers/particulier_auth_providers.dart';
+import '../controllers/particulier_auth_controller.dart';
 
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({super.key});
@@ -180,17 +181,20 @@ class WelcomePage extends ConsumerWidget {
     );
   }
 
-  void _loginAsParticulier(WidgetRef ref, BuildContext context) {
-    ref.read(authStateProvider.notifier).loginParticulier();
+  void _loginAsParticulier(WidgetRef ref, BuildContext context) async {
+    print('🎯 [WelcomePage] Début login particulier');
+    await ref.read(particulierAuthControllerProvider.notifier).signInAnonymously();
+    
+    // Redirection après connexion réussie
+    if (context.mounted) {
+      final state = ref.read(particulierAuthControllerProvider);
+      if (state.isAuthenticated) {
+        context.go('/home');
+      }
+    }
   }
 
   void _goToSellerLogin(BuildContext context) {
-    // TODO: Implémenter la page de connexion vendeur
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Connexion vendeur - À implémenter'),
-        backgroundColor: AppTheme.warning,
-      ),
-    );
+    context.push('/seller/login');
   }
 }

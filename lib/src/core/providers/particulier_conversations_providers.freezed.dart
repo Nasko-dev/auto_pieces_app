@@ -1,0 +1,237 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'particulier_conversations_providers.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+T _$identity<T>(T value) => value;
+
+final _privateConstructorUsedError = UnsupportedError(
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+
+/// @nodoc
+mixin _$ParticulierConversationsState {
+  List<ParticulierConversation> get conversations =>
+      throw _privateConstructorUsedError;
+  bool get isLoading => throw _privateConstructorUsedError;
+  String? get error => throw _privateConstructorUsedError;
+  int get unreadCount => throw _privateConstructorUsedError;
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ParticulierConversationsStateCopyWith<ParticulierConversationsState>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ParticulierConversationsStateCopyWith<$Res> {
+  factory $ParticulierConversationsStateCopyWith(
+          ParticulierConversationsState value,
+          $Res Function(ParticulierConversationsState) then) =
+      _$ParticulierConversationsStateCopyWithImpl<$Res,
+          ParticulierConversationsState>;
+  @useResult
+  $Res call(
+      {List<ParticulierConversation> conversations,
+      bool isLoading,
+      String? error,
+      int unreadCount});
+}
+
+/// @nodoc
+class _$ParticulierConversationsStateCopyWithImpl<$Res,
+        $Val extends ParticulierConversationsState>
+    implements $ParticulierConversationsStateCopyWith<$Res> {
+  _$ParticulierConversationsStateCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? conversations = null,
+    Object? isLoading = null,
+    Object? error = freezed,
+    Object? unreadCount = null,
+  }) {
+    return _then(_value.copyWith(
+      conversations: null == conversations
+          ? _value.conversations
+          : conversations // ignore: cast_nullable_to_non_nullable
+              as List<ParticulierConversation>,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+      unreadCount: null == unreadCount
+          ? _value.unreadCount
+          : unreadCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
+    implements $ParticulierConversationsStateCopyWith<$Res> {
+  factory _$$ParticulierConversationsStateImplCopyWith(
+          _$ParticulierConversationsStateImpl value,
+          $Res Function(_$ParticulierConversationsStateImpl) then) =
+      __$$ParticulierConversationsStateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {List<ParticulierConversation> conversations,
+      bool isLoading,
+      String? error,
+      int unreadCount});
+}
+
+/// @nodoc
+class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
+    extends _$ParticulierConversationsStateCopyWithImpl<$Res,
+        _$ParticulierConversationsStateImpl>
+    implements _$$ParticulierConversationsStateImplCopyWith<$Res> {
+  __$$ParticulierConversationsStateImplCopyWithImpl(
+      _$ParticulierConversationsStateImpl _value,
+      $Res Function(_$ParticulierConversationsStateImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? conversations = null,
+    Object? isLoading = null,
+    Object? error = freezed,
+    Object? unreadCount = null,
+  }) {
+    return _then(_$ParticulierConversationsStateImpl(
+      conversations: null == conversations
+          ? _value._conversations
+          : conversations // ignore: cast_nullable_to_non_nullable
+              as List<ParticulierConversation>,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+      unreadCount: null == unreadCount
+          ? _value.unreadCount
+          : unreadCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ParticulierConversationsStateImpl
+    implements _ParticulierConversationsState {
+  const _$ParticulierConversationsStateImpl(
+      {final List<ParticulierConversation> conversations = const [],
+      this.isLoading = false,
+      this.error,
+      this.unreadCount = 0})
+      : _conversations = conversations;
+
+  final List<ParticulierConversation> _conversations;
+  @override
+  @JsonKey()
+  List<ParticulierConversation> get conversations {
+    if (_conversations is EqualUnmodifiableListView) return _conversations;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_conversations);
+  }
+
+  @override
+  @JsonKey()
+  final bool isLoading;
+  @override
+  final String? error;
+  @override
+  @JsonKey()
+  final int unreadCount;
+
+  @override
+  String toString() {
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ParticulierConversationsStateImpl &&
+            const DeepCollectionEquality()
+                .equals(other._conversations, _conversations) &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.error, error) || other.error == error) &&
+            (identical(other.unreadCount, unreadCount) ||
+                other.unreadCount == unreadCount));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      const DeepCollectionEquality().hash(_conversations),
+      isLoading,
+      error,
+      unreadCount);
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ParticulierConversationsStateImplCopyWith<
+          _$ParticulierConversationsStateImpl>
+      get copyWith => __$$ParticulierConversationsStateImplCopyWithImpl<
+          _$ParticulierConversationsStateImpl>(this, _$identity);
+}
+
+abstract class _ParticulierConversationsState
+    implements ParticulierConversationsState {
+  const factory _ParticulierConversationsState(
+      {final List<ParticulierConversation> conversations,
+      final bool isLoading,
+      final String? error,
+      final int unreadCount}) = _$ParticulierConversationsStateImpl;
+
+  @override
+  List<ParticulierConversation> get conversations;
+  @override
+  bool get isLoading;
+  @override
+  String? get error;
+  @override
+  int get unreadCount;
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ParticulierConversationsStateImplCopyWith<
+          _$ParticulierConversationsStateImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}

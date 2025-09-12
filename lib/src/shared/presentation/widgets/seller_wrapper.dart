@@ -1,0 +1,188 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
+
+class SellerWrapper extends StatefulWidget {
+  final Widget child;
+
+  const SellerWrapper({super.key, required this.child});
+
+  @override
+  State<SellerWrapper> createState() => _SellerWrapperState();
+}
+
+class _SellerWrapperState extends State<SellerWrapper> {
+  int _getCurrentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    switch (location) {
+      case '/seller/home':
+        return 0;
+      case '/seller/add':
+        return 1;
+      case '/seller/ads':
+        return 2;
+      case '/seller/messages':
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  String _getCurrentPageName(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    switch (location) {
+      case '/seller/home':
+        return 'Tableau de bord';
+      case '/seller/add':
+        return 'Déposer annonce';
+      case '/seller/ads':
+        return 'Mes annonces';
+      case '/seller/messages':
+        return 'Messages';
+      default:
+        return 'Tableau de bord';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(child: widget.child),
+          // Indicateur de page au-dessus de la bottom bar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.white,
+              border: Border(
+                top: BorderSide(color: AppTheme.lightGray, width: 0.5),
+              ),
+            ),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1976D2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _getCurrentPageName(context),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: const Color(0xFF1976D2),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      // Bottom bar vendeur
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Container(
+            height: 60,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.dashboard_outlined,
+                  selectedIcon: Icons.dashboard,
+                  label: 'Tableau',
+                  route: '/seller/home',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.add_circle_outline,
+                  selectedIcon: Icons.add_circle,
+                  label: 'Déposer',
+                  route: '/seller/add',
+                  index: 1,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.inventory_2_outlined,
+                  selectedIcon: Icons.inventory_2,
+                  label: 'Mes annonces',
+                  route: '/seller/ads',
+                  index: 2,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.chat_bubble_outline,
+                  selectedIcon: Icons.chat_bubble,
+                  label: 'Messages',
+                  route: '/seller/messages',
+                  index: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required String route,
+    required int index,
+  }) {
+    final isSelected = _getCurrentIndex(context) == index;
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.go(route),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isSelected ? selectedIcon : icon,
+                  size: 22,
+                  color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
