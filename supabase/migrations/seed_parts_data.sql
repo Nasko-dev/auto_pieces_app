@@ -199,11 +199,9 @@ BEGIN
   ('Manette', 'interieur', 'commandes', ARRAY['manette'], false),
   ('Levier de vitesse', 'interieur', 'commandes', ARRAY['levier'], true),
   ('Pommeau de levier', 'interieur', 'commandes', ARRAY['pommeau'], false),
-  ('Frein à main', 'interieur', 'commandes', ARRAY['frein main'], false),
-  ('Pédale', 'interieur', 'commandes', ARRAY['pédales'], false),
-  ('Accélérateur', 'interieur', 'commandes', ARRAY['pédale accélérateur'], false),
-  ('Embrayage', 'interieur', 'commandes', ARRAY['pédale embrayage'], false),
-  ('Frein', 'interieur', 'commandes', ARRAY['pédale frein'], false);
+  ('Pédale d''accélérateur', 'interieur', 'commandes', ARRAY['pédale accélérateur', 'accélérateur'], false),
+  ('Pédale d''embrayage', 'interieur', 'commandes', ARRAY['pédale embrayage'], false),
+  ('Pédale de frein', 'interieur', 'commandes', ARRAY['pédale frein'], false);
 
   -- CATÉGORIE CLIMATISATION
   INSERT INTO parts (name, category, subcategory, synonyms, is_popular) VALUES
