@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/immatriculation_service.dart';
+import '../services/rate_limiter_service.dart';
 import '../../features/parts/domain/entities/vehicle_info.dart';
 import '../errors/failures.dart';
 import '../constants/app_constants.dart';
+import 'particulier_auth_providers.dart';
 
 final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   final username = const String.fromEnvironment(
@@ -18,17 +20,28 @@ final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   return ImmatriculationService(apiUsername: username);
 });
 
+final rateLimiterServiceProvider = Provider<RateLimiterService>((ref) {
+  final sharedPrefs = ref.watch(sharedPreferencesProvider);
+  return RateLimiterService(sharedPrefs);
+});
+
 class VehicleSearchState {
   final bool isLoading;
   final VehicleInfo? vehicleInfo;
   final String? error;
   final String? lastSearchedPlate;
+  final int remainingAttempts;
+  final int timeUntilReset;
+  final bool isRateLimited;
 
   const VehicleSearchState({
     this.isLoading = false,
     this.vehicleInfo,
     this.error,
     this.lastSearchedPlate,
+    this.remainingAttempts = 3,
+    this.timeUntilReset = 0,
+    this.isRateLimited = false,
   });
 
   VehicleSearchState copyWith({
@@ -36,6 +49,9 @@ class VehicleSearchState {
     VehicleInfo? vehicleInfo,
     String? error,
     String? lastSearchedPlate,
+    int? remainingAttempts,
+    int? timeUntilReset,
+    bool? isRateLimited,
     bool clearVehicleInfo = false,
     bool clearError = false,
   }) {
@@ -44,18 +60,41 @@ class VehicleSearchState {
       vehicleInfo: clearVehicleInfo ? null : (vehicleInfo ?? this.vehicleInfo),
       error: clearError ? null : (error ?? this.error),
       lastSearchedPlate: lastSearchedPlate ?? this.lastSearchedPlate,
+      remainingAttempts: remainingAttempts ?? this.remainingAttempts,
+      timeUntilReset: timeUntilReset ?? this.timeUntilReset,
+      isRateLimited: isRateLimited ?? this.isRateLimited,
     );
   }
 }
 
 class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   final ImmatriculationService _service;
+  final RateLimiterService _rateLimiter;
   final Map<String, VehicleInfo> _cache = {};
 
-  VehicleSearchNotifier(this._service) : super(const VehicleSearchState());
+  VehicleSearchNotifier(this._service, this._rateLimiter) : super(const VehicleSearchState()) {
+    _updateRateLimitStatus();
+  }
 
   Future<void> searchVehicle(String plate) async {
     print('🔍 [VehicleSearchNotifier] Début recherche pour: $plate');
+    
+    // Mise à jour du status de limitation
+    await _updateRateLimitStatus();
+    
+    // Vérification de la limitation de taux
+    final canSearch = await _rateLimiter.canMakeSearch();
+    if (!canSearch) {
+      final timeUntilReset = await _rateLimiter.getTimeUntilReset();
+      print('🚫 [VehicleSearchNotifier] Limite de recherches atteinte');
+      state = state.copyWith(
+        error: 'Limite de 3 recherches atteinte. Attendez ${timeUntilReset}min avant de réessayer.',
+        clearVehicleInfo: true,
+        isRateLimited: true,
+      );
+      return;
+    }
+    
     final cleanPlate = plate.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
     print('🧹 [VehicleSearchNotifier] Plaque nettoyée: $cleanPlate');
 
@@ -85,6 +124,10 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
     print('🔄 [VehicleSearchNotifier] Début du chargement...');
     state = state.copyWith(isLoading: true, clearError: true);
+
+    // Enregistrer la tentative de recherche
+    await _rateLimiter.recordAttempt();
+    await _updateRateLimitStatus();
 
     print('📡 [VehicleSearchNotifier] Appel du service API...');
     final result = await _service.getVehicleInfoFromPlate(cleanPlate);
@@ -169,12 +212,31 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
       if (info.color != null) 'Couleur': info.color!,
     };
   }
+
+  /// Met à jour le statut de limitation dans l'état
+  Future<void> _updateRateLimitStatus() async {
+    final remainingAttempts = await _rateLimiter.getRemainingAttempts();
+    final timeUntilReset = await _rateLimiter.getTimeUntilReset();
+    final canSearch = await _rateLimiter.canMakeSearch();
+    
+    state = state.copyWith(
+      remainingAttempts: remainingAttempts,
+      timeUntilReset: timeUntilReset,
+      isRateLimited: !canSearch,
+    );
+  }
+
+  /// Force la mise à jour du statut de limitation (pour l'UI)
+  Future<void> updateRateLimitStatus() async {
+    await _updateRateLimitStatus();
+  }
 }
 
 final vehicleSearchProvider =
     StateNotifierProvider<VehicleSearchNotifier, VehicleSearchState>((ref) {
       final service = ref.watch(immatriculationServiceProvider);
-      return VehicleSearchNotifier(service);
+      final rateLimiter = ref.watch(rateLimiterServiceProvider);
+      return VehicleSearchNotifier(service, rateLimiter);
     });
 
 final remainingCreditsProvider = FutureProvider<int>((ref) async {
