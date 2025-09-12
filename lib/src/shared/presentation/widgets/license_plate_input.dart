@@ -110,6 +110,17 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
           onSubmitted: (_) => _handleSearch(),
         ),
 
+        // Affichage des limitations de tentatives
+        if (vehicleState.isRateLimited) ...[
+          const SizedBox(height: 12),
+          _RateLimitWarning(
+            remainingAttempts: vehicleState.remainingAttempts,
+            timeUntilReset: vehicleState.timeUntilReset,
+          ),
+        ] else if (vehicleState.remainingAttempts < 3) ...[
+          const SizedBox(height: 12),
+          _RemainingAttemptsInfo(remainingAttempts: vehicleState.remainingAttempts),
+        ],
 
         // if (vehicleState.vehicleInfo != null) ...[
         //   const SizedBox(height: 12),
@@ -149,6 +160,99 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _RateLimitWarning extends StatelessWidget {
+  final int remainingAttempts;
+  final int timeUntilReset;
+
+  static const Color _warning = Color(0xFFFF9500);
+  static const Color _error = Color(0xFFFF3B30);
+  static const Color _textDark = Color(0xFF1C1C1E);
+  static const double _radius = 12;
+
+  const _RateLimitWarning({
+    required this.remainingAttempts,
+    required this.timeUntilReset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: _error.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: _error,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Limite atteinte. Attendez ${timeUntilReset}min avant de réessayer.',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: _textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RemainingAttemptsInfo extends StatelessWidget {
+  final int remainingAttempts;
+
+  static const Color _warning = Color(0xFFFF9500);
+  static const Color _textDark = Color(0xFF1C1C1E);
+  static const double _radius = 12;
+
+  const _RemainingAttemptsInfo({
+    required this.remainingAttempts,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: _warning.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: _warning,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Tentatives restantes: $remainingAttempts/3',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: _textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
