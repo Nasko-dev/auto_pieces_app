@@ -19,6 +19,7 @@ class MessageBubbleWidget extends StatelessWidget {
     // Le message est "de nous" si le type correspond à l'utilisateur actuel
     final isFromCurrentUser = message.senderType == currentUserType;
     final isOffer = message.messageType == MessageType.offer;
+    
 
     return Align(
       alignment: isFromCurrentUser ? Alignment.centerRight : Alignment.centerLeft,

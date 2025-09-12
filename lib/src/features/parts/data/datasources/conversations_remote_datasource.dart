@@ -19,6 +19,7 @@ abstract class ConversationsRemoteDataSource {
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
+    MessageSenderType? senderType, // Nouveau paramètre optionnel
   });
   Future<void> markMessagesAsRead({
     required String conversationId,
@@ -260,14 +261,26 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
+    MessageSenderType? senderType,
   }) async {
     print('📤 [Datasource] Envoi message: $content');
     
     try {
+      // Déterminer automatiquement le sender_type si pas fourni
+      String senderTypeString;
+      if (senderType != null) {
+        senderTypeString = senderType == MessageSenderType.user ? 'user' : 'seller';
+      } else {
+        // Auto-détection : vérifier si l'expéditeur est dans la table sellers
+        senderTypeString = await _determineSenderType(senderId);
+      }
+      
+      print('👤 [Datasource] Sender type déterminé: $senderTypeString');
+      
       final messageData = {
         'conversation_id': conversationId,
         'sender_id': senderId,
-        'sender_type': 'user', // Toujours user côté particulier
+        'sender_type': senderTypeString,
         'content': content,
         'message_type': messageType.toString().split('.').last,
         'offer_price': offerPrice,
@@ -571,6 +584,28 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return MessageType.offer;
       default:
         return MessageType.text;
+    }
+  }
+
+  Future<String> _determineSenderType(String senderId) async {
+    try {
+      // Vérifier si l'ID est dans la table sellers
+      final sellerCheck = await _supabaseClient
+          .from('sellers')
+          .select('id')
+          .eq('id', senderId)
+          .limit(1);
+      
+      if (sellerCheck.isNotEmpty) {
+        print('✅ [Datasource] $senderId est un vendeur');
+        return 'seller';
+      } else {
+        print('👤 [Datasource] $senderId est un particulier');
+        return 'user';
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur détermination sender_type: $e');
+      return 'user'; // Fallback vers user par défaut
     }
   }
 
