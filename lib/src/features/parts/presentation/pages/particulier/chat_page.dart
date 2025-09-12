@@ -340,6 +340,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ],
             MessageBubbleWidget(
               message: message,
+              currentUserType: MessageSenderType.user, // Côté particulier
               isLastMessage: isLastMessage,
             ),
             const SizedBox(height: 8),

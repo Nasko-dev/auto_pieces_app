@@ -286,6 +286,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         
         return MessageBubbleWidget(
           message: message,
+          currentUserType: MessageSenderType.seller, // Côté vendeur
           isLastMessage: index == messages.length - 1,
         );
       },

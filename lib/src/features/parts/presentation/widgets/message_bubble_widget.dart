@@ -5,42 +5,45 @@ import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums
 class MessageBubbleWidget extends StatelessWidget {
   final Message message;
   final bool isLastMessage;
+  final MessageSenderType currentUserType;
 
   const MessageBubbleWidget({
     super.key,
     required this.message,
+    required this.currentUserType,
     this.isLastMessage = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isFromUser = message.senderType == MessageSenderType.user;
+    // Le message est "de nous" si le type correspond à l'utilisateur actuel
+    final isFromCurrentUser = message.senderType == currentUserType;
     final isOffer = message.messageType == MessageType.offer;
 
     return Align(
-      alignment: isFromUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isFromCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         margin: EdgeInsets.only(
-          left: isFromUser ? 64 : 0,
-          right: isFromUser ? 0 : 64,
+          left: isFromCurrentUser ? 64 : 0,
+          right: isFromCurrentUser ? 0 : 64,
         ),
         child: Column(
-          crossAxisAlignment: isFromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isFromCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isFromUser
+                color: isFromCurrentUser
                     ? Theme.of(context).primaryColor
                     : isOffer
                         ? Colors.green[50]
                         : Colors.grey[100],
                 borderRadius: BorderRadius.circular(16).copyWith(
-                  bottomRight: isFromUser ? const Radius.circular(4) : null,
-                  bottomLeft: !isFromUser ? const Radius.circular(4) : null,
+                  bottomRight: isFromCurrentUser ? const Radius.circular(4) : null,
+                  bottomLeft: !isFromCurrentUser ? const Radius.circular(4) : null,
                 ),
                 border: isOffer
                     ? Border.all(color: Colors.green, width: 1)
@@ -54,7 +57,7 @@ class MessageBubbleWidget extends StatelessWidget {
                   Text(
                     message.content,
                     style: TextStyle(
-                      color: isFromUser
+                      color: isFromCurrentUser
                           ? Colors.white
                           : isOffer
                               ? Colors.green[800]
@@ -76,12 +79,12 @@ class MessageBubbleWidget extends StatelessWidget {
                         _formatTime(message.createdAt),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isFromUser
+                          color: isFromCurrentUser
                               ? Colors.white70
                               : Colors.grey[600],
                         ),
                       ),
-                      if (isFromUser && isLastMessage) ...[
+                      if (isFromCurrentUser && isLastMessage) ...[
                         const SizedBox(width: 4),
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
