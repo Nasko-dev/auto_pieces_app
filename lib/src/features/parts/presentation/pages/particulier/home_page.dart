@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
-import '../../../../../core/constants/car_parts_list.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
@@ -574,7 +573,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           _showSuggestions = false;
         });
       }
-      print('Erreur recherche BDD: $e');
     }
   }
 

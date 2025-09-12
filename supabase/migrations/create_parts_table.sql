@@ -53,7 +53,7 @@ RETURNS TABLE (
   description text,
   is_popular boolean,
   search_count integer,
-  relevance real
+  relevance numeric
 ) AS $$
 BEGIN
   RETURN QUERY
