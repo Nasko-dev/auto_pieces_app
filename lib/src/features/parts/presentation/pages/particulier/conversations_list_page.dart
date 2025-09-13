@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/conversation_item_widget.dart';
 
@@ -19,8 +21,64 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     super.initState();
     // Charger les conversations au démarrage et initialiser le realtime
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      controller.loadConversations();
+      
+      // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
+      _initializeRealtimeWithCorrectIds(controller);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ré-initialiser si le provider change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      _initializeRealtimeWithCorrectIds(controller);
+    });
+  }
+
+  Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+      
+      // Récupérer les vrais IDs particulier
+      final allParticuliersWithDevice = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId);
+          
+      final allUserIds = allParticuliersWithDevice
+          .map((p) => p['id'] as String)
+          .toList();
+          
+      print('🆔 [UI-Particulier] IDs particulier trouvés: $allUserIds');
+      
+      // Initialiser le realtime pour chaque ID particulier
+      for (final userId in allUserIds) {
+        print('📡 [UI-Particulier] Initialisation realtime pour ID: $userId');
+        controller.initializeRealtime(userId);
+      }
+      
+      // Fallback vers auth ID si aucun trouvé
+      if (allUserIds.isEmpty) {
+        final authUserId = Supabase.instance.client.auth.currentUser?.id;
+        if (authUserId != null) {
+          print('⚠️ [UI-Particulier] Fallback auth ID: $authUserId');
+          controller.initializeRealtime(authUserId);
+        }
+      }
+    } catch (e) {
+      print('❌ [UI-Particulier] Erreur init realtime: $e');
+      // Fallback vers auth ID
+      final authUserId = Supabase.instance.client.auth.currentUser?.id;
+      if (authUserId != null) {
+        controller.initializeRealtime(authUserId);
+      }
+    }
   }
 
   @override

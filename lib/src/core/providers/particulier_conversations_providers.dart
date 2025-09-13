@@ -24,7 +24,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   final RealtimeService _realtimeService;
   Timer? _pollingTimer;
   bool _isPollingActive = false;
-  StreamSubscription<List<Map<String, dynamic>>>? _messageSubscription;
 
   ParticulierConversationsController({
     required PartRequestRepository repository,
@@ -33,7 +32,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
        _realtimeService = realtimeService,
        super(const ParticulierConversationsState()) {
     _initializeRealtimeSubscriptions();
-    _startIntelligentPolling();
+    // Le polling sera démarré dans initializeRealtime() avec les bons IDs
   }
 
   void _initializeRealtimeSubscriptions() {
@@ -41,25 +40,62 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     _realtimeService.startSubscriptions();
   }
   
-  void initializeRealtime(String userId) {
-    print('📡 [ParticulierConversations] Initialisation realtime pour particulier: $userId');
+  // Abonnement global aux messages - même structure que le vendeur
+  void initializeRealtime(String userId) async {
+    print('📡 [ParticulierConversations] Initialisation realtime global pour particulier: $userId');
+    _startIntelligentPolling();
+    _subscribeToGlobalMessages(userId);
+  }
+
+  // S'abonner globalement aux messages - exactement comme le vendeur
+  void _subscribeToGlobalMessages(String userId) async {
+    print('🌍 [ParticulierConversations] Configuration écoute globale des messages');
     
-    // Écouter les nouveaux messages globalement
-    _messageSubscription = Supabase.instance.client
-        .from('messages')
-        .stream(primaryKey: ['id'])
-        .listen((List<Map<String, dynamic>> data) {
-          if (data.isNotEmpty) {
-            final latestMessage = data.last;
-            print('🎉 [ParticulierConversations] *** NOUVEAU MESSAGE DÉTECTÉ - REFRESH AUTOMATIQUE ***');
-            print('📨 Données: ${latestMessage.toString()}');
-            
-            // Refresh immédiat des conversations
+    // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
+    final channel = Supabase.instance.client
+        .channel('global_particulier_messages_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            print('🎉 [ParticulierConversations] *** TRIGGER NOUVEAU MESSAGE DÉTECTÉ ***');
+            print('💬 [ParticulierConversations] Nouveau message global détecté');
+            _handleGlobalNewMessage(payload.newRecord as Map<String, dynamic>, userId);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'conversations',
+          callback: (payload) {
+            print('🔄 [ParticulierConversations] Conversation mise à jour détectée');
+            // Refresh quand une conversation est mise à jour (ex: unread_count)
             loadConversations();
-          }
-        });
+          },
+        );
     
-    print('✅ [ParticulierConversations] Subscription realtime active');
+    await channel.subscribe();
+    print('✅ [ParticulierConversations] Channel global messages abonné');
+  }
+
+  // Gérer un nouveau message reçu globalement - même logique que le vendeur
+  void _handleGlobalNewMessage(Map<String, dynamic> messageData, String userId) async {
+    final conversationId = messageData['conversation_id'] as String?;
+    final senderId = messageData['sender_id'] as String?;
+    
+    if (conversationId == null || senderId == null) return;
+
+    print('🎉 [ParticulierConversations] *** NOUVEAU MESSAGE REÇU *** ');
+    print('🔍 [ParticulierConversations] Conversation: $conversationId, Sender: $senderId');
+    
+    // Si ce n'est pas notre propre message, refresh immédiatement
+    if (senderId != userId) {
+      print('🚀 [ParticulierConversations] Message d\'un vendeur → REFRESH IMMÉDIAT');
+      await loadConversations();
+    } else {
+      print('📤 [ParticulierConversations] Notre propre message, pas besoin de refresh');
+    }
   }
 
   void _startIntelligentPolling() {
@@ -251,7 +287,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   @override
   void dispose() {
     _pollingTimer?.cancel();
-    _messageSubscription?.cancel();
     _isPollingActive = false;
     _realtimeService.dispose();
     super.dispose();
