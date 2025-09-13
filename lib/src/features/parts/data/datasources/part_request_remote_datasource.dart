@@ -864,7 +864,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             )
           ''')
           .inFilter('user_id', allUserIds)
-          .order('updated_at', ascending: false);
+          .order('last_message_at', ascending: false);
 
       print('📦 [DataSource] ${conversations.length} conversations trouvées');
 

@@ -172,6 +172,35 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     }
   }
 
+  // Trier les conversations par message le plus récent (même logique que particulier)
+  List<Conversation> _sortConversationsByLastMessage(List<Conversation> conversations) {
+    final sortedConversations = [...conversations];
+    sortedConversations.sort((a, b) {
+      // Utiliser lastMessageAt si disponible, sinon obtenir le dernier message
+      if (a.lastMessageAt != null && b.lastMessageAt != null) {
+        return b.lastMessageAt!.compareTo(a.lastMessageAt!);
+      }
+      
+      // Fallback: obtenir le dernier message de chaque conversation
+      final messagesA = state.conversationMessages[a.id] ?? [];
+      final messagesB = state.conversationMessages[b.id] ?? [];
+      
+      final lastMessageA = messagesA.isEmpty ? null : messagesA.last;
+      final lastMessageB = messagesB.isEmpty ? null : messagesB.last;
+      
+      // Si une conversation n'a pas de messages, la mettre en bas
+      if (lastMessageA == null && lastMessageB == null) return 0;
+      if (lastMessageA == null) return 1;
+      if (lastMessageB == null) return -1;
+      
+      // Trier par date du dernier message (plus récent en premier)
+      return lastMessageB.createdAt.compareTo(lastMessageA.createdAt);
+    });
+    
+    print('🔄 [Controller] Conversations triées par dernier message');
+    return sortedConversations;
+  }
+
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -188,7 +217,8 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       result.fold(
         (failure) => print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
         (conversations) {
-          state = state.copyWith(conversations: conversations);
+          final sortedConversations = _sortConversationsByLastMessage(conversations);
+          state = state.copyWith(conversations: sortedConversations);
           _updateUnreadCount();
         },
       );
@@ -218,8 +248,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       },
       (conversations) {
         print('✅ [Controller] ${conversations.length} conversations chargées');
+        final sortedConversations = _sortConversationsByLastMessage(conversations);
         state = state.copyWith(
-          conversations: conversations,
+          conversations: sortedConversations,
           isLoading: false,
           error: null,
         );

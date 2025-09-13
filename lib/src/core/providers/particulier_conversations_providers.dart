@@ -130,12 +130,13 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       },
       (conversations) {
         final updatedConversations = _calculateAndUpdateUnreadCounts(conversations);
-        final totalUnreadCount = _calculateUnreadCount(updatedConversations);
+        final sortedConversations = _sortConversationsByLastMessage(updatedConversations);
+        final totalUnreadCount = _calculateUnreadCount(sortedConversations);
         print('✅ [ParticulierConversations] ${conversations.length} conversations, $totalUnreadCount non lues');
         
         if (mounted) {
           state = state.copyWith(
-            conversations: updatedConversations,
+            conversations: sortedConversations,
             isLoading: false,
             error: null,
             unreadCount: totalUnreadCount,
@@ -153,13 +154,35 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       (conversations) {
         if (mounted) {
           final updatedConversations = _calculateAndUpdateUnreadCounts(conversations);
+          final sortedConversations = _sortConversationsByLastMessage(updatedConversations);
           state = state.copyWith(
-            conversations: updatedConversations,
-            unreadCount: _calculateUnreadCount(updatedConversations),
+            conversations: sortedConversations,
+            unreadCount: _calculateUnreadCount(sortedConversations),
           );
         }
       },
     );
+  }
+
+  // Trier les conversations par message le plus récent (même logique que vendeur)
+  List<ParticulierConversation> _sortConversationsByLastMessage(List<ParticulierConversation> conversations) {
+    final sortedConversations = [...conversations];
+    sortedConversations.sort((a, b) {
+      // Obtenir le dernier message de chaque conversation
+      final lastMessageA = a.messages.isEmpty ? null : a.messages.last;
+      final lastMessageB = b.messages.isEmpty ? null : b.messages.last;
+      
+      // Si une conversation n'a pas de messages, la mettre en bas
+      if (lastMessageA == null && lastMessageB == null) return 0;
+      if (lastMessageA == null) return 1;
+      if (lastMessageB == null) return -1;
+      
+      // Trier par date du dernier message (plus récent en premier)
+      return lastMessageB.createdAt.compareTo(lastMessageA.createdAt);
+    });
+    
+    print('🔄 [ParticulierConversations] Conversations triées par dernier message');
+    return sortedConversations;
   }
 
   List<ParticulierConversation> _calculateAndUpdateUnreadCounts(List<ParticulierConversation> conversations) {
