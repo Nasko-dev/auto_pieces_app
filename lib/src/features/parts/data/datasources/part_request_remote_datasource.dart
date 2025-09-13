@@ -891,7 +891,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
                 (type) => type.name == (msgData['message_type'] ?? 'text'),
                 orElse: () => MessageType.text,
               ),
-              isFromParticulier: msgData['sender_type'] == 'particulier',
+              isFromParticulier: msgData['sender_type'] == 'user',
               isRead: msgData['is_read'] ?? false,
               createdAt: DateTime.parse(msgData['created_at']),
               offerPrice: msgData['offer_price']?.toDouble(),
@@ -943,7 +943,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
                 print('📧 [Datasource-Particulier] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, isFromParticulier=${msg.isFromParticulier}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
               }
               
-              final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != currentUser.id).toList();
+              final unreadMessages = messages.where((msg) => !msg.isRead && !msg.isFromParticulier).toList();
               print('🔴 [Datasource-Particulier] Messages non lus trouvés: ${unreadMessages.length}');
               for (final msg in unreadMessages) {
                 print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');

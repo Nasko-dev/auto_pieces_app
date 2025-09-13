@@ -172,7 +172,8 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Calcul optimisé : éviter where().length pour de meilleures performances
       int unreadCount = 0;
       for (final msg in conversation.messages) {
-        if (!msg.isRead && msg.senderId != currentUserId) {
+        final isFromVendeur = !msg.isFromParticulier; // Message du vendeur
+        if (!msg.isRead && isFromVendeur) {
           unreadCount++;
         }
       }

@@ -45,10 +45,27 @@ class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
       curve: Curves.easeInOut,
     ));
 
-    // Désactiver l'auto-start de l'animation
-    // if (widget.isNewMessage) {
-    //   _animationController.repeat(reverse: true);
-    // }
+    // Démarrer l'animation si unreadCount > 0 pour particulier
+    _updateAnimation();
+  }
+
+  @override
+  void didUpdateWidget(ConversationItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateAnimation();
+  }
+
+  void _updateAnimation() {
+    // Vérifier si c'est une conversation particulier avec unreadCount > 0
+    final isParticulier = widget.conversation is ParticulierConversation;
+    final hasUnread = isParticulier && (widget.conversation as ParticulierConversation).unreadCount > 0;
+    
+    if (hasUnread && !_animationController.isAnimating) {
+      _animationController.repeat(reverse: true);
+    } else if (!hasUnread && _animationController.isAnimating) {
+      _animationController.stop();
+      _animationController.reset();
+    }
   }
 
   @override
@@ -59,9 +76,10 @@ class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
 
   @override
   Widget build(BuildContext context) {
-    // Désactiver temporairement tous les effets visuels
-    const bool hasUnread = false; // Forcé à false pour désactiver les effets
-    const int unreadCount = 0;    // Forcé à 0 pour désactiver les effets
+    // Activer les effets visuels seulement pour particulier si unreadCount > 0
+    final isParticulier = widget.conversation is ParticulierConversation;
+    final hasUnread = isParticulier && (widget.conversation as ParticulierConversation).unreadCount > 0;
+    final unreadCount = isParticulier ? (widget.conversation as ParticulierConversation).unreadCount : 0;
     
     return AnimatedBuilder(
       animation: _pulseAnimation,
