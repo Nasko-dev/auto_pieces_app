@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/message.dart';
@@ -22,6 +23,7 @@ class SellerConversationDetailPage extends ConsumerStatefulWidget {
 class _SellerConversationDetailPageState extends ConsumerState<SellerConversationDetailPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
+  StreamSubscription? _messageSubscription;
 
   @override
   void initState() {
@@ -32,11 +34,59 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
+      
+      // Marquer la conversation comme lue
+      _markAsRead();
+      
+      // S'abonner aux messages en temps réel pour cette conversation
+      _subscribeToRealtimeMessages();
     });
+  }
+
+  void _markAsRead() {
+    print('👀 [UI-VendeurDetail] Marquage conversation comme lue: ${widget.conversationId}');
+    ref.read(conversationsControllerProvider.notifier).markAsRead(widget.conversationId);
+  }
+  
+  void _subscribeToRealtimeMessages() {
+    print('🔔 [SellerConversationDetailPage] Abonnement realtime pour conversation: ${widget.conversationId}');
+    
+    final realtimeService = ref.read(realtimeServiceProvider);
+    
+    // S'abonner aux messages de cette conversation spécifique
+    realtimeService.subscribeToMessages(widget.conversationId);
+    
+    // Écouter les nouveaux messages via le stream spécifique à cette conversation
+    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen((message) {
+      // Vérifier que c'est bien pour notre conversation
+      if (message.conversationId == widget.conversationId) {
+        print('🎆 [SellerConversationDetailPage] Nouveau message reçu en temps réel!');
+        
+        // Envoyer au controller via la méthode unifiée
+        ref.read(conversationsControllerProvider.notifier)
+            .handleIncomingMessage(message);
+        
+        // Faire défiler vers le bas
+        _scrollToBottom();
+      }
+    });
+  }
+  
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
     super.dispose();
@@ -192,6 +242,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         
         return MessageBubbleWidget(
           message: message,
+          currentUserType: MessageSenderType.seller, // Côté vendeur
           isLastMessage: index == messages.length - 1,
         );
       },

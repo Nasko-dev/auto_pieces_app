@@ -19,6 +19,7 @@ abstract class ConversationsRemoteDataSource {
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
+    MessageSenderType? senderType, // Nouveau paramètre optionnel
   });
   Future<void> markMessagesAsRead({
     required String conversationId,
@@ -32,6 +33,14 @@ abstract class ConversationsRemoteDataSource {
   Future<void> blockConversation({required String conversationId});
   Stream<Message> subscribeToNewMessages({required String conversationId});
   Stream<Conversation> subscribeToConversationUpdates({required String userId});
+  Future<Conversation> createOrGetConversation({
+    required String requestId,
+    required String userId,
+    required String sellerId,
+    required String sellerName,
+    String? sellerCompany,
+    required String requestTitle,
+  });
 }
 
 class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource {
@@ -99,7 +108,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_content,
           last_message_sender_type,
           last_message_created_at,
-          unread_count,
           total_messages
         ''')
         .eq('seller_id', sellerId)
@@ -108,10 +116,60 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    return response.map((json) {
+    final conversations = <Conversation>[];
+    
+    for (final json in response) {
       print('📄 [Datasource] Conversion conversation vendeur: ${json['id']}');
-      return Conversation.fromJson(_mapSupabaseToConversation(json));
-    }).toList();
+      
+      // Charger les messages pour cette conversation et calculer unreadCount localement
+      final messagesResponse = await _supabaseClient
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', json['id'])
+          .order('created_at', ascending: true);
+      
+      final messages = messagesResponse.map((msgData) {
+        return Message(
+          id: msgData['id'],
+          conversationId: msgData['conversation_id'],
+          senderId: msgData['sender_id'],
+          senderType: msgData['sender_type'] == 'user' 
+              ? MessageSenderType.user 
+              : MessageSenderType.seller,
+          content: msgData['content'],
+          isRead: msgData['is_read'] ?? false,
+          createdAt: DateTime.parse(msgData['created_at']),
+          updatedAt: DateTime.parse(msgData['updated_at']),
+        );
+      }).toList();
+      
+      // Calculer unreadCount : messages des autres utilisateurs non lus
+      print('=============== CALCUL UNREAD VENDEUR ${json['id']} ===============');
+      print('👥 [Datasource-Vendeur] Seller ID: $sellerId');
+      print('📨 [Datasource-Vendeur] Total messages: ${messages.length}');
+      
+      for (final msg in messages) {
+        print('📧 [Datasource-Vendeur] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
+      }
+      
+      final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
+      final unreadCount = unreadMessages.length;
+      
+      print('🔴 [Datasource-Vendeur] Messages non lus trouvés: $unreadCount');
+      for (final msg in unreadMessages) {
+        print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
+      }
+      print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
+      print('================================================================');
+      
+      // Modifier le JSON pour inclure notre unreadCount calculé
+      final modifiedJson = Map<String, dynamic>.from(json);
+      modifiedJson['unread_count'] = unreadCount;
+      
+      conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+    }
+
+    return conversations;
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -252,21 +310,33 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
+    MessageSenderType? senderType,
   }) async {
     print('📤 [Datasource] Envoi message: $content');
     
     try {
+      // Déterminer automatiquement le sender_type si pas fourni
+      String senderTypeString;
+      if (senderType != null) {
+        senderTypeString = senderType == MessageSenderType.user ? 'user' : 'seller';
+      } else {
+        // Auto-détection : vérifier si l'expéditeur est dans la table sellers
+        senderTypeString = await _determineSenderType(senderId);
+      }
+      
+      print('👤 [Datasource] Sender type déterminé: $senderTypeString');
+      
       final messageData = {
         'conversation_id': conversationId,
         'sender_id': senderId,
-        'sender_type': 'user', // Toujours user côté particulier
+        'sender_type': senderTypeString,
         'content': content,
         'message_type': messageType.toString().split('.').last,
         'offer_price': offerPrice,
         'offer_availability': offerAvailability,
         'offer_delivery_days': offerDeliveryDays,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        // Laisser Supabase générer les timestamps (UTC) pour éviter les problèmes de fuseau horaire
+        // 'created_at' et 'updated_at' seront générés automatiquement par Supabase
       };
 
       final response = await _supabaseClient
@@ -294,10 +364,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('conversations')
           .update({
             'last_message_content': content,
-            'last_message_at': DateTime.now().toIso8601String(),
+            'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
             'last_message_sender_type': 'user',
-            'last_message_created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
+            'last_message_created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+            'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
       
@@ -320,7 +390,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('messages')
           .update({
             'is_read': true,
-            'read_at': DateTime.now().toIso8601String(),
+            'read_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('conversation_id', conversationId)
           .eq('sender_type', 'seller')
@@ -352,7 +422,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .from('conversations')
           .update({
             'status': _conversationStatusToString(status),
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
 
@@ -563,6 +633,104 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return MessageType.offer;
       default:
         return MessageType.text;
+    }
+  }
+
+  Future<String> _determineSenderType(String senderId) async {
+    try {
+      // Vérifier si l'ID est dans la table sellers
+      final sellerCheck = await _supabaseClient
+          .from('sellers')
+          .select('id')
+          .eq('id', senderId)
+          .limit(1);
+      
+      if (sellerCheck.isNotEmpty) {
+        print('✅ [Datasource] $senderId est un vendeur');
+        return 'seller';
+      } else {
+        print('👤 [Datasource] $senderId est un particulier');
+        return 'user';
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur détermination sender_type: $e');
+      return 'user'; // Fallback vers user par défaut
+    }
+  }
+
+  @override
+  Future<Conversation> createOrGetConversation({
+    required String requestId,
+    required String userId,
+    required String sellerId,
+    required String sellerName,
+    String? sellerCompany,
+    required String requestTitle,
+  }) async {
+    print('🔍 [Datasource] Vérification conversation existante pour request: $requestId');
+    
+    try {
+      // 1. Vérifier si une conversation existe déjà pour cette demande spécifique
+      final existingConversations = await _supabaseClient
+          .from('conversations')
+          .select('''
+            id,
+            request_id,
+            user_id,
+            seller_id,
+            status,
+            last_message_at,
+            created_at,
+            updated_at,
+            seller_name,
+            seller_company,
+            request_title,
+            last_message_content,
+            last_message_sender_type,
+            last_message_created_at,
+            unread_count,
+            total_messages
+          ''')
+          .eq('request_id', requestId)
+          .eq('user_id', userId)
+          .eq('seller_id', sellerId);
+
+      if (existingConversations.isNotEmpty) {
+        print('✅ [Datasource] Conversation existante trouvée');
+        return Conversation.fromJson(_mapSupabaseToConversation(existingConversations.first));
+      }
+
+      // 2. Créer une nouvelle conversation pour cette demande
+      print('📝 [Datasource] Création nouvelle conversation pour request: $requestId');
+      
+      final newConversation = {
+        'request_id': requestId,
+        'user_id': userId,
+        'seller_id': sellerId,
+        'status': 'active',
+        'seller_name': sellerName,
+        'seller_company': sellerCompany,
+        'request_title': requestTitle,
+        'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+        'created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+        'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
+        'unread_count': 0,
+        'total_messages': 0,
+      };
+
+      final response = await _supabaseClient
+          .from('conversations')
+          .insert(newConversation)
+          .select()
+          .single();
+
+      print('✅ [Datasource] Nouvelle conversation créée: ${response['id']}');
+      
+      return Conversation.fromJson(_mapSupabaseToConversation(response));
+      
+    } catch (e) {
+      print('❌ [Datasource] Erreur création/récupération conversation: $e');
+      throw ServerException('Erreur lors de la création de la conversation: $e');
     }
   }
 }

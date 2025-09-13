@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
@@ -22,6 +23,8 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
+  StreamSubscription? _messageSubscription;
+  int _previousMessageCount = 0;
 
   @override
   void initState() {
@@ -32,11 +35,67 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
+      
+      // Marquage des messages désactivé temporairement
+      // ref.read(conversationsControllerProvider.notifier)
+      //     .markConversationAsRead(widget.conversationId);
+      
+      // S'abonner aux messages en temps réel via RealtimeService
+      _subscribeToRealtimeMessages();
     });
+  }
+  
+  void _subscribeToRealtimeMessages() {
+    print('🔔 [ChatPage] Abonnement realtime pour conversation: ${widget.conversationId}');
+    
+    final realtimeService = ref.read(realtimeServiceProvider);
+    
+    // S'abonner aux messages de cette conversation spécifique
+    realtimeService.subscribeToMessages(widget.conversationId);
+    
+    // Écouter les nouveaux messages via le stream spécifique à cette conversation
+    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+      (message) {
+        print('🔍 [ChatPage] Message stream reçu - ID: ${message.id}, Conv: ${message.conversationId}');
+        
+        // Vérifier que c'est bien pour notre conversation
+        if (message.conversationId == widget.conversationId) {
+          print('🎆 [ChatPage] Message pour notre conversation - Traitement!');
+          
+          // Envoyer au controller via la méthode unifiée
+          ref.read(conversationsControllerProvider.notifier)
+              .handleIncomingMessage(message);
+          
+          // Faire défiler vers le bas
+          _scrollToBottom();
+        } else {
+          print('⚠️ [ChatPage] Message pour autre conversation (${message.conversationId} != ${widget.conversationId})');
+        }
+      },
+      onError: (error) {
+        print('❌ [ChatPage] Erreur stream messages: $error');
+      },
+      onDone: () {
+        print('🏁 [ChatPage] Stream messages terminé');
+      },
+    );
+  }
+  
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
     super.dispose();
@@ -49,12 +108,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
 
-    // Trouver la conversation pour le titre
+    // Auto-scroll quand de nouveaux messages arrivent
+    if (messages.length > _previousMessageCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+      _previousMessageCount = messages.length;
+    }
+
+    // Trouver la conversation pour le titre - gestion sécurisée
     final conversations = ref.watch(conversationsListProvider);
-    final conversation = conversations.firstWhere(
-      (c) => c.id == widget.conversationId,
-      orElse: () => throw Exception('Conversation non trouvée'),
-    );
+    final conversation = conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+    
+    // Si pas de conversation trouvée, afficher un titre par défaut
+    if (conversation == null) {
+      print('⚠️ [ChatPage] Conversation ${widget.conversationId} non trouvée dans la liste');
+    }
 
     print('💬 [UI] ChatPage rendu - ${messages.length} messages');
 
@@ -64,12 +133,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              conversation.sellerName ?? 'Vendeur',
+              conversation?.sellerName ?? 'Vendeur',
               style: const TextStyle(fontSize: 16),
             ),
-            if (conversation.sellerCompany != null)
+            if (conversation?.sellerCompany != null)
               Text(
-                conversation.sellerCompany!,
+                conversation!.sellerCompany!,
                 style: const TextStyle(fontSize: 12),
               ),
           ],
@@ -246,6 +315,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ],
             MessageBubbleWidget(
               message: message,
+              currentUserType: MessageSenderType.user, // Côté particulier
               isLastMessage: isLastMessage,
             ),
             const SizedBox(height: 8),

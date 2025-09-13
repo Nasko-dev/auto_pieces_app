@@ -6,6 +6,7 @@ import 'src/core/theme/app_theme.dart';
 import 'src/core/navigation/app_router.dart';
 import 'src/core/constants/app_constants.dart';
 import 'src/core/providers/particulier_auth_providers.dart';
+import 'src/core/services/realtime_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,16 @@ void main() async {
       anonKey: AppConstants.supabaseAnonKey,
     );
     print('✅ [Main] Supabase initialisé avec succès !');
+    
+    // Initialiser le service Realtime
+    print('📡 [Main] Démarrage du service Realtime...');
+    try {
+      final realtimeService = RealtimeService();
+      await realtimeService.startRealtimeSubscriptions();
+      print('✅ [Main] Service Realtime démarré avec succès !');
+    } catch (e) {
+      print('⚠️ [Main] Erreur démarrage Realtime (non bloquant): $e');
+    }
     
     // Initialiser SharedPreferences
     print('💾 [Main] Initialisation de SharedPreferences...');

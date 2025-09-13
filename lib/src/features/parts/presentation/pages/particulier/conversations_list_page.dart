@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/conversations_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../../core/providers/particulier_conversations_providers.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/conversation_item_widget.dart';
 
@@ -16,60 +19,95 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   @override
   void initState() {
     super.initState();
-    // Charger les conversations au démarrage
+    // Charger les conversations au démarrage et initialiser le realtime
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(conversationsControllerProvider.notifier).loadConversations();
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      controller.loadConversations();
+      
+      // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
+      _initializeRealtimeWithCorrectIds(controller);
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final conversations = ref.watch(conversationsListProvider);
-    final isLoading = ref.watch(isLoadingProvider);
-    final error = ref.watch(conversationsErrorProvider);
-    final totalUnreadCount = ref.watch(totalUnreadCountProvider);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ré-initialiser si le provider change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      _initializeRealtimeWithCorrectIds(controller);
+    });
+  }
 
-    print('🎨 [UI] ConversationsListPage - ${conversations.length} conversations');
+  Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+      
+      // Récupérer les vrais IDs particulier
+      final allParticuliersWithDevice = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId);
+          
+      final allUserIds = allParticuliersWithDevice
+          .map((p) => p['id'] as String)
+          .toList();
+          
+      print('🆔 [UI-Particulier] IDs particulier trouvés: $allUserIds');
+      
+      // Initialiser le realtime pour chaque ID particulier
+      for (final userId in allUserIds) {
+        print('📡 [UI-Particulier] Initialisation realtime pour ID: $userId');
+        controller.initializeRealtime(userId);
+      }
+      
+      // Fallback vers auth ID si aucun trouvé
+      if (allUserIds.isEmpty) {
+        final authUserId = Supabase.instance.client.auth.currentUser?.id;
+        if (authUserId != null) {
+          print('⚠️ [UI-Particulier] Fallback auth ID: $authUserId');
+          controller.initializeRealtime(authUserId);
+        }
+      }
+    } catch (e) {
+      print('❌ [UI-Particulier] Erreur init realtime: $e');
+      // Fallback vers auth ID
+      final authUserId = Supabase.instance.client.auth.currentUser?.id;
+      if (authUserId != null) {
+        controller.initializeRealtime(authUserId);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(particulierConversationsControllerProvider);
+    final conversations = state.conversations;
+    final isLoading = state.isLoading;
+    final error = state.error;
+
+    print('🎨 [UI-PARTICULIER] ConversationsListPage - ${conversations.length} conversations');
+    print('📊 [UI-PARTICULIER] isLoading: $isLoading, error: $error');
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Mes Conversations'),
-            if (totalUnreadCount > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  totalUnreadCount > 99 ? '99+' : '$totalUnreadCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
+        title: const Text('Mes Conversations'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               print('🔄 [UI] Refresh manuel demandé');
-              ref.read(conversationsControllerProvider.notifier).loadConversations();
+              ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
             },
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          print('⬇️ [UI] Pull to refresh');
-          await ref.read(conversationsControllerProvider.notifier).loadConversations();
+          print('⬇️ [UI-Particulier] Pull to refresh');
+          await ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
         },
         child: _buildBody(conversations, isLoading, error),
       ),
@@ -116,7 +154,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                ref.read(conversationsControllerProvider.notifier).loadConversations();
+                ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Réessayer'),
@@ -156,11 +194,11 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: conversations.length,
       itemBuilder: (context, index) {
         final conversation = conversations[index];
-        print('📋 [UI] Affichage conversation: ${conversation.id}');
+        print('📋 [UI] Affichage conversation: ${conversation.id} - UnreadCount: ${conversation.unreadCount}');
         
         return ConversationItemWidget(
           conversation: conversation,
@@ -193,7 +231,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             onPressed: () {
               Navigator.of(context).pop();
               print('🗑️ [UI] Suppression conversation confirmée: $conversationId');
-              ref.read(conversationsControllerProvider.notifier)
+              ref.read(particulierConversationsControllerProvider.notifier)
                   .deleteConversation(conversationId);
               
               ScaffoldMessenger.of(context).showSnackBar(
@@ -229,7 +267,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             onPressed: () {
               Navigator.of(context).pop();
               print('🚫 [UI] Blocage vendeur confirmé: $conversationId');
-              ref.read(conversationsControllerProvider.notifier)
+              ref.read(particulierConversationsControllerProvider.notifier)
                   .blockConversation(conversationId);
               
               ScaffoldMessenger.of(context).showSnackBar(

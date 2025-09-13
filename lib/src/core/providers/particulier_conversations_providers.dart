@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/realtime_service.dart';
 import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/entities/particulier_conversation.dart';
@@ -31,21 +32,79 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
        _realtimeService = realtimeService,
        super(const ParticulierConversationsState()) {
     _initializeRealtimeSubscriptions();
-    _startIntelligentPolling();
+    // Le polling sera démarré dans initializeRealtime() avec les bons IDs
   }
 
   void _initializeRealtimeSubscriptions() {
-    print('🔔 [ParticulierConversations] Initialisation du polling intelligent');
+    print('🔔 [ParticulierConversations] Initialisation du temps réel');
     _realtimeService.startSubscriptions();
+  }
+  
+  // Abonnement global aux messages - même structure que le vendeur
+  void initializeRealtime(String userId) async {
+    print('📡 [ParticulierConversations] Initialisation realtime global pour particulier: $userId');
+    _startIntelligentPolling();
+    _subscribeToGlobalMessages(userId);
+  }
+
+  // S'abonner globalement aux messages - exactement comme le vendeur
+  void _subscribeToGlobalMessages(String userId) async {
+    print('🌍 [ParticulierConversations] Configuration écoute globale des messages');
+    
+    // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
+    final channel = Supabase.instance.client
+        .channel('global_particulier_messages_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            print('🎉 [ParticulierConversations] *** TRIGGER NOUVEAU MESSAGE DÉTECTÉ ***');
+            print('💬 [ParticulierConversations] Nouveau message global détecté');
+            _handleGlobalNewMessage(payload.newRecord, userId);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'conversations',
+          callback: (payload) {
+            print('🔄 [ParticulierConversations] Conversation mise à jour détectée');
+            // Refresh quand une conversation est mise à jour (ex: unread_count)
+            loadConversations();
+          },
+        );
+    
+    channel.subscribe();
+    print('✅ [ParticulierConversations] Channel global messages abonné');
+  }
+
+  // Gérer un nouveau message reçu globalement - même logique que le vendeur
+  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
+    final conversationId = messageData['conversation_id'] as String?;
+    final senderId = messageData['sender_id'] as String?;
+    
+    if (conversationId == null || senderId == null) return;
+
+    print('🎉 [ParticulierConversations] *** NOUVEAU MESSAGE REÇU *** ');
+    print('🔍 [ParticulierConversations] Conversation: $conversationId, Sender: $senderId');
+    
+    // Si ce n'est pas notre propre message, refresh immédiatement
+    if (senderId != userId) {
+      print('🚀 [ParticulierConversations] Message d\'un vendeur → REFRESH IMMÉDIAT');
+      await loadConversations();
+    } else {
+      print('📤 [ParticulierConversations] Notre propre message, pas besoin de refresh');
+    }
   }
 
   void _startIntelligentPolling() {
     if (_isPollingActive) return;
     
     _isPollingActive = true;
-    print('⏰ [ParticulierConversations] Polling de fond activé (10s)');
+    print('⏰ [ParticulierConversations] Polling de fond réduit (30s)');
     
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (mounted) {
         _loadConversationsQuietly();
       }
@@ -70,36 +129,17 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         }
       },
       (conversations) {
-        print('✅ [ParticulierConversations] ${conversations.length} conversations chargées');
-        
-        // Compter les messages non lus
-        final unreadCount = conversations.fold<int>(0, (sum, conv) => 
-          sum + conv.messages.where((msg) => !msg.isFromParticulier && !msg.isRead).length
-        );
-        
-        print('🔔 [ParticulierConversations] $unreadCount non lues');
-        
-        // Débugger les conversations pour voir leur structure
-        _debugConversations(conversations);
+        final processedConversations = _calculateAndUpdateUnreadCounts(conversations);
+        final totalUnreadCount = _calculateUnreadCount(processedConversations);
+        print('✅ [ParticulierConversations] ${conversations.length} conversations, $totalUnreadCount non lues');
         
         if (mounted) {
           state = state.copyWith(
-            conversations: conversations,
+            conversations: processedConversations,
             isLoading: false,
             error: null,
-            unreadCount: unreadCount,
+            unreadCount: totalUnreadCount,
           );
-          
-          print('🎯 [UI] Affichage de ${conversations.length} conversations particulier');
-          
-          // Grouper par véhicule pour débug
-          final vehicleGroups = <String, List<ParticulierConversation>>{};
-          for (final conv in conversations) {
-            final key = conv.partRequest.vehiclePlate ?? 'Sans plaque';
-            vehicleGroups[key] = (vehicleGroups[key] ?? [])..add(conv);
-          }
-          
-          print('📊 [UI] ${vehicleGroups.keys.length} groupes de véhicules');
         }
       },
     );
@@ -109,36 +149,56 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     final result = await _repository.getParticulierConversations();
     
     result.fold(
-      (failure) {
-        // Log erreur silencieusement
-        print('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}');
-      },
+      (failure) => print('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
       (conversations) {
         if (mounted) {
-          final unreadCount = conversations.fold<int>(0, (sum, conv) => 
-            sum + conv.messages.where((msg) => !msg.isFromParticulier && !msg.isRead).length
-          );
-          
+          final processedConversations = _calculateAndUpdateUnreadCounts(conversations);
           state = state.copyWith(
-            conversations: conversations,
-            unreadCount: unreadCount,
+            conversations: processedConversations,
+            unreadCount: _calculateUnreadCount(processedConversations),
           );
         }
       },
     );
   }
 
-  void _debugConversations(List<ParticulierConversation> conversations) {
-    print('📝 [ParticulierConversations] Debug des conversations:');
-    for (int i = 0; i < conversations.length; i++) {
-      final conv = conversations[i];
-      print('  - Conv $i: sellerName=${conv.sellerName}, messages=${conv.messages.length}');
-      for (int j = 0; j < conv.messages.length && j < 20; j++) {
-        final msg = conv.messages[j];
-        print('    Msg $j: isFromParticulier=${msg.isFromParticulier}, content="${msg.content}"');
+
+  // Optimisation : calcul unread plus efficace
+  List<ParticulierConversation> _calculateAndUpdateUnreadCounts(List<ParticulierConversation> conversations) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return conversations;
+    
+    return conversations.map((conversation) {
+      // Calcul optimisé : éviter where().length pour de meilleures performances
+      int unreadCount = 0;
+      for (final msg in conversation.messages) {
+        final isFromVendeur = !msg.isFromParticulier; // Message du vendeur
+        if (!msg.isRead && isFromVendeur) {
+          unreadCount++;
+        }
       }
-    }
+      
+      // Seulement copier si le count a changé (éviter copyWith inutiles)
+      if (conversation.unreadCount != unreadCount) {
+        if (unreadCount > 0) {
+          print('💬 [ParticulierConversations] Conversation ${conversation.id}: $unreadCount non lus');
+        }
+        return conversation.copyWith(unreadCount: unreadCount);
+      }
+      
+      return conversation; // Pas de changement, retourner l'original
+    }).toList();
   }
+
+  // Optimisation : calcul total plus efficace (éviter fold si aucun unread)
+  int _calculateUnreadCount(List<ParticulierConversation> conversations) {
+    int total = 0;
+    for (final conv in conversations) {
+      if (conv.unreadCount > 0) total += conv.unreadCount;
+    }
+    return total;
+  }
+
 
   Future<void> loadConversationDetails(String conversationId) async {
     print('📨 [ChatDetail] Chargement messages conversation: $conversationId');
@@ -192,22 +252,22 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> markConversationAsRead(String conversationId) async {
-    print('👀 [ChatDetail] Marquer comme lu: $conversationId');
+    print('👀 [ParticulierConversations] Marquer comme lu: $conversationId');
     
     final result = await _repository.markParticulierConversationAsRead(conversationId);
     
     result.fold(
-      (failure) => print('⚠️ [ChatDetail] Erreur marquage lu: ${failure.message}'),
+      (failure) => print('⚠️ [ParticulierConversations] Erreur marquage lu: ${failure.message}'),
       (_) {
-        print('✅ [ChatDetail] Marqué comme lu');
-        // Recharger pour mettre à jour les compteurs
-        loadConversationDetails(conversationId);
+        print('✅ [ParticulierConversations] Marqué comme lu - REFRESH IMMÉDIAT');
+        // Refresh immédiat pour mettre à jour les compteurs dans la liste
+        loadConversations();
       },
     );
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    print('🗑️ [ChatDetail] Suppression conversation: $conversationId');
+    print('🗑️ [ParticulierConversations] Suppression conversation: $conversationId');
     
     // TODO: Implémenter la suppression côté repository
     // Pour l'instant, on simule en retirant de la liste locale
@@ -219,7 +279,23 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       state = state.copyWith(conversations: updatedConversations);
     }
     
-    print('✅ [ChatDetail] Conversation supprimée localement');
+    print('✅ [ParticulierConversations] Conversation supprimée localement');
+  }
+  
+  Future<void> blockConversation(String conversationId) async {
+    print('🚫 [ParticulierConversations] Blocage vendeur: $conversationId');
+    
+    // TODO: Implémenter le blocage côté repository
+    // Pour l'instant, on simule en retirant de la liste locale
+    final updatedConversations = state.conversations
+        .where((c) => c.id != conversationId)
+        .toList();
+    
+    if (mounted) {
+      state = state.copyWith(conversations: updatedConversations);
+    }
+    
+    print('✅ [ParticulierConversations] Vendeur bloqué localement');
   }
 
   @override
