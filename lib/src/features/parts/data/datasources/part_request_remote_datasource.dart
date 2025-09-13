@@ -809,7 +809,38 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Récupérer les conversations où l'utilisateur est le particulier
+      // Récupérer l'ID persistant du particulier comme dans getUserPartRequests
+      List<String> allUserIds = [];
+      
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+        print('📱 [DataSource] Device ID obtenu: $deviceId');
+        
+        // Récupérer tous les particuliers avec ce device_id
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+            
+        allUserIds = allParticuliersWithDevice
+            .map((p) => p['id'] as String)
+            .toList();
+            
+        print('🆔 [DataSource] IDs particulier trouvés pour ce device: $allUserIds');
+        
+        if (allUserIds.isEmpty) {
+          print('⚠️ [DataSource] Aucun particulier trouvé pour ce device, fallback vers auth ID');
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        print('⚠️ [DataSource] Erreur récupération ID persistant: $e');
+        print('🔄 [DataSource] Fallback: utilisation auth_id');
+        allUserIds = [currentUser.id];
+      }
+
+      // Récupérer les conversations pour tous les IDs de particulier
       final conversations = await _supabase
           .from('conversations')
           .select('''
@@ -832,7 +863,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               company_name
             )
           ''')
-          .eq('user_id', currentUser.id)
+          .inFilter('user_id', allUserIds)
           .order('updated_at', ascending: false);
 
       print('📦 [DataSource] ${conversations.length} conversations trouvées');
@@ -903,8 +934,29 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               (status) => status.name == (convData['status'] ?? 'pending'),
               orElse: () => ConversationStatus.active,
             ),
-            hasUnreadMessages: messages.any((msg) => !msg.isRead && !msg.isFromParticulier),
-            unreadCount: messages.where((msg) => !msg.isRead && !msg.isFromParticulier).length,
+            hasUnreadMessages: (() {
+              print('=============== CALCUL UNREAD PARTICULIER ${convData['id']} ===============');
+              print('👥 [Datasource-Particulier] Current User ID: ${currentUser.id}');
+              print('📨 [Datasource-Particulier] Total messages: ${messages.length}');
+              
+              for (final msg in messages) {
+                print('📧 [Datasource-Particulier] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, isFromParticulier=${msg.isFromParticulier}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
+              }
+              
+              final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != currentUser.id).toList();
+              print('🔴 [Datasource-Particulier] Messages non lus trouvés: ${unreadMessages.length}');
+              for (final msg in unreadMessages) {
+                print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
+              }
+              print('================================================================');
+              
+              return unreadMessages.isNotEmpty;
+            })(),
+            unreadCount: (() {
+              final unreadCount = messages.where((msg) => !msg.isRead && msg.senderId != currentUser.id).length;
+              print('💬 [Datasource-Particulier] FINAL Conversation ${convData['id']}: $unreadCount messages non lus');
+              return unreadCount;
+            })(),
             vehiclePlate: partRequestData['vehicle_plate'],
             partType: partRequestData['part_type'],
             partNames: List<String>.from(partRequestData['part_names'] ?? []),
@@ -969,17 +1021,48 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
     required String content,
   }) async {
     try {
-      print('💬 [DataSource] Envoi message: $content');
+      print('💬 [DataSource] Envoi message particulier: $content');
       
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // TODO: Implémenter l'envoi de message vers Supabase
-      print('✅ [DataSource] Message envoyé avec succès');
+      // Préparer les données du message
+      final messageData = {
+        'conversation_id': conversationId,
+        'sender_id': currentUser.id,
+        'sender_type': 'user', // Le particulier envoie toujours en tant que 'user'
+        'content': content,
+        'message_type': 'text',
+        'is_read': false, // Message non lu par défaut
+        // Supabase génère automatiquement created_at et updated_at en UTC
+      };
+
+      // Insérer le message dans la table messages
+      final response = await _supabase
+          .from('messages')
+          .insert(messageData)
+          .select()
+          .single();
+
+      print('✅ [DataSource] Message particulier envoyé avec succès: ${response['id']}');
+      
+      // Mettre à jour la conversation avec le dernier message
+      await _supabase
+          .from('conversations')
+          .update({
+            'last_message_content': content,
+            'last_message_sender_type': 'user',
+            'last_message_created_at': response['created_at'],
+            'updated_at': 'now()',
+          })
+          .eq('id', conversationId);
+
+      print('✅ [DataSource] Conversation mise à jour');
+      
     } catch (e) {
-      print('💥 [DataSource] Erreur envoi message: $e');
+      print('💥 [DataSource] Erreur envoi message particulier: $e');
       throw ServerException(e.toString());
     }
   }
@@ -994,8 +1077,20 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // TODO: Implémenter le marquage comme lu dans Supabase
-      print('✅ [DataSource] Conversation marquée comme lue');
+      // Marquer tous les messages de cette conversation comme lus
+      // Pour le particulier, on marque comme lus les messages envoyés par le vendeur (seller)
+      final result = await _supabase
+          .from('messages')
+          .update({
+            'is_read': true,
+            'read_at': 'now()',
+          })
+          .eq('conversation_id', conversationId)
+          .eq('sender_type', 'seller') // Messages du vendeur à marquer comme lus
+          .eq('is_read', false); // Seulement les messages non lus
+
+      print('✅ [DataSource] Messages du vendeur marqués comme lus: $conversationId');
+      
     } catch (e) {
       print('💥 [DataSource] Erreur marquage conversation: $e');
       throw ServerException(e.toString());

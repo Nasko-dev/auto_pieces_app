@@ -108,7 +108,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_content,
           last_message_sender_type,
           last_message_created_at,
-          unread_count,
           total_messages
         ''')
         .eq('seller_id', sellerId)
@@ -117,10 +116,60 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    return response.map((json) {
+    final conversations = <Conversation>[];
+    
+    for (final json in response) {
       print('📄 [Datasource] Conversion conversation vendeur: ${json['id']}');
-      return Conversation.fromJson(_mapSupabaseToConversation(json));
-    }).toList();
+      
+      // Charger les messages pour cette conversation et calculer unreadCount localement
+      final messagesResponse = await _supabaseClient
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', json['id'])
+          .order('created_at', ascending: true);
+      
+      final messages = messagesResponse.map((msgData) {
+        return Message(
+          id: msgData['id'],
+          conversationId: msgData['conversation_id'],
+          senderId: msgData['sender_id'],
+          senderType: msgData['sender_type'] == 'user' 
+              ? MessageSenderType.user 
+              : MessageSenderType.seller,
+          content: msgData['content'],
+          isRead: msgData['is_read'] ?? false,
+          createdAt: DateTime.parse(msgData['created_at']),
+          updatedAt: DateTime.parse(msgData['updated_at']),
+        );
+      }).toList();
+      
+      // Calculer unreadCount : messages des autres utilisateurs non lus
+      print('=============== CALCUL UNREAD VENDEUR ${json['id']} ===============');
+      print('👥 [Datasource-Vendeur] Seller ID: $sellerId');
+      print('📨 [Datasource-Vendeur] Total messages: ${messages.length}');
+      
+      for (final msg in messages) {
+        print('📧 [Datasource-Vendeur] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
+      }
+      
+      final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
+      final unreadCount = unreadMessages.length;
+      
+      print('🔴 [Datasource-Vendeur] Messages non lus trouvés: $unreadCount');
+      for (final msg in unreadMessages) {
+        print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
+      }
+      print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
+      print('================================================================');
+      
+      // Modifier le JSON pour inclure notre unreadCount calculé
+      final modifiedJson = Map<String, dynamic>.from(json);
+      modifiedJson['unread_count'] = unreadCount;
+      
+      conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+    }
+
+    return conversations;
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {

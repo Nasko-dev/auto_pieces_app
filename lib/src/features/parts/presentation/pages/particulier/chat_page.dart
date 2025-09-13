@@ -7,7 +7,6 @@ import '../../providers/conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
-import '../../../../../core/providers/providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -36,6 +35,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
+      
+      // Marquage des messages désactivé temporairement
+      // ref.read(conversationsControllerProvider.notifier)
+      //     .markConversationAsRead(widget.conversationId);
       
       // S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
@@ -113,12 +116,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _previousMessageCount = messages.length;
     }
 
-    // Trouver la conversation pour le titre
+    // Trouver la conversation pour le titre - gestion sécurisée
     final conversations = ref.watch(conversationsListProvider);
-    final conversation = conversations.firstWhere(
-      (c) => c.id == widget.conversationId,
-      orElse: () => throw Exception('Conversation non trouvée'),
-    );
+    final conversation = conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+    
+    // Si pas de conversation trouvée, afficher un titre par défaut
+    if (conversation == null) {
+      print('⚠️ [ChatPage] Conversation ${widget.conversationId} non trouvée dans la liste');
+    }
 
     print('💬 [UI] ChatPage rendu - ${messages.length} messages');
 
@@ -128,12 +133,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              conversation.sellerName ?? 'Vendeur',
+              conversation?.sellerName ?? 'Vendeur',
               style: const TextStyle(fontSize: 16),
             ),
-            if (conversation.sellerCompany != null)
+            if (conversation?.sellerCompany != null)
               Text(
-                conversation.sellerCompany!,
+                conversation!.sellerCompany!,
                 style: const TextStyle(fontSize: 12),
               ),
           ],

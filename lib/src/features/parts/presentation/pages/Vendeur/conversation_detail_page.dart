@@ -7,7 +7,6 @@ import '../../providers/conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
-import '../../../../../core/providers/providers.dart';
 
 class SellerConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -36,9 +35,17 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
       
+      // Marquer la conversation comme lue
+      _markAsRead();
+      
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
     });
+  }
+
+  void _markAsRead() {
+    print('👀 [UI-VendeurDetail] Marquage conversation comme lue: ${widget.conversationId}');
+    ref.read(conversationsControllerProvider.notifier).markAsRead(widget.conversationId);
   }
   
   void _subscribeToRealtimeMessages() {

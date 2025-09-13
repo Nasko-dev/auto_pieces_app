@@ -26,7 +26,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     // Charger les détails de la conversation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversationDetails();
-      _markAsRead();
+      // _markAsRead(); // Marquage désactivé temporairement
     });
   }
 
@@ -42,6 +42,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   void _markAsRead() {
+    print('👀 [UI-ParticulierDetail] Marquage conversation comme lue: ${widget.conversationId}');
     ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
 
