@@ -61,7 +61,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
           callback: (payload) {
             print('🎉 [ParticulierConversations] *** TRIGGER NOUVEAU MESSAGE DÉTECTÉ ***');
             print('💬 [ParticulierConversations] Nouveau message global détecté');
-            _handleGlobalNewMessage(payload.newRecord as Map<String, dynamic>, userId);
+            _handleGlobalNewMessage(payload.newRecord, userId);
           },
         )
         .onPostgresChanges(
@@ -75,12 +75,12 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
           },
         );
     
-    await channel.subscribe();
+    channel.subscribe();
     print('✅ [ParticulierConversations] Channel global messages abonné');
   }
 
   // Gérer un nouveau message reçu globalement - même logique que le vendeur
-  void _handleGlobalNewMessage(Map<String, dynamic> messageData, String userId) async {
+  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
     
@@ -129,14 +129,13 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         }
       },
       (conversations) {
-        final updatedConversations = _calculateAndUpdateUnreadCounts(conversations);
-        final sortedConversations = _sortConversationsByLastMessage(updatedConversations);
-        final totalUnreadCount = _calculateUnreadCount(sortedConversations);
+        final processedConversations = _calculateAndUpdateUnreadCounts(conversations);
+        final totalUnreadCount = _calculateUnreadCount(processedConversations);
         print('✅ [ParticulierConversations] ${conversations.length} conversations, $totalUnreadCount non lues');
         
         if (mounted) {
           state = state.copyWith(
-            conversations: sortedConversations,
+            conversations: processedConversations,
             isLoading: false,
             error: null,
             unreadCount: totalUnreadCount,
@@ -153,59 +152,50 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       (failure) => print('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
       (conversations) {
         if (mounted) {
-          final updatedConversations = _calculateAndUpdateUnreadCounts(conversations);
-          final sortedConversations = _sortConversationsByLastMessage(updatedConversations);
+          final processedConversations = _calculateAndUpdateUnreadCounts(conversations);
           state = state.copyWith(
-            conversations: sortedConversations,
-            unreadCount: _calculateUnreadCount(sortedConversations),
+            conversations: processedConversations,
+            unreadCount: _calculateUnreadCount(processedConversations),
           );
         }
       },
     );
   }
 
-  // Trier les conversations par message le plus récent (même logique que vendeur)
-  List<ParticulierConversation> _sortConversationsByLastMessage(List<ParticulierConversation> conversations) {
-    final sortedConversations = [...conversations];
-    sortedConversations.sort((a, b) {
-      // Obtenir le dernier message de chaque conversation
-      final lastMessageA = a.messages.isEmpty ? null : a.messages.last;
-      final lastMessageB = b.messages.isEmpty ? null : b.messages.last;
-      
-      // Si une conversation n'a pas de messages, la mettre en bas
-      if (lastMessageA == null && lastMessageB == null) return 0;
-      if (lastMessageA == null) return 1;
-      if (lastMessageB == null) return -1;
-      
-      // Trier par date du dernier message (plus récent en premier)
-      return lastMessageB.createdAt.compareTo(lastMessageA.createdAt);
-    });
-    
-    print('🔄 [ParticulierConversations] Conversations triées par dernier message');
-    return sortedConversations;
-  }
 
+  // Optimisation : calcul unread plus efficace
   List<ParticulierConversation> _calculateAndUpdateUnreadCounts(List<ParticulierConversation> conversations) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return conversations;
+    
     return conversations.map((conversation) {
-      // Compter les messages non lus pour cette conversation (messages des autres utilisateurs)
-      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-      final unreadCount = conversation.messages
-          .where((msg) => !msg.isRead && msg.senderId != currentUserId)
-          .length;
-      
-      // Mettre à jour la conversation avec le bon unreadCount
-      final updatedConversation = conversation.copyWith(unreadCount: unreadCount);
-      
-      if (unreadCount > 0) {
-        print('💬 [ParticulierConversations] Conversation ${conversation.id}: $unreadCount non lus');
+      // Calcul optimisé : éviter where().length pour de meilleures performances
+      int unreadCount = 0;
+      for (final msg in conversation.messages) {
+        if (!msg.isRead && msg.senderId != currentUserId) {
+          unreadCount++;
+        }
       }
       
-      return updatedConversation;
+      // Seulement copier si le count a changé (éviter copyWith inutiles)
+      if (conversation.unreadCount != unreadCount) {
+        if (unreadCount > 0) {
+          print('💬 [ParticulierConversations] Conversation ${conversation.id}: $unreadCount non lus');
+        }
+        return conversation.copyWith(unreadCount: unreadCount);
+      }
+      
+      return conversation; // Pas de changement, retourner l'original
     }).toList();
   }
 
+  // Optimisation : calcul total plus efficace (éviter fold si aucun unread)
   int _calculateUnreadCount(List<ParticulierConversation> conversations) {
-    return conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+    int total = 0;
+    for (final conv in conversations) {
+      if (conv.unreadCount > 0) total += conv.unreadCount;
+    }
+    return total;
   }
 
 

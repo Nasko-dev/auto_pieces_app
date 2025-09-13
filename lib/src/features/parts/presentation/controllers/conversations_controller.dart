@@ -9,7 +9,6 @@ import '../../domain/usecases/get_conversations.dart';
 import '../../domain/usecases/get_conversation_messages.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/manage_conversation.dart';
-import '../../data/repositories/conversations_repository_impl.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';
 import '../../../../core/services/realtime_service.dart';
 
@@ -103,7 +102,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           callback: (payload) {
             print('🎉 [Controller] *** TRIGGER NOUVEAU MESSAGE DÉTECTÉ ***');
             print('💬 [Controller] Nouveau message global détecté');
-            _handleGlobalNewMessage(payload.newRecord as Map<String, dynamic>, userId);
+            _handleGlobalNewMessage(payload.newRecord, userId);
           },
         )
         .onPostgresChanges(
@@ -117,12 +116,12 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           },
         );
     
-    await channel.subscribe();
+    channel.subscribe();
     print('✅ [Controller] Channel global messages abonné');
   }
 
   // Gérer un nouveau message reçu globalement
-  void _handleGlobalNewMessage(Map<String, dynamic> messageData, String userId) async {
+  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
     
@@ -166,39 +165,34 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         _autoMarkAsRead(newMessage.conversationId);
       }
       
-      // 🚀 REFRESH IMMÉDIAT de la liste des conversations
-      print('🚀 [Controller] Refresh immédiat suite au nouveau message');
-      loadConversations();
+      // 🚀 TRI OPTIMISÉ après nouveau message (évite un refresh DB complet)
+      print('🚀 [Controller] Re-tri optimisé suite au nouveau message');
+      _sortConversationsIfNeeded();
     }
   }
 
-  // Trier les conversations par message le plus récent (même logique que particulier)
-  List<Conversation> _sortConversationsByLastMessage(List<Conversation> conversations) {
-    final sortedConversations = [...conversations];
-    sortedConversations.sort((a, b) {
-      // Utiliser lastMessageAt si disponible, sinon obtenir le dernier message
+  // Tri optimisé - seulement quand nécessaire (après nouveau message)
+  void _sortConversationsIfNeeded() {
+    final conversations = [...state.conversations];
+    conversations.sort((a, b) {
+      // Prioriser lastMessageAt (plus fiable car vient de la DB)
       if (a.lastMessageAt != null && b.lastMessageAt != null) {
-        return b.lastMessageAt!.compareTo(a.lastMessageAt!);
+        return b.lastMessageAt.compareTo(a.lastMessageAt);
       }
       
-      // Fallback: obtenir le dernier message de chaque conversation
+      // Fallback sur les messages en mémoire si lastMessageAt indisponible
       final messagesA = state.conversationMessages[a.id] ?? [];
       final messagesB = state.conversationMessages[b.id] ?? [];
       
-      final lastMessageA = messagesA.isEmpty ? null : messagesA.last;
-      final lastMessageB = messagesB.isEmpty ? null : messagesB.last;
+      if (messagesA.isEmpty && messagesB.isEmpty) return 0;
+      if (messagesA.isEmpty) return 1;
+      if (messagesB.isEmpty) return -1;
       
-      // Si une conversation n'a pas de messages, la mettre en bas
-      if (lastMessageA == null && lastMessageB == null) return 0;
-      if (lastMessageA == null) return 1;
-      if (lastMessageB == null) return -1;
-      
-      // Trier par date du dernier message (plus récent en premier)
-      return lastMessageB.createdAt.compareTo(lastMessageA.createdAt);
+      return messagesB.last.createdAt.compareTo(messagesA.last.createdAt);
     });
     
-    print('🔄 [Controller] Conversations triées par dernier message');
-    return sortedConversations;
+    state = state.copyWith(conversations: conversations);
+    print('🔄 [Controller] Conversations re-triées après nouveau message');
   }
 
   void _startRefreshTimer() {
@@ -217,8 +211,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       result.fold(
         (failure) => print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
         (conversations) {
-          final sortedConversations = _sortConversationsByLastMessage(conversations);
-          state = state.copyWith(conversations: sortedConversations);
+          state = state.copyWith(conversations: conversations); // Déjà triées en DB
           _updateUnreadCount();
         },
       );
@@ -248,9 +241,8 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       },
       (conversations) {
         print('✅ [Controller] ${conversations.length} conversations chargées');
-        final sortedConversations = _sortConversationsByLastMessage(conversations);
         state = state.copyWith(
-          conversations: sortedConversations,
+          conversations: conversations, // Base triée en DB par last_message_at DESC
           isLoading: false,
           error: null,
         );
