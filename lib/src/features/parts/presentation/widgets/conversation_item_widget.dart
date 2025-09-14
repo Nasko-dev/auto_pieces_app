@@ -4,6 +4,8 @@ import 'package:cente_pice/src/features/parts/domain/entities/conversation.dart'
 import 'package:cente_pice/src/features/parts/domain/entities/particulier_conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/particulier_message.dart';
+import 'package:cente_pice/src/core/providers/particulier_conversations_providers.dart';
+import '../providers/conversations_providers.dart';
 
 class ConversationItemWidget extends ConsumerStatefulWidget {
   final dynamic conversation; // Accept both Conversation and ParticulierConversation
@@ -76,10 +78,23 @@ class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
 
   @override
   Widget build(BuildContext context) {
-    // Activer les effets visuels seulement pour particulier si unreadCount > 0
+    // ✅ SIMPLE: Utiliser les compteurs locaux pour ParticulierConversation
     final isParticulier = widget.conversation is ParticulierConversation;
-    final hasUnread = isParticulier && (widget.conversation as ParticulierConversation).unreadCount > 0;
-    final unreadCount = isParticulier ? (widget.conversation as ParticulierConversation).unreadCount : 0;
+    int unreadCount = 0;
+
+    if (isParticulier) {
+      // Pour les particuliers, utiliser les compteurs locaux du provider
+      final localCount = ref.watch(particulierConversationsControllerProvider
+          .select((state) => state.localUnreadCounts[(widget.conversation as ParticulierConversation).id] ?? 0));
+      unreadCount = localCount;
+    } else {
+      // ✅ SIMPLE: Pour les vendeurs, utiliser aussi les compteurs locaux
+      final localCount = ref.watch(conversationsControllerProvider
+          .select((state) => state.localUnreadCounts[(widget.conversation as Conversation).id] ?? 0));
+      unreadCount = localCount;
+    }
+
+    final hasUnread = unreadCount > 0;
     
     return AnimatedBuilder(
       animation: _pulseAnimation,

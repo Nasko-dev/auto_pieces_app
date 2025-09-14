@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
-import '../../providers/conversations_providers.dart';
+import '../../providers/conversations_providers.dart' hide realtimeServiceProvider;
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
+import '../../../../../core/providers/particulier_conversations_providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -36,9 +37,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
       
-      // Marquage des messages désactivé temporairement
-      // ref.read(conversationsControllerProvider.notifier)
-      //     .markConversationAsRead(widget.conversationId);
+      // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
+      ref.read(particulierConversationsControllerProvider.notifier)
+          .markConversationAsRead(widget.conversationId);
       
       // S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();

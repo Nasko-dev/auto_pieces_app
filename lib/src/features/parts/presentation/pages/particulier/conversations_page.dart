@@ -52,6 +52,14 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
           ),
         ),
         actions: [
+          // Bouton pour accéder au test des messages non lus
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Test messages non lus',
+            onPressed: () {
+              context.push('/test-unread');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {},

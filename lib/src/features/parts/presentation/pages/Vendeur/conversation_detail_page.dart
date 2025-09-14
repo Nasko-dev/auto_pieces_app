@@ -45,7 +45,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   void _markAsRead() {
     print('👀 [UI-VendeurDetail] Marquage conversation comme lue: ${widget.conversationId}');
-    ref.read(conversationsControllerProvider.notifier).markAsRead(widget.conversationId);
+    ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
   
   void _subscribeToRealtimeMessages() {

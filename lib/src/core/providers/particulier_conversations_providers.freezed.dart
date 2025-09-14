@@ -20,7 +20,9 @@ mixin _$ParticulierConversationsState {
       throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
-  int get unreadCount => throw _privateConstructorUsedError;
+  int get unreadCount =>
+      throw _privateConstructorUsedError; // ✅ SIMPLE: Compteur local par conversation
+  Map<String, int> get localUnreadCounts => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $ParticulierConversationsStateCopyWith<ParticulierConversationsState>
@@ -39,7 +41,8 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      int unreadCount});
+      int unreadCount,
+      Map<String, int> localUnreadCounts});
 }
 
 /// @nodoc
@@ -60,6 +63,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? isLoading = null,
     Object? error = freezed,
     Object? unreadCount = null,
+    Object? localUnreadCounts = null,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -78,6 +82,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
+      localUnreadCounts: null == localUnreadCounts
+          ? _value.localUnreadCounts
+          : localUnreadCounts // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
     ) as $Val);
   }
 }
@@ -95,7 +103,8 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      int unreadCount});
+      int unreadCount,
+      Map<String, int> localUnreadCounts});
 }
 
 /// @nodoc
@@ -115,6 +124,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? error = freezed,
     Object? unreadCount = null,
+    Object? localUnreadCounts = null,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -133,6 +143,10 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
+      localUnreadCounts: null == localUnreadCounts
+          ? _value._localUnreadCounts
+          : localUnreadCounts // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
     ));
   }
 }
@@ -145,8 +159,10 @@ class _$ParticulierConversationsStateImpl
       {final List<ParticulierConversation> conversations = const [],
       this.isLoading = false,
       this.error,
-      this.unreadCount = 0})
-      : _conversations = conversations;
+      this.unreadCount = 0,
+      final Map<String, int> localUnreadCounts = const {}})
+      : _conversations = conversations,
+        _localUnreadCounts = localUnreadCounts;
 
   final List<ParticulierConversation> _conversations;
   @override
@@ -165,10 +181,21 @@ class _$ParticulierConversationsStateImpl
   @override
   @JsonKey()
   final int unreadCount;
+// ✅ SIMPLE: Compteur local par conversation
+  final Map<String, int> _localUnreadCounts;
+// ✅ SIMPLE: Compteur local par conversation
+  @override
+  @JsonKey()
+  Map<String, int> get localUnreadCounts {
+    if (_localUnreadCounts is EqualUnmodifiableMapView)
+      return _localUnreadCounts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_localUnreadCounts);
+  }
 
   @override
   String toString() {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount, localUnreadCounts: $localUnreadCounts)';
   }
 
   @override
@@ -182,7 +209,9 @@ class _$ParticulierConversationsStateImpl
                 other.isLoading == isLoading) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.unreadCount, unreadCount) ||
-                other.unreadCount == unreadCount));
+                other.unreadCount == unreadCount) &&
+            const DeepCollectionEquality()
+                .equals(other._localUnreadCounts, _localUnreadCounts));
   }
 
   @override
@@ -191,7 +220,8 @@ class _$ParticulierConversationsStateImpl
       const DeepCollectionEquality().hash(_conversations),
       isLoading,
       error,
-      unreadCount);
+      unreadCount,
+      const DeepCollectionEquality().hash(_localUnreadCounts));
 
   @JsonKey(ignore: true)
   @override
@@ -205,10 +235,12 @@ class _$ParticulierConversationsStateImpl
 abstract class _ParticulierConversationsState
     implements ParticulierConversationsState {
   const factory _ParticulierConversationsState(
-      {final List<ParticulierConversation> conversations,
-      final bool isLoading,
-      final String? error,
-      final int unreadCount}) = _$ParticulierConversationsStateImpl;
+          {final List<ParticulierConversation> conversations,
+          final bool isLoading,
+          final String? error,
+          final int unreadCount,
+          final Map<String, int> localUnreadCounts}) =
+      _$ParticulierConversationsStateImpl;
 
   @override
   List<ParticulierConversation> get conversations;
@@ -218,6 +250,8 @@ abstract class _ParticulierConversationsState
   String? get error;
   @override
   int get unreadCount;
+  @override // ✅ SIMPLE: Compteur local par conversation
+  Map<String, int> get localUnreadCounts;
   @override
   @JsonKey(ignore: true)
   _$$ParticulierConversationsStateImplCopyWith<
