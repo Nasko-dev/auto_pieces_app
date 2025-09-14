@@ -80,33 +80,18 @@ final conversationsControllerProvider = StateNotifierProvider<ConversationsContr
   );
 });
 
-// Providers utiles pour l'UI
+// Providers utilisés pour l'UI - simplifiés avec compteurs locaux
 final conversationsListProvider = Provider((ref) {
   final state = ref.watch(conversationsControllerProvider);
-  // Trier les conversations : non lues en premier, puis par date du dernier message
-  final conversations = [...state.conversations];
-  conversations.sort((a, b) {
-    // Si une conversation a des messages non lus, elle passe en premier
-    if (a.unreadCount > 0 && b.unreadCount == 0) return -1;
-    if (a.unreadCount == 0 && b.unreadCount > 0) return 1;
-    // Sinon, trier par date du dernier message
-    return b.lastMessageAt.compareTo(a.lastMessageAt);
-  });
-  return conversations;
+  // Les conversations sont déjà triées en DB par last_message_at DESC
+  // Plus besoin de tri complexe - les indicateurs visuels utilisent localUnreadCounts
+  return state.conversations;
 });
 
 final totalUnreadCountProvider = Provider((ref) {
-  final conversations = ref.watch(conversationsListProvider);
-  // Calculer le total des messages non lus depuis les conversations
-  print('================== CALCUL TOTAL UNREAD COUNT ==================');
-  int total = 0;
-  for (final conversation in conversations) {
-    print('🔍 [Provider] Conversation ${conversation.id}: unreadCount = ${conversation.unreadCount}');
-    total += conversation.unreadCount;
-  }
-  print('📊 [Provider] TOTAL FINAL messages non lus: $total');
-  print('==============================================================');
-  return total;
+  final state = ref.watch(conversationsControllerProvider);
+  // ✅ SIMPLE: Utiliser directement le compteur total géré en temps réel
+  return state.totalUnreadCount;
 });
 
 final conversationMessagesProvider = Provider.family<List<Message>, String>((ref, conversationId) {
@@ -115,23 +100,9 @@ final conversationMessagesProvider = Provider.family<List<Message>, String>((ref
 });
 
 final conversationUnreadCountProvider = Provider.family<int, String>((ref, conversationId) {
-  final conversations = ref.watch(conversationsListProvider);
-  // Trouver la conversation et retourner son unreadCount
-  final conversation = conversations.firstWhere(
-    (c) => c.id == conversationId,
-    orElse: () => Conversation(
-      id: '',
-      requestId: '',
-      userId: '',
-      sellerId: '',
-      lastMessageAt: DateTime.now(),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      unreadCount: 0,
-    ),
-  );
-  print('🔢 [Provider] Messages non lus pour conversation $conversationId: ${conversation.unreadCount}');
-  return conversation.unreadCount;
+  final state = ref.watch(conversationsControllerProvider);
+  // ✅ SIMPLE: Utiliser directement le compteur local géré en temps réel
+  return state.localUnreadCounts[conversationId] ?? 0;
 });
 
 final isLoadingProvider = Provider((ref) {

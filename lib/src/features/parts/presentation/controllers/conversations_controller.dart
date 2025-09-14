@@ -182,14 +182,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       state = state.copyWith(conversationMessages: currentMessages);
       print('✅ [Controller] Message ajouté à la conversation');
       
-      // Recalculer les unread counts
-      _updateUnreadCount();
-      
-      // Marquer automatiquement comme lu si la conversation est active
-      if (state.activeConversationId == newMessage.conversationId && 
-          newMessage.senderType == MessageSenderType.seller) {
-        _autoMarkAsRead(newMessage.conversationId);
-      }
+      // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       
       // 🚀 TRI OPTIMISÉ après nouveau message (évite un refresh DB complet)
       print('🚀 [Controller] Re-tri optimisé suite au nouveau message');
@@ -238,7 +231,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         (failure) => print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
         (conversations) {
           state = state.copyWith(conversations: conversations); // Déjà triées en DB
-          _updateUnreadCount();
+          // Plus besoin de recalculer - compteurs locaux gérés en temps réel
         },
       );
     }
@@ -272,12 +265,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           isLoading: false,
           error: null,
         );
-        _updateUnreadCount();
-        
-        // Charger les messages pour calculer les unreadCounts
-        _loadMessagesForUnreadCount().then((_) {
-          print('✅ [Controller] Messages chargés pour indicateurs visuels');
-        });
+        // Plus besoin de calculs - compteurs locaux gérés en temps réel
         
         // Initialiser le refresh timer après le premier chargement
         initializeRealtime(userId);
@@ -317,21 +305,11 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           error: null,
         );
         
-        // Recalculer les unread counts après chargement des messages
-        _updateUnreadCount();
-        
-        // Marquer comme lu automatiquement
-        _autoMarkAsRead(conversationId);
+        // Plus besoin de calculs - compteurs locaux gérés en temps réel
       },
     );
   }
 
-  Future<void> _autoMarkAsRead(String conversationId) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
-      await markAsRead(conversationId);
-    }
-  }
 
   // Envoyer un message
   Future<void> sendMessage({
@@ -459,7 +437,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       print('✅ [VendeurController] Messages reçus marqués comme lus pour: $conversationId');
     }
 
-    _updateUnreadCount();
+    // Plus besoin de recalculer - compteurs locaux gérés en temps réel
   }
 
   // Supprimer une conversation
@@ -490,8 +468,8 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           conversations: updatedConversations,
           conversationMessages: updatedMessages,
         );
-        
-        _updateUnreadCount();
+
+        // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       },
     );
   }
@@ -518,7 +496,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
             .toList();
         
         state = state.copyWith(conversations: updatedConversations);
-        _updateUnreadCount();
+        // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       },
     );
   }
@@ -576,89 +554,13 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     });
   }
 
-  // Charger les messages pour calculer les indicateurs côté vendeur
-  Future<void> _loadMessagesForUnreadCount() async {
-    print('🔄 [VendeurController] Chargement messages pour calcul indicateurs');
-    
-    for (final conversation in state.conversations) {
-      // Ne charger que si nous n'avons pas encore les messages pour cette conversation
-      if (!state.conversationMessages.containsKey(conversation.id)) {
-        final result = await _getConversationMessages(
-          GetConversationMessagesParams(conversationId: conversation.id)
-        );
-        
-        result.fold(
-          (failure) => print('⚠️ [VendeurController] Erreur chargement messages ${conversation.id}: ${failure.message}'),
-          (messages) {
-            final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
-            updatedMessages[conversation.id] = messages;
-            state = state.copyWith(conversationMessages: updatedMessages);
-          },
-        );
-      }
-    }
-    
-    // Recalculer les unread counts maintenant que nous avons les messages
-    _updateUnreadCount();
-  }
 
-  // Calculer le nombre total de messages non lus côté vendeur
-  void _updateUnreadCount() {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentUserId == null) return;
-
-    int totalUnread = 0;
-    final updatedConversations = <Conversation>[];
-    
-    for (final conversation in state.conversations) {
-      // Compter les messages des autres utilisateurs non lus
-      final messages = state.conversationMessages[conversation.id] ?? [];
-      final unreadCount = messages
-          .where((msg) => !msg.isRead && msg.senderId != currentUserId)
-          .length;
-      
-      // Créer une nouvelle conversation avec le count mis à jour
-      final updatedConversation = conversation.copyWith(unreadCount: unreadCount);
-      updatedConversations.add(updatedConversation);
-      
-      totalUnread += unreadCount;
-      
-      if (unreadCount > 0) {
-        print('💬 [VendeurController] Conversation ${conversation.id}: $unreadCount non lus');
-      }
-    }
-    
-    // Mettre à jour le state avec les conversations mises à jour
-    state = state.copyWith(
-      conversations: updatedConversations,
-      totalUnreadCount: totalUnread,
-    );
-    
-    print('🔔 [VendeurController] Total messages non lus calculé: $totalUnread');
-  }
 
   // Helpers
   List<Message> getMessagesForConversation(String conversationId) {
     return state.conversationMessages[conversationId] ?? [];
   }
 
-  int getUnreadCountForConversation(String conversationId) {
-    final conversation = state.conversations.firstWhere(
-      (c) => c.id == conversationId,
-      orElse: () => Conversation(
-        id: '',
-        requestId: '',
-        userId: '',
-        sellerId: '',
-        lastMessageAt: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        unreadCount: 0,
-      ),
-    );
-    print('🔢 [Controller] Unread count pour $conversationId: ${conversation.unreadCount}');
-    return conversation.unreadCount;
-  }
 
   @override
   void dispose() {
