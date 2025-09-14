@@ -45,7 +45,10 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   void _markAsRead() {
     print('👀 [UI-VendeurDetail] Marquage conversation comme lue: ${widget.conversationId}');
-    ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
+    // ✅ SIMPLE: Éviter setState during build en différant l'appel
+    Future.microtask(() {
+      ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
+    });
   }
   
   void _subscribeToRealtimeMessages() {
@@ -82,6 +85,14 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         );
       });
     }
+  }
+
+  @override
+  void deactivate() {
+    // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
+    ref.read(conversationsControllerProvider.notifier)
+        .setConversationInactive();
+    super.deactivate();
   }
 
   @override
