@@ -7,12 +7,11 @@ import 'package:cente_pice/src/features/parts/domain/entities/particulier_messag
 import 'package:cente_pice/src/core/providers/particulier_conversations_providers.dart';
 import '../providers/conversations_providers.dart';
 
-class ConversationItemWidget extends ConsumerStatefulWidget {
+class ConversationItemWidget extends ConsumerWidget {
   final dynamic conversation; // Accept both Conversation and ParticulierConversation
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onBlock;
-  final bool isNewMessage;
 
   const ConversationItemWidget({
     super.key,
@@ -20,330 +19,246 @@ class ConversationItemWidget extends ConsumerStatefulWidget {
     required this.onTap,
     required this.onDelete,
     required this.onBlock,
-    this.isNewMessage = false,
   });
 
   @override
-  ConsumerState<ConversationItemWidget> createState() => _ConversationItemWidgetState();
-}
-
-class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Démarrer l'animation si unreadCount > 0 pour particulier
-    _updateAnimation();
-  }
-
-  @override
-  void didUpdateWidget(ConversationItemWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _updateAnimation();
-  }
-
-  void _updateAnimation() {
-    // Vérifier si c'est une conversation particulier avec unreadCount > 0
-    final isParticulier = widget.conversation is ParticulierConversation;
-    final hasUnread = isParticulier && (widget.conversation as ParticulierConversation).unreadCount > 0;
-    
-    if (hasUnread && !_animationController.isAnimating) {
-      _animationController.repeat(reverse: true);
-    } else if (!hasUnread && _animationController.isAnimating) {
-      _animationController.stop();
-      _animationController.reset();
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // ✅ SIMPLE: Utiliser les compteurs locaux pour ParticulierConversation
-    final isParticulier = widget.conversation is ParticulierConversation;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Déterminer le type de conversation et récupérer le compteur local
+    final isParticulier = conversation is ParticulierConversation;
     int unreadCount = 0;
 
     if (isParticulier) {
       // Pour les particuliers, utiliser les compteurs locaux du provider
       final localCount = ref.watch(particulierConversationsControllerProvider
-          .select((state) => state.localUnreadCounts[(widget.conversation as ParticulierConversation).id] ?? 0));
+          .select((state) => state.localUnreadCounts[(conversation as ParticulierConversation).id] ?? 0));
       unreadCount = localCount;
     } else {
-      // ✅ SIMPLE: Pour les vendeurs, utiliser aussi les compteurs locaux
+      // Pour les vendeurs, utiliser aussi les compteurs locaux
       final localCount = ref.watch(conversationsControllerProvider
-          .select((state) => state.localUnreadCounts[(widget.conversation as Conversation).id] ?? 0));
+          .select((state) => state.localUnreadCounts[(conversation as Conversation).id] ?? 0));
       unreadCount = localCount;
     }
 
     final hasUnread = unreadCount > 0;
-    
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: hasUnread ? _pulseAnimation.value : 1.0,
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            elevation: hasUnread ? 6 : 2,
-            shadowColor: hasUnread ? Colors.red.withOpacity(0.4) : null,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: hasUnread
-                  ? const BorderSide(
-                      color: Colors.red,
-                      width: 2,
-                    )
-                  : BorderSide.none,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: hasUnread
-                    ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.red.withOpacity(0.08),
-                          Colors.white,
-                        ],
-                      )
-                    : null,
-              ),
-              child: InkWell(
-                onTap: () {
-                  // _animationController.stop(); // Désactivé
-                  widget.onTap();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+    final sellerName = _getSellerName() ?? 'Garage Auto Plus';
+    final lastMessage = _getLastMessageContent();
+    final timestamp = _getLastMessageCreatedAt();
+    final requestTitle = _getRequestTitle();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: hasUnread
+          ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
+          : Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: hasUnread
+              ? const Color(0xFF007AFF).withOpacity(0.1)
+              : Colors.black.withOpacity(0.04),
+            blurRadius: hasUnread ? 8 : 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Avatar du vendeur/client
+                _buildAvatar(sellerName, hasUnread),
+
+                const SizedBox(width: 12),
+
+                // Contenu principal
+                Expanded(
                   child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // Avatar du vendeur
-                  CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    radius: 24,
-                    child: Text(
-                      _getInitials(_getSellerName(widget.conversation) ?? 'Vendeur'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Ligne du haut : Nom + Badge unread + Menu
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              sellerName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
+                                color: hasUnread ? const Color(0xFF007AFF) : Colors.black87,
+                              ),
+                            ),
+                          ),
+
+                          // Badge de messages non lus
+                          if (hasUnread) _buildUnreadBadge(unreadCount),
+
+                          const SizedBox(width: 8),
+
+                          // Menu d'actions
+                          _buildActionMenu(context),
+                        ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  
-                  // Informations principales
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+
+                      // Titre de la demande si disponible
+                      if (requestTitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          requestTitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+
+                      // Dernier message si disponible
+                      if (lastMessage != null) ...[
+                        const SizedBox(height: 6),
                         Row(
                           children: [
+                            // Icône de direction du message
+                            Icon(
+                              _getLastMessageSenderType() == MessageSenderType.user
+                                  ? Icons.reply
+                                  : Icons.chat_bubble_outline,
+                              size: 14,
+                              color: _getLastMessageSenderType() == MessageSenderType.user
+                                  ? const Color(0xFF007AFF)
+                                  : const Color(0xFF5AC8FA),
+                            ),
+                            const SizedBox(width: 6),
+
+                            // Contenu du dernier message
                             Expanded(
                               child: Text(
-                                _getSellerName(widget.conversation) ?? 'Vendeur inconnu',
+                                lastMessage,
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.w500,
+                                  fontSize: 14,
+                                  color: hasUnread ? Colors.black87 : Colors.grey[600],
+                                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+
+                            // Timestamp
+                            if (timestamp != null) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                _formatTimestamp(timestamp),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
+                                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                                 ),
                               ),
-                            ),
-                            // Badge TOUJOURS visible pour debug - FORCER l'affichage
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: hasUnread ? Colors.red : Colors.grey.shade400,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: hasUnread ? [
-                                  BoxShadow(
-                                    color: Colors.red.withOpacity(0.3),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ] : null,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    hasUnread ? Icons.mark_email_unread : Icons.mark_email_read,
-                                    color: Colors.white,
-                                    size: 14,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    unreadCount > 99 ? '99+' : '$unreadCount',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            ],
                           ],
                         ),
-                        
-                        if (_getSellerCompany(widget.conversation) != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            _getSellerCompany(widget.conversation)!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                        
-                        if (_getRequestTitle(widget.conversation) != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Demande: ${_getRequestTitle(widget.conversation)}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.blue[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
                       ],
-                    ),
-                  ),
-                  
-                  // Menu d'actions
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'delete':
-                          widget.onDelete();
-                          break;
-                        case 'block':
-                          widget.onBlock();
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Supprimer'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'block',
-                        child: Row(
-                          children: [
-                            Icon(Icons.block, color: Colors.orange),
-                            SizedBox(width: 8),
-                            Text('Bloquer le vendeur'),
-                          ],
-                        ),
-                      ),
                     ],
-                    child: const Icon(Icons.more_vert),
-                  ),
-                ],
-              ),
-              
-              // Dernier message et timestamp
-              if (_getLastMessageContent(widget.conversation) != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      _getLastMessageSenderType(widget.conversation) == MessageSenderType.user
-                          ? Icons.arrow_forward
-                          : Icons.arrow_back,
-                      size: 16,
-                      color: _getLastMessageSenderType(widget.conversation) == MessageSenderType.user
-                          ? Colors.blue
-                          : Colors.green,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _getLastMessageContent(widget.conversation)!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (_getLastMessageCreatedAt(widget.conversation) != null)
-                      Text(
-                        _formatTimestamp(_getLastMessageCreatedAt(widget.conversation)!),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-              
-              // Statut de la conversation
-              if (_getStatus(widget.conversation) != ConversationStatus.active) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(_getStatus(widget.conversation)).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _getStatusColor(_getStatus(widget.conversation)),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    _getStatusText(_getStatus(widget.conversation)),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getStatusColor(_getStatus(widget.conversation)),
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
                 ),
               ],
-            ],
-                  ),
-                ),
-              ),
             ),
           ),
-        );
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String name, bool hasUnread) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
+        shape: BoxShape.circle,
+        border: hasUnread
+          ? Border.all(color: const Color(0xFF007AFF).withOpacity(0.3), width: 2)
+          : null,
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(name),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnreadBadge(int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF3B30),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.more_horiz,
+        color: Colors.grey[600],
+        size: 20,
+      ),
+      onSelected: (value) {
+        switch (value) {
+          case 'delete':
+            onDelete();
+            break;
+          case 'block':
+            onBlock();
+            break;
+        }
       },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Text('Supprimer', style: TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'block',
+          child: Row(
+            children: [
+              Icon(Icons.block, color: Colors.orange, size: 18),
+              SizedBox(width: 12),
+              Text('Bloquer', style: TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -360,7 +275,7 @@ class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
-    final localTimestamp = timestamp.toLocal(); // Conversion UTC vers heure locale
+    final localTimestamp = timestamp.toLocal();
     final difference = now.difference(localTimestamp);
 
     if (difference.inDays > 0) {
@@ -368,128 +283,74 @@ class _ConversationItemWidgetState extends ConsumerState<ConversationItemWidget>
       if (difference.inDays < 7) return '${difference.inDays}j';
       return '${localTimestamp.day}/${localTimestamp.month}';
     }
-    
+
     if (difference.inHours > 0) {
       return '${difference.inHours}h';
     }
-    
+
     if (difference.inMinutes > 0) {
       return '${difference.inMinutes}min';
     }
-    
-    return 'À l\'instant';
+
+    return 'Maintenant';
   }
 
-  Color _getStatusColor(ConversationStatus status) {
-    switch (status) {
-      case ConversationStatus.active:
-        return Colors.green;
-      case ConversationStatus.closed:
-        return Colors.grey;
-      case ConversationStatus.deletedByUser:
-        return Colors.red;
-      case ConversationStatus.blockedByUser:
-        return Colors.orange;
+  // Helper methods pour récupérer les données selon le type de conversation
+  String? _getSellerName() {
+    if (conversation is Conversation) {
+      return (conversation as Conversation).sellerName;
+    } else if (conversation is ParticulierConversation) {
+      return (conversation as ParticulierConversation).sellerName;
     }
+    return null;
   }
 
-  String _getStatusText(ConversationStatus status) {
-    switch (status) {
-      case ConversationStatus.active:
-        return 'Active';
-      case ConversationStatus.closed:
-        return 'Fermée';
-      case ConversationStatus.deletedByUser:
-        return 'Supprimée';
-      case ConversationStatus.blockedByUser:
-        return 'Bloquée';
-    }
-  }
-  
-  // Helper methods to handle both Conversation and ParticulierConversation
-  int _getUnreadCount(dynamic conversation) {
+  String? _getRequestTitle() {
     if (conversation is Conversation) {
-      return conversation.unreadCount;
+      return (conversation as Conversation).requestTitle;
     } else if (conversation is ParticulierConversation) {
-      return conversation.unreadCount;
-    }
-    print('⚠️ [ConversationItem] Type inconnu: ${conversation.runtimeType}');
-    return 0;
-  }
-  
-  String? _getSellerName(dynamic conversation) {
-    if (conversation is Conversation) {
-      return conversation.sellerName;
-    } else if (conversation is ParticulierConversation) {
-      return conversation.sellerName;
+      final particConv = conversation as ParticulierConversation;
+      return particConv.partType ?? particConv.partNames?.join(', ');
     }
     return null;
   }
-  
-  String? _getSellerCompany(dynamic conversation) {
+
+  String? _getLastMessageContent() {
     if (conversation is Conversation) {
-      return conversation.sellerCompany;
+      return (conversation as Conversation).lastMessageContent;
     } else if (conversation is ParticulierConversation) {
-      // ParticulierConversation n'a pas sellerCompany, on retourne null
-      return null;
-    }
-    return null;
-  }
-  
-  String? _getRequestTitle(dynamic conversation) {
-    if (conversation is Conversation) {
-      return conversation.requestTitle;
-    } else if (conversation is ParticulierConversation) {
-      // Pour ParticulierConversation, on peut utiliser partType ou partNames
-      return conversation.partType ?? conversation.partNames?.join(', ');
-    }
-    return null;
-  }
-  
-  String? _getLastMessageContent(dynamic conversation) {
-    if (conversation is Conversation) {
-      return conversation.lastMessageContent;
-    } else if (conversation is ParticulierConversation) {
-      // Pour ParticulierConversation, on prend le dernier message
-      if (conversation.messages.isNotEmpty) {
-        return conversation.messages.last.content;
+      final particConv = conversation as ParticulierConversation;
+      if (particConv.messages.isNotEmpty) {
+        return particConv.messages.last.content;
       }
     }
     return null;
   }
-  
-  MessageSenderType? _getLastMessageSenderType(dynamic conversation) {
+
+  MessageSenderType? _getLastMessageSenderType() {
     if (conversation is Conversation) {
-      return conversation.lastMessageSenderType;
+      return (conversation as Conversation).lastMessageSenderType;
     } else if (conversation is ParticulierConversation) {
-      // Pour ParticulierConversation, on détermine le type selon isFromParticulier
-      if (conversation.messages.isNotEmpty) {
-        return conversation.messages.last.isFromParticulier 
-            ? MessageSenderType.user 
+      final particConv = conversation as ParticulierConversation;
+      if (particConv.messages.isNotEmpty) {
+        return particConv.messages.last.isFromParticulier
+            ? MessageSenderType.user
             : MessageSenderType.seller;
       }
     }
     return null;
   }
-  
-  DateTime? _getLastMessageCreatedAt(dynamic conversation) {
+
+  DateTime? _getLastMessageCreatedAt() {
     if (conversation is Conversation) {
-      return conversation.lastMessageCreatedAt;
+      return (conversation as Conversation).lastMessageCreatedAt;
     } else if (conversation is ParticulierConversation) {
-      if (conversation.messages.isNotEmpty) {
-        return conversation.messages.last.createdAt;
+      final particConv = conversation as ParticulierConversation;
+      if (particConv.messages.isNotEmpty) {
+        return particConv.messages.last.createdAt;
       }
-      return conversation.lastMessageAt;
+      return particConv.lastMessageAt;
     }
     return null;
-  }
-  
-  ConversationStatus _getStatus(dynamic conversation) {
-    if (conversation is Conversation) {
-      return conversation.status;
-    } else if (conversation is ParticulierConversation) {
-      return conversation.status;
-    }
-    return ConversationStatus.active;
   }
 }
