@@ -38,8 +38,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           .loadConversationMessages(widget.conversationId);
       
       // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
-      ref.read(particulierConversationsControllerProvider.notifier)
-          .markConversationAsRead(widget.conversationId);
+      Future.microtask(() {
+        ref.read(particulierConversationsControllerProvider.notifier)
+            .markConversationAsRead(widget.conversationId);
+      });
       
       // S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
@@ -92,6 +94,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         );
       });
     }
+  }
+
+  @override
+  void deactivate() {
+    // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
+    ref.read(particulierConversationsControllerProvider.notifier)
+        .setConversationInactive();
+    super.deactivate();
   }
 
   @override

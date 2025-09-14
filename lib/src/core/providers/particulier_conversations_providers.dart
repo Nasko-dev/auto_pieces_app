@@ -18,6 +18,8 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     @Default(0) int unreadCount,
     // ✅ SIMPLE: Compteur local par conversation
     @Default({}) Map<String, int> localUnreadCounts,
+    // ✅ SIMPLE: Conversation actuellement ouverte
+    String? activeConversationId,
   }) = _ParticulierConversationsState;
 }
 
@@ -92,20 +94,27 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     print('🎉 [ParticulierConversations] *** NOUVEAU MESSAGE REÇU *** ');
     print('🔍 [ParticulierConversations] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
 
-    // ✅ SIMPLE: Si c'est un message du vendeur, incrémenter compteur local
+    // ✅ SIMPLE: Si c'est un message du vendeur, incrémenter compteur local SEULEMENT si pas dans la conversation
     if (senderType == 'seller') {
-      print('🔥 [ParticulierConversations] Message du vendeur → +1 compteur local');
+      if (state.activeConversationId == conversationId) {
+        print('👀 [ParticulierConversations] Message reçu dans conversation active → compteur reste à 0');
+      } else {
+        print('🔥 [ParticulierConversations] Message du vendeur → +1 compteur local');
 
-      final currentCount = state.localUnreadCounts[conversationId] ?? 0;
-      final newCounts = Map<String, int>.from(state.localUnreadCounts);
-      newCounts[conversationId] = currentCount + 1;
+        final currentCount = state.localUnreadCounts[conversationId] ?? 0;
+        final newCounts = Map<String, int>.from(state.localUnreadCounts);
+        newCounts[conversationId] = currentCount + 1;
 
-      state = state.copyWith(
-        localUnreadCounts: newCounts,
-        unreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-      );
+        // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+        Future.microtask(() {
+          state = state.copyWith(
+            localUnreadCounts: newCounts,
+            unreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
+          );
+        });
 
-      print('📊 [ParticulierConversations] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+        print('📊 [ParticulierConversations] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+      }
     } else {
       print('📤 [ParticulierConversations] Notre propre message, pas de compteur');
     }
@@ -227,9 +236,9 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     );
   }
 
-  // ✅ SIMPLE: Remettre compteur à 0 quand on ouvre la conversation
+  // ✅ SIMPLE: Marquer conversation comme active et remettre compteur à 0
   void markConversationAsRead(String conversationId) {
-    print('👀 [ParticulierConversations] Ouverture conversation: $conversationId → compteur = 0');
+    print('👀 [ParticulierConversations] Ouverture conversation: $conversationId → compteur = 0 + active');
 
     final newCounts = Map<String, int>.from(state.localUnreadCounts);
     newCounts[conversationId] = 0;
@@ -237,9 +246,19 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     state = state.copyWith(
       localUnreadCounts: newCounts,
       unreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
+      activeConversationId: conversationId, // ✅ Définir comme conversation active
     );
 
-    print('📊 [ParticulierConversations] Compteurs mis à jour: ${newCounts[conversationId]}');
+    print('📊 [ParticulierConversations] Conversation $conversationId maintenant active');
+  }
+
+  // ✅ SIMPLE: Désactiver la conversation active
+  void setConversationInactive() {
+    print('🚪 [ParticulierConversations] Aucune conversation active');
+    // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+    Future.microtask(() {
+      state = state.copyWith(activeConversationId: null);
+    });
   }
 
   Future<void> deleteConversation(String conversationId) async {

@@ -133,20 +133,27 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('🎉 [Controller] *** NOUVEAU MESSAGE REÇU *** ');
     print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
 
-    // ✅ SIMPLE: Si c'est un message du particulier (user), incrémenter compteur local
+    // ✅ SIMPLE: Si c'est un message du particulier, incrémenter compteur local SEULEMENT si pas dans la conversation
     if (senderType == 'user') {
-      print('🔥 [Controller] Message du particulier → +1 compteur local');
+      if (state.activeConversationId == conversationId) {
+        print('👀 [Controller] Message reçu dans conversation active → compteur reste à 0');
+      } else {
+        print('🔥 [Controller] Message du particulier → +1 compteur local');
 
-      final currentCount = state.localUnreadCounts[conversationId] ?? 0;
-      final newCounts = Map<String, int>.from(state.localUnreadCounts);
-      newCounts[conversationId] = currentCount + 1;
+        final currentCount = state.localUnreadCounts[conversationId] ?? 0;
+        final newCounts = Map<String, int>.from(state.localUnreadCounts);
+        newCounts[conversationId] = currentCount + 1;
 
-      state = state.copyWith(
-        localUnreadCounts: newCounts,
-        totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-      );
+        // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+        Future.microtask(() {
+          state = state.copyWith(
+            localUnreadCounts: newCounts,
+            totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
+          );
+        });
 
-      print('📊 [Controller] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+        print('📊 [Controller] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+      }
     } else {
       print('📤 [Controller] Notre propre message, pas de compteur');
     }
@@ -544,9 +551,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     );
   }
 
-  // ✅ SIMPLE: Remettre compteur à 0 quand on ouvre la conversation côté vendeur
+  // ✅ SIMPLE: Marquer conversation comme active et remettre compteur à 0
   void markConversationAsRead(String conversationId) {
-    print('👀 [Controller] Ouverture conversation: $conversationId → compteur = 0');
+    print('👀 [Controller] Ouverture conversation: $conversationId → compteur = 0 + active');
 
     final newCounts = Map<String, int>.from(state.localUnreadCounts);
     newCounts[conversationId] = 0;
@@ -554,9 +561,19 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     state = state.copyWith(
       localUnreadCounts: newCounts,
       totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
+      activeConversationId: conversationId, // ✅ Définir comme conversation active
     );
 
-    print('📊 [Controller] Compteurs mis à jour: ${newCounts[conversationId]}');
+    print('📊 [Controller] Conversation $conversationId maintenant active');
+  }
+
+  // ✅ SIMPLE: Désactiver la conversation active
+  void setConversationInactive() {
+    print('🚪 [Controller] Aucune conversation active');
+    // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+    Future.microtask(() {
+      state = state.copyWith(activeConversationId: null);
+    });
   }
 
   // Charger les messages pour calculer les indicateurs côté vendeur

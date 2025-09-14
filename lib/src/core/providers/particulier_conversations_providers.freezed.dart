@@ -22,7 +22,9 @@ mixin _$ParticulierConversationsState {
   String? get error => throw _privateConstructorUsedError;
   int get unreadCount =>
       throw _privateConstructorUsedError; // ✅ SIMPLE: Compteur local par conversation
-  Map<String, int> get localUnreadCounts => throw _privateConstructorUsedError;
+  Map<String, int> get localUnreadCounts =>
+      throw _privateConstructorUsedError; // ✅ SIMPLE: Conversation actuellement ouverte
+  String? get activeConversationId => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $ParticulierConversationsStateCopyWith<ParticulierConversationsState>
@@ -42,7 +44,8 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       bool isLoading,
       String? error,
       int unreadCount,
-      Map<String, int> localUnreadCounts});
+      Map<String, int> localUnreadCounts,
+      String? activeConversationId});
 }
 
 /// @nodoc
@@ -64,6 +67,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? error = freezed,
     Object? unreadCount = null,
     Object? localUnreadCounts = null,
+    Object? activeConversationId = freezed,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -86,6 +90,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.localUnreadCounts
           : localUnreadCounts // ignore: cast_nullable_to_non_nullable
               as Map<String, int>,
+      activeConversationId: freezed == activeConversationId
+          ? _value.activeConversationId
+          : activeConversationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -104,7 +112,8 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       bool isLoading,
       String? error,
       int unreadCount,
-      Map<String, int> localUnreadCounts});
+      Map<String, int> localUnreadCounts,
+      String? activeConversationId});
 }
 
 /// @nodoc
@@ -125,6 +134,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? error = freezed,
     Object? unreadCount = null,
     Object? localUnreadCounts = null,
+    Object? activeConversationId = freezed,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -147,6 +157,10 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value._localUnreadCounts
           : localUnreadCounts // ignore: cast_nullable_to_non_nullable
               as Map<String, int>,
+      activeConversationId: freezed == activeConversationId
+          ? _value.activeConversationId
+          : activeConversationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -160,7 +174,8 @@ class _$ParticulierConversationsStateImpl
       this.isLoading = false,
       this.error,
       this.unreadCount = 0,
-      final Map<String, int> localUnreadCounts = const {}})
+      final Map<String, int> localUnreadCounts = const {},
+      this.activeConversationId})
       : _conversations = conversations,
         _localUnreadCounts = localUnreadCounts;
 
@@ -193,9 +208,13 @@ class _$ParticulierConversationsStateImpl
     return EqualUnmodifiableMapView(_localUnreadCounts);
   }
 
+// ✅ SIMPLE: Conversation actuellement ouverte
+  @override
+  final String? activeConversationId;
+
   @override
   String toString() {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount, localUnreadCounts: $localUnreadCounts)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount, localUnreadCounts: $localUnreadCounts, activeConversationId: $activeConversationId)';
   }
 
   @override
@@ -211,7 +230,9 @@ class _$ParticulierConversationsStateImpl
             (identical(other.unreadCount, unreadCount) ||
                 other.unreadCount == unreadCount) &&
             const DeepCollectionEquality()
-                .equals(other._localUnreadCounts, _localUnreadCounts));
+                .equals(other._localUnreadCounts, _localUnreadCounts) &&
+            (identical(other.activeConversationId, activeConversationId) ||
+                other.activeConversationId == activeConversationId));
   }
 
   @override
@@ -221,7 +242,8 @@ class _$ParticulierConversationsStateImpl
       isLoading,
       error,
       unreadCount,
-      const DeepCollectionEquality().hash(_localUnreadCounts));
+      const DeepCollectionEquality().hash(_localUnreadCounts),
+      activeConversationId);
 
   @JsonKey(ignore: true)
   @override
@@ -239,7 +261,8 @@ abstract class _ParticulierConversationsState
           final bool isLoading,
           final String? error,
           final int unreadCount,
-          final Map<String, int> localUnreadCounts}) =
+          final Map<String, int> localUnreadCounts,
+          final String? activeConversationId}) =
       _$ParticulierConversationsStateImpl;
 
   @override
@@ -252,6 +275,8 @@ abstract class _ParticulierConversationsState
   int get unreadCount;
   @override // ✅ SIMPLE: Compteur local par conversation
   Map<String, int> get localUnreadCounts;
+  @override // ✅ SIMPLE: Conversation actuellement ouverte
+  String? get activeConversationId;
   @override
   @JsonKey(ignore: true)
   _$$ParticulierConversationsStateImplCopyWith<
