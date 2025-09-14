@@ -25,6 +25,8 @@ class ConversationsState with _$ConversationsState {
     String? error,
     String? activeConversationId,
     @Default(0) int totalUnreadCount,
+    // ✅ SIMPLE: Compteur local par conversation pour vendeurs aussi
+    @Default({}) Map<String, int> localUnreadCounts,
   }) = _ConversationsState;
 }
 
@@ -120,22 +122,39 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('✅ [Controller] Channel global messages abonné');
   }
 
-  // Gérer un nouveau message reçu globalement
+  // ✅ SIMPLE: Gérer un nouveau message reçu - incrémenter compteur local côté vendeur
   void _handleGlobalNewMessage(dynamic messageData, String userId) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
-    
-    if (conversationId == null || senderId == null) return;
+    final senderType = messageData['sender_type'] as String?;
+
+    if (conversationId == null || senderId == null || senderType == null) return;
 
     print('🎉 [Controller] *** NOUVEAU MESSAGE REÇU *** ');
-    print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId');
-    
+    print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
+
+    // ✅ SIMPLE: Si c'est un message du particulier (user), incrémenter compteur local
+    if (senderType == 'user') {
+      print('🔥 [Controller] Message du particulier → +1 compteur local');
+
+      final currentCount = state.localUnreadCounts[conversationId] ?? 0;
+      final newCounts = Map<String, int>.from(state.localUnreadCounts);
+      newCounts[conversationId] = currentCount + 1;
+
+      state = state.copyWith(
+        localUnreadCounts: newCounts,
+        totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
+      );
+
+      print('📊 [Controller] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+    } else {
+      print('📤 [Controller] Notre propre message, pas de compteur');
+    }
+
     // Si ce n'est pas notre propre message, refresh immédiatement
     if (senderId != userId) {
       print('🚀 [Controller] Message d\'un autre utilisateur → REFRESH IMMÉDIAT');
       await loadConversations();
-    } else {
-      print('📤 [Controller] Notre propre message, pas besoin de refresh');
     }
   }
 
@@ -414,18 +433,25 @@ class ConversationsController extends StateNotifier<ConversationsState> {
 
   void _updateConversationReadStatus(String conversationId) {
     // Marquer les messages de cette conversation comme lus localement
+    // SEULEMENT pour les messages reçus (pas envoyés) par l'utilisateur actuel
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return;
+
     final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
     final messages = updatedMessages[conversationId];
     if (messages != null) {
-      updatedMessages[conversationId] = messages.map((msg) => 
-        msg.senderId != Supabase.instance.client.auth.currentUser?.id
+      updatedMessages[conversationId] = messages.map((msg) =>
+        // ✅ CORRECTION: Ne marquer comme lus QUE les messages reçus par cet utilisateur
+        // ET qui ne sont pas déjà lus
+        (msg.senderId != currentUserId && !msg.isRead)
             ? msg.copyWith(isRead: true, readAt: DateTime.now())
             : msg
       ).toList();
-      
+
       state = state.copyWith(conversationMessages: updatedMessages);
+      print('✅ [VendeurController] Messages reçus marqués comme lus pour: $conversationId');
     }
-    
+
     _updateUnreadCount();
   }
 
@@ -518,32 +544,19 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     );
   }
 
-  // Marquer une conversation comme lue (méthode désactivée temporairement)
-  Future<void> markConversationAsRead(String conversationId) async {
-    print('👀 [Controller] Marquage désactivé temporairement: $conversationId');
-    // Toute la logique est commentée pour désactiver le marquage automatique
-    /*
-    final currentUser = Supabase.instance.client.auth.currentUser;
-    if (currentUser == null) {
-      print('⚠️ [Controller] Utilisateur non connecté');
-      return;
-    }
+  // ✅ SIMPLE: Remettre compteur à 0 quand on ouvre la conversation côté vendeur
+  void markConversationAsRead(String conversationId) {
+    print('👀 [Controller] Ouverture conversation: $conversationId → compteur = 0');
 
-    final result = await _markMessagesAsRead(MarkMessagesAsReadParams(
-      conversationId: conversationId,
-      userId: currentUser.id,
-    ));
-    
-    result.fold(
-      (failure) => print('⚠️ [Controller] Erreur marquage: ${failure.message}'),
-      (_) {
-        print('✅ [Controller] Messages marqués comme lus');
-        _updateConversationReadStatus(conversationId);
-        _updateUnreadCount();
-        loadConversations();
-      },
+    final newCounts = Map<String, int>.from(state.localUnreadCounts);
+    newCounts[conversationId] = 0;
+
+    state = state.copyWith(
+      localUnreadCounts: newCounts,
+      totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
     );
-    */
+
+    print('📊 [Controller] Compteurs mis à jour: ${newCounts[conversationId]}');
   }
 
   // Charger les messages pour calculer les indicateurs côté vendeur

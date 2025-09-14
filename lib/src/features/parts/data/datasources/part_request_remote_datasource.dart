@@ -953,8 +953,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               return unreadMessages.isNotEmpty;
             })(),
             unreadCount: (() {
-              final unreadCount = messages.where((msg) => !msg.isRead && msg.senderId != currentUser.id).length;
-              print('💬 [Datasource-Particulier] FINAL Conversation ${convData['id']}: $unreadCount messages non lus');
+              // ✅ CORRECTION: Utiliser la même logique que pour hasUnreadMessages
+              final unreadCount = messages.where((msg) => !msg.isRead && !msg.isFromParticulier).length;
+              print('💬 [Datasource-Particulier] FINAL Conversation ${convData['id']}: $unreadCount messages non lus du vendeur');
               return unreadCount;
             })(),
             vehiclePlate: partRequestData['vehicle_plate'],
