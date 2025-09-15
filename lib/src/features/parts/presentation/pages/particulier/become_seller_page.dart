@@ -8,11 +8,19 @@ import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../data/models/part_advertisement_model.dart';
 
+enum SellerMode { particulier, vendeur }
+
 class BecomeSellerPage extends ConsumerStatefulWidget {
-  const BecomeSellerPage({super.key});
+  final SellerMode mode;
+  
+  const BecomeSellerPage({
+    super.key,
+    this.mode = SellerMode.particulier,
+  });
 
   @override
   ConsumerState<BecomeSellerPage> createState() => _BecomeSellerPageState();
@@ -25,6 +33,20 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   bool _hasMultipleParts = false;
   String _vehiclePlate = '';
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Si c'est un vendeur, forcer la re-vérification des limitations
+    if (widget.mode == SellerMode.vendeur) {
+      print('🔄 [BecomeSellerPage] Mode vendeur détecté - force refresh des limitations...');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final notifier = ref.read(vehicleSearchProvider.notifier);
+        notifier.forceRefreshActiveRequestCheck();
+      });
+    }
+  }
 
   void _onChoiceSelected(String choice) {
     setState(() {
@@ -115,11 +137,27 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           break;
       }
       
+      // Extraire les informations du véhicule
+      String? vehicleBrand, vehicleModel, vehicleEngine;
+      int? vehicleYear;
+      
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+        vehicleBrand = info.make;
+        vehicleModel = info.model;
+        vehicleYear = info.year;
+        vehicleEngine = info.engineSize ?? info.fuelType;
+      }
+      
       // Créer les paramètres pour l'annonce
       final params = CreatePartAdvertisementParams(
         partType: dbPartType, // Valeur mappée pour la base de données
         partName: _partName,
         vehiclePlate: _vehiclePlate.isNotEmpty ? _vehiclePlate : null,
+        vehicleBrand: vehicleBrand,
+        vehicleModel: vehicleModel,
+        vehicleYear: vehicleYear,
+        vehicleEngine: vehicleEngine,
         description: description,
       );
       
@@ -145,7 +183,19 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   void _finishFlow() {
-    context.go('/home');
+    if (widget.mode == SellerMode.particulier) {
+      context.go('/home');
+    } else {
+      context.go('/seller');
+    }
+  }
+
+  // Méthode de debug temporaire
+  void _debugRefresh() async {
+    print('🔧 [DEBUG] Force refresh demandé manuellement...');
+    final notifier = ref.read(vehicleSearchProvider.notifier);
+    await notifier.forceRefreshActiveRequestCheck();
+    print('🔧 [DEBUG] Force refresh terminé');
   }
 
   @override
@@ -163,8 +213,17 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                 onPressed: _goToPreviousStep,
               )
             : null,
-        actions: const [
-          AppMenu(),
+        actions: [
+          // Bouton debug temporaire pour vendeurs
+          if (widget.mode == SellerMode.vendeur)
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.blue),
+              onPressed: _debugRefresh,
+              tooltip: 'Debug: Refresh limitations',
+            ),
+          widget.mode == SellerMode.particulier 
+              ? const AppMenu() 
+              : const SellerMenu(),
         ],
       ),
       body: SafeArea(

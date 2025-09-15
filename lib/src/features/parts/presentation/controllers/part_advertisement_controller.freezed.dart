@@ -26,9 +26,7 @@ mixin _$PartAdvertisementState {
   List<PartAdvertisement> get advertisements =>
       throw _privateConstructorUsedError;
 
-  /// Create a copy of PartAdvertisementState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PartAdvertisementStateCopyWith<PartAdvertisementState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -60,8 +58,6 @@ class _$PartAdvertisementStateCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PartAdvertisementState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -135,8 +131,6 @@ class __$$PartAdvertisementStateImplCopyWithImpl<$Res>
       $Res Function(_$PartAdvertisementStateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PartAdvertisementState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -255,9 +249,7 @@ class _$PartAdvertisementStateImpl implements _PartAdvertisementState {
       currentAdvertisement,
       const DeepCollectionEquality().hash(_advertisements));
 
-  /// Create a copy of PartAdvertisementState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PartAdvertisementStateImplCopyWith<_$PartAdvertisementStateImpl>
@@ -290,11 +282,8 @@ abstract class _PartAdvertisementState implements PartAdvertisementState {
   PartAdvertisement? get currentAdvertisement;
   @override
   List<PartAdvertisement> get advertisements;
-
-  /// Create a copy of PartAdvertisementState
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PartAdvertisementStateImplCopyWith<_$PartAdvertisementStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

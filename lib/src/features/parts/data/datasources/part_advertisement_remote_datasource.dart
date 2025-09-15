@@ -44,6 +44,10 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
         'p_part_type': params.partType,
         'p_part_name': params.partName,
         'p_vehicle_plate': params.vehiclePlate,
+        'p_vehicle_brand': params.vehicleBrand,
+        'p_vehicle_model': params.vehicleModel,
+        'p_vehicle_year': params.vehicleYear,
+        'p_vehicle_engine': params.vehicleEngine,
         'p_description': params.description,
         'p_price': params.price,
         'p_condition': params.condition,
@@ -56,10 +60,15 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
         throw ServerException('Erreur lors de la création de l\'annonce');
       }
 
-      final adId = response as String;
+      // La fonction SQL retourne maintenant un tableau d'objets
+      final responseList = response as List<dynamic>;
+      if (responseList.isEmpty) {
+        throw ServerException('Aucune annonce retournée après création');
+      }
       
-      // Récupérer l'annonce créée
-      return getPartAdvertisementById(adId);
+      // Convertir le premier (et seul) élément en PartAdvertisementModel
+      final adData = responseList.first as Map<String, dynamic>;
+      return PartAdvertisementModel.fromJson(adData);
     } catch (e) {
       throw ServerException('Erreur lors de la création: $e');
     }

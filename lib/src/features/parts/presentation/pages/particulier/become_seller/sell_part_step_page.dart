@@ -47,6 +47,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   void _onTextChanged() async {
     final query = _partController.text;
     
+    // Toujours appeler setState pour mettre à jour la validation du bouton
+    setState(() {});
+    
     if (query.isEmpty) {
       setState(() {
         _suggestions = [];
@@ -92,7 +95,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         List<Map<String, dynamic>> filteredData = (response as List).cast<Map<String, dynamic>>();
         
         if (categoryFilter == 'NOT_MOTEUR') {
-          // Exclure les pièces moteur
+          // Excluer les pièces moteur
           filteredData = filteredData.where((data) => data['category'] != 'moteur').toList();
         }
         
@@ -126,6 +129,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   }
 
   void _selectSuggestion(String suggestion) {
+    print('🔍 [DEBUG] _selectSuggestion appelée avec: "$suggestion"');
     if (_hasMultiple) {
       // Mode multiple : ajouter à la liste des tags
       if (!_selectedParts.contains(suggestion)) {
@@ -138,10 +142,12 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
       _focusNode.requestFocus(); // Garder le focus pour continuer la saisie
     } else {
       // Mode simple : remplacer le texte
+      print('🔍 [DEBUG] Mode simple - assignation du texte: "$suggestion"');
       _partController.text = suggestion;
       setState(() {
         _showSuggestions = false;
       });
+      print('🔍 [DEBUG] Texte après assignation: "${_partController.text}"');
       _focusNode.unfocus();
     }
   }
@@ -187,6 +193,31 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         }
       }
     });
+  }
+
+  bool _isFormValid() {
+    final hasText = _partController.text.trim().isNotEmpty;
+    final hasParts = _selectedParts.isNotEmpty;
+    
+    print('🔍 [DEBUG Validation] _isCompleteVehicle: $_isCompleteVehicle');
+    print('🔍 [DEBUG Validation] _hasMultiple: $_hasMultiple');
+    print('🔍 [DEBUG Validation] hasText: $hasText (text: "${_partController.text}")');
+    print('🔍 [DEBUG Validation] hasParts: $hasParts (parts: $_selectedParts)');
+    
+    if (_isCompleteVehicle) {
+      // Mode véhicule complet : toujours valide
+      print('🔍 [DEBUG Validation] Result: true (véhicule complet)');
+      return true;
+    } else if (_hasMultiple) {
+      // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
+      final isValid = hasParts || hasText;
+      print('🔍 [DEBUG Validation] Result: $isValid (mode multiple)');
+      return isValid;
+    } else {
+      // Mode simple : valide si du texte dans le champ
+      print('🔍 [DEBUG Validation] Result: $hasText (mode simple)');
+      return hasText;
+    }
   }
 
   void _handleSubmit() {
@@ -273,7 +304,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                       const SizedBox(height: 22),
                       BecomeSellerSharedWidgets.buildPrimaryButton(
                         label: 'Suivant',
-                        enabled: true,
+                        enabled: _isFormValid(),
                         onPressed: _handleSubmit,
                       ),
                     ],

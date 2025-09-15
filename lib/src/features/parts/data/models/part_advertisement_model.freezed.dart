@@ -22,37 +22,50 @@ PartAdvertisementModel _$PartAdvertisementModelFromJson(
 /// @nodoc
 mixin _$PartAdvertisementModel {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'part_type')
   String get partType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'part_name')
   String get partName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   double? get price => throw _privateConstructorUsedError;
   String? get condition => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_negotiable')
   bool get isNegotiable => throw _privateConstructorUsedError;
+  @JsonKey(name: 'contact_phone')
   String? get contactPhone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'contact_email')
   String? get contactEmail => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
+  @JsonKey(name: 'zip_code')
   String? get zipCode => throw _privateConstructorUsedError;
   String? get department => throw _privateConstructorUsedError;
+  @JsonKey(name: 'view_count')
   int get viewCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'contact_count')
   int get contactCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
   DateTime get updatedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
-  /// Serializes this PartAdvertisementModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PartAdvertisementModelCopyWith<PartAdvertisementModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -65,30 +78,30 @@ abstract class $PartAdvertisementModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String userId,
-      String partType,
-      String partName,
-      String? vehiclePlate,
-      String? vehicleBrand,
-      String? vehicleModel,
-      int? vehicleYear,
-      String? vehicleEngine,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'part_type') String partType,
+      @JsonKey(name: 'part_name') String partName,
+      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
+      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
+      @JsonKey(name: 'vehicle_model') String? vehicleModel,
+      @JsonKey(name: 'vehicle_year') int? vehicleYear,
+      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
       List<String> images,
       String status,
-      bool isNegotiable,
-      String? contactPhone,
-      String? contactEmail,
+      @JsonKey(name: 'is_negotiable') bool isNegotiable,
+      @JsonKey(name: 'contact_phone') String? contactPhone,
+      @JsonKey(name: 'contact_email') String? contactEmail,
       String? city,
-      String? zipCode,
+      @JsonKey(name: 'zip_code') String? zipCode,
       String? department,
-      int viewCount,
-      int contactCount,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? expiresAt});
+      @JsonKey(name: 'view_count') int viewCount,
+      @JsonKey(name: 'contact_count') int contactCount,
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      @JsonKey(name: 'updated_at') DateTime updatedAt,
+      @JsonKey(name: 'expires_at') DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -102,8 +115,6 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -249,30 +260,30 @@ abstract class _$$PartAdvertisementModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String userId,
-      String partType,
-      String partName,
-      String? vehiclePlate,
-      String? vehicleBrand,
-      String? vehicleModel,
-      int? vehicleYear,
-      String? vehicleEngine,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'part_type') String partType,
+      @JsonKey(name: 'part_name') String partName,
+      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
+      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
+      @JsonKey(name: 'vehicle_model') String? vehicleModel,
+      @JsonKey(name: 'vehicle_year') int? vehicleYear,
+      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
       List<String> images,
       String status,
-      bool isNegotiable,
-      String? contactPhone,
-      String? contactEmail,
+      @JsonKey(name: 'is_negotiable') bool isNegotiable,
+      @JsonKey(name: 'contact_phone') String? contactPhone,
+      @JsonKey(name: 'contact_email') String? contactEmail,
       String? city,
-      String? zipCode,
+      @JsonKey(name: 'zip_code') String? zipCode,
       String? department,
-      int viewCount,
-      int contactCount,
-      DateTime createdAt,
-      DateTime updatedAt,
-      DateTime? expiresAt});
+      @JsonKey(name: 'view_count') int viewCount,
+      @JsonKey(name: 'contact_count') int contactCount,
+      @JsonKey(name: 'created_at') DateTime createdAt,
+      @JsonKey(name: 'updated_at') DateTime updatedAt,
+      @JsonKey(name: 'expires_at') DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -285,8 +296,6 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
       $Res Function(_$PartAdvertisementModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -426,30 +435,30 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
 class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   const _$PartAdvertisementModelImpl(
       {required this.id,
-      required this.userId,
-      required this.partType,
-      required this.partName,
-      this.vehiclePlate,
-      this.vehicleBrand,
-      this.vehicleModel,
-      this.vehicleYear,
-      this.vehicleEngine,
+      @JsonKey(name: 'user_id') required this.userId,
+      @JsonKey(name: 'part_type') required this.partType,
+      @JsonKey(name: 'part_name') required this.partName,
+      @JsonKey(name: 'vehicle_plate') this.vehiclePlate,
+      @JsonKey(name: 'vehicle_brand') this.vehicleBrand,
+      @JsonKey(name: 'vehicle_model') this.vehicleModel,
+      @JsonKey(name: 'vehicle_year') this.vehicleYear,
+      @JsonKey(name: 'vehicle_engine') this.vehicleEngine,
       this.description,
       this.price,
       this.condition,
       final List<String> images = const [],
       this.status = 'active',
-      this.isNegotiable = true,
-      this.contactPhone,
-      this.contactEmail,
+      @JsonKey(name: 'is_negotiable') this.isNegotiable = true,
+      @JsonKey(name: 'contact_phone') this.contactPhone,
+      @JsonKey(name: 'contact_email') this.contactEmail,
       this.city,
-      this.zipCode,
+      @JsonKey(name: 'zip_code') this.zipCode,
       this.department,
-      this.viewCount = 0,
-      this.contactCount = 0,
-      required this.createdAt,
-      required this.updatedAt,
-      this.expiresAt})
+      @JsonKey(name: 'view_count') this.viewCount = 0,
+      @JsonKey(name: 'contact_count') this.contactCount = 0,
+      @JsonKey(name: 'created_at') required this.createdAt,
+      @JsonKey(name: 'updated_at') required this.updatedAt,
+      @JsonKey(name: 'expires_at') this.expiresAt})
       : _images = images,
         super._();
 
@@ -459,20 +468,28 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   @override
   final String id;
   @override
+  @JsonKey(name: 'user_id')
   final String userId;
   @override
+  @JsonKey(name: 'part_type')
   final String partType;
   @override
+  @JsonKey(name: 'part_name')
   final String partName;
   @override
+  @JsonKey(name: 'vehicle_plate')
   final String? vehiclePlate;
   @override
+  @JsonKey(name: 'vehicle_brand')
   final String? vehicleBrand;
   @override
+  @JsonKey(name: 'vehicle_model')
   final String? vehicleModel;
   @override
+  @JsonKey(name: 'vehicle_year')
   final int? vehicleYear;
   @override
+  @JsonKey(name: 'vehicle_engine')
   final String? vehicleEngine;
   @override
   final String? description;
@@ -493,29 +510,35 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   @JsonKey()
   final String status;
   @override
-  @JsonKey()
+  @JsonKey(name: 'is_negotiable')
   final bool isNegotiable;
   @override
+  @JsonKey(name: 'contact_phone')
   final String? contactPhone;
   @override
+  @JsonKey(name: 'contact_email')
   final String? contactEmail;
   @override
   final String? city;
   @override
+  @JsonKey(name: 'zip_code')
   final String? zipCode;
   @override
   final String? department;
   @override
-  @JsonKey()
+  @JsonKey(name: 'view_count')
   final int viewCount;
   @override
-  @JsonKey()
+  @JsonKey(name: 'contact_count')
   final int contactCount;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
+  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
   @override
+  @JsonKey(name: 'expires_at')
   final DateTime? expiresAt;
 
   @override
@@ -573,7 +596,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
                 other.expiresAt == expiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -604,9 +627,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
         expiresAt
       ]);
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PartAdvertisementModelImplCopyWith<_$PartAdvertisementModelImpl>
@@ -623,31 +644,32 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
 
 abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   const factory _PartAdvertisementModel(
-      {required final String id,
-      required final String userId,
-      required final String partType,
-      required final String partName,
-      final String? vehiclePlate,
-      final String? vehicleBrand,
-      final String? vehicleModel,
-      final int? vehicleYear,
-      final String? vehicleEngine,
-      final String? description,
-      final double? price,
-      final String? condition,
-      final List<String> images,
-      final String status,
-      final bool isNegotiable,
-      final String? contactPhone,
-      final String? contactEmail,
-      final String? city,
-      final String? zipCode,
-      final String? department,
-      final int viewCount,
-      final int contactCount,
-      required final DateTime createdAt,
-      required final DateTime updatedAt,
-      final DateTime? expiresAt}) = _$PartAdvertisementModelImpl;
+          {required final String id,
+          @JsonKey(name: 'user_id') required final String userId,
+          @JsonKey(name: 'part_type') required final String partType,
+          @JsonKey(name: 'part_name') required final String partName,
+          @JsonKey(name: 'vehicle_plate') final String? vehiclePlate,
+          @JsonKey(name: 'vehicle_brand') final String? vehicleBrand,
+          @JsonKey(name: 'vehicle_model') final String? vehicleModel,
+          @JsonKey(name: 'vehicle_year') final int? vehicleYear,
+          @JsonKey(name: 'vehicle_engine') final String? vehicleEngine,
+          final String? description,
+          final double? price,
+          final String? condition,
+          final List<String> images,
+          final String status,
+          @JsonKey(name: 'is_negotiable') final bool isNegotiable,
+          @JsonKey(name: 'contact_phone') final String? contactPhone,
+          @JsonKey(name: 'contact_email') final String? contactEmail,
+          final String? city,
+          @JsonKey(name: 'zip_code') final String? zipCode,
+          final String? department,
+          @JsonKey(name: 'view_count') final int viewCount,
+          @JsonKey(name: 'contact_count') final int contactCount,
+          @JsonKey(name: 'created_at') required final DateTime createdAt,
+          @JsonKey(name: 'updated_at') required final DateTime updatedAt,
+          @JsonKey(name: 'expires_at') final DateTime? expiresAt}) =
+      _$PartAdvertisementModelImpl;
   const _PartAdvertisementModel._() : super._();
 
   factory _PartAdvertisementModel.fromJson(Map<String, dynamic> json) =
@@ -656,20 +678,28 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   @override
   String get id;
   @override
+  @JsonKey(name: 'user_id')
   String get userId;
   @override
+  @JsonKey(name: 'part_type')
   String get partType;
   @override
+  @JsonKey(name: 'part_name')
   String get partName;
   @override
+  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate;
   @override
+  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand;
   @override
+  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel;
   @override
+  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear;
   @override
+  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine;
   @override
   String? get description;
@@ -682,32 +712,38 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   @override
   String get status;
   @override
+  @JsonKey(name: 'is_negotiable')
   bool get isNegotiable;
   @override
+  @JsonKey(name: 'contact_phone')
   String? get contactPhone;
   @override
+  @JsonKey(name: 'contact_email')
   String? get contactEmail;
   @override
   String? get city;
   @override
+  @JsonKey(name: 'zip_code')
   String? get zipCode;
   @override
   String? get department;
   @override
+  @JsonKey(name: 'view_count')
   int get viewCount;
   @override
+  @JsonKey(name: 'contact_count')
   int get contactCount;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
+  @JsonKey(name: 'updated_at')
   DateTime get updatedAt;
   @override
+  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt;
-
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PartAdvertisementModelImplCopyWith<_$PartAdvertisementModelImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -723,6 +759,10 @@ mixin _$CreatePartAdvertisementParams {
       throw _privateConstructorUsedError; // 'engine' ou 'body' depuis le front
   String get partName => throw _privateConstructorUsedError;
   String? get vehiclePlate => throw _privateConstructorUsedError;
+  String? get vehicleBrand => throw _privateConstructorUsedError;
+  String? get vehicleModel => throw _privateConstructorUsedError;
+  int? get vehicleYear => throw _privateConstructorUsedError;
+  String? get vehicleEngine => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   double? get price => throw _privateConstructorUsedError;
   String? get condition => throw _privateConstructorUsedError;
@@ -730,12 +770,8 @@ mixin _$CreatePartAdvertisementParams {
   String? get contactPhone => throw _privateConstructorUsedError;
   String? get contactEmail => throw _privateConstructorUsedError;
 
-  /// Serializes this CreatePartAdvertisementParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CreatePartAdvertisementParamsCopyWith<CreatePartAdvertisementParams>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -752,6 +788,10 @@ abstract class $CreatePartAdvertisementParamsCopyWith<$Res> {
       {String partType,
       String partName,
       String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
@@ -771,14 +811,16 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? partType = null,
     Object? partName = null,
     Object? vehiclePlate = freezed,
+    Object? vehicleBrand = freezed,
+    Object? vehicleModel = freezed,
+    Object? vehicleYear = freezed,
+    Object? vehicleEngine = freezed,
     Object? description = freezed,
     Object? price = freezed,
     Object? condition = freezed,
@@ -798,6 +840,22 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
       vehiclePlate: freezed == vehiclePlate
           ? _value.vehiclePlate
           : vehiclePlate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleBrand: freezed == vehicleBrand
+          ? _value.vehicleBrand
+          : vehicleBrand // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleModel: freezed == vehicleModel
+          ? _value.vehicleModel
+          : vehicleModel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleYear: freezed == vehicleYear
+          ? _value.vehicleYear
+          : vehicleYear // ignore: cast_nullable_to_non_nullable
+              as int?,
+      vehicleEngine: freezed == vehicleEngine
+          ? _value.vehicleEngine
+          : vehicleEngine // ignore: cast_nullable_to_non_nullable
               as String?,
       description: freezed == description
           ? _value.description
@@ -840,6 +898,10 @@ abstract class _$$CreatePartAdvertisementParamsImplCopyWith<$Res>
       {String partType,
       String partName,
       String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
@@ -858,14 +920,16 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
       $Res Function(_$CreatePartAdvertisementParamsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? partType = null,
     Object? partName = null,
     Object? vehiclePlate = freezed,
+    Object? vehicleBrand = freezed,
+    Object? vehicleModel = freezed,
+    Object? vehicleYear = freezed,
+    Object? vehicleEngine = freezed,
     Object? description = freezed,
     Object? price = freezed,
     Object? condition = freezed,
@@ -885,6 +949,22 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
       vehiclePlate: freezed == vehiclePlate
           ? _value.vehiclePlate
           : vehiclePlate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleBrand: freezed == vehicleBrand
+          ? _value.vehicleBrand
+          : vehicleBrand // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleModel: freezed == vehicleModel
+          ? _value.vehicleModel
+          : vehicleModel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleYear: freezed == vehicleYear
+          ? _value.vehicleYear
+          : vehicleYear // ignore: cast_nullable_to_non_nullable
+              as int?,
+      vehicleEngine: freezed == vehicleEngine
+          ? _value.vehicleEngine
+          : vehicleEngine // ignore: cast_nullable_to_non_nullable
               as String?,
       description: freezed == description
           ? _value.description
@@ -922,6 +1002,10 @@ class _$CreatePartAdvertisementParamsImpl
       {required this.partType,
       required this.partName,
       this.vehiclePlate,
+      this.vehicleBrand,
+      this.vehicleModel,
+      this.vehicleYear,
+      this.vehicleEngine,
       this.description,
       this.price,
       this.condition,
@@ -941,6 +1025,14 @@ class _$CreatePartAdvertisementParamsImpl
   final String partName;
   @override
   final String? vehiclePlate;
+  @override
+  final String? vehicleBrand;
+  @override
+  final String? vehicleModel;
+  @override
+  final int? vehicleYear;
+  @override
+  final String? vehicleEngine;
   @override
   final String? description;
   @override
@@ -963,7 +1055,7 @@ class _$CreatePartAdvertisementParamsImpl
 
   @override
   String toString() {
-    return 'CreatePartAdvertisementParams(partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail)';
+    return 'CreatePartAdvertisementParams(partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail)';
   }
 
   @override
@@ -977,6 +1069,14 @@ class _$CreatePartAdvertisementParamsImpl
                 other.partName == partName) &&
             (identical(other.vehiclePlate, vehiclePlate) ||
                 other.vehiclePlate == vehiclePlate) &&
+            (identical(other.vehicleBrand, vehicleBrand) ||
+                other.vehicleBrand == vehicleBrand) &&
+            (identical(other.vehicleModel, vehicleModel) ||
+                other.vehicleModel == vehicleModel) &&
+            (identical(other.vehicleYear, vehicleYear) ||
+                other.vehicleYear == vehicleYear) &&
+            (identical(other.vehicleEngine, vehicleEngine) ||
+                other.vehicleEngine == vehicleEngine) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.price, price) || other.price == price) &&
@@ -989,13 +1089,17 @@ class _$CreatePartAdvertisementParamsImpl
                 other.contactEmail == contactEmail));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
       partType,
       partName,
       vehiclePlate,
+      vehicleBrand,
+      vehicleModel,
+      vehicleYear,
+      vehicleEngine,
       description,
       price,
       condition,
@@ -1003,9 +1107,7 @@ class _$CreatePartAdvertisementParamsImpl
       contactPhone,
       contactEmail);
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CreatePartAdvertisementParamsImplCopyWith<
@@ -1027,6 +1129,10 @@ abstract class _CreatePartAdvertisementParams
       {required final String partType,
       required final String partName,
       final String? vehiclePlate,
+      final String? vehicleBrand,
+      final String? vehicleModel,
+      final int? vehicleYear,
+      final String? vehicleEngine,
       final String? description,
       final double? price,
       final String? condition,
@@ -1038,11 +1144,19 @@ abstract class _CreatePartAdvertisementParams
       _$CreatePartAdvertisementParamsImpl.fromJson;
 
   @override
-  String get partType; // 'engine' ou 'body' depuis le front
-  @override
+  String get partType;
+  @override // 'engine' ou 'body' depuis le front
   String get partName;
   @override
   String? get vehiclePlate;
+  @override
+  String? get vehicleBrand;
+  @override
+  String? get vehicleModel;
+  @override
+  int? get vehicleYear;
+  @override
+  String? get vehicleEngine;
   @override
   String? get description;
   @override
@@ -1055,11 +1169,8 @@ abstract class _CreatePartAdvertisementParams
   String? get contactPhone;
   @override
   String? get contactEmail;
-
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CreatePartAdvertisementParamsImplCopyWith<
           _$CreatePartAdvertisementParamsImpl>
       get copyWith => throw _privateConstructorUsedError;
@@ -1080,12 +1191,8 @@ mixin _$SearchPartAdvertisementsParams {
   int get limit => throw _privateConstructorUsedError;
   int get offset => throw _privateConstructorUsedError;
 
-  /// Serializes this SearchPartAdvertisementsParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SearchPartAdvertisementsParamsCopyWith<SearchPartAdvertisementsParams>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -1119,8 +1226,6 @@ class _$SearchPartAdvertisementsParamsCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1194,8 +1299,6 @@ class __$$SearchPartAdvertisementsParamsImplCopyWithImpl<$Res>
       $Res Function(_$SearchPartAdvertisementsParamsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1296,14 +1399,12 @@ class _$SearchPartAdvertisementsParamsImpl
             (identical(other.offset, offset) || other.offset == offset));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, query, partType, city, minPrice, maxPrice, limit, offset);
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SearchPartAdvertisementsParamsImplCopyWith<
@@ -1347,11 +1448,8 @@ abstract class _SearchPartAdvertisementsParams
   int get limit;
   @override
   int get offset;
-
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SearchPartAdvertisementsParamsImplCopyWith<
           _$SearchPartAdvertisementsParamsImpl>
       get copyWith => throw _privateConstructorUsedError;

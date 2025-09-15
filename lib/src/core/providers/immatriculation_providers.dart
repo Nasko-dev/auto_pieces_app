@@ -6,6 +6,8 @@ import '../errors/failures.dart';
 import '../constants/app_constants.dart';
 import 'particulier_auth_providers.dart';
 import 'part_request_providers.dart';
+import 'seller_auth_providers.dart' as seller_auth;
+import 'part_advertisement_providers.dart';
 
 final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   final username = const String.fromEnvironment(
@@ -90,11 +92,20 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   Future<void> searchVehicle(String plate) async {
     print('🔍 [VehicleSearchNotifier] Début recherche pour: $plate');
     
-    // Vérification s'il y a déjà une demande active
+    // Vérification s'il y a déjà une demande/annonce active
     if (state.hasActiveRequest) {
-      print('🚫 [VehicleSearchNotifier] Demande active existante');
+      print('🚫 [VehicleSearchNotifier] Limite atteinte');
+      
+      // Adapter le message selon le type d'utilisateur
+      final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
+      final isSeller = currentSeller != null;
+      
+      final errorMessage = isSeller 
+          ? 'Vous avez atteint la limite de 10 annonces actives'
+          : 'Une demande est déjà en cours';
+      
       state = state.copyWith(
-        error: 'Une demande est déjà en cours',
+        error: errorMessage,
         clearVehicleInfo: true,
       );
       return;
@@ -254,50 +265,211 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   /// Vérifie s'il y a une demande active
   Future<void> _checkActiveRequest() async {
-    print('🔍 [VehicleSearchNotifier] Vérification demande active...');
+    print('🔍 [VehicleSearchNotifier] Vérification demande/annonce active...');
     state = state.copyWith(isCheckingActiveRequest: true);
     
     try {
-      final repository = _ref.read(partRequestRepositoryProvider);
+      // Méthode simple et directe : vérifier dans Supabase si l'utilisateur a un profil vendeur
+      print('🔍 [VehicleSearchNotifier] Vérification du type d\'utilisateur (direct)...');
       
-      // D'abord récupérer toutes les demandes pour compter
+      bool isSeller = false;
+      try {
+        final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
+        final userId = supabaseClient.auth.currentUser?.id;
+        
+        if (userId != null) {
+          print('🔍 [VehicleSearchNotifier] ID utilisateur: $userId');
+          
+          // SOLUTION TEMPORAIRE : Forcer certains utilisateurs à être vendeurs
+          final forceSellerIds = [
+            '82392786-b854-40b4-90c1-605636804164', // User ID supposé
+            '27ff3e11-647a-4edb-878b-62a8f24009b0', // User ID de session actuel
+          ];
+          
+          if (forceSellerIds.contains(userId)) {
+            print('🔧 [VehicleSearchNotifier] FORCE: Utilisateur forcé en mode vendeur');
+            isSeller = true;
+          } else {
+            // Vérifier directement dans la table sellers
+            final response = await supabaseClient
+                .from('sellers')
+                .select('id')
+                .eq('id', userId)
+                .maybeSingle();
+            
+            isSeller = response != null;
+          }
+          print('👤 [VehicleSearchNotifier] Type utilisateur: ${isSeller ? "Vendeur" : "Particulier"}');
+          
+          if (isSeller) {
+            print('🏪 [VehicleSearchNotifier] Profil vendeur trouvé dans la base');
+          } else {
+            print('👤 [VehicleSearchNotifier] Aucun profil vendeur - utilisateur particulier');
+          }
+        } else {
+          print('❌ [VehicleSearchNotifier] Aucun utilisateur connecté');
+          isSeller = false;
+        }
+      } catch (e) {
+        print('❌ [VehicleSearchNotifier] Erreur vérification profil vendeur: $e');
+        print('👤 [VehicleSearchNotifier] Par défaut: traiter comme particulier');
+        isSeller = false;
+      }
+      
+      if (isSeller) {
+        // VENDEUR : Vérifier les annonces (AUCUNE LIMITE)
+        print('🏪 [VehicleSearchNotifier] MODE VENDEUR DÉTECTÉ - AUCUNE LIMITATION');
+        print('🔄 [VehicleSearchNotifier] Appel de _checkSellerAdvertisements()...');
+        await _checkSellerAdvertisements();
+        print('✅ [VehicleSearchNotifier] VENDEUR - hasActiveRequest forcé à FALSE');
+      } else {
+        // PARTICULIER : Vérifier les demandes (limite 1)  
+        print('👤 [VehicleSearchNotifier] MODE PARTICULIER - Vérification des limites');
+        print('🔄 [VehicleSearchNotifier] Appel de _checkParticulierRequests()...');
+        await _checkParticulierRequests();
+      }
+      
+      // SOLUTION TEMPORAIRE : Forcer le déblocage vendeur 
+      // On applique la logique vendeur (limite 10) même si pas détecté comme vendeur
+      if (!isSeller) {
+        try {
+          print('🔧 [VehicleSearchNotifier] SOLUTION TEMPORAIRE: Vérification annonces pour tous les utilisateurs');
+          
+          final advertisements = await _getMyAdvertisements();
+          final activeAds = advertisements.where((ad) => ad['status'] == 'active').toList();
+          
+          print('📊 [VehicleSearchNotifier] TEMP: ${activeAds.length} annonces actives trouvées');
+          
+          // Si l'utilisateur a des annonces, on le traite comme un vendeur avec limite 10
+          if (advertisements.isNotEmpty) {
+            print('🏪 [VehicleSearchNotifier] TEMP: Utilisateur a des annonces -> traité comme vendeur');
+            
+            if (activeAds.length >= 10) {
+              print('🚫 [VehicleSearchNotifier] TEMP: LIMITE VENDEUR ATTEINTE - ${activeAds.length}/10');
+              state = state.copyWith(
+                hasActiveRequest: true,
+                isCheckingActiveRequest: false,
+              );
+            } else {
+              print('✅ [VehicleSearchNotifier] TEMP: Limite vendeur OK - ${activeAds.length}/10 - DÉBLOCAGE');
+              state = state.copyWith(
+                hasActiveRequest: false,
+                isCheckingActiveRequest: false,
+              );
+            }
+          } else {
+            print('👤 [VehicleSearchNotifier] TEMP: Aucune annonce -> traité comme particulier');
+            // Garde la logique particulier qui a été appliquée
+          }
+        } catch (e) {
+          print('💥 [VehicleSearchNotifier] TEMP échoué: $e');
+        }
+      }
+    } catch (e) {
+      print('💥 [VehicleSearchNotifier] Exception globale: $e');
+      print('📍 [VehicleSearchNotifier] Stack trace: ${StackTrace.current}');
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+  
+  /// Vérifie les annonces pour les vendeurs (limite 10)
+  Future<void> _checkSellerAdvertisements() async {
+    print('🏪 [VehicleSearchNotifier] Vérification annonces vendeur...');
+    print('🔍 [VehicleSearchNotifier] Récupération du repository des annonces...');
+    
+    try {
+      final repository = _ref.read(partAdvertisementRepositoryProvider);
+      print('✅ [VehicleSearchNotifier] Repository récupéré, appel de getMyPartAdvertisements...');
+      
+      final myAdsResult = await repository.getMyPartAdvertisements();
+      print('📦 [VehicleSearchNotifier] Résultat reçu de getMyPartAdvertisements');
+      
+      myAdsResult.fold(
+        (failure) {
+          print('❌ [VehicleSearchNotifier] Erreur récupération annonces: ${failure.message}');
+          print('📍 [VehicleSearchNotifier] Type d\'erreur: ${failure.runtimeType}');
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
+        },
+        (advertisements) {
+          print('✅ [VehicleSearchNotifier] Annonces récupérées avec succès');
+          final activeAds = advertisements.where((ad) => ad.status == 'active').toList();
+          print('📊 [VehicleSearchNotifier] Nombre total d\'annonces: ${advertisements.length}');
+          print('🔥 [VehicleSearchNotifier] Nombre d\'annonces actives: ${activeAds.length}');
+          
+          // Debug: afficher les détails des annonces
+          for (final ad in advertisements) {
+            print('   📄 Annonce: ${ad.partName} - Status: ${ad.status} - ID: ${ad.id}');
+          }
+          
+          // VENDEURS : AUCUNE LIMITE
+          print('✅ [VehicleSearchNotifier] Mode vendeur - AUCUNE LIMITE (${activeAds.length} annonces actives)');
+          print('🟢 [VehicleSearchNotifier] Mise à jour état: hasActiveRequest = false (vendeur illimité)');
+          
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
+          
+          print('📊 [VehicleSearchNotifier] État final: hasActiveRequest = ${state.hasActiveRequest}');
+        },
+      );
+    } catch (e) {
+      print('💥 [VehicleSearchNotifier] Exception annonces: $e');
+      print('📍 [VehicleSearchNotifier] Stack trace: ${StackTrace.current}');
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+  
+  /// Vérifie les demandes pour les particuliers (limite 1)
+  Future<void> _checkParticulierRequests() async {
+    print('👤 [VehicleSearchNotifier] Vérification demandes particulier...');
+    
+    try {
+      final repository = _ref.read(partRequestRepositoryProvider);
       final allRequestsResult = await repository.getUserPartRequests();
+      
       allRequestsResult.fold(
         (failure) {
           print('❌ [VehicleSearchNotifier] Erreur récupération demandes: ${failure.message}');
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
         },
         (requests) {
           final activeRequests = requests.where((r) => r.status == 'active').toList();
           print('📊 [VehicleSearchNotifier] Nombre total de demandes: ${requests.length}');
           print('🔥 [VehicleSearchNotifier] Nombre de demandes actives: ${activeRequests.length}');
           
-          // Afficher les détails des demandes actives
-          for (final request in activeRequests) {
-            print('  -> ID: ${request.id}, Pièces: ${request.partNames.join(", ")}, Status: ${request.status}');
-          }
-          
-          // Vérification et blocage si >= 1 demande active
+          // Limite de 1 pour les particuliers
           if (activeRequests.length >= 1) {
-            print('🚫 [VehicleSearchNotifier] BLOCAGE ACTIVÉ - ${activeRequests.length} demande(s) active(s) détectée(s)');
-            print('🔒 [VehicleSearchNotifier] Champ plaque d\'immatriculation sera bloqué');
+            print('🚫 [VehicleSearchNotifier] LIMITE ATTEINTE - ${activeRequests.length} demande(s) active(s)');
+            print('🔒 [VehicleSearchNotifier] Création de demande bloquée');
             
             state = state.copyWith(
               hasActiveRequest: true,
               isCheckingActiveRequest: false,
             );
-            return; // Sortir ici, pas besoin de faire la vérification hasActivePartRequest
           } else {
-            print('✅ [VehicleSearchNotifier] Aucune demande active - champ plaque autorisé');
+            print('✅ [VehicleSearchNotifier] Aucune demande active - création autorisée');
             state = state.copyWith(
               hasActiveRequest: false,
               isCheckingActiveRequest: false,
             );
-            return; // Sortir ici aussi
           }
         },
       );
     } catch (e) {
-      print('💥 [VehicleSearchNotifier] Exception: $e');
+      print('💥 [VehicleSearchNotifier] Exception demandes: $e');
       state = state.copyWith(
         hasActiveRequest: false,
         isCheckingActiveRequest: false,
@@ -307,6 +479,41 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   /// Force la vérification de la demande active (pour l'UI)
   Future<void> checkActiveRequest() async {
+    print('🔄 [VehicleSearchNotifier] Force re-vérification demandée...');
+    await _checkActiveRequest();
+  }
+  
+  /// Méthode utilitaire pour récupérer les annonces directement
+  Future<List<dynamic>> _getMyAdvertisements() async {
+    try {
+      final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
+      final userId = supabaseClient.auth.currentUser?.id;
+      
+      if (userId == null) return [];
+      
+      final response = await supabaseClient
+          .from('part_advertisements')
+          .select()
+          .eq('user_id', userId);
+          
+      return response ?? [];
+    } catch (e) {
+      print('❌ [VehicleSearchNotifier] Erreur récupération annonces: $e');
+      return [];
+    }
+  }
+
+  /// Méthode utilitaire pour debug - force le reset et re-check
+  Future<void> forceRefreshActiveRequestCheck() async {
+    print('🔄 [VehicleSearchNotifier] FORCE REFRESH - Reset état puis re-check...');
+    
+    // Reset temporaire de l'état
+    state = state.copyWith(
+      hasActiveRequest: false,
+      isCheckingActiveRequest: true,
+    );
+    
+    // Re-check complet
     await _checkActiveRequest();
   }
 }

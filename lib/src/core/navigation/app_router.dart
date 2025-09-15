@@ -15,7 +15,7 @@ import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page
 import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
-import '../../features/parts/presentation/pages/Vendeur/add_ad_page.dart';
+import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 
@@ -119,7 +119,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/add',
             name: 'seller-add',
-            builder: (context, state) => const AddAdPage(),
+            builder: (context, state) => const BecomeSellerPage(mode: SellerMode.vendeur),
           ),
           GoRoute(
             path: '/seller/ads',

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 import '../../domain/entities/part_advertisement.dart';
 
 part 'part_advertisement_model.freezed.dart';
@@ -8,30 +9,30 @@ part 'part_advertisement_model.g.dart';
 class PartAdvertisementModel with _$PartAdvertisementModel {
   const factory PartAdvertisementModel({
     required String id,
-    required String userId,
-    required String partType,
-    required String partName,
-    String? vehiclePlate,
-    String? vehicleBrand,
-    String? vehicleModel,
-    int? vehicleYear,
-    String? vehicleEngine,
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'part_type') required String partType,
+    @JsonKey(name: 'part_name') required String partName,
+    @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
+    @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
+    @JsonKey(name: 'vehicle_model') String? vehicleModel,
+    @JsonKey(name: 'vehicle_year') int? vehicleYear,
+    @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
     String? description,
     double? price,
     String? condition,
     @Default([]) List<String> images,
     @Default('active') String status,
-    @Default(true) bool isNegotiable,
-    String? contactPhone,
-    String? contactEmail,
+    @JsonKey(name: 'is_negotiable') @Default(true) bool isNegotiable,
+    @JsonKey(name: 'contact_phone') String? contactPhone,
+    @JsonKey(name: 'contact_email') String? contactEmail,
     String? city,
-    String? zipCode,
+    @JsonKey(name: 'zip_code') String? zipCode,
     String? department,
-    @Default(0) int viewCount,
-    @Default(0) int contactCount,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    DateTime? expiresAt,
+    @JsonKey(name: 'view_count') @Default(0) int viewCount,
+    @JsonKey(name: 'contact_count') @Default(0) int contactCount,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
   }) = _PartAdvertisementModel;
 
   const PartAdvertisementModel._();
@@ -143,6 +144,10 @@ class CreatePartAdvertisementParams with _$CreatePartAdvertisementParams {
     required String partType, // 'engine' ou 'body' depuis le front
     required String partName,
     String? vehiclePlate,
+    String? vehicleBrand,
+    String? vehicleModel,
+    int? vehicleYear,
+    String? vehicleEngine,
     String? description,
     double? price,
     String? condition,
