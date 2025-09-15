@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../features/parts/presentation/providers/conversations_providers.dart';
 
-class SellerWrapper extends StatefulWidget {
+class SellerWrapper extends ConsumerStatefulWidget {
   final Widget child;
 
   const SellerWrapper({super.key, required this.child});
 
   @override
-  State<SellerWrapper> createState() => _SellerWrapperState();
+  ConsumerState<SellerWrapper> createState() => _SellerWrapperState();
 }
 
-class _SellerWrapperState extends State<SellerWrapper> {
+class _SellerWrapperState extends ConsumerState<SellerWrapper> {
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
@@ -132,6 +134,7 @@ class _SellerWrapperState extends State<SellerWrapper> {
                   label: 'Messages',
                   route: '/seller/messages',
                   index: 3,
+                  hasUnread: ref.watch(totalUnreadCountProvider) > 0,
                 ),
               ],
             ),
@@ -148,6 +151,7 @@ class _SellerWrapperState extends State<SellerWrapper> {
     required String label,
     required String route,
     required int index,
+    bool hasUnread = false,
   }) {
     final isSelected = _getCurrentIndex(context) == index;
 
@@ -162,10 +166,29 @@ class _SellerWrapperState extends State<SellerWrapper> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isSelected ? selectedIcon : icon,
-                  size: 22,
-                  color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isSelected ? selectedIcon : icon,
+                      size: 22,
+                      color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                    ),
+                    // Point rouge pour messages non lus
+                    if (hasUnread)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF3B30),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
