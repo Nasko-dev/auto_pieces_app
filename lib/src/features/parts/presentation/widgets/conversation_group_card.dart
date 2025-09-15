@@ -24,7 +24,9 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   @override
   Widget build(BuildContext context) {
     final group = widget.group;
-    final hasUnread = group.hasUnreadMessages;
+    // Calculer le vrai nombre de conversations avec messages non lus
+    final conversationsWithUnread = _getConversationsWithUnreadCount(group);
+    final hasUnread = conversationsWithUnread > 0;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -59,7 +61,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // En-tête du groupe
-                _buildGroupHeader(group, hasUnread),
+                _buildGroupHeader(group, hasUnread, conversationsWithUnread),
 
                 // Liste des conversations (si développé)
                 if (_isExpanded) ...[
@@ -76,9 +78,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     );
   }
 
-  Widget _buildGroupHeader(ConversationGroup group, bool hasUnread) {
-    // Calculer le nombre de conversations avec messages non lus
-    final conversationsWithUnread = _getConversationsWithUnreadCount(group);
+  Widget _buildGroupHeader(ConversationGroup group, bool hasUnread, int conversationsWithUnread) {
 
     return Row(
       children: [
@@ -131,7 +131,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
         ),
 
         // Badge nombre de conversations non lues
-        if (hasUnread) _buildUnreadConversationsBadge(conversationsWithUnread),
+        if (conversationsWithUnread > 0) _buildUnreadConversationsBadge(conversationsWithUnread),
 
         const SizedBox(width: 8),
 
