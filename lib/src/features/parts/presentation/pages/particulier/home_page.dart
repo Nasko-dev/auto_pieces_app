@@ -51,9 +51,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
     
-    // Vérifier les demandes actives dès l'arrivée sur la page
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+    // Vérifier les demandes actives de manière asynchrone sans bloquer
+    // Délai pour laisser l'UI se charger d'abord
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+      }
     });
   }
 

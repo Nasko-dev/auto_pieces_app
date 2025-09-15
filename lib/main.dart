@@ -6,7 +6,9 @@ import 'src/core/theme/app_theme.dart';
 import 'src/core/navigation/app_router.dart';
 import 'src/core/constants/app_constants.dart';
 import 'src/core/providers/particulier_auth_providers.dart';
+import 'src/core/providers/session_providers.dart' as session_providers;
 import 'src/core/services/realtime_service.dart';
+import 'src/core/services/session_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,11 +41,31 @@ void main() async {
     final sharedPreferences = await SharedPreferences.getInstance();
     print('✅ [Main] SharedPreferences initialisé !');
     
-    // Vérifier l'état de l'auth
+    // Initialiser le service de session et tenter l'auto-reconnexion
+    print('🔐 [Main] Vérification session en cache...');
+    final sessionService = SessionService(sharedPreferences, Supabase.instance.client);
+    
+    // Tenter l'auto-reconnexion si une session est en cache
+    final hasReconnected = await sessionService.autoReconnect();
+    
+    if (hasReconnected) {
+      print('🎉 [Main] Auto-reconnexion réussie !');
+      // Forcer la mise à jour du cache pour avoir le bon type d'utilisateur
+      await sessionService.updateCachedSession();
+      final userType = sessionService.getCachedUserType();
+      final userEmail = sessionService.getCachedUserEmail();
+      print('👤 [Main] Type: $userType | Email: $userEmail');
+    } else {
+      print('ℹ️ [Main] Pas de session à restaurer');
+    }
+    
+    // Vérifier l'état de l'auth final
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      print('👤 [Main] Utilisateur connecté: ${user.id}');
+      print('✅ [Main] Utilisateur connecté: ${user.id}');
       print('📧 [Main] Email: ${user.email}');
+      // Mettre à jour le cache avec les infos actuelles
+      await sessionService.updateCachedSession();
     } else {
       print('👻 [Main] Aucun utilisateur connecté (mode anonyme)');
     }
@@ -51,7 +73,10 @@ void main() async {
     runApp(
       ProviderScope(
         overrides: [
+          // Override pour les providers de SharedPreferences dans tous les fichiers
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          // Override pour le provider de session_providers.dart
+          session_providers.sessionSharedPreferencesProvider.overrideWithValue(sharedPreferences),
         ],
         child: const MyApp(),
       ),
