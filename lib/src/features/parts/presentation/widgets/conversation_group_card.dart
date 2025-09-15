@@ -77,6 +77,9 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   }
 
   Widget _buildGroupHeader(ConversationGroup group, bool hasUnread) {
+    // Calculer le nombre de conversations avec messages non lus
+    final conversationsWithUnread = _getConversationsWithUnreadCount(group);
+
     return Row(
       children: [
         // Icône de la pièce
@@ -121,21 +124,14 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
 
               const SizedBox(height: 4),
 
-              // Compteur de conversations
-              Text(
-                '${group.conversationCount} demande${group.conversationCount > 1 ? 's' : ''}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              // Compteur de conversations avec statut messages non lus
+              _buildConversationStatus(group.conversationCount, conversationsWithUnread),
             ],
           ),
         ),
 
-        // Badge messages non lus
-        if (hasUnread) _buildUnreadBadge(group.totalUnreadCount),
+        // Badge nombre de conversations non lues
+        if (hasUnread) _buildUnreadConversationsBadge(conversationsWithUnread),
 
         const SizedBox(width: 8),
 
@@ -149,23 +145,6 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     );
   }
 
-  Widget _buildUnreadBadge(int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 
   Widget _buildConversationsList(List<Conversation> conversations) {
     return Column(
@@ -225,15 +204,8 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                           ),
                         ),
                         const Spacer(),
-                        if (hasUnread)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF3B30),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
+                        // Badge avec nombre de messages non lus
+                        if (hasUnread) _buildMessageCountBadge(localUnreadCount),
                       ],
                     ),
 
@@ -268,5 +240,80 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
       default:
         return Icons.auto_fix_high;
     }
+  }
+
+  // Calculer le nombre de conversations avec messages non lus
+  int _getConversationsWithUnreadCount(ConversationGroup group) {
+    int count = 0;
+    for (final conversation in group.conversations) {
+      final localUnreadCount = ref.watch(conversationUnreadCountProvider(conversation.id));
+      if (localUnreadCount > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // Widget pour afficher le statut des conversations
+  Widget _buildConversationStatus(int totalConversations, int conversationsWithUnread) {
+    if (conversationsWithUnread == 0) {
+      // Aucun message non lu
+      return Text(
+        '$totalConversations demande${totalConversations > 1 ? 's' : ''}',
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.grey[600],
+          fontWeight: FontWeight.w400,
+        ),
+      );
+    } else {
+      // Conversations avec messages non lus
+      return Text(
+        '$conversationsWithUnread/$totalConversations non lue${conversationsWithUnread > 1 ? 's' : ''}',
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF007AFF),
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+  }
+
+  // Badge pour le nombre de conversations non lues
+  Widget _buildUnreadConversationsBadge(int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF3B30),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  // Badge pour le nombre de messages non lus d'une conversation individuelle
+  Widget _buildMessageCountBadge(int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF3B30),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }
