@@ -249,7 +249,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   IconData _getPartIcon(String? partType) {
     switch (partType) {
       case 'engine':
-        return Icons.settings;
+        return Icons.mail;
       case 'body':
         return Icons.car_repair;
       default:
