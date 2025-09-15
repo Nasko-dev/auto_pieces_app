@@ -6,6 +6,7 @@ import 'src/core/theme/app_theme.dart';
 import 'src/core/navigation/app_router.dart';
 import 'src/core/constants/app_constants.dart';
 import 'src/core/providers/particulier_auth_providers.dart';
+import 'src/core/providers/session_providers.dart' as session_providers;
 import 'src/core/services/realtime_service.dart';
 import 'src/core/services/session_service.dart';
 
@@ -70,7 +71,10 @@ void main() async {
     runApp(
       ProviderScope(
         overrides: [
+          // Override pour les providers de SharedPreferences dans tous les fichiers
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          // Override pour le provider de session_providers.dart
+          session_providers.sessionSharedPreferencesProvider.overrideWithValue(sharedPreferences),
         ],
         child: const MyApp(),
       ),

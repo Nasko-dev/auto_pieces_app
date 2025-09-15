@@ -20,24 +20,29 @@ import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Récupérer les infos de session depuis le cache
-  final sessionService = ref.read(sessionServiceProvider);
-  final cachedUserType = sessionService.getCachedUserType();
-  final hasValidSession = sessionService.isAutoReconnectEnabled() && cachedUserType != null;
-  
-  print('🚀 [Router] Initialisation - Type en cache: $cachedUserType');
-  
-  // Déterminer la location initiale basée sur le cache
+  // Utiliser try-catch pour éviter les erreurs au démarrage
   String getInitialLocation() {
-    if (hasValidSession) {
-      if (cachedUserType == 'vendeur') {
-        print('📍 [Router] Redirection vers page vendeur');
-        return '/seller';
-      } else {
-        print('📍 [Router] Redirection vers page particulier');
-        return '/home';
+    try {
+      // Récupérer les infos de session depuis le cache
+      final sessionService = ref.read(sessionServiceProvider);
+      final cachedUserType = sessionService.getCachedUserType();
+      final hasValidSession = sessionService.isAutoReconnectEnabled() && cachedUserType != null;
+      
+      print('🚀 [Router] Initialisation - Type en cache: $cachedUserType');
+      
+      if (hasValidSession) {
+        if (cachedUserType == 'vendeur') {
+          print('📍 [Router] Redirection vers page vendeur');
+          return '/seller';
+        } else {
+          print('📍 [Router] Redirection vers page particulier');
+          return '/home';
+        }
       }
+    } catch (e) {
+      print('⚠️ [Router] Erreur lors de la récupération du cache: $e');
     }
+    
     print('📍 [Router] Pas de session, page d\'accueil');
     return '/';
   }

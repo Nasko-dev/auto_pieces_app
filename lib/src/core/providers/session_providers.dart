@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/session_service.dart';
 
 /// Provider pour accéder à SharedPreferences (doit être override dans main.dart)
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+final sessionSharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be overridden in main');
 });
 
@@ -15,7 +15,7 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 
 /// Provider pour le service de session
 final sessionServiceProvider = Provider<SessionService>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
+  final prefs = ref.watch(sessionSharedPreferencesProvider);
   final supabase = ref.watch(supabaseClientProvider);
   return SessionService(prefs, supabase);
 });

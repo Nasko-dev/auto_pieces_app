@@ -86,7 +86,8 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   VehicleSearchNotifier(this._service, this._rateLimiter, this._ref) : super(const VehicleSearchState()) {
     _updateRateLimitStatus();
-    _checkActiveRequest();
+    // Ne pas appeler _checkActiveRequest dans le constructeur pour éviter les blocages
+    // Elle sera appelée par les pages qui en ont besoin
   }
 
   Future<void> searchVehicle(String plate) async {
@@ -266,6 +267,13 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   /// Vérifie s'il y a une demande active
   Future<void> _checkActiveRequest() async {
     print('🔍 [VehicleSearchNotifier] Vérification demande/annonce active...');
+    
+    // Ne pas bloquer l'UI pendant la vérification
+    if (state.isCheckingActiveRequest) {
+      print('⚠️ [VehicleSearchNotifier] Vérification déjà en cours, abandon');
+      return;
+    }
+    
     state = state.copyWith(isCheckingActiveRequest: true);
     
     try {
