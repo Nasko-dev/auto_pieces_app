@@ -12,6 +12,7 @@ import '../../features/parts/presentation/pages/particulier/conversations_list_p
 import '../../features/parts/presentation/pages/particulier/chat_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/messages_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page.dart';
+import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
 import '../../features/parts/presentation/pages/Vendeur/add_ad_page.dart';
@@ -129,6 +130,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/seller/messages',
             name: 'seller-messages',
             builder: (context, state) => const SellerMessagesPage(),
+          ),
+          GoRoute(
+            path: '/seller/notifications',
+            name: 'seller-notifications',
+            builder: (context, state) => const AllNotificationsPage(),
           ),
           GoRoute(
             path: '/seller/conversation/:conversationId',

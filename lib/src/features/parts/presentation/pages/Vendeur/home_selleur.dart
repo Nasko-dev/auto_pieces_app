@@ -84,31 +84,6 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
               // Contenu basé sur l'état
               _buildDashboardContent(dashboardState),
 
-              const SizedBox(height: 16),
-
-              // Bouton "Voir plus"
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    // Navigation vers toutes les notifications
-                  },
-                  icon: const Icon(
-                    Icons.visibility_outlined,
-                    color: AppTheme.primaryBlue,
-                    size: 18,
-                  ),
-                  label: const Text(
-                    'Voir plus de notifications',
-                    style: TextStyle(
-                      color: AppTheme.primaryBlue,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 24),
 
               // Ligne de séparation
@@ -400,7 +375,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    context.go('/seller/messages');
+                    context.pushNamed('seller-notifications');
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
@@ -728,7 +703,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Demande "${partRequest.partType}" refusée avec succès',
+                'Demande "${partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule"}" refusée avec succès',
               ),
               backgroundColor: AppTheme.success,
             ),
@@ -965,7 +940,9 @@ class _ModernNotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${partRequest.vehicleBrand} ${partRequest.vehicleModel}',
+                          partRequest.vehicleInfo.isNotEmpty 
+                              ? partRequest.vehicleInfo 
+                              : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
