@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/session_providers.dart';
+import '../providers/session_providers.dart' as session;
+import '../providers/session_providers.dart' show sessionServiceProvider;
 import '../../features/auth/presentation/pages/yannko_welcome_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/auth/presentation/pages/seller_login_page.dart';
