@@ -159,6 +159,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     final localUnreadCount = ref.watch(conversationUnreadCountProvider(conversation.id));
     final hasUnread = localUnreadCount > 0;
     final lastMessage = conversation.lastMessageContent;
+    final lastMessageTime = conversation.lastMessageCreatedAt ?? conversation.lastMessageAt;
 
     return Material(
       color: Colors.transparent,
@@ -195,15 +196,16 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Particulier',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
-                            color: hasUnread ? const Color(0xFF007AFF) : Colors.black87,
+                        Expanded(
+                          child: Text(
+                            'Particulier',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
+                              color: hasUnread ? const Color(0xFF007AFF) : Colors.black87,
+                            ),
                           ),
                         ),
-                        const Spacer(),
                         // Badge avec nombre de messages non lus
                         if (hasUnread) _buildMessageCountBadge(localUnreadCount),
                       ],
@@ -224,6 +226,19 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                   ],
                 ),
               ),
+
+              // Heure du dernier message
+              if (lastMessageTime != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  _formatMessageTime(lastMessageTime),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
+                    fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -315,5 +330,28 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
         ),
       ),
     );
+  }
+
+  // Formater l'heure du dernier message
+  String _formatMessageTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final localTime = dateTime.toLocal();
+    final difference = now.difference(localTime);
+
+    if (difference.inDays > 0) {
+      if (difference.inDays == 1) return 'Hier';
+      if (difference.inDays < 7) return '${difference.inDays}j';
+      return '${localTime.day}/${localTime.month}';
+    }
+
+    if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    }
+
+    if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}min';
+    }
+
+    return 'Maintenant';
   }
 }
