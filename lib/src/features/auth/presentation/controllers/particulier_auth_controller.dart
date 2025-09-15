@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../../../core/services/session_service.dart';
 import '../../domain/entities/particulier.dart';
 import '../../domain/usecases/particulier_anonymous_auth.dart';
 import '../../domain/usecases/particulier_logout.dart';

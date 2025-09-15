@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/session_providers.dart';
 import '../../features/auth/presentation/pages/yannko_welcome_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/auth/presentation/pages/seller_login_page.dart';
@@ -15,27 +16,41 @@ import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page
 import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
-import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Éviter de watcher les états d'auth pour empêcher les re-builds constants
-  // qui causent la boucle infinie
-  // final particulierAuthState = ref.watch(particulierAuthControllerProvider);
-  // final sellerAuthState = ref.watch(sellerAuthStreamProvider);
+  // Récupérer les infos de session depuis le cache
+  final sessionService = ref.read(sessionServiceProvider);
+  final cachedUserType = sessionService.getCachedUserType();
+  final hasValidSession = sessionService.isAutoReconnectEnabled() && cachedUserType != null;
+  
+  print('🚀 [Router] Initialisation - Type en cache: $cachedUserType');
+  
+  // Déterminer la location initiale basée sur le cache
+  String getInitialLocation() {
+    if (hasValidSession) {
+      if (cachedUserType == 'vendeur') {
+        print('📍 [Router] Redirection vers page vendeur');
+        return '/seller';
+      } else {
+        print('📍 [Router] Redirection vers page particulier');
+        return '/home';
+      }
+    }
+    print('📍 [Router] Pas de session, page d\'accueil');
+    return '/';
+  }
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: getInitialLocation(),
     redirect: (context, state) {
       final location = state.matchedLocation;
       
-      // Pour éviter la boucle infinie, on simplifie énormément les redirections
-      // et on laisse les pages gérer leur propre navigation après connexion
+      print('🔍 [Router] Navigation vers: $location');
       
-      print('🔍 [Router] Location: $location');
-      
-      // Laisser passer toutes les navigations - les pages géreront leur propre auth
+      // Permettre la navigation normale sans re-direction forcée
+      // Les pages géreront leur propre auth si nécessaire
       return null;
     },
     routes: [
