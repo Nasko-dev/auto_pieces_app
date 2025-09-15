@@ -25,12 +25,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     try {
       // Récupérer les infos de session depuis le cache
       final sessionService = ref.read(sessionServiceProvider);
+      final supabase = ref.read(session.supabaseClientProvider);
+      
+      // Vérifier d'abord si Supabase a une session active
+      final hasSupabaseSession = supabase.auth.currentSession != null;
       final cachedUserType = sessionService.getCachedUserType();
-      final hasValidSession = sessionService.isAutoReconnectEnabled() && cachedUserType != null;
       
-      print('🚀 [Router] Initialisation - Type en cache: $cachedUserType');
+      print('🚀 [Router] Initialisation - Session Supabase: $hasSupabaseSession, Type en cache: $cachedUserType');
       
-      if (hasValidSession) {
+      // Ne rediriger que si BOTH Supabase et le cache sont cohérents
+      if (hasSupabaseSession && cachedUserType != null) {
         if (cachedUserType == 'vendeur') {
           print('📍 [Router] Redirection vers page vendeur');
           return '/seller';
@@ -38,12 +42,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           print('📍 [Router] Redirection vers page particulier');
           return '/home';
         }
+      } else if (!hasSupabaseSession && cachedUserType != null) {
+        // Incohérence détectée - nettoyer le cache
+        print('⚠️ [Router] Cache incohérent - nettoyage');
+        sessionService.clearCache();
       }
     } catch (e) {
       print('⚠️ [Router] Erreur lors de la récupération du cache: $e');
     }
     
-    print('📍 [Router] Pas de session, page d\'accueil');
+    print('📍 [Router] Pas de session valide, page d\'accueil');
     return '/';
   }
 

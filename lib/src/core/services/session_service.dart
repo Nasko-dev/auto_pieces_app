@@ -56,8 +56,10 @@ class SessionService {
         return true;
       }
       
-      print('🔄 [SessionService] Session en cache valide, reconnexion nécessaire');
-      return true;
+      // Si pas de session Supabase mais cache présent, le cache est invalide
+      print('⚠️ [SessionService] Cache présent mais pas de session Supabase - nettoyage');
+      await clearCache();
+      return false;
     } catch (e) {
       print('❌ [SessionService] Erreur vérification cache: $e');
       return false;
@@ -76,25 +78,18 @@ class SessionService {
         return true;
       }
       
-      // Vérifier le cache
-      if (!await hasValidCachedSession()) {
+      // Vérifier le cache - cela nettoiera automatiquement si invalide
+      final hasCache = await hasValidCachedSession();
+      if (!hasCache) {
         print('❌ [SessionService] Pas de session valide en cache');
         return false;
       }
       
-      // Tenter de restaurer la session avec Supabase
-      // Supabase gère automatiquement la persistance avec son propre stockage
-      // On vérifie juste si une session peut être récupérée
-      await _supabase.auth.refreshSession();
-      
-      final session = _supabase.auth.currentSession;
-      if (session != null) {
-        print('✅ [SessionService] Session restaurée avec succès');
-        await updateCachedSession();
-        return true;
-      }
-      
-      print('⚠️ [SessionService] Impossible de restaurer la session');
+      // Si on arrive ici, c'est qu'il y a une incohérence
+      // Le cache dit qu'il y a une session mais Supabase n'en a pas
+      // On nettoie le cache pour éviter les problèmes
+      print('⚠️ [SessionService] Incohérence détectée - nettoyage du cache');
+      await clearCache();
       return false;
     } catch (e) {
       print('❌ [SessionService] Erreur auto-reconnexion: $e');
