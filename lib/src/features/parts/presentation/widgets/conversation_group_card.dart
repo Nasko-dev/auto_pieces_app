@@ -207,7 +207,20 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                           ),
                         ),
                         // Badge avec nombre de messages non lus
-                        if (hasUnread) _buildMessageCountBadge(localUnreadCount),
+                        if (hasUnread) ...[
+                          _buildMessageCountBadge(localUnreadCount),
+                          const SizedBox(width: 8),
+                        ],
+                        // Heure du dernier message - toujours alignée à droite
+                        if (lastMessageTime != null)
+                          Text(
+                            _formatMessageTime(lastMessageTime),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
+                              fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                            ),
+                          ),
                       ],
                     ),
 
@@ -226,19 +239,6 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                   ],
                 ),
               ),
-
-              // Heure du dernier message
-              if (lastMessageTime != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  _formatMessageTime(lastMessageTime),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
-                    fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
