@@ -71,21 +71,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
           ),
         ),
         actions: [
-          // Bouton debug temporaire
-          IconButton(
-            icon: const Icon(Icons.bug_report, color: Colors.red),
-            onPressed: () {
-              _debugCheckDatabase();
-            },
-            tooltip: 'Debug BDD',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.yellow),
-            onPressed: () {
-              ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-            },
-            tooltip: 'Actualiser',
-          ),
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: Colors.white),
             onPressed: () {
@@ -191,13 +176,17 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                         HapticFeedback.lightImpact();
                         // Navigation vers le détail de l'annonce
                       },
-                      onEdit: () {
-                        HapticFeedback.lightImpact();
-                        // Navigation vers l'édition
-                      },
                       onToggleStatus: () {
                         HapticFeedback.lightImpact();
                         _toggleAdStatus(filteredAds[index]);
+                      },
+                      onMarkAsSold: () {
+                        HapticFeedback.lightImpact();
+                        _markAsSold(filteredAds[index]);
+                      },
+                      onDelete: () {
+                        HapticFeedback.lightImpact();
+                        _showDeleteConfirmation(filteredAds[index]);
                       },
                     );
                   },
@@ -266,53 +255,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     );
   }
 
-  void _debugCheckDatabase() async {
-    try {
-      print('🔍 [DEBUG] Vérification directe de la base de données...');
-      
-      // Vérifier l'utilisateur connecté
-      final supabaseClient = ref.read(seller_auth.supabaseClientProvider);
-      final currentUser = supabaseClient.auth.currentUser;
-      
-      print('👤 [DEBUG] Utilisateur connecté: ${currentUser?.id}');
-      print('📧 [DEBUG] Email: ${currentUser?.email}');
-      
-      if (currentUser == null) {
-        print('❌ [DEBUG] Aucun utilisateur connecté !');
-        return;
-      }
-      
-      // Vérifier les annonces dans la table
-      print('🔍 [DEBUG] Recherche des annonces pour l\'utilisateur ${currentUser.id}...');
-      
-      final response = await supabaseClient
-          .from('part_advertisements')
-          .select()
-          .eq('user_id', currentUser.id)
-          .order('created_at', ascending: false);
-          
-      print('📊 [DEBUG] Nombre d\'annonces trouvées: ${response.length}');
-      
-      for (var ad in response) {
-        print('   📄 Annonce: ${ad['part_name']} - Status: ${ad['status']} - ID: ${ad['id']}');
-        print('      Prix: ${ad['price']} - Créé: ${ad['created_at']}');
-      }
-      
-      // Vérifier aussi s'il y a des annonces sans filtre user_id
-      final allAds = await supabaseClient
-          .from('part_advertisements')
-          .select('id, part_name, user_id')
-          .limit(5);
-          
-      print('🌍 [DEBUG] Premières 5 annonces dans la table (toutes):');
-      for (var ad in allAds) {
-        print('   📄 ID: ${ad['id']}, Nom: ${ad['part_name']}, User: ${ad['user_id']}');
-      }
-      
-    } catch (e) {
-      print('💥 [DEBUG] Erreur: $e');
-    }
-  }
 
   void _toggleAdStatus(PartAdvertisement ad) async {
     String newStatus;
@@ -327,19 +269,83 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     await ref.read(partAdvertisementControllerProvider.notifier)
         .updateAdvertisement(ad.id, {'status': newStatus});
   }
+
+  void _markAsSold(PartAdvertisement advertisement) async {
+    await ref.read(partAdvertisementControllerProvider.notifier)
+        .updateAdvertisement(advertisement.id, {'status': 'sold'});
+  }
+
+  void _showDeleteConfirmation(PartAdvertisement advertisement) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer l\'annonce'),
+        content: Text('Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteAdvertisement(advertisement);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteAdvertisement(PartAdvertisement advertisement) async {
+    try {
+      final controller = ref.read(partAdvertisementControllerProvider.notifier);
+      final success = await controller.deleteAdvertisement(advertisement.id);
+      
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Annonce supprimée avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Le controller rafraîchit déjà automatiquement la liste
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors de la suppression'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 }
 
 class _AdCard extends StatelessWidget {
   final PartAdvertisement advertisement;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
   final VoidCallback onToggleStatus;
+  final VoidCallback onMarkAsSold;
+  final VoidCallback onDelete;
   
   const _AdCard({
     required this.advertisement,
     required this.onTap,
-    required this.onEdit,
     required this.onToggleStatus,
+    required this.onMarkAsSold,
+    required this.onDelete,
   });
 
   @override
@@ -435,28 +441,14 @@ class _AdCard extends StatelessWidget {
               
               const SizedBox(height: 8),
               
-              // Modèle et prix
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _buildVehicleInfo(advertisement),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${advertisement.price?.toStringAsFixed(0) ?? '0'} €',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: blue,
-                    ),
-                  ),
-                ],
+              // Informations véhicule
+              Text(
+                _buildVehicleInfo(advertisement),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               
               const SizedBox(height: 12),
@@ -464,8 +456,6 @@ class _AdCard extends StatelessWidget {
               // Statistiques et actions
               Row(
                 children: [
-                  _buildStat(Icons.visibility, '0', 'vues'), // TODO: Implémenter les stats
-                  const SizedBox(width: 12),
                   _buildStat(Icons.message, '0', 'messages'), // TODO: Implémenter les stats,
                   const Spacer(),
                   
@@ -483,14 +473,6 @@ class _AdCard extends StatelessWidget {
                       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                       tooltip: advertisement.status == 'active' ? 'Pause' : 'Active',
                     ),
-                    IconButton(
-                      onPressed: onEdit,
-                      icon: Icon(Icons.edit, color: blue, size: 20),
-                      iconSize: 20,
-                      padding: const EdgeInsets.all(4),
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      tooltip: 'Modifier',
-                    ),
                   ],
                   PopupMenuButton(
                     icon: Icon(Icons.more_vert, color: Colors.grey[600], size: 20),
@@ -498,17 +480,6 @@ class _AdCard extends StatelessWidget {
                     padding: const EdgeInsets.all(4),
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'duplicate',
-                        height: 40,
-                        child: Row(
-                          children: [
-                            Icon(Icons.copy, size: 18),
-                            SizedBox(width: 8),
-                            Text('Dupliquer', style: TextStyle(fontSize: 14)),
-                          ],
-                        ),
-                      ),
                       if (advertisement.status != 'sold')
                         const PopupMenuItem(
                           value: 'sold',
@@ -535,7 +506,14 @@ class _AdCard extends StatelessWidget {
                     ],
                     onSelected: (value) {
                       HapticFeedback.lightImpact();
-                      // Gérer les actions du menu
+                      switch (value) {
+                        case 'sold':
+                          onMarkAsSold();
+                          break;
+                        case 'delete':
+                          onDelete();
+                          break;
+                      }
                     },
                   ),
                 ],
@@ -546,6 +524,7 @@ class _AdCard extends StatelessWidget {
       ),
     );
   }
+
 
   String _buildVehicleInfo(PartAdvertisement ad) {
     final parts = <String>[];

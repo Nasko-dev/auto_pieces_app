@@ -137,11 +137,27 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           break;
       }
       
+      // Extraire les informations du véhicule
+      String? vehicleBrand, vehicleModel, vehicleEngine;
+      int? vehicleYear;
+      
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+        vehicleBrand = info.make;
+        vehicleModel = info.model;
+        vehicleYear = info.year;
+        vehicleEngine = info.engineSize ?? info.fuelType;
+      }
+      
       // Créer les paramètres pour l'annonce
       final params = CreatePartAdvertisementParams(
         partType: dbPartType, // Valeur mappée pour la base de données
         partName: _partName,
         vehiclePlate: _vehiclePlate.isNotEmpty ? _vehiclePlate : null,
+        vehicleBrand: vehicleBrand,
+        vehicleModel: vehicleModel,
+        vehicleYear: vehicleYear,
+        vehicleEngine: vehicleEngine,
         description: description,
       );
       

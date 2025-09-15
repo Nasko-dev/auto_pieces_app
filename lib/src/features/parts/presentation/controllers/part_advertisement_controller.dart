@@ -46,8 +46,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
             currentAdvertisement: advertisement,
             error: null,
           );
-          // Rafraîchir la liste des annonces
-          getMyAdvertisements();
+          // Rafraîchir la liste des annonces si le controller est toujours monté
+          if (mounted) getMyAdvertisements();
           return true;
         },
       );
@@ -89,10 +89,16 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
   // Obtenir mes annonces
   Future<void> getMyAdvertisements() async {
     try {
+      // Vérifier si le controller n'a pas été dispose
+      if (!mounted) return;
+      
       state = state.copyWith(isLoading: true, error: null);
 
       final result = await _repository.getMyPartAdvertisements();
 
+      // Vérifier si le controller n'a pas été dispose après l'appel async
+      if (!mounted) return;
+      
       result.fold(
         (failure) => state = state.copyWith(
           isLoading: false,
@@ -105,6 +111,9 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
         ),
       );
     } catch (e) {
+      // Vérifier si le controller n'a pas été dispose
+      if (!mounted) return;
+      
       state = state.copyWith(
         isLoading: false,
         error: 'Erreur inattendue: $e',
@@ -165,8 +174,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
             currentAdvertisement: advertisement,
             error: null,
           );
-          // Rafraîchir la liste des annonces
-          getMyAdvertisements();
+          // Rafraîchir la liste des annonces si le controller est toujours monté
+          if (mounted) getMyAdvertisements();
           return true;
         },
       );
@@ -199,8 +208,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
             isUpdating: false,
             error: null,
           );
-          // Rafraîchir la liste des annonces
-          getMyAdvertisements();
+          // Rafraîchir la liste des annonces si le controller est toujours monté
+          if (mounted) getMyAdvertisements();
           return true;
         },
       );
@@ -233,8 +242,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
             isDeleting: false,
             error: null,
           );
-          // Rafraîchir la liste des annonces
-          getMyAdvertisements();
+          // Rafraîchir la liste des annonces si le controller est toujours monté
+          if (mounted) getMyAdvertisements();
           return true;
         },
       );
