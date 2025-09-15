@@ -260,12 +260,26 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       },
       (conversations) {
         print('✅ [Controller] ${conversations.length} conversations chargées');
+
+        // Synchroniser les compteurs locaux avec les vraies données de la DB au démarrage
+        final newLocalCounts = Map<String, int>.from(state.localUnreadCounts);
+        for (final conversation in conversations) {
+          // Si pas de compteur local pour cette conversation, utiliser le compteur de la DB
+          if (!newLocalCounts.containsKey(conversation.id)) {
+            newLocalCounts[conversation.id] = conversation.unreadCount;
+          }
+        }
+
+        final totalUnread = newLocalCounts.values.fold(0, (sum, count) => sum + count);
+
         state = state.copyWith(
           conversations: conversations, // Base triée en DB par last_message_at DESC
           isLoading: false,
           error: null,
+          localUnreadCounts: newLocalCounts, // Compteurs synchronisés
+          totalUnreadCount: totalUnread,
         );
-        // Plus besoin de calculs - compteurs locaux gérés en temps réel
+        print('📊 [Controller] Compteurs locaux synchronisés: ${newLocalCounts.length} conversations, total: $totalUnread');
         
         // Initialiser le refresh timer après le premier chargement
         initializeRealtime(userId);
