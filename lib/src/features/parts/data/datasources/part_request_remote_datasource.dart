@@ -764,10 +764,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Pour l'instant, on utilise une approche simple : récupérer toutes les demandes actives
-      // et filtrer côté client en attendant d'optimiser la requête SQL
+      // Utiliser part_requests_with_responses pour avoir toutes les données du véhicule
       final result = await _supabase
-          .from('part_requests')
+          .from('part_requests_with_responses')
           .select()
           .eq('status', 'active')
           .order('created_at', ascending: false);
@@ -786,6 +785,19 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       ).toList();
 
       print('📊 [DataSource] ${filteredResult.length}/${result.length} demandes après filtrage refus');
+      
+      // Log des données pour debug
+      if (filteredResult.isNotEmpty) {
+        final firstRequest = filteredResult.first;
+        print('🔍 [DataSource] Exemple de demande:');
+        print('  - ID: ${firstRequest['id']}');
+        print('  - Marque: ${firstRequest['vehicle_brand']}');
+        print('  - Modèle: ${firstRequest['vehicle_model']}');
+        print('  - Année: ${firstRequest['vehicle_year']}');
+        print('  - Moteur: ${firstRequest['vehicle_engine']}');
+        print('  - Type: ${firstRequest['part_type']}');
+        print('  - Pièces: ${firstRequest['part_names']}');
+      }
 
       final models = filteredResult.map((json) {
         return PartRequestModel.fromJson(json);

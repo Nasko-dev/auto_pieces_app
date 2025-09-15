@@ -95,34 +95,3 @@ class PartAdvertisement extends Equatable {
         updatedAt,
       ];
 }
-
-class CreatePartAdvertisementParams extends Equatable {
-  final String partType;
-  final String partName;
-  final String? vehiclePlate;
-  final String? description;
-  final double? price;
-  final String? condition;
-  final List<String> images;
-
-  const CreatePartAdvertisementParams({
-    required this.partType,
-    required this.partName,
-    this.vehiclePlate,
-    this.description,
-    this.price,
-    this.condition,
-    this.images = const [],
-  });
-
-  @override
-  List<Object?> get props => [
-        partType,
-        partName,
-        vehiclePlate,
-        description,
-        price,
-        condition,
-        images,
-      ];
-}
