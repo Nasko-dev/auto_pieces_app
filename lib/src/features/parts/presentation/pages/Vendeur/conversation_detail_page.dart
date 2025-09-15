@@ -251,10 +251,13 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       itemBuilder: (context, index) {
         final message = messages[index];
         
-        return MessageBubbleWidget(
-          message: message,
-          currentUserType: MessageSenderType.seller, // Côté vendeur
-          isLastMessage: index == messages.length - 1,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12), // Plus d'espace entre messages
+          child: MessageBubbleWidget(
+            message: message,
+            currentUserType: MessageSenderType.seller, // Côté vendeur
+            isLastMessage: index == messages.length - 1,
+          ),
         );
       },
     );
