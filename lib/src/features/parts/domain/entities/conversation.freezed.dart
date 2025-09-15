@@ -36,7 +36,13 @@ mixin _$Conversation {
       throw _privateConstructorUsedError;
   DateTime? get lastMessageCreatedAt => throw _privateConstructorUsedError;
   int get unreadCount => throw _privateConstructorUsedError;
-  int get totalMessages => throw _privateConstructorUsedError;
+  int get totalMessages =>
+      throw _privateConstructorUsedError; // Informations du véhicule depuis part_request
+  String? get vehicleBrand => throw _privateConstructorUsedError;
+  String? get vehicleModel => throw _privateConstructorUsedError;
+  int? get vehicleYear => throw _privateConstructorUsedError;
+  String? get vehicleEngine => throw _privateConstructorUsedError;
+  String? get partType => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -66,7 +72,12 @@ abstract class $ConversationCopyWith<$Res> {
       MessageSenderType? lastMessageSenderType,
       DateTime? lastMessageCreatedAt,
       int unreadCount,
-      int totalMessages});
+      int totalMessages,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
+      String? partType});
 }
 
 /// @nodoc
@@ -98,6 +109,11 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
     Object? lastMessageCreatedAt = freezed,
     Object? unreadCount = null,
     Object? totalMessages = null,
+    Object? vehicleBrand = freezed,
+    Object? vehicleModel = freezed,
+    Object? vehicleYear = freezed,
+    Object? vehicleEngine = freezed,
+    Object? partType = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -164,6 +180,26 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
           ? _value.totalMessages
           : totalMessages // ignore: cast_nullable_to_non_nullable
               as int,
+      vehicleBrand: freezed == vehicleBrand
+          ? _value.vehicleBrand
+          : vehicleBrand // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleModel: freezed == vehicleModel
+          ? _value.vehicleModel
+          : vehicleModel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleYear: freezed == vehicleYear
+          ? _value.vehicleYear
+          : vehicleYear // ignore: cast_nullable_to_non_nullable
+              as int?,
+      vehicleEngine: freezed == vehicleEngine
+          ? _value.vehicleEngine
+          : vehicleEngine // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partType: freezed == partType
+          ? _value.partType
+          : partType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -192,7 +228,12 @@ abstract class _$$ConversationImplCopyWith<$Res>
       MessageSenderType? lastMessageSenderType,
       DateTime? lastMessageCreatedAt,
       int unreadCount,
-      int totalMessages});
+      int totalMessages,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
+      String? partType});
 }
 
 /// @nodoc
@@ -222,6 +263,11 @@ class __$$ConversationImplCopyWithImpl<$Res>
     Object? lastMessageCreatedAt = freezed,
     Object? unreadCount = null,
     Object? totalMessages = null,
+    Object? vehicleBrand = freezed,
+    Object? vehicleModel = freezed,
+    Object? vehicleYear = freezed,
+    Object? vehicleEngine = freezed,
+    Object? partType = freezed,
   }) {
     return _then(_$ConversationImpl(
       id: null == id
@@ -288,6 +334,26 @@ class __$$ConversationImplCopyWithImpl<$Res>
           ? _value.totalMessages
           : totalMessages // ignore: cast_nullable_to_non_nullable
               as int,
+      vehicleBrand: freezed == vehicleBrand
+          ? _value.vehicleBrand
+          : vehicleBrand // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleModel: freezed == vehicleModel
+          ? _value.vehicleModel
+          : vehicleModel // ignore: cast_nullable_to_non_nullable
+              as String?,
+      vehicleYear: freezed == vehicleYear
+          ? _value.vehicleYear
+          : vehicleYear // ignore: cast_nullable_to_non_nullable
+              as int?,
+      vehicleEngine: freezed == vehicleEngine
+          ? _value.vehicleEngine
+          : vehicleEngine // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partType: freezed == partType
+          ? _value.partType
+          : partType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -311,7 +377,12 @@ class _$ConversationImpl implements _Conversation {
       this.lastMessageSenderType,
       this.lastMessageCreatedAt,
       this.unreadCount = 0,
-      this.totalMessages = 0});
+      this.totalMessages = 0,
+      this.vehicleBrand,
+      this.vehicleModel,
+      this.vehicleYear,
+      this.vehicleEngine,
+      this.partType});
 
   factory _$ConversationImpl.fromJson(Map<String, dynamic> json) =>
       _$$ConversationImplFromJson(json);
@@ -351,10 +422,21 @@ class _$ConversationImpl implements _Conversation {
   @override
   @JsonKey()
   final int totalMessages;
+// Informations du véhicule depuis part_request
+  @override
+  final String? vehicleBrand;
+  @override
+  final String? vehicleModel;
+  @override
+  final int? vehicleYear;
+  @override
+  final String? vehicleEngine;
+  @override
+  final String? partType;
 
   @override
   String toString() {
-    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages)';
+    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType)';
   }
 
   @override
@@ -390,29 +472,45 @@ class _$ConversationImpl implements _Conversation {
             (identical(other.unreadCount, unreadCount) ||
                 other.unreadCount == unreadCount) &&
             (identical(other.totalMessages, totalMessages) ||
-                other.totalMessages == totalMessages));
+                other.totalMessages == totalMessages) &&
+            (identical(other.vehicleBrand, vehicleBrand) ||
+                other.vehicleBrand == vehicleBrand) &&
+            (identical(other.vehicleModel, vehicleModel) ||
+                other.vehicleModel == vehicleModel) &&
+            (identical(other.vehicleYear, vehicleYear) ||
+                other.vehicleYear == vehicleYear) &&
+            (identical(other.vehicleEngine, vehicleEngine) ||
+                other.vehicleEngine == vehicleEngine) &&
+            (identical(other.partType, partType) ||
+                other.partType == partType));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      requestId,
-      userId,
-      sellerId,
-      status,
-      lastMessageAt,
-      createdAt,
-      updatedAt,
-      sellerName,
-      sellerCompany,
-      requestTitle,
-      lastMessageContent,
-      lastMessageSenderType,
-      lastMessageCreatedAt,
-      unreadCount,
-      totalMessages);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        requestId,
+        userId,
+        sellerId,
+        status,
+        lastMessageAt,
+        createdAt,
+        updatedAt,
+        sellerName,
+        sellerCompany,
+        requestTitle,
+        lastMessageContent,
+        lastMessageSenderType,
+        lastMessageCreatedAt,
+        unreadCount,
+        totalMessages,
+        vehicleBrand,
+        vehicleModel,
+        vehicleYear,
+        vehicleEngine,
+        partType
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -445,7 +543,12 @@ abstract class _Conversation implements Conversation {
       final MessageSenderType? lastMessageSenderType,
       final DateTime? lastMessageCreatedAt,
       final int unreadCount,
-      final int totalMessages}) = _$ConversationImpl;
+      final int totalMessages,
+      final String? vehicleBrand,
+      final String? vehicleModel,
+      final int? vehicleYear,
+      final String? vehicleEngine,
+      final String? partType}) = _$ConversationImpl;
 
   factory _Conversation.fromJson(Map<String, dynamic> json) =
       _$ConversationImpl.fromJson;
@@ -482,6 +585,16 @@ abstract class _Conversation implements Conversation {
   int get unreadCount;
   @override
   int get totalMessages;
+  @override // Informations du véhicule depuis part_request
+  String? get vehicleBrand;
+  @override
+  String? get vehicleModel;
+  @override
+  int? get vehicleYear;
+  @override
+  String? get vehicleEngine;
+  @override
+  String? get partType;
   @override
   @JsonKey(ignore: true)
   _$$ConversationImplCopyWith<_$ConversationImpl> get copyWith =>

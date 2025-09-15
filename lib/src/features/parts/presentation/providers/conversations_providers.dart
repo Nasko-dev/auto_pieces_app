@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/conversations_controller.dart';
 import '../../domain/entities/message.dart';
 import '../../domain/entities/conversation.dart';
+import '../../domain/entities/conversation_group.dart';
+import '../../domain/services/conversation_grouping_service.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';
 import '../../data/repositories/conversations_repository_impl.dart';
 import '../../domain/usecases/get_conversations.dart';
@@ -123,4 +125,15 @@ final isSendingMessageProvider = Provider((ref) {
 final conversationsErrorProvider = Provider((ref) {
   final state = ref.watch(conversationsControllerProvider);
   return state.error;
+});
+
+// Provider pour les groupes de conversations avec compteurs locaux
+final conversationGroupsProvider = Provider<List<ConversationGroup>>((ref) {
+  final state = ref.watch(conversationsControllerProvider);
+
+  // Regrouper les conversations en utilisant les compteurs locaux
+  return ConversationGroupingService.groupConversations(
+    state.conversations,
+    localUnreadCounts: state.localUnreadCounts,
+  );
 });

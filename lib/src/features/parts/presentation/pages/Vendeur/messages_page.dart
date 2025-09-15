@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers/conversations_providers.dart';
-import '../../widgets/conversation_item_widget.dart';
+import '../../widgets/conversation_group_card.dart';
+import '../../../domain/services/conversation_grouping_service.dart';
+import '../../../domain/entities/conversation.dart';
+import '../../../domain/entities/conversation_group.dart';
 
 class SellerMessagesPage extends ConsumerStatefulWidget {
   const SellerMessagesPage({super.key});
@@ -32,20 +35,20 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Utiliser les vraies données Supabase
-    final conversations = ref.watch(conversationsListProvider);
+    // Utiliser les groupes de conversations au lieu des conversations individuelles
+    final conversationGroups = ref.watch(conversationGroupsProvider);
     final isLoading = ref.watch(isLoadingProvider);
     final error = ref.watch(conversationsErrorProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
       appBar: _buildAppBar(),
-      body: _buildBody(conversations, isLoading, error),
+      body: _buildBody(conversationGroups, isLoading, error),
     );
   }
 
-  Widget _buildBody(List conversations, bool isLoading, String? error) {
-    if (isLoading && conversations.isEmpty) {
+  Widget _buildBody(List<ConversationGroup> conversationGroups, bool isLoading, String? error) {
+    if (isLoading && conversationGroups.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E66F5)),
@@ -53,7 +56,7 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       );
     }
 
-    if (error != null && conversations.isEmpty) {
+    if (error != null && conversationGroups.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -66,11 +69,13 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       );
     }
 
-    if (conversations.isEmpty) {
+    if (conversationGroups.isEmpty) {
       return const Center(
         child: Text('Aucune conversation'),
       );
     }
+
+    print('🏦 [Vendeur] ${conversationGroups.length} groupes de conversations');
 
     // Utiliser RefreshIndicator pour permettre l'actualisation manuelle
     return RefreshIndicator(
@@ -79,16 +84,15 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       },
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        itemCount: conversations.length,
+        itemCount: conversationGroups.length,
         itemBuilder: (context, index) {
-          final conversation = conversations[index];
-          print('🏦 [Vendeur] Affichage conversation: ${conversation.id} - UnreadCount: ${conversation.unreadCount}');
-          
-          return ConversationItemWidget(
-            conversation: conversation,
-            onTap: () => context.push('/seller/conversation/${conversation.id}'),
-            onDelete: () => _showDeleteDialog(conversation.id),
-            onBlock: () => _showBlockDialog(conversation.id),
+          final group = conversationGroups[index];
+
+          return ConversationGroupCard(
+            group: group,
+            onConversationTap: (conversationId) {
+              context.push('/seller/conversation/$conversationId');
+            },
           );
         },
       ),

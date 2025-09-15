@@ -108,7 +108,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_content,
           last_message_sender_type,
           last_message_created_at,
-          total_messages
+          total_messages,
+          part_requests (
+            vehicle_brand,
+            vehicle_model,
+            vehicle_year,
+            vehicle_engine,
+            part_type
+          )
         ''')
         .eq('seller_id', sellerId)
         .eq('status', 'active')
@@ -540,6 +547,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   // Helper methods pour la conversion
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
+    // Extraire les données du véhicule depuis part_requests
+    String? vehicleBrand;
+    String? vehicleModel;
+    int? vehicleYear;
+    String? vehicleEngine;
+    String? partType;
+
+    if (json['part_requests'] != null) {
+      final partRequest = json['part_requests'] as Map<String, dynamic>;
+      vehicleBrand = partRequest['vehicle_brand'];
+      vehicleModel = partRequest['vehicle_model'];
+      vehicleYear = partRequest['vehicle_year'];
+      vehicleEngine = partRequest['vehicle_engine'];
+      partType = partRequest['part_type'];
+    }
+
     return {
       'id': json['id'],
       'requestId': json['request_id'],
@@ -557,6 +580,12 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'lastMessageCreatedAt': json['last_message_created_at'],
       'unreadCount': json['unread_count'] ?? 0,
       'totalMessages': json['total_messages'] ?? 0,
+      // Nouvelles données du véhicule
+      'vehicleBrand': vehicleBrand,
+      'vehicleModel': vehicleModel,
+      'vehicleYear': vehicleYear,
+      'vehicleEngine': vehicleEngine,
+      'partType': partType,
     };
   }
 

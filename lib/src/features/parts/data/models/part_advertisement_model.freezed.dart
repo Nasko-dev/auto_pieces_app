@@ -47,12 +47,8 @@ mixin _$PartAdvertisementModel {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
-  /// Serializes this PartAdvertisementModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PartAdvertisementModelCopyWith<PartAdvertisementModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -102,8 +98,6 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -285,8 +279,6 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
       $Res Function(_$PartAdvertisementModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -573,7 +565,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
                 other.expiresAt == expiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -604,9 +596,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
         expiresAt
       ]);
 
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PartAdvertisementModelImplCopyWith<_$PartAdvertisementModelImpl>
@@ -703,11 +693,8 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   DateTime get updatedAt;
   @override
   DateTime? get expiresAt;
-
-  /// Create a copy of PartAdvertisementModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PartAdvertisementModelImplCopyWith<_$PartAdvertisementModelImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -730,12 +717,8 @@ mixin _$CreatePartAdvertisementParams {
   String? get contactPhone => throw _privateConstructorUsedError;
   String? get contactEmail => throw _privateConstructorUsedError;
 
-  /// Serializes this CreatePartAdvertisementParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CreatePartAdvertisementParamsCopyWith<CreatePartAdvertisementParams>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -771,8 +754,6 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -858,8 +839,6 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
       $Res Function(_$CreatePartAdvertisementParamsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -989,7 +968,7 @@ class _$CreatePartAdvertisementParamsImpl
                 other.contactEmail == contactEmail));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1003,9 +982,7 @@ class _$CreatePartAdvertisementParamsImpl
       contactPhone,
       contactEmail);
 
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CreatePartAdvertisementParamsImplCopyWith<
@@ -1038,8 +1015,8 @@ abstract class _CreatePartAdvertisementParams
       _$CreatePartAdvertisementParamsImpl.fromJson;
 
   @override
-  String get partType; // 'engine' ou 'body' depuis le front
-  @override
+  String get partType;
+  @override // 'engine' ou 'body' depuis le front
   String get partName;
   @override
   String? get vehiclePlate;
@@ -1055,11 +1032,8 @@ abstract class _CreatePartAdvertisementParams
   String? get contactPhone;
   @override
   String? get contactEmail;
-
-  /// Create a copy of CreatePartAdvertisementParams
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CreatePartAdvertisementParamsImplCopyWith<
           _$CreatePartAdvertisementParamsImpl>
       get copyWith => throw _privateConstructorUsedError;
@@ -1080,12 +1054,8 @@ mixin _$SearchPartAdvertisementsParams {
   int get limit => throw _privateConstructorUsedError;
   int get offset => throw _privateConstructorUsedError;
 
-  /// Serializes this SearchPartAdvertisementsParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SearchPartAdvertisementsParamsCopyWith<SearchPartAdvertisementsParams>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -1119,8 +1089,6 @@ class _$SearchPartAdvertisementsParamsCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1194,8 +1162,6 @@ class __$$SearchPartAdvertisementsParamsImplCopyWithImpl<$Res>
       $Res Function(_$SearchPartAdvertisementsParamsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1296,14 +1262,12 @@ class _$SearchPartAdvertisementsParamsImpl
             (identical(other.offset, offset) || other.offset == offset));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, query, partType, city, minPrice, maxPrice, limit, offset);
 
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SearchPartAdvertisementsParamsImplCopyWith<
@@ -1347,11 +1311,8 @@ abstract class _SearchPartAdvertisementsParams
   int get limit;
   @override
   int get offset;
-
-  /// Create a copy of SearchPartAdvertisementsParams
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SearchPartAdvertisementsParamsImplCopyWith<
           _$SearchPartAdvertisementsParamsImpl>
       get copyWith => throw _privateConstructorUsedError;
