@@ -41,7 +41,7 @@ class MessageBubbleWidget extends StatelessWidget {
                     ? Theme.of(context).primaryColor
                     : isOffer
                         ? Colors.green[50]
-                        : Colors.grey[100],
+                        : const Color(0xFFE6F3FF), // Bleu clair légèrement assombri
                 borderRadius: BorderRadius.circular(16).copyWith(
                   bottomRight: isFromCurrentUser ? const Radius.circular(4) : null,
                   bottomLeft: !isFromCurrentUser ? const Radius.circular(4) : null,

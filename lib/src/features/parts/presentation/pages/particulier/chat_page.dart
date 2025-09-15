@@ -329,7 +329,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               currentUserType: MessageSenderType.user, // Côté particulier
               isLastMessage: isLastMessage,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12), // Plus d'espace entre messages
           ],
         );
       },

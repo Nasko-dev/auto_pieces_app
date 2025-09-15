@@ -23,6 +23,12 @@ class Conversation with _$Conversation {
     DateTime? lastMessageCreatedAt,
     @Default(0) int unreadCount,
     @Default(0) int totalMessages,
+    // Informations du véhicule depuis part_request
+    String? vehicleBrand,
+    String? vehicleModel,
+    int? vehicleYear,
+    String? vehicleEngine,
+    String? partType,
   }) = _Conversation;
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>

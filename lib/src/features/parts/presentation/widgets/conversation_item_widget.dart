@@ -8,7 +8,8 @@ import 'package:cente_pice/src/core/providers/particulier_conversations_provider
 import '../providers/conversations_providers.dart';
 
 class ConversationItemWidget extends ConsumerWidget {
-  final dynamic conversation; // Accept both Conversation and ParticulierConversation
+  final dynamic
+  conversation; // Accept both Conversation and ParticulierConversation
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onBlock;
@@ -29,18 +30,32 @@ class ConversationItemWidget extends ConsumerWidget {
 
     if (isParticulier) {
       // Pour les particuliers, utiliser les compteurs locaux du provider
-      final localCount = ref.watch(particulierConversationsControllerProvider
-          .select((state) => state.localUnreadCounts[(conversation as ParticulierConversation).id] ?? 0));
+      final localCount = ref.watch(
+        particulierConversationsControllerProvider.select(
+          (state) =>
+              state.localUnreadCounts[(conversation as ParticulierConversation)
+                  .id] ??
+              0,
+        ),
+      );
       unreadCount = localCount;
     } else {
       // Pour les vendeurs, utiliser aussi les compteurs locaux
-      final localCount = ref.watch(conversationsControllerProvider
-          .select((state) => state.localUnreadCounts[(conversation as Conversation).id] ?? 0));
+      final localCount = ref.watch(
+        conversationsControllerProvider.select(
+          (state) =>
+              state.localUnreadCounts[(conversation as Conversation).id] ?? 0,
+        ),
+      );
       unreadCount = localCount;
     }
 
     final hasUnread = unreadCount > 0;
-    final sellerName = _getSellerName() ?? 'Garage Auto Plus';
+    final sellerName =
+        isParticulier
+            ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
+            : (_getMotorName() ??
+                'Particulier'); // Côté vendeur : afficher le nom personnalisé
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -50,14 +65,16 @@ class ConversationItemWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: hasUnread
-          ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
-          : Border.all(color: Colors.grey.shade200),
+        border:
+            hasUnread
+                ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
+                : Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: hasUnread
-              ? const Color(0xFF007AFF).withOpacity(0.1)
-              : Colors.black.withOpacity(0.04),
+            color:
+                hasUnread
+                    ? const Color(0xFF007AFF).withOpacity(0.1)
+                    : Colors.black.withOpacity(0.04),
             blurRadius: hasUnread ? 8 : 4,
             offset: const Offset(0, 2),
           ),
@@ -90,8 +107,14 @@ class ConversationItemWidget extends ConsumerWidget {
                               sellerName,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
-                                color: hasUnread ? const Color(0xFF007AFF) : Colors.black87,
+                                fontWeight:
+                                    hasUnread
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                color:
+                                    hasUnread
+                                        ? const Color(0xFF007AFF)
+                                        : Colors.black87,
                               ),
                             ),
                           ),
@@ -128,13 +151,16 @@ class ConversationItemWidget extends ConsumerWidget {
                           children: [
                             // Icône de direction du message
                             Icon(
-                              _getLastMessageSenderType() == MessageSenderType.user
+                              _getLastMessageSenderType() ==
+                                      MessageSenderType.user
                                   ? Icons.reply
                                   : Icons.chat_bubble_outline,
                               size: 14,
-                              color: _getLastMessageSenderType() == MessageSenderType.user
-                                  ? const Color(0xFF007AFF)
-                                  : const Color(0xFF5AC8FA),
+                              color:
+                                  _getLastMessageSenderType() ==
+                                          MessageSenderType.user
+                                      ? const Color(0xFF007AFF)
+                                      : const Color(0xFF5AC8FA),
                             ),
                             const SizedBox(width: 6),
 
@@ -144,8 +170,14 @@ class ConversationItemWidget extends ConsumerWidget {
                                 lastMessage,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: hasUnread ? Colors.black87 : Colors.grey[600],
-                                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                                  color:
+                                      hasUnread
+                                          ? Colors.black87
+                                          : Colors.grey[600],
+                                  fontWeight:
+                                      hasUnread
+                                          ? FontWeight.w500
+                                          : FontWeight.normal,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -159,8 +191,14 @@ class ConversationItemWidget extends ConsumerWidget {
                                 _formatTimestamp(timestamp),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
-                                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                                  color:
+                                      hasUnread
+                                          ? const Color(0xFF007AFF)
+                                          : Colors.grey[500],
+                                  fontWeight:
+                                      hasUnread
+                                          ? FontWeight.w500
+                                          : FontWeight.normal,
                                 ),
                               ),
                             ],
@@ -185,9 +223,13 @@ class ConversationItemWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
         shape: BoxShape.circle,
-        border: hasUnread
-          ? Border.all(color: const Color(0xFF007AFF).withOpacity(0.3), width: 2)
-          : null,
+        border:
+            hasUnread
+                ? Border.all(
+                  color: const Color(0xFF007AFF).withOpacity(0.3),
+                  width: 2,
+                )
+                : null,
       ),
       child: Center(
         child: Text(
@@ -222,11 +264,7 @@ class ConversationItemWidget extends ConsumerWidget {
 
   Widget _buildActionMenu(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_horiz,
-        color: Colors.grey[600],
-        size: 20,
-      ),
+      icon: Icon(Icons.more_horiz, color: Colors.grey[600], size: 20),
       onSelected: (value) {
         switch (value) {
           case 'delete':
@@ -237,40 +275,44 @@ class ConversationItemWidget extends ConsumerWidget {
             break;
         }
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete_outline, color: Colors.red, size: 18),
-              SizedBox(width: 12),
-              Text('Supprimer', style: TextStyle(fontSize: 14)),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'block',
-          child: Row(
-            children: [
-              Icon(Icons.block, color: Colors.orange, size: 18),
-              SizedBox(width: 12),
-              Text('Bloquer', style: TextStyle(fontSize: 14)),
-            ],
-          ),
-        ),
-      ],
+      itemBuilder:
+          (context) => [
+            const PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                  SizedBox(width: 12),
+                  Text('Supprimer', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'block',
+              child: Row(
+                children: [
+                  Icon(Icons.block, color: Colors.orange, size: 18),
+                  SizedBox(width: 12),
+                  Text('Bloquer', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+          ],
     );
   }
 
   String _getInitials(String name) {
-    final words = name.trim().split(' ').where((word) => word.isNotEmpty).toList();
+    final words =
+        name.trim().split(' ').where((word) => word.isNotEmpty).toList();
     if (words.isEmpty) return '?';
     if (words.length == 1) {
       return words[0].isEmpty ? '?' : words[0][0].toUpperCase();
     }
     return words.length >= 2 && words[0].isNotEmpty && words[1].isNotEmpty
         ? '${words[0][0]}${words[1][0]}'.toUpperCase()
-        : words[0].isEmpty ? '?' : words[0][0].toUpperCase();
+        : words[0].isEmpty
+        ? '?'
+        : words[0][0].toUpperCase();
   }
 
   String _formatTimestamp(DateTime timestamp) {
@@ -351,6 +393,48 @@ class ConversationItemWidget extends ConsumerWidget {
       }
       return particConv.lastMessageAt;
     }
+    return null;
+  }
+
+  String? _getMotorName() {
+    if (conversation is Conversation) {
+      final conv = conversation as Conversation;
+
+      // Construire le nom du véhicule selon le type de pièce
+      if (conv.partType == 'engine') {
+        // Pour les pièces moteur : afficher seulement la motorisation
+        if (conv.vehicleEngine != null && conv.vehicleEngine!.isNotEmpty) {
+          return conv.vehicleEngine!;
+        }
+      } else if (conv.partType == 'body') {
+        // Pour les pièces carrosserie : afficher marque + modèle + année
+        final parts = <String>[];
+        if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
+        if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
+        if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
+
+        if (parts.isNotEmpty) {
+          return parts.join(' ');
+        }
+      }
+
+      // Fallback : essayer toutes les infos disponibles
+      final parts = <String>[];
+      if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
+      if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
+      if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
+
+      if (parts.isEmpty && conv.vehicleEngine != null) {
+        return conv.vehicleEngine!;
+      }
+
+      if (parts.isNotEmpty) {
+        return parts.join(' ');
+      }
+
+      return 'Véhicule';
+    }
+
     return null;
   }
 }
