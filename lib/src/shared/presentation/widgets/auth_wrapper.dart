@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
+import '../../../core/providers/session_providers.dart' as session;
 
 class AuthWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -16,8 +17,21 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    // Ne plus appeler checkAuthStatus automatiquement pour éviter la boucle infinie
-    // L'authentification se fera via la page Welcome de manière manuelle
+    // Vérifier si l'utilisateur est déjà connecté via Supabase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkCurrentAuth();
+    });
+  }
+  
+  Future<void> _checkCurrentAuth() async {
+    // Si un utilisateur est déjà connecté via Supabase, mettre à jour l'état
+    final supabase = ref.read(session.supabaseClientProvider);
+    final currentUser = supabase.auth.currentUser;
+    
+    if (currentUser != null && mounted) {
+      // L'utilisateur est déjà connecté, déclencher la connexion anonyme pour mettre à jour l'état
+      ref.read(particulierAuthControllerProvider.notifier).signInAnonymously();
+    }
   }
 
   @override
