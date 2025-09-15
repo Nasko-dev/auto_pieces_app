@@ -50,6 +50,8 @@ void main() async {
     
     if (hasReconnected) {
       print('🎉 [Main] Auto-reconnexion réussie !');
+      // Forcer la mise à jour du cache pour avoir le bon type d'utilisateur
+      await sessionService.updateCachedSession();
       final userType = sessionService.getCachedUserType();
       final userEmail = sessionService.getCachedUserEmail();
       print('👤 [Main] Type: $userType | Email: $userEmail');

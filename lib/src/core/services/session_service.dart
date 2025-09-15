@@ -107,21 +107,46 @@ class SessionService {
       await _prefs.setString(_keyUserEmail, user.email ?? '');
       await _prefs.setString(_keyLastSessionTime, DateTime.now().toIso8601String());
       
-      // Déterminer le type d'utilisateur basé sur les métadonnées
-      final metadata = user.userMetadata;
+      // Déterminer le type d'utilisateur en vérifiant dans la table sellers
       String userType = 'particulier'; // Par défaut
       
-      if (metadata != null) {
-        // Vérifier si c'est un vendeur
-        if (metadata['role'] == 'vendeur' || metadata['is_seller'] == true) {
+      try {
+        print('🔍 [SessionService] Vérification vendeur pour user ID: ${user.id}');
+        print('🔍 [SessionService] Métadonnées utilisateur: ${user.userMetadata}');
+        
+        // Vérifier directement dans la table sellers si l'utilisateur est un vendeur
+        final response = await _supabase
+            .from('sellers')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+        
+        print('🔍 [SessionService] Réponse de la table sellers: $response');
+        
+        if (response != null) {
           userType = 'vendeur';
-          await _prefs.setString(_keyUserRole, 'vendeur');
+          print('🏪 [SessionService] Vendeur trouvé avec ID: ${response['id']}');
         } else {
-          await _prefs.setString(_keyUserRole, 'particulier');
+          print('❌ [SessionService] Utilisateur non trouvé dans table sellers');
+          // Vérifier aussi les métadonnées au cas où
+          final metadata = user.userMetadata;
+          print('🔍 [SessionService] Vérification métadonnées: $metadata');
+          if (metadata != null && (metadata['role'] == 'vendeur' || metadata['is_seller'] == true)) {
+            userType = 'vendeur';
+            print('✅ [SessionService] Vendeur détecté via métadonnées');
+          }
+        }
+      } catch (e) {
+        print('⚠️ [SessionService] Erreur vérification vendeur: $e');
+        // En cas d'erreur, se baser sur les métadonnées
+        final metadata = user.userMetadata;
+        if (metadata != null && (metadata['role'] == 'vendeur' || metadata['is_seller'] == true)) {
+          userType = 'vendeur';
         }
       }
       
       await _prefs.setString(_keyUserType, userType);
+      await _prefs.setString(_keyUserRole, userType);
       
       print('💾 [SessionService] Session mise en cache - Type: $userType');
     } catch (e) {

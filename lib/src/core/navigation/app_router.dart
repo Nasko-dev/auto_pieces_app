@@ -38,7 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (hasSupabaseSession && cachedUserType != null) {
         if (cachedUserType == 'vendeur') {
           print('📍 [Router] Redirection vers page vendeur');
-          return '/seller';
+          return '/seller/home';
         } else {
           print('📍 [Router] Redirection vers page particulier');
           return '/home';
