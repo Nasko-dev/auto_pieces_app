@@ -37,8 +37,14 @@ class ConversationItemWidget extends ConsumerWidget {
     final sellerName =
         isParticulier
             ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
-            : (_getParticulierDisplayName() ??
-                'Particulier'); // Côté vendeur : afficher le nom du particulier
+            : (() {
+                // DEBUG: Log direct dans build
+                if (!isParticulier && conversation is Conversation) {
+                  final conv = conversation as Conversation;
+                  print('🚨 [Widget-Build] Conv ${conv.id}: particulierFirstName = "${conv.particulierFirstName}"');
+                }
+                return _getParticulierDisplayName() ?? 'Particulier';
+              })(); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
