@@ -126,10 +126,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             vehicle_model,
             vehicle_year,
             vehicle_engine,
-            part_type,
-            particuliers (
-              first_name
-            )
+            part_type
           )
         ''')
         .eq('seller_id', sellerId)
@@ -138,11 +135,37 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    return response.map((json) {
+    final conversations = <Conversation>[];
+
+    for (final json in response) {
       final unreadForSeller = json['unread_count_for_seller'] ?? 0;
       print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count_for_seller: $unreadForSeller)');
-      return Conversation.fromJson(_mapSupabaseToConversationForSeller(json));
-    }).toList();
+
+      // Récupérer le prénom du particulier avec une requête séparée
+      String? particulierFirstName;
+      try {
+        final userId = json['user_id'] as String;
+        final particulierResponse = await _supabaseClient
+            .from('particuliers')
+            .select('first_name')
+            .eq('id', userId)
+            .limit(1);
+
+        if (particulierResponse.isNotEmpty) {
+          particulierFirstName = particulierResponse.first['first_name'];
+          print('👤 [Datasource] Prénom récupéré pour $userId: $particulierFirstName');
+        }
+      } catch (e) {
+        print('⚠️ [Datasource] Erreur récupération prénom: $e');
+      }
+
+      // Ajouter le prénom au JSON avant le mapping
+      json['particulier_first_name'] = particulierFirstName;
+
+      conversations.add(Conversation.fromJson(_mapSupabaseToConversationForSeller(json)));
+    }
+
+    return conversations;
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -635,15 +658,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       partType = partRequest['part_type'];
     }
 
-    // Extraire le prénom du particulier depuis part_requests.particuliers
-    String? particulierFirstName;
-    if (json['part_requests'] != null) {
-      final partRequest = json['part_requests'] as Map<String, dynamic>;
-      if (partRequest['particuliers'] != null) {
-        final particulier = partRequest['particuliers'] as Map<String, dynamic>;
-        particulierFirstName = particulier['first_name'];
-      }
-    }
+    // Extraire le prénom du particulier ajouté par la requête séparée
+    String? particulierFirstName = json['particulier_first_name'];
 
     return {
       'id': json['id'],
