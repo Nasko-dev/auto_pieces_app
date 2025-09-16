@@ -17,6 +17,7 @@ class Conversation with _$Conversation {
     required DateTime updatedAt,
     String? sellerName,
     String? sellerCompany,
+    String? sellerAvatarUrl,
     String? requestTitle,
     String? lastMessageContent,
     MessageSenderType? lastMessageSenderType,

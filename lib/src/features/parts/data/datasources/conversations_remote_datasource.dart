@@ -109,6 +109,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_sender_type,
           last_message_created_at,
           total_messages,
+          sellers!inner(avatar_url),
           part_requests (
             vehicle_brand,
             vehicle_model,
@@ -227,7 +228,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 last_message_sender_type,
                 last_message_created_at,
                 unread_count,
-                total_messages
+                total_messages,
+                sellers!inner(avatar_url)
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
@@ -267,7 +269,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             last_message_sender_type,
             last_message_created_at,
             unread_count,
-            total_messages
+            total_messages,
+            sellers!inner(avatar_url)
           ''')
           .eq('user_id', userId)
           .order('last_message_at', ascending: false);
@@ -563,6 +566,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       partType = partRequest['part_type'];
     }
 
+    // Extraire l'avatar du vendeur depuis sellers
+    String? sellerAvatarUrl;
+    if (json['sellers'] != null) {
+      final sellers = json['sellers'];
+      if (sellers is Map<String, dynamic>) {
+        sellerAvatarUrl = sellers['avatar_url'];
+      } else if (sellers is List && sellers.isNotEmpty) {
+        sellerAvatarUrl = sellers.first['avatar_url'];
+      }
+    }
+
     return {
       'id': json['id'],
       'requestId': json['request_id'],
@@ -574,6 +588,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'updatedAt': json['updated_at'],
       'sellerName': json['seller_name'],
       'sellerCompany': json['seller_company'],
+      'sellerAvatarUrl': sellerAvatarUrl,
       'requestTitle': json['request_title'],
       'lastMessageContent': json['last_message_content'],
       'lastMessageSenderType': json['last_message_sender_type'] ?? 'user', // Garder la string directement

@@ -170,22 +170,8 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           child: Row(
             children: [
-              // Avatar du particulier
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: hasUnread
-                      ? const Color(0xFF007AFF)
-                      : const Color(0xFF9CA3AF),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
+              // Avatar du vendeur ou particulier
+              _buildUserAvatar(conversation, hasUnread),
 
               const SizedBox(width: 12),
 
@@ -198,7 +184,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Particulier',
+                            _getUserDisplayName(conversation),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
@@ -353,5 +339,79 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     }
 
     return 'Maintenant';
+  }
+
+  Widget _buildUserAvatar(Conversation conversation, bool hasUnread) {
+    // Déterminer si c'est un vendeur ou un particulier
+    final isFromSeller = conversation.sellerName != null;
+
+    if (isFromSeller && conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
+      // Afficher la photo de profil du vendeur
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: hasUnread
+              ? Border.all(color: const Color(0xFF007AFF), width: 2)
+              : null,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.sellerAvatarUrl!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback si l'image ne charge pas
+              return _buildDefaultAvatar(isFromSeller, hasUnread);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultAvatar(isFromSeller, hasUnread);
+            },
+          ),
+        ),
+      );
+    } else {
+      // Avatar par défaut
+      return _buildDefaultAvatar(isFromSeller, hasUnread);
+    }
+  }
+
+  Widget _buildDefaultAvatar(bool isFromSeller, bool hasUnread) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: hasUnread
+            ? const Color(0xFF007AFF)
+            : (isFromSeller ? const Color(0xFF34C759) : const Color(0xFF9CA3AF)),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        isFromSeller ? Icons.business : Icons.person,
+        color: Colors.white,
+        size: 18,
+      ),
+    );
+  }
+
+  String _getUserDisplayName(Conversation conversation) {
+    // Déterminer qui est affiché selon le contexte
+    final isFromSeller = conversation.sellerName != null;
+
+    if (isFromSeller) {
+      // Pour un vendeur, afficher le nom de l'entreprise en priorité, sinon le nom du vendeur
+      if (conversation.sellerCompany != null && conversation.sellerCompany!.isNotEmpty) {
+        return conversation.sellerCompany!;
+      } else if (conversation.sellerName != null && conversation.sellerName!.isNotEmpty) {
+        return conversation.sellerName!;
+      } else {
+        return 'Vendeur Professionnel';
+      }
+    } else {
+      return 'Particulier';
+    }
   }
 }

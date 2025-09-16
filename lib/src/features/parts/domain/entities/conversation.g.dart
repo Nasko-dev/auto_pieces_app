@@ -20,6 +20,7 @@ _$ConversationImpl _$$ConversationImplFromJson(Map<String, dynamic> json) =>
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       sellerName: json['sellerName'] as String?,
       sellerCompany: json['sellerCompany'] as String?,
+      sellerAvatarUrl: json['sellerAvatarUrl'] as String?,
       requestTitle: json['requestTitle'] as String?,
       lastMessageContent: json['lastMessageContent'] as String?,
       lastMessageSenderType: $enumDecodeNullable(
@@ -48,6 +49,7 @@ Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
       'updatedAt': instance.updatedAt.toIso8601String(),
       'sellerName': instance.sellerName,
       'sellerCompany': instance.sellerCompany,
+      'sellerAvatarUrl': instance.sellerAvatarUrl,
       'requestTitle': instance.requestTitle,
       'lastMessageContent': instance.lastMessageContent,
       'lastMessageSenderType':
