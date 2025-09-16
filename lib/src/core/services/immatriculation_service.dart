@@ -82,7 +82,7 @@ class ImmatriculationService {
       }
       
       return Right(vehicleInfo);
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Left(
         ParsingFailure('Erreur lors du parsing: ${e.toString()}'),
       );
@@ -93,9 +93,6 @@ class ImmatriculationService {
     final vehicleInfo = vehicleData['vehicleInformation'] as Map<String, dynamic>? ?? {};
     final engines = vehicleData['engine'] as List<dynamic>? ?? [];
     final gearbox = vehicleData['gearbox'] as Map<String, dynamic>? ?? {};
-    final brakes = vehicleData['brakes'] as Map<String, dynamic>? ?? {};
-    final tyres = vehicleData['tyres'] as List<dynamic>? ?? [];
-    final fluids = vehicleData['fluids'] as Map<String, dynamic>? ?? {};
     
     // Extraire les données du moteur (prendre le premier)
     final engine = engines.isNotEmpty ? engines.first as Map<String, dynamic> : <String, dynamic>{};

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/conversations_controller.dart';
 import '../../domain/entities/message.dart';
-import '../../domain/entities/conversation.dart';
 import '../../domain/entities/conversation_group.dart';
 import '../../domain/services/conversation_grouping_service.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';

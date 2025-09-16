@@ -52,15 +52,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         sessionService.clearCache();
       }
     } catch (e) {
+      // En cas d'erreur, retourner à la page d'accueil
+      return '/';
     }
-    
     return '/';
   }
 
   return GoRouter(
     initialLocation: getInitialLocation(),
     redirect: (context, state) {
-      final location = state.matchedLocation;
       
       
       // Permettre la navigation normale sans re-direction forcée

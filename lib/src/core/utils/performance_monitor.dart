@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 /// Système de monitoring des performances en temps réel
 class PerformanceMonitor {

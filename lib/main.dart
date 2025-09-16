@@ -28,6 +28,7 @@ void main() async {
       final realtimeService = RealtimeService();
       await realtimeService.startRealtimeSubscriptions();
     } catch (e) {
+      debugPrint('Erreur lors de l\'initialisation du service Realtime: $e');
     }
     
     // Initialiser SharedPreferences
@@ -42,9 +43,6 @@ void main() async {
     if (hasReconnected) {
       // Forcer la mise à jour du cache pour avoir le bon type d'utilisateur
       await sessionService.updateCachedSession();
-      final userType = sessionService.getCachedUserType();
-      final userEmail = sessionService.getCachedUserEmail();
-    } else {
     }
     
     // Vérifier l'état de l'auth final

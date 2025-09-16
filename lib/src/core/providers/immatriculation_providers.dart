@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/immatriculation_service.dart';
 import '../services/rate_limiter_service.dart';
@@ -15,7 +16,7 @@ final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
     defaultValue: AppConstants.immatriculationApiUsername,
   );
 
-  print(
+  debugPrint(
     '⚠️ [ImmatriculationProvider] Note: Si username = "Moïse134", vous devez le configurer dans app_constants.dart',
   );
 
@@ -157,7 +158,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
     result.fold(
       (failure) {
-        print(
+        debugPrint(
           '❌ [VehicleSearchNotifier] Échec: ${failure.runtimeType} - ${failure.message}',
         );
         String errorMessage = 'Erreur lors de la recherche';
@@ -169,7 +170,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
           errorMessage = 'Véhicule non trouvé ou service indisponible';
         }
 
-        print(
+        debugPrint(
           '📝 [VehicleSearchNotifier] Message d\'erreur affiché: $errorMessage',
         );
         state = state.copyWith(
@@ -333,6 +334,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
             // Garde la logique particulier qui a été appliquée
           }
         } catch (e) {
+          // En cas d'erreur, ne pas bloquer l'utilisateur
         }
       }
     } catch (e) {
@@ -358,13 +360,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
             isCheckingActiveRequest: false,
           );
         },
-        (advertisements) {
-          final activeAds = advertisements.where((ad) => ad.status == 'active').toList();
-          
-          // Debug: afficher les détails des annonces
-          for (final ad in advertisements) {
-          }
-          
+        (advertisements) { 
           // VENDEURS : AUCUNE LIMITE
           
           state = state.copyWith(

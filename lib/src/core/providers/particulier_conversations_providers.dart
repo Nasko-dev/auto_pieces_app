@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -146,7 +147,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     final result = await _repository.getParticulierConversations();
     
     result.fold(
-      (failure) => print('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
+      (failure) => debugPrint('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
       (conversations) {
         if (mounted) {
           state = state.copyWith(
@@ -221,6 +222,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
+      debugPrint('Erreur lors de l\'incrémentation du compteur: $e');
     }
   }
 
@@ -233,6 +235,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
+      debugPrint('Erreur lors du marquage comme lu: $e');
     }
   }
 

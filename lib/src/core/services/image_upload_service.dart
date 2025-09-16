@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../errors/failures.dart';
 
@@ -75,9 +74,9 @@ class ImageUploadService {
           .remove([filePath]);
 
 
-    } on StorageException catch (e) {
+    } on StorageException {
       // Ne pas throw d'erreur pour la suppression, continuer silencieusement
-    } catch (e) {
+    } catch (_) {
       // Ne pas throw d'erreur pour la suppression, continuer silencieusement
     }
   }

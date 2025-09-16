@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/parts/domain/entities/message.dart';
-import '../../features/parts/domain/entities/conversation_enums.dart';
 
 class RealtimeService {
   static final RealtimeService _instance = RealtimeService._internal();

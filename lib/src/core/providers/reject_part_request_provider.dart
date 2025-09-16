@@ -4,7 +4,6 @@ import '../../features/parts/data/repositories/part_request_repository_impl.dart
 import '../../features/parts/data/datasources/part_request_remote_datasource.dart';
 import '../network/network_info.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'providers.dart';
 
 final rejectPartRequestUseCaseProvider = Provider<RejectPartRequestUseCase>((ref) {
   return RejectPartRequestUseCase(
