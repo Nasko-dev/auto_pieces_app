@@ -31,6 +31,7 @@ mixin _$Conversation {
   String? get sellerName => throw _privateConstructorUsedError;
   String? get sellerCompany => throw _privateConstructorUsedError;
   String? get sellerAvatarUrl => throw _privateConstructorUsedError;
+  String? get sellerPhone => throw _privateConstructorUsedError;
   String? get userName => throw _privateConstructorUsedError;
   String? get userDisplayName => throw _privateConstructorUsedError;
   String? get userAvatarUrl => throw _privateConstructorUsedError;
@@ -72,6 +73,7 @@ abstract class $ConversationCopyWith<$Res> {
       String? sellerName,
       String? sellerCompany,
       String? sellerAvatarUrl,
+      String? sellerPhone,
       String? userName,
       String? userDisplayName,
       String? userAvatarUrl,
@@ -112,6 +114,7 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
     Object? sellerName = freezed,
     Object? sellerCompany = freezed,
     Object? sellerAvatarUrl = freezed,
+    Object? sellerPhone = freezed,
     Object? userName = freezed,
     Object? userDisplayName = freezed,
     Object? userAvatarUrl = freezed,
@@ -171,6 +174,10 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
       sellerAvatarUrl: freezed == sellerAvatarUrl
           ? _value.sellerAvatarUrl
           : sellerAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
       userName: freezed == userName
           ? _value.userName
@@ -252,6 +259,7 @@ abstract class _$$ConversationImplCopyWith<$Res>
       String? sellerName,
       String? sellerCompany,
       String? sellerAvatarUrl,
+      String? sellerPhone,
       String? userName,
       String? userDisplayName,
       String? userAvatarUrl,
@@ -290,6 +298,7 @@ class __$$ConversationImplCopyWithImpl<$Res>
     Object? sellerName = freezed,
     Object? sellerCompany = freezed,
     Object? sellerAvatarUrl = freezed,
+    Object? sellerPhone = freezed,
     Object? userName = freezed,
     Object? userDisplayName = freezed,
     Object? userAvatarUrl = freezed,
@@ -349,6 +358,10 @@ class __$$ConversationImplCopyWithImpl<$Res>
       sellerAvatarUrl: freezed == sellerAvatarUrl
           ? _value.sellerAvatarUrl
           : sellerAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
       userName: freezed == userName
           ? _value.userName
@@ -425,6 +438,7 @@ class _$ConversationImpl implements _Conversation {
       this.sellerName,
       this.sellerCompany,
       this.sellerAvatarUrl,
+      this.sellerPhone,
       this.userName,
       this.userDisplayName,
       this.userAvatarUrl,
@@ -467,6 +481,8 @@ class _$ConversationImpl implements _Conversation {
   @override
   final String? sellerAvatarUrl;
   @override
+  final String? sellerPhone;
+  @override
   final String? userName;
   @override
   final String? userDisplayName;
@@ -500,7 +516,7 @@ class _$ConversationImpl implements _Conversation {
 
   @override
   String toString() {
-    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, userName: $userName, userDisplayName: $userDisplayName, userAvatarUrl: $userAvatarUrl, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType)';
+    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone, userName: $userName, userDisplayName: $userDisplayName, userAvatarUrl: $userAvatarUrl, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType)';
   }
 
   @override
@@ -527,6 +543,8 @@ class _$ConversationImpl implements _Conversation {
                 other.sellerCompany == sellerCompany) &&
             (identical(other.sellerAvatarUrl, sellerAvatarUrl) ||
                 other.sellerAvatarUrl == sellerAvatarUrl) &&
+            (identical(other.sellerPhone, sellerPhone) ||
+                other.sellerPhone == sellerPhone) &&
             (identical(other.userName, userName) ||
                 other.userName == userName) &&
             (identical(other.userDisplayName, userDisplayName) ||
@@ -572,6 +590,7 @@ class _$ConversationImpl implements _Conversation {
         sellerName,
         sellerCompany,
         sellerAvatarUrl,
+        sellerPhone,
         userName,
         userDisplayName,
         userAvatarUrl,
@@ -615,6 +634,7 @@ abstract class _Conversation implements Conversation {
       final String? sellerName,
       final String? sellerCompany,
       final String? sellerAvatarUrl,
+      final String? sellerPhone,
       final String? userName,
       final String? userDisplayName,
       final String? userAvatarUrl,
@@ -655,6 +675,8 @@ abstract class _Conversation implements Conversation {
   String? get sellerCompany;
   @override
   String? get sellerAvatarUrl;
+  @override
+  String? get sellerPhone;
   @override
   String? get userName;
   @override

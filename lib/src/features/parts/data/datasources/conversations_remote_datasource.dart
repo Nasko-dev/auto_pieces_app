@@ -240,10 +240,16 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
           print('📋 [Datasource] Reçu ${response.length} conversations pour tous les user_ids');
 
-          return response.map((json) {
+          final conversations = <Conversation>[];
+          for (final json in response) {
             print('📄 [Datasource] Conversion conversation: ${json['id']} (user: ${json['user_id']})');
-            return Conversation.fromJson(_mapSupabaseToConversation(json));
-          }).toList();
+            // Récupérer les informations du vendeur
+            final sellerInfo = await _getSellerInfo(json['seller_id']);
+            final modifiedJson = Map<String, dynamic>.from(json);
+            modifiedJson['seller_info'] = sellerInfo;
+            conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+          }
+          return conversations;
         } else {
           print('⚠️ [Datasource] Aucun utilisateur trouvé pour ce device_id');
         }
@@ -281,10 +287,16 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
       print('📋 [Datasource] Reçu ${response.length} conversations (fallback)');
 
-      return response.map((json) {
+      final conversations = <Conversation>[];
+      for (final json in response) {
         print('📄 [Datasource] Conversion conversation: ${json['id']}');
-        return Conversation.fromJson(_mapSupabaseToConversation(json));
-      }).toList();
+        // Récupérer les informations du vendeur
+        final sellerInfo = await _getSellerInfo(json['seller_id']);
+        final modifiedJson = Map<String, dynamic>.from(json);
+        modifiedJson['seller_info'] = sellerInfo;
+        conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+      }
+      return conversations;
       
     } catch (e) {
       print('❌ [Datasource] Erreur récupération conversations particulier: $e');
@@ -570,6 +582,23 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     return null;
   }
 
+  Future<Map<String, dynamic>?> _getSellerInfo(String sellerId) async {
+    try {
+      final response = await _supabaseClient
+          .from('sellers')
+          .select('id, first_name, last_name, company_name, phone, avatar_url')
+          .eq('id', sellerId)
+          .limit(1);
+
+      if (response.isNotEmpty) {
+        return response.first;
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur récupération info vendeur: $e');
+    }
+    return null;
+  }
+
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
     // Extraire les données du véhicule depuis part_requests
     String? vehicleBrand;
@@ -595,6 +624,18 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         sellerAvatarUrl = sellers['avatar_url'];
       } else if (sellers is List && sellers.isNotEmpty) {
         sellerAvatarUrl = sellers.first['avatar_url'];
+      }
+    }
+
+    // Extraire les informations complètes du vendeur depuis seller_info
+    String? sellerPhone;
+    if (json['seller_info'] != null) {
+      final sellerInfo = json['seller_info'] as Map<String, dynamic>;
+      sellerPhone = sellerInfo['phone'];
+
+      // Mettre à jour l'avatar depuis seller_info si pas déjà récupéré
+      if (sellerAvatarUrl == null) {
+        sellerAvatarUrl = sellerInfo['avatar_url'];
       }
     }
 
@@ -627,6 +668,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'sellerName': json['seller_name'],
       'sellerCompany': json['seller_company'],
       'sellerAvatarUrl': sellerAvatarUrl,
+      'sellerPhone': sellerPhone,
       'userName': userName,
       'userDisplayName': userDisplayName,
       'userAvatarUrl': userAvatarUrl,

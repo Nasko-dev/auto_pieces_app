@@ -18,6 +18,7 @@ class Conversation with _$Conversation {
     String? sellerName,
     String? sellerCompany,
     String? sellerAvatarUrl,
+    String? sellerPhone,
     String? userName,
     String? userDisplayName,
     String? userAvatarUrl,

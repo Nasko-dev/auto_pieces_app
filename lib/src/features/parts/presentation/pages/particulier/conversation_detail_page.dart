@@ -660,18 +660,66 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Future<void> _makePhoneCall(dynamic conversation) async {
-    // Pour l'instant, nous n'avons pas le numéro du vendeur dans les données
-    // On peut implémenter une solution alternative
-    print('📞 [UI-Particulier] Tentative d\'appel vers le vendeur');
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = conversation?.sellerPhone;
 
-    _showInfoSnackBar('Contactez le vendeur via la messagerie pour obtenir son numéro');
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📞 [UI-Particulier] Tentative d\'appel vers: $phoneNumber');
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+          print('✅ [UI-Particulier] Appel lancé avec succès');
+        } else {
+          print('⚠️ [UI-Particulier] Impossible de lancer l\'appel');
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        print('❌ [UI-Particulier] Erreur lors du lancement de l\'appel: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      print('⚠️ [UI-Particulier] Numéro de téléphone vendeur non disponible');
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
   }
 
   Future<void> _makeVideoCall(dynamic conversation) async {
-    // Pour l'instant, nous n'avons pas le numéro du vendeur dans les données
-    print('📹 [UI-Particulier] Tentative d\'appel vidéo vers le vendeur');
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = conversation?.sellerPhone;
 
-    _showInfoSnackBar('Contactez le vendeur via la messagerie pour organiser un appel vidéo');
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📹 [UI-Particulier] Tentative d\'appel vidéo vers: $phoneNumber');
+
+      // Pour l'appel vidéo, essayer WhatsApp d'abord
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+          print('✅ [UI-Particulier] WhatsApp ouvert avec succès');
+        } else {
+          // Fallback vers l'application de téléphone
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+            print('✅ [UI-Particulier] Application téléphone lancée');
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        print('❌ [UI-Particulier] Erreur lors du lancement de l\'appel vidéo: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
   }
 
   void _showInfoSnackBar(String message) {
