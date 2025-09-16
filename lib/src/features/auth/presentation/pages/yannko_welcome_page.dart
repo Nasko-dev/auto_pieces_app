@@ -77,18 +77,6 @@ class YannkoWelcomePage extends StatelessWidget {
 
                   SizedBox(height: 16 * s),
 
-                  // Paragraphe
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4 * s),
-                    child: Text(
-                      "Commandez vos pièces auto neuves et \n"
-                      "d'occasion en quelques clics.\n"
-                      "Livraison rapide et garantie fiabilité.",
-                      textAlign: TextAlign.center,
-                      style: body(16),
-                    ),
-                  ),
-
                   SizedBox(height: 20 * s),
 
                   // Bouton "Pièce neuve"
@@ -98,8 +86,8 @@ class YannkoWelcomePage extends StatelessWidget {
                     icon: Icons.inventory_2_rounded,
                     scale: s,
                     onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces neuves
-                      context.go('/welcome');
+                      // Naviguer vers la page "En cours de développement"
+                      context.go('/under-development');
                     },
                   ),
 
