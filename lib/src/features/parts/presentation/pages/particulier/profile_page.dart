@@ -681,6 +681,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _isEditingName = false;
           });
 
+          // Invalider les providers pour mettre à jour les indicateurs rouges
+          ref.invalidate(particulierProfileStatusProvider);
+          ref.invalidate(particulierMenuStatusProvider);
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(

@@ -38,3 +38,66 @@ final getUserSettingsProvider = Provider<GetUserSettings>((ref) {
 final saveUserSettingsProvider = Provider<SaveUserSettings>((ref) {
   return SaveUserSettings(ref.watch(userSettingsRepositoryProvider));
 });
+
+/// Provider pour vérifier si le profil particulier nécessite des actions (nom d'affichage)
+final particulierProfileStatusProvider = FutureProvider<bool>((ref) async {
+  final currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser == null) return false;
+
+  final getUserSettings = ref.read(getUserSettingsProvider);
+  final result = await getUserSettings(currentUser.id);
+
+  return result.fold(
+    (failure) => true, // En cas d'erreur, afficher l'alerte
+    (settings) {
+      // Vérifier si le nom d'affichage est défini et différent des valeurs par défaut
+      if (settings == null) return true;
+
+      final displayName = settings.displayName;
+      return displayName == null ||
+             displayName.isEmpty ||
+             displayName == 'Utilisateur';
+    },
+  );
+});
+
+/// Provider pour vérifier si les paramètres nécessitent des actions (localisation + téléphone)
+final particulierSettingsStatusProvider = FutureProvider<bool>((ref) async {
+  final currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser == null) return false;
+
+  final getUserSettings = ref.read(getUserSettingsProvider);
+  final result = await getUserSettings(currentUser.id);
+
+  return result.fold(
+    (failure) => true, // En cas d'erreur, afficher l'alerte
+    (settings) {
+      // Vérifier si la localisation et le téléphone sont remplis
+      if (settings == null) return true;
+
+      // Vérifier la localisation (adresse ET ville ET code postal)
+      final hasLocation = settings.address != null &&
+                         settings.address!.isNotEmpty &&
+                         settings.city != null &&
+                         settings.city!.isNotEmpty &&
+                         settings.postalCode != null &&
+                         settings.postalCode!.isNotEmpty;
+
+      // Vérifier le téléphone
+      final hasPhone = settings.phone != null &&
+                      settings.phone!.isNotEmpty;
+
+      // Retourner true si une des informations manque
+      return !hasLocation || !hasPhone;
+    },
+  );
+});
+
+/// Provider combiné pour vérifier si les 3 points doivent afficher l'alerte
+final particulierMenuStatusProvider = FutureProvider<bool>((ref) async {
+  final profileStatus = await ref.watch(particulierProfileStatusProvider.future);
+  final settingsStatus = await ref.watch(particulierSettingsStatusProvider.future);
+
+  // Afficher l'alerte sur les 3 points si profil OU paramètres nécessitent une action
+  return profileStatus || settingsStatus;
+});
