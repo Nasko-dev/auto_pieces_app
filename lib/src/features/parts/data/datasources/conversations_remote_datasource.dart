@@ -135,11 +135,41 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    return response.map((json) {
+    // Optimisation : Récupérer tous les prénoms en une seule requête
+    final userIds = response.map((json) => json['user_id'] as String).toSet().toList();
+    Map<String, String> prenoms = {};
+
+    if (userIds.isNotEmpty) {
+      try {
+        final prenomsResponse = await _supabaseClient
+            .from('particuliers')
+            .select('id, first_name')
+            .inFilter('id', userIds);
+
+        for (final particulier in prenomsResponse) {
+          if (particulier['first_name'] != null) {
+            prenoms[particulier['id']] = particulier['first_name'];
+          }
+        }
+      } catch (e) {
+        // Silencieusement ignorer les erreurs de récupération des prénoms
+      }
+    }
+
+    // Convertir les conversations avec les prénoms récupérés
+    final conversations = <Conversation>[];
+    for (final json in response) {
       final unreadForSeller = json['unread_count_for_seller'] ?? 0;
       print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count_for_seller: $unreadForSeller)');
-      return Conversation.fromJson(_mapSupabaseToConversationForSeller(json));
-    }).toList();
+
+      // Ajouter le prénom au JSON depuis le cache
+      final userId = json['user_id'] as String;
+      json['particulier_first_name'] = prenoms[userId];
+
+      conversations.add(Conversation.fromJson(_mapSupabaseToConversationForSeller(json)));
+    }
+
+    return conversations;
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -632,6 +662,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       partType = partRequest['part_type'];
     }
 
+    // Extraire le prénom du particulier ajouté par la requête séparée
+    String? particulierFirstName = json['particulier_first_name'];
+
     return {
       'id': json['id'],
       'requestId': json['request_id'],
@@ -655,6 +688,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'vehicleYear': vehicleYear,
       'vehicleEngine': vehicleEngine,
       'partType': partType,
+      // Nom du particulier
+      'particulierFirstName': particulierFirstName,
     };
   }
 

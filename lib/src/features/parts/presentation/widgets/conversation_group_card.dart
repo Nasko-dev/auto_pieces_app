@@ -198,7 +198,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Particulier',
+                            _getParticulierDisplayName(widget.group),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
@@ -353,5 +353,60 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     }
 
     return 'Maintenant';
+  }
+
+  // Obtenir le nom d'affichage du particulier
+  String _getParticulierDisplayName(ConversationGroup group) {
+    if (group.conversations.isNotEmpty) {
+      final firstConv = group.conversations.first;
+
+      // Priorité 1 : Utiliser le prénom du particulier si disponible
+      if (firstConv.particulierFirstName != null && firstConv.particulierFirstName!.isNotEmpty) {
+        return firstConv.particulierFirstName!;
+      }
+
+      // Fallback : utiliser les informations du véhicule
+      final vehicleInfo = _getVehicleInfo(firstConv);
+      if (vehicleInfo != null && vehicleInfo.isNotEmpty) {
+        return vehicleInfo;
+      }
+    }
+
+    return 'Particulier';
+  }
+
+  // Construire les informations du véhicule
+  String? _getVehicleInfo(Conversation conv) {
+    // Construire le nom du véhicule selon le type de pièce
+    if (conv.partType == 'engine') {
+      if (conv.vehicleEngine != null && conv.vehicleEngine!.isNotEmpty) {
+        return conv.vehicleEngine!;
+      }
+    } else if (conv.partType == 'body') {
+      final parts = <String>[];
+      if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
+      if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
+      if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
+
+      if (parts.isNotEmpty) {
+        return parts.join(' ');
+      }
+    }
+
+    // Fallback : essayer toutes les infos disponibles
+    final parts = <String>[];
+    if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
+    if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
+    if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
+
+    if (parts.isEmpty && conv.vehicleEngine != null) {
+      return conv.vehicleEngine!;
+    }
+
+    if (parts.isNotEmpty) {
+      return parts.join(' ');
+    }
+
+    return null;
   }
 }
