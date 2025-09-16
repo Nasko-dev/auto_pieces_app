@@ -308,8 +308,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
       print('✅ [Datasource] Message envoyé avec succès');
       
-      // Mettre à jour la conversation
-      await _updateConversationLastMessage(conversationId, content);
+      // Mettre à jour la conversation avec le bon sender type
+      await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
@@ -319,20 +319,20 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
   }
 
-  Future<void> _updateConversationLastMessage(String conversationId, String content) async {
+  Future<void> _updateConversationLastMessage(String conversationId, String content, String senderType) async {
     try {
       await _supabaseClient
           .from('conversations')
           .update({
             'last_message_content': content,
             'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
-            'last_message_sender_type': 'user',
+            'last_message_sender_type': senderType, // ✅ CORRECTION: Utiliser le vrai sender type
             'last_message_created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
             'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
-      
-      print('✅ [Datasource] Conversation mise à jour');
+
+      print('✅ [Datasource] Conversation mise à jour avec sender_type: $senderType');
     } catch (e) {
       print('⚠️ [Datasource] Erreur mise à jour conversation: $e');
     }
