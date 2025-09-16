@@ -86,7 +86,7 @@ final conversationsControllerProvider = StateNotifierProvider<ConversationsContr
 final conversationsListProvider = Provider((ref) {
   final state = ref.watch(conversationsControllerProvider);
   // Les conversations sont déjà triées en DB par last_message_at DESC
-  // Plus besoin de tri complexe - les indicateurs visuels utilisent localUnreadCounts
+  // Plus besoin de tri complexe - les indicateurs visuels utilisent conversation.unreadCount
   return state.conversations;
 });
 
@@ -103,8 +103,16 @@ final conversationMessagesProvider = Provider.family<List<Message>, String>((ref
 
 final conversationUnreadCountProvider = Provider.family<int, String>((ref, conversationId) {
   final state = ref.watch(conversationsControllerProvider);
-  // ✅ SIMPLE: Utiliser directement le compteur local géré en temps réel
-  return state.localUnreadCounts[conversationId] ?? 0;
+  // ✅ DB-BASED: Utiliser le compteur DB directement de la conversation
+  try {
+    final conversation = state.conversations.firstWhere(
+      (conv) => conv.id == conversationId,
+    );
+    return conversation.unreadCount;
+  } catch (e) {
+    // Si conversation non trouvée, retourner 0
+    return 0;
+  }
 });
 
 final isLoadingProvider = Provider((ref) {
@@ -127,13 +135,12 @@ final conversationsErrorProvider = Provider((ref) {
   return state.error;
 });
 
-// Provider pour les groupes de conversations avec compteurs locaux
+// Provider pour les groupes de conversations avec compteurs DB
 final conversationGroupsProvider = Provider<List<ConversationGroup>>((ref) {
   final state = ref.watch(conversationsControllerProvider);
 
-  // Regrouper les conversations en utilisant les compteurs locaux
+  // Regrouper les conversations en utilisant les compteurs DB
   return ConversationGroupingService.groupConversations(
     state.conversations,
-    localUnreadCounts: state.localUnreadCounts,
   );
 });

@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/particulier_conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
-import 'package:cente_pice/src/features/parts/domain/entities/particulier_message.dart';
-import 'package:cente_pice/src/core/providers/particulier_conversations_providers.dart';
-import '../providers/conversations_providers.dart';
 
 class ConversationItemWidget extends ConsumerWidget {
   final dynamic
@@ -29,25 +26,11 @@ class ConversationItemWidget extends ConsumerWidget {
     int unreadCount = 0;
 
     if (isParticulier) {
-      // Pour les particuliers, utiliser les compteurs locaux du provider
-      final localCount = ref.watch(
-        particulierConversationsControllerProvider.select(
-          (state) =>
-              state.localUnreadCounts[(conversation as ParticulierConversation)
-                  .id] ??
-              0,
-        ),
-      );
-      unreadCount = localCount;
+      // Pour les particuliers, utiliser les compteurs DB de la conversation
+      unreadCount = (conversation as ParticulierConversation).unreadCount;
     } else {
-      // Pour les vendeurs, utiliser aussi les compteurs locaux
-      final localCount = ref.watch(
-        conversationsControllerProvider.select(
-          (state) =>
-              state.localUnreadCounts[(conversation as Conversation).id] ?? 0,
-        ),
-      );
-      unreadCount = localCount;
+      // Pour les vendeurs, utiliser les compteurs DB
+      unreadCount = (conversation as Conversation).unreadCount;
     }
 
     final hasUnread = unreadCount > 0;
