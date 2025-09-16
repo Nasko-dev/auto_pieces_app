@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +12,8 @@ import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
+import '../../../../../core/providers/message_image_providers.dart';
+import '../../../../../core/providers/session_providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -760,8 +763,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
       if (photo != null) {
         print('✅ [UI-ChatPage] Photo prise: ${photo.path}');
-        // TODO: Envoyer la photo en tant que message
-        _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
+        await _sendImageMessage(File(photo.path));
       }
     } catch (e) {
       print('❌ [UI-ChatPage] Erreur prise photo: $e');
@@ -783,12 +785,56 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
       if (image != null) {
         print('✅ [UI-ChatPage] Image sélectionnée: ${image.path}');
-        // TODO: Envoyer l'image en tant que message
-        _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
+        await _sendImageMessage(File(image.path));
       }
     } catch (e) {
       print('❌ [UI-ChatPage] Erreur galerie: $e');
       _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  Future<void> _sendImageMessage(File imageFile) async {
+    print('🚀 [UI-ChatPage] Début envoi image message');
+
+    try {
+      final conversationId = widget.conversationId;
+      final userId = ref.read(currentUserProvider)?.id;
+
+      if (userId == null) {
+        _showErrorSnackBar('Utilisateur non connecté');
+        return;
+      }
+
+      // Afficher un indicateur de chargement
+      _showInfoSnackBar('Envoi de l\'image en cours...');
+
+      // Upload de l'image vers Supabase Storage
+      final imageService = ref.read(messageImageServiceProvider);
+      final imageUrl = await imageService.uploadMessageImage(
+        conversationId: conversationId,
+        imageFile: imageFile,
+      );
+
+      print('✅ [UI-ChatPage] Image uploadée: $imageUrl');
+
+      // Envoyer le message via le provider
+      await ref.read(conversationsControllerProvider.notifier).sendMessage(
+        conversationId: conversationId,
+        content: '', // Contenu vide pour les images
+        messageType: MessageType.image,
+        attachments: [imageUrl],
+        metadata: {
+          'imageUrl': imageUrl,
+          'fileName': imageFile.path.split('/').last,
+        },
+      );
+
+      print('✅ [UI-ChatPage] Message image envoyé avec succès');
+      _showSuccessSnackBar('Image envoyée !');
+
+    } catch (e) {
+      print('❌ [UI-ChatPage] Erreur envoi image: $e');
+      _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
     }
   }
 
