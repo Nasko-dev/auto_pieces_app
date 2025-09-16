@@ -11,16 +11,16 @@ part 'particulier_conversations_providers.freezed.dart';
 
 @freezed
 class ParticulierConversationsState with _$ParticulierConversationsState {
+  const ParticulierConversationsState._();
+
   const factory ParticulierConversationsState({
     @Default([]) List<ParticulierConversation> conversations,
     @Default(false) bool isLoading,
     String? error,
-    @Default(0) int unreadCount,
-    // ✅ SIMPLE: Compteur local par conversation
-    @Default({}) Map<String, int> localUnreadCounts,
-    // ✅ SIMPLE: Conversation actuellement ouverte
     String? activeConversationId,
   }) = _ParticulierConversationsState;
+
+  int get unreadCount => conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
 }
 
 class ParticulierConversationsController extends StateNotifier<ParticulierConversationsState> {
@@ -83,7 +83,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     print('✅ [ParticulierConversations] Channel global messages abonné');
   }
 
-  // ✅ SIMPLE: Gérer un nouveau message reçu - incrémenter compteur local
+  // ✅ DB-BASED: Gérer un nouveau message reçu - incrémenter compteur DB
   void _handleGlobalNewMessage(dynamic messageData, String userId) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
@@ -94,29 +94,24 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     print('🎉 [ParticulierConversations] *** NOUVEAU MESSAGE REÇU *** ');
     print('🔍 [ParticulierConversations] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
 
-    // ✅ SIMPLE: Si c'est un message du vendeur, incrémenter compteur local SEULEMENT si pas dans la conversation
+    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
+    if (senderId == userId) {
+      print('🚫 [ParticulierConversations] C\'est notre propre message → IGNORER COMPLÈTEMENT');
+      return;
+    }
+
+    // ✅ DB-BASED: Si c'est un message du vendeur, incrémenter compteur DB sauf si conversation active
     if (senderType == 'seller') {
       if (state.activeConversationId == conversationId) {
-        print('👀 [ParticulierConversations] Message reçu dans conversation active → compteur reste à 0');
+        print('👀 [ParticulierConversations] Message reçu dans conversation active → marqué comme lu automatiquement');
+        // Marquer le message comme lu immédiatement si la conversation est ouverte
+        _markConversationAsReadInDB(conversationId);
       } else {
-        print('🔥 [ParticulierConversations] Message du vendeur → +1 compteur local');
-
-        final currentCount = state.localUnreadCounts[conversationId] ?? 0;
-        final newCounts = Map<String, int>.from(state.localUnreadCounts);
-        newCounts[conversationId] = currentCount + 1;
-
-        // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
-        Future.microtask(() {
-          state = state.copyWith(
-            localUnreadCounts: newCounts,
-            unreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-          );
-        });
-
-        print('📊 [ParticulierConversations] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+        print('🔥 [ParticulierConversations] Message du vendeur → +1 compteur DB');
+        _incrementUnreadCountInDB(conversationId);
       }
     } else {
-      print('📤 [ParticulierConversations] Notre propre message, pas de compteur');
+      print('📤 [ParticulierConversations] Message vendeur d\'un autre utilisateur, pas de compteur pour nous');
     }
   }
 
@@ -158,7 +153,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
             conversations: conversations,
             isLoading: false,
             error: null,
-            // unreadCount reste basé sur localUnreadCounts
           );
         }
       },
@@ -174,15 +168,11 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         if (mounted) {
           state = state.copyWith(
             conversations: conversations,
-            // unreadCount reste basé sur localUnreadCounts
           );
         }
       },
     );
   }
-
-
-  // ✅ SIMPLE: Pas de calcul complexe, on utilise juste les compteurs locaux
 
 
   Future<void> loadConversationDetails(String conversationId) async {
@@ -236,20 +226,43 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     );
   }
 
-  // ✅ SIMPLE: Marquer conversation comme active et remettre compteur à 0
+  // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
-    print('👀 [ParticulierConversations] Ouverture conversation: $conversationId → compteur = 0 + active');
+    print('👀 [ParticulierConversations] Ouverture conversation: $conversationId → compteur DB = 0 + active');
 
-    final newCounts = Map<String, int>.from(state.localUnreadCounts);
-    newCounts[conversationId] = 0;
+    // Marquer en DB
+    _markConversationAsReadInDB(conversationId);
 
-    state = state.copyWith(
-      localUnreadCounts: newCounts,
-      unreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-      activeConversationId: conversationId, // ✅ Définir comme conversation active
-    );
+    // Marquer comme conversation active
+    state = state.copyWith(activeConversationId: conversationId);
 
     print('📊 [ParticulierConversations] Conversation $conversationId maintenant active');
+  }
+
+  // ✅ DB-BASED: Incrémenter compteur particulier en DB
+  void _incrementUnreadCountInDB(String conversationId) async {
+    try {
+      await _repository.incrementUnreadCountForUser(conversationId: conversationId);
+      print('✅ [ParticulierConversations] Compteur PARTICULIER DB incrémenté pour: $conversationId');
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      print('❌ [ParticulierConversations] Erreur incrémentation DB particulier: $e');
+    }
+  }
+
+  // ✅ DB-BASED: Marquer conversation comme lue en DB
+  void _markConversationAsReadInDB(String conversationId) async {
+    try {
+      await _repository.markParticulierMessagesAsRead(
+        conversationId: conversationId,
+      );
+      print('✅ [ParticulierConversations] Conversation marquée comme lue en DB: $conversationId');
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      print('❌ [ParticulierConversations] Erreur marquage DB: $e');
+    }
   }
 
   // ✅ SIMPLE: Désactiver la conversation active
@@ -292,8 +305,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     
     print('✅ [ParticulierConversations] Vendeur bloqué localement');
   }
-
-  // ✅ SIMPLE: Plus besoin de recalcul forcé, on utilise les compteurs locaux
 
   @override
   void dispose() {

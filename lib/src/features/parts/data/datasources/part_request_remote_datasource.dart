@@ -71,6 +71,8 @@ abstract class PartRequestRemoteDataSource {
     required String content,
   });
   Future<void> markParticulierConversationAsRead(String conversationId);
+  Future<void> incrementUnreadCountForUser({required String conversationId});
+  Future<void> markParticulierMessagesAsRead({required String conversationId});
 }
 
 class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
@@ -946,30 +948,16 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               (status) => status.name == (convData['status'] ?? 'pending'),
               orElse: () => ConversationStatus.active,
             ),
-            hasUnreadMessages: (() {
-              print('=============== CALCUL UNREAD PARTICULIER ${convData['id']} ===============');
-              print('👥 [Datasource-Particulier] Current User ID: ${currentUser.id}');
-              print('📨 [Datasource-Particulier] Total messages: ${messages.length}');
-              
-              for (final msg in messages) {
-                print('📧 [Datasource-Particulier] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, isFromParticulier=${msg.isFromParticulier}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
-              }
-              
-              final unreadMessages = messages.where((msg) => !msg.isRead && !msg.isFromParticulier).toList();
-              print('🔴 [Datasource-Particulier] Messages non lus trouvés: ${unreadMessages.length}');
-              for (final msg in unreadMessages) {
-                print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
-              }
-              print('================================================================');
-              
-              return unreadMessages.isNotEmpty;
-            })(),
-            unreadCount: (() {
-              // ✅ CORRECTION: Utiliser la même logique que pour hasUnreadMessages
-              final unreadCount = messages.where((msg) => !msg.isRead && !msg.isFromParticulier).length;
-              print('💬 [Datasource-Particulier] FINAL Conversation ${convData['id']}: $unreadCount messages non lus du vendeur');
-              return unreadCount;
-            })(),
+            hasUnreadMessages: () {
+              final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
+              print('💾 [Datasource-Particulier] DB unread count pour ${convData['id']}: $dbUnreadCount');
+              return dbUnreadCount > 0;
+            }(),
+            unreadCount: () {
+              final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
+              print('💾 [Datasource-Particulier] FINAL DB Conversation ${convData['id']}: $dbUnreadCount messages non lus');
+              return dbUnreadCount;
+            }(),
             vehiclePlate: partRequestData['vehicle_plate'],
             partType: partRequestData['part_type'],
             partNames: List<String>.from(partRequestData['part_names'] ?? []),
@@ -1103,9 +1091,64 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .eq('is_read', false); // Seulement les messages non lus
 
       print('✅ [DataSource] Messages du vendeur marqués comme lus: $conversationId');
-      
+
     } catch (e) {
       print('💥 [DataSource] Erreur marquage conversation: $e');
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForUser({required String conversationId}) async {
+    try {
+      print('📈 [DataSource] Incrémentation compteur PARTICULIER DB pour: $conversationId');
+
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // Incrémenter le compteur côté particulier (unread_count_for_user)
+      final result = await _supabase
+          .from('conversations')
+          .update({
+            'unread_count_for_user': 'unread_count_for_user + 1',
+          })
+          .eq('id', conversationId);
+
+      print('✅ [DataSource] Compteur particulier DB incrémenté: $conversationId');
+
+    } catch (e) {
+      print('💥 [DataSource] Erreur incrémentation particulier DB: $e');
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> markParticulierMessagesAsRead({required String conversationId}) async {
+    try {
+      print('🔄 [DataSource] Reset compteur particulier DB pour: $conversationId');
+
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // Reset du compteur côté particulier
+      final result = await _supabase
+          .from('conversations')
+          .update({
+            'unread_count_for_user': 0,
+          })
+          .eq('id', conversationId);
+
+      // Aussi marquer les messages comme lus (logique existante)
+      await markParticulierConversationAsRead(conversationId);
+
+      print('✅ [DataSource] Compteur particulier DB remis à 0: $conversationId');
+
+    } catch (e) {
+      print('💥 [DataSource] Erreur reset compteur particulier DB: $e');
       throw ServerException(e.toString());
     }
   }

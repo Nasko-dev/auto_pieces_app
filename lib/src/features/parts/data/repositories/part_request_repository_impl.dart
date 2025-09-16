@@ -449,4 +449,40 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId}) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      await _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId);
+      return const Right(null);
+    } on UnauthorizedException {
+      return const Left(AuthFailure('User not authenticated'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId}) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      await _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId);
+      return const Right(null);
+    } on UnauthorizedException {
+      return const Left(AuthFailure('User not authenticated'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

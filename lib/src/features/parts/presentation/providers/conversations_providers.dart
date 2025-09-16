@@ -86,7 +86,7 @@ final conversationsControllerProvider = StateNotifierProvider<ConversationsContr
 final conversationsListProvider = Provider((ref) {
   final state = ref.watch(conversationsControllerProvider);
   // Les conversations sont déjà triées en DB par last_message_at DESC
-  // Plus besoin de tri complexe - les indicateurs visuels utilisent localUnreadCounts
+  // Plus besoin de tri complexe - les indicateurs visuels utilisent conversation.unreadCount
   return state.conversations;
 });
 
@@ -142,6 +142,5 @@ final conversationGroupsProvider = Provider<List<ConversationGroup>>((ref) {
   // Regrouper les conversations en utilisant les compteurs DB
   return ConversationGroupingService.groupConversations(
     state.conversations,
-    localUnreadCounts: {}, // Plus besoin de compteurs locaux, on utilise conversation.unreadCount
   );
 });
