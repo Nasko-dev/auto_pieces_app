@@ -21,6 +21,12 @@ class ConversationItemWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // DEBUG: Vérifier si build est appelé
+    if (conversation is Conversation) {
+      final conv = conversation as Conversation;
+      print('🔥 [Widget-Build] DEBUT build pour conversation: ${conv.id}');
+    }
+
     // Déterminer le type de conversation et récupérer le compteur local
     final isParticulier = conversation is ParticulierConversation;
     int unreadCount = 0;
