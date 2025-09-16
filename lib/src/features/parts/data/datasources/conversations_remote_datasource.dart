@@ -126,10 +126,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             vehicle_model,
             vehicle_year,
             vehicle_engine,
-            part_type
-          ),
-          particuliers (
-            first_name
+            part_type,
+            particuliers (
+              first_name
+            )
           )
         ''')
         .eq('seller_id', sellerId)
@@ -635,11 +635,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       partType = partRequest['part_type'];
     }
 
-    // Extraire le prénom du particulier depuis particuliers
+    // Extraire le prénom du particulier depuis part_requests.particuliers
     String? particulierFirstName;
-    if (json['particuliers'] != null) {
-      final particulier = json['particuliers'] as Map<String, dynamic>;
-      particulierFirstName = particulier['first_name'];
+    if (json['part_requests'] != null) {
+      final partRequest = json['part_requests'] as Map<String, dynamic>;
+      if (partRequest['particuliers'] != null) {
+        final particulier = partRequest['particuliers'] as Map<String, dynamic>;
+        particulierFirstName = particulier['first_name'];
+      }
     }
 
     return {
