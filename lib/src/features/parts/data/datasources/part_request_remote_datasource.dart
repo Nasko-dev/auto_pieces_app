@@ -916,9 +916,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
           // Récupérer les infos du vendeur
           final sellerData = convData['sellers'];
-          final sellerName = sellerData != null 
+          final sellerName = sellerData != null
               ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
               : 'Vendeur inconnu';
+          final sellerCompanyName = sellerData?['company_name'];
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
@@ -941,8 +942,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             sellerName: sellerName,
             sellerId: convData['seller_id'],
             messages: messages,
-            lastMessageAt: messages.isNotEmpty 
-                ? messages.last.createdAt 
+            lastMessageAt: messages.isNotEmpty
+                ? messages.last.createdAt
                 : DateTime.parse(convData['created_at']),
             status: ConversationStatus.values.firstWhere(
               (status) => status.name == (convData['status'] ?? 'pending'),
@@ -950,12 +951,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             ),
             hasUnreadMessages: () {
               final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
-              print('💾 [Datasource-Particulier] DB unread count pour ${convData['id']}: $dbUnreadCount');
               return dbUnreadCount > 0;
             }(),
             unreadCount: () {
               final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
-              print('💾 [Datasource-Particulier] FINAL DB Conversation ${convData['id']}: $dbUnreadCount messages non lus');
               return dbUnreadCount;
             }(),
             vehiclePlate: partRequestData['vehicle_plate'],
@@ -963,6 +962,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             partNames: List<String>.from(partRequestData['part_names'] ?? []),
             createdAt: DateTime.parse(convData['created_at']),
             updatedAt: DateTime.parse(convData['updated_at']),
+            sellerCompanyName: sellerCompanyName,
           );
 
           result.add(conversation);
@@ -1009,6 +1009,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         vehiclePlate: 'AA-123-BB',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        sellerCompanyName: 'Entreprise Test',
       );
     } catch (e) {
       print('💥 [DataSource] Erreur récupération conversation: $e');

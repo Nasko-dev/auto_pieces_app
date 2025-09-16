@@ -33,6 +33,7 @@ mixin _$ParticulierConversation {
   String? get partType => throw _privateConstructorUsedError;
   List<String>? get partNames => throw _privateConstructorUsedError;
   bool? get hasNewMessages => throw _privateConstructorUsedError;
+  String? get sellerCompanyName => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $ParticulierConversationCopyWith<ParticulierConversation> get copyWith =>
@@ -62,7 +63,8 @@ abstract class $ParticulierConversationCopyWith<$Res> {
       String? vehiclePlate,
       String? partType,
       List<String>? partNames,
-      bool? hasNewMessages});
+      bool? hasNewMessages,
+      String? sellerCompanyName});
 
   $PartRequestCopyWith<$Res> get partRequest;
 }
@@ -98,6 +100,7 @@ class _$ParticulierConversationCopyWithImpl<$Res,
     Object? partType = freezed,
     Object? partNames = freezed,
     Object? hasNewMessages = freezed,
+    Object? sellerCompanyName = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -168,6 +171,10 @@ class _$ParticulierConversationCopyWithImpl<$Res,
           ? _value.hasNewMessages
           : hasNewMessages // ignore: cast_nullable_to_non_nullable
               as bool?,
+      sellerCompanyName: freezed == sellerCompanyName
+          ? _value.sellerCompanyName
+          : sellerCompanyName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -206,7 +213,8 @@ abstract class _$$ParticulierConversationImplCopyWith<$Res>
       String? vehiclePlate,
       String? partType,
       List<String>? partNames,
-      bool? hasNewMessages});
+      bool? hasNewMessages,
+      String? sellerCompanyName});
 
   @override
   $PartRequestCopyWith<$Res> get partRequest;
@@ -242,6 +250,7 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
     Object? partType = freezed,
     Object? partNames = freezed,
     Object? hasNewMessages = freezed,
+    Object? sellerCompanyName = freezed,
   }) {
     return _then(_$ParticulierConversationImpl(
       id: null == id
@@ -312,6 +321,10 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
           ? _value.hasNewMessages
           : hasNewMessages // ignore: cast_nullable_to_non_nullable
               as bool?,
+      sellerCompanyName: freezed == sellerCompanyName
+          ? _value.sellerCompanyName
+          : sellerCompanyName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -336,7 +349,8 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
       this.vehiclePlate,
       this.partType,
       final List<String>? partNames,
-      this.hasNewMessages})
+      this.hasNewMessages,
+      this.sellerCompanyName})
       : _messages = messages,
         _partNames = partNames;
 
@@ -390,10 +404,12 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
 
   @override
   final bool? hasNewMessages;
+  @override
+  final String? sellerCompanyName;
 
   @override
   String toString() {
-    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages)';
+    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages, sellerCompanyName: $sellerCompanyName)';
   }
 
   @override
@@ -432,7 +448,9 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
             const DeepCollectionEquality()
                 .equals(other._partNames, _partNames) &&
             (identical(other.hasNewMessages, hasNewMessages) ||
-                other.hasNewMessages == hasNewMessages));
+                other.hasNewMessages == hasNewMessages) &&
+            (identical(other.sellerCompanyName, sellerCompanyName) ||
+                other.sellerCompanyName == sellerCompanyName));
   }
 
   @override
@@ -454,7 +472,8 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
       vehiclePlate,
       partType,
       const DeepCollectionEquality().hash(_partNames),
-      hasNewMessages);
+      hasNewMessages,
+      sellerCompanyName);
 
   @JsonKey(ignore: true)
   @override
@@ -482,7 +501,8 @@ abstract class _ParticulierConversation implements ParticulierConversation {
       final String? vehiclePlate,
       final String? partType,
       final List<String>? partNames,
-      final bool? hasNewMessages}) = _$ParticulierConversationImpl;
+      final bool? hasNewMessages,
+      final String? sellerCompanyName}) = _$ParticulierConversationImpl;
 
   @override
   String get id;
@@ -518,6 +538,8 @@ abstract class _ParticulierConversation implements ParticulierConversation {
   List<String>? get partNames;
   @override
   bool? get hasNewMessages;
+  @override
+  String? get sellerCompanyName;
   @override
   @JsonKey(ignore: true)
   _$$ParticulierConversationImplCopyWith<_$ParticulierConversationImpl>

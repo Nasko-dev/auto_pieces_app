@@ -25,5 +25,6 @@ class ParticulierConversation with _$ParticulierConversation {
     String? partType,
     List<String>? partNames,
     bool? hasNewMessages,
+    String? sellerCompanyName,
   }) = _ParticulierConversation;
 }
