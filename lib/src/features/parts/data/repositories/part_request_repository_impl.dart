@@ -1,17 +1,13 @@
 import 'package:dartz/dartz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/network_info.dart';
-import '../../../../core/services/device_service.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
-import '../../domain/entities/particulier_message.dart';
-import '../../domain/entities/conversation_enums.dart';
 import '../../domain/repositories/part_request_repository.dart';
 import '../datasources/part_request_remote_datasource.dart';
 
@@ -456,7 +452,7 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     return ErrorHandler.handleVoidAsync(
       () => _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId),
       checkNetwork: true,
-      networkCheck: _networkInfo.isConnected,
+      networkCheck: () => _networkInfo.isConnected,
       context: 'incrementUnreadCountForUser',
     );
   }
@@ -466,7 +462,7 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     return ErrorHandler.handleVoidAsync(
       () => _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId),
       checkNetwork: true,
-      networkCheck: _networkInfo.isConnected,
+      networkCheck: () => _networkInfo.isConnected,
       context: 'markParticulierMessagesAsRead',
     );
   }
