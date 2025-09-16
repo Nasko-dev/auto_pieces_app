@@ -21,12 +21,6 @@ class ConversationItemWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // DEBUG: Vérifier si build est appelé
-    if (conversation is Conversation) {
-      final conv = conversation as Conversation;
-      print('🔥 [Widget-Build] DEBUT build pour conversation: ${conv.id}');
-    }
-
     // Déterminer le type de conversation et récupérer le compteur local
     final isParticulier = conversation is ParticulierConversation;
     int unreadCount = 0;
@@ -43,14 +37,7 @@ class ConversationItemWidget extends ConsumerWidget {
     final sellerName =
         isParticulier
             ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
-            : (() {
-                // DEBUG: Log direct dans build
-                if (!isParticulier && conversation is Conversation) {
-                  final conv = conversation as Conversation;
-                  print('🚨 [Widget-Build] Conv ${conv.id}: particulierFirstName = "${conv.particulierFirstName}"');
-                }
-                return _getParticulierDisplayName() ?? 'Particulier';
-              })(); // Côté vendeur : afficher le nom du particulier
+            : (_getParticulierDisplayName() ?? 'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -395,17 +382,12 @@ class ConversationItemWidget extends ConsumerWidget {
     if (conversation is Conversation) {
       final conv = conversation as Conversation;
 
-      // DEBUG: Afficher le prénom reçu
-      print('🐛 [Widget] Conv ${conv.id}: particulierFirstName = "${conv.particulierFirstName}"');
-
       // Priorité 1 : Utiliser le prénom du particulier si disponible
       if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
-        print('✅ [Widget] Utilisation du prénom: "${conv.particulierFirstName}"');
         return conv.particulierFirstName!;
       }
 
       // Fallback : utiliser le nom du véhicule si pas de prénom
-      print('⚠️ [Widget] Pas de prénom, fallback vers véhicule');
       return _getMotorName();
     }
     return null;

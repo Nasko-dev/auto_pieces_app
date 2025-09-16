@@ -357,28 +357,21 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
 
   // Obtenir le nom d'affichage du particulier
   String _getParticulierDisplayName(ConversationGroup group) {
-    // Essayer de récupérer le prénom depuis la première conversation du groupe
     if (group.conversations.isNotEmpty) {
       final firstConv = group.conversations.first;
 
-      // DEBUG: Afficher le prénom reçu
-      print('🐛 [GroupCard] Conv ${firstConv.id}: particulierFirstName = "${firstConv.particulierFirstName}"');
-
       // Priorité 1 : Utiliser le prénom du particulier si disponible
       if (firstConv.particulierFirstName != null && firstConv.particulierFirstName!.isNotEmpty) {
-        print('✅ [GroupCard] Utilisation du prénom: "${firstConv.particulierFirstName}"');
         return firstConv.particulierFirstName!;
       }
 
       // Fallback : utiliser les informations du véhicule
       final vehicleInfo = _getVehicleInfo(firstConv);
       if (vehicleInfo != null && vehicleInfo.isNotEmpty) {
-        print('⚠️ [GroupCard] Fallback vers véhicule: "$vehicleInfo"');
         return vehicleInfo;
       }
     }
 
-    print('⚠️ [GroupCard] Fallback vers "Particulier"');
     return 'Particulier';
   }
 

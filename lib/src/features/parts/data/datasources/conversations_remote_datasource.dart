@@ -135,32 +135,36 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    final conversations = <Conversation>[];
+    // Optimisation : Récupérer tous les prénoms en une seule requête
+    final userIds = response.map((json) => json['user_id'] as String).toSet().toList();
+    Map<String, String> prenoms = {};
 
+    if (userIds.isNotEmpty) {
+      try {
+        final prenomsResponse = await _supabaseClient
+            .from('particuliers')
+            .select('id, first_name')
+            .inFilter('id', userIds);
+
+        for (final particulier in prenomsResponse) {
+          if (particulier['first_name'] != null) {
+            prenoms[particulier['id']] = particulier['first_name'];
+          }
+        }
+      } catch (e) {
+        // Silencieusement ignorer les erreurs de récupération des prénoms
+      }
+    }
+
+    // Convertir les conversations avec les prénoms récupérés
+    final conversations = <Conversation>[];
     for (final json in response) {
       final unreadForSeller = json['unread_count_for_seller'] ?? 0;
       print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count_for_seller: $unreadForSeller)');
 
-      // Récupérer le prénom du particulier avec une requête séparée
-      String? particulierFirstName;
-      try {
-        final userId = json['user_id'] as String;
-        final particulierResponse = await _supabaseClient
-            .from('particuliers')
-            .select('first_name')
-            .eq('id', userId)
-            .limit(1);
-
-        if (particulierResponse.isNotEmpty) {
-          particulierFirstName = particulierResponse.first['first_name'];
-          print('👤 [Datasource] Prénom récupéré pour $userId: $particulierFirstName');
-        }
-      } catch (e) {
-        print('⚠️ [Datasource] Erreur récupération prénom: $e');
-      }
-
-      // Ajouter le prénom au JSON avant le mapping
-      json['particulier_first_name'] = particulierFirstName;
+      // Ajouter le prénom au JSON depuis le cache
+      final userId = json['user_id'] as String;
+      json['particulier_first_name'] = prenoms[userId];
 
       conversations.add(Conversation.fromJson(_mapSupabaseToConversationForSeller(json)));
     }
