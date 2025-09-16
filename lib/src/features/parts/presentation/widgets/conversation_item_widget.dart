@@ -36,7 +36,7 @@ class ConversationItemWidget extends ConsumerWidget {
     final hasUnread = unreadCount > 0;
     final sellerName =
         isParticulier
-            ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
+            ? _getSellerDisplayName() // Côté particulier : afficher le nom de l'entreprise ou fallback
             : (_getParticulierDisplayName() ?? 'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
@@ -320,14 +320,6 @@ class ConversationItemWidget extends ConsumerWidget {
   }
 
   // Helper methods pour récupérer les données selon le type de conversation
-  String? _getSellerName() {
-    if (conversation is Conversation) {
-      return (conversation as Conversation).sellerName;
-    } else if (conversation is ParticulierConversation) {
-      return (conversation as ParticulierConversation).sellerName;
-    }
-    return null;
-  }
 
   String? _getRequestTitle() {
     if (conversation is Conversation) {
@@ -376,6 +368,25 @@ class ConversationItemWidget extends ConsumerWidget {
       return particConv.lastMessageAt;
     }
     return null;
+  }
+
+  String _getSellerDisplayName() {
+    if (conversation is ParticulierConversation) {
+      final conv = conversation as ParticulierConversation;
+
+      // Priorité 1 : Utiliser le nom de l'entreprise si disponible
+      if (conv.sellerCompanyName != null && conv.sellerCompanyName!.isNotEmpty) {
+        return conv.sellerCompanyName!;
+      }
+
+      // Fallback : utiliser le nom complet du vendeur
+      if (conv.sellerName.isNotEmpty) {
+        return conv.sellerName;
+      }
+    }
+
+    // Fallback final
+    return 'Vendeur Professionnel';
   }
 
   String? _getParticulierDisplayName() {
