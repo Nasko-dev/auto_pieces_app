@@ -20,6 +20,10 @@ _$SellerSettingsImpl _$$SellerSettingsImplFromJson(Map<String, dynamic> json) =>
       country: json['country'] as String?,
       siret: json['siret'] as String?,
       description: json['description'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      emailNotificationsEnabled:
+          json['emailNotificationsEnabled'] as bool? ?? true,
       isActive: json['isActive'] as bool?,
       preferences: json['preferences'] as Map<String, dynamic>?,
       createdAt: json['createdAt'] == null
@@ -45,6 +49,9 @@ Map<String, dynamic> _$$SellerSettingsImplToJson(
       'country': instance.country,
       'siret': instance.siret,
       'description': instance.description,
+      'avatarUrl': instance.avatarUrl,
+      'notificationsEnabled': instance.notificationsEnabled,
+      'emailNotificationsEnabled': instance.emailNotificationsEnabled,
       'isActive': instance.isActive,
       'preferences': instance.preferences,
       'createdAt': instance.createdAt?.toIso8601String(),

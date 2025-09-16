@@ -32,6 +32,9 @@ mixin _$SellerSettings {
   String? get country => throw _privateConstructorUsedError;
   String? get siret => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+  String? get avatarUrl => throw _privateConstructorUsedError;
+  bool get notificationsEnabled => throw _privateConstructorUsedError;
+  bool get emailNotificationsEnabled => throw _privateConstructorUsedError;
   bool? get isActive => throw _privateConstructorUsedError;
   Map<String, dynamic>? get preferences => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -62,6 +65,9 @@ abstract class $SellerSettingsCopyWith<$Res> {
       String? country,
       String? siret,
       String? description,
+      String? avatarUrl,
+      bool notificationsEnabled,
+      bool emailNotificationsEnabled,
       bool? isActive,
       Map<String, dynamic>? preferences,
       DateTime? createdAt,
@@ -93,6 +99,9 @@ class _$SellerSettingsCopyWithImpl<$Res, $Val extends SellerSettings>
     Object? country = freezed,
     Object? siret = freezed,
     Object? description = freezed,
+    Object? avatarUrl = freezed,
+    Object? notificationsEnabled = null,
+    Object? emailNotificationsEnabled = null,
     Object? isActive = freezed,
     Object? preferences = freezed,
     Object? createdAt = freezed,
@@ -147,6 +156,18 @@ class _$SellerSettingsCopyWithImpl<$Res, $Val extends SellerSettings>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      avatarUrl: freezed == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notificationsEnabled: null == notificationsEnabled
+          ? _value.notificationsEnabled
+          : notificationsEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      emailNotificationsEnabled: null == emailNotificationsEnabled
+          ? _value.emailNotificationsEnabled
+          : emailNotificationsEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       isActive: freezed == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -188,6 +209,9 @@ abstract class _$$SellerSettingsImplCopyWith<$Res>
       String? country,
       String? siret,
       String? description,
+      String? avatarUrl,
+      bool notificationsEnabled,
+      bool emailNotificationsEnabled,
       bool? isActive,
       Map<String, dynamic>? preferences,
       DateTime? createdAt,
@@ -217,6 +241,9 @@ class __$$SellerSettingsImplCopyWithImpl<$Res>
     Object? country = freezed,
     Object? siret = freezed,
     Object? description = freezed,
+    Object? avatarUrl = freezed,
+    Object? notificationsEnabled = null,
+    Object? emailNotificationsEnabled = null,
     Object? isActive = freezed,
     Object? preferences = freezed,
     Object? createdAt = freezed,
@@ -271,6 +298,18 @@ class __$$SellerSettingsImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      avatarUrl: freezed == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notificationsEnabled: null == notificationsEnabled
+          ? _value.notificationsEnabled
+          : notificationsEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      emailNotificationsEnabled: null == emailNotificationsEnabled
+          ? _value.emailNotificationsEnabled
+          : emailNotificationsEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       isActive: freezed == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -307,6 +346,9 @@ class _$SellerSettingsImpl implements _SellerSettings {
       this.country,
       this.siret,
       this.description,
+      this.avatarUrl,
+      this.notificationsEnabled = true,
+      this.emailNotificationsEnabled = true,
       this.isActive,
       final Map<String, dynamic>? preferences,
       this.createdAt,
@@ -341,6 +383,14 @@ class _$SellerSettingsImpl implements _SellerSettings {
   @override
   final String? description;
   @override
+  final String? avatarUrl;
+  @override
+  @JsonKey()
+  final bool notificationsEnabled;
+  @override
+  @JsonKey()
+  final bool emailNotificationsEnabled;
+  @override
   final bool? isActive;
   final Map<String, dynamic>? _preferences;
   @override
@@ -359,7 +409,7 @@ class _$SellerSettingsImpl implements _SellerSettings {
 
   @override
   String toString() {
-    return 'SellerSettings(sellerId: $sellerId, companyName: $companyName, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, address: $address, city: $city, postalCode: $postalCode, country: $country, siret: $siret, description: $description, isActive: $isActive, preferences: $preferences, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SellerSettings(sellerId: $sellerId, companyName: $companyName, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, address: $address, city: $city, postalCode: $postalCode, country: $country, siret: $siret, description: $description, avatarUrl: $avatarUrl, notificationsEnabled: $notificationsEnabled, emailNotificationsEnabled: $emailNotificationsEnabled, isActive: $isActive, preferences: $preferences, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -385,6 +435,13 @@ class _$SellerSettingsImpl implements _SellerSettings {
             (identical(other.siret, siret) || other.siret == siret) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
+            (identical(other.notificationsEnabled, notificationsEnabled) ||
+                other.notificationsEnabled == notificationsEnabled) &&
+            (identical(other.emailNotificationsEnabled,
+                    emailNotificationsEnabled) ||
+                other.emailNotificationsEnabled == emailNotificationsEnabled) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             const DeepCollectionEquality()
@@ -397,24 +454,28 @@ class _$SellerSettingsImpl implements _SellerSettings {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      sellerId,
-      companyName,
-      firstName,
-      lastName,
-      email,
-      phone,
-      address,
-      city,
-      postalCode,
-      country,
-      siret,
-      description,
-      isActive,
-      const DeepCollectionEquality().hash(_preferences),
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        sellerId,
+        companyName,
+        firstName,
+        lastName,
+        email,
+        phone,
+        address,
+        city,
+        postalCode,
+        country,
+        siret,
+        description,
+        avatarUrl,
+        notificationsEnabled,
+        emailNotificationsEnabled,
+        isActive,
+        const DeepCollectionEquality().hash(_preferences),
+        createdAt,
+        updatedAt
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -445,6 +506,9 @@ abstract class _SellerSettings implements SellerSettings {
       final String? country,
       final String? siret,
       final String? description,
+      final String? avatarUrl,
+      final bool notificationsEnabled,
+      final bool emailNotificationsEnabled,
       final bool? isActive,
       final Map<String, dynamic>? preferences,
       final DateTime? createdAt,
@@ -477,6 +541,12 @@ abstract class _SellerSettings implements SellerSettings {
   String? get siret;
   @override
   String? get description;
+  @override
+  String? get avatarUrl;
+  @override
+  bool get notificationsEnabled;
+  @override
+  bool get emailNotificationsEnabled;
   @override
   bool? get isActive;
   @override

@@ -27,6 +27,10 @@ class GetSellerSettings {
           .eq('id', sellerId)
           .single();
 
+      final prefs = response['preferences'] != null
+          ? Map<String, dynamic>.from(response['preferences'])
+          : <String, dynamic>{};
+
       final settings = SellerSettings(
         sellerId: response['id'],
         companyName: response['company_name'],
@@ -40,10 +44,11 @@ class GetSellerSettings {
         country: response['country'],
         siret: response['siret'],
         description: response['description'],
+        avatarUrl: response['avatar_url'],
+        notificationsEnabled: prefs['notifications_enabled'] ?? true,
+        emailNotificationsEnabled: prefs['email_notifications_enabled'] ?? true,
         isActive: response['is_active'] ?? true,
-        preferences: response['preferences'] != null
-            ? Map<String, dynamic>.from(response['preferences'])
-            : null,
+        preferences: prefs,
         createdAt: response['created_at'] != null
             ? DateTime.parse(response['created_at'])
             : null,
@@ -65,7 +70,7 @@ class GetSellerSettings {
 class SaveSellerSettings {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<Either<Failure, void>> call(SellerSettings settings) async {
+  Future<Either<Failure, SellerSettings>> call(SellerSettings settings) async {
     try {
       await _supabase.from('sellers').update({
         'company_name': settings.companyName,
@@ -79,11 +84,19 @@ class SaveSellerSettings {
         'country': settings.country,
         'siret': settings.siret,
         'description': settings.description,
-        'preferences': settings.preferences,
+        'avatar_url': settings.avatarUrl,
+        'preferences': {
+          ...?settings.preferences,
+          'notifications_enabled': settings.notificationsEnabled,
+          'email_notifications_enabled': settings.emailNotificationsEnabled,
+        },
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', settings.sellerId);
 
-      return const Right(null);
+      // Retourner les paramètres mis à jour
+      return Right(settings.copyWith(
+        updatedAt: DateTime.now(),
+      ));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
