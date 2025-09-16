@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/french_license_plate.dart';
 import '../../widgets/message_bubble_widget.dart';
@@ -88,7 +90,14 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                     Expanded(
                       child: _buildMessagesList(conversation.messages, conversation, theme),
                     ),
-                    _buildMessageInput(theme),
+                    ChatInputWidget(
+                      controller: _messageController,
+                      onSend: (content) => _sendMessage(),
+                      onCamera: _takePhoto,
+                      onGallery: _pickFromGallery,
+                      onOffer: null, // Pas d'offres pour les particuliers
+                      isLoading: _isSending,
+                    ),
                   ],
                 );
               }(),
@@ -300,84 +309,74 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
+  Future<void> _takePhoto() async {
+    print('📷 [UI-Particulier] Prise de photo');
 
-  Widget _buildMessageInput(ThemeData theme) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: MediaQuery.of(context).padding.bottom + 8,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200, width: 1),
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        print('✅ [UI-Particulier] Photo prise: ${photo.path}');
+        // TODO: Envoyer la photo en tant que message
+        _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-Particulier] Erreur prise photo: $e');
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    print('🖼️ [UI-Particulier] Sélection galerie');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        print('✅ [UI-Particulier] Image sélectionnée: ${image.path}');
+        // TODO: Envoyer l'image en tant que message
+        _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-Particulier] Erreur galerie: $e');
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
         ),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6), // Gris Instagram
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: TextField(
-                  controller: _messageController,
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(fontSize: 15),
-                  decoration: const InputDecoration(
-                    hintText: 'Message...',
-                    hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Color(0xFF3B82F6), // Bleu Instagram
-                shape: BoxShape.circle,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: _isSending ? null : _sendMessage,
-                  child: Center(
-                    child: _isSending
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.send,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+      );
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildErrorView(BuildContext context, String error) {
