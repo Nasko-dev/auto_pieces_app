@@ -311,6 +311,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
+      // ✅ WORKAROUND: Si c'est un vendeur, remettre compteur à 0 (pas de self-count)
+      if (senderTypeString == 'seller') {
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count': 0})
+            .eq('id', conversationId);
+        print('🔄 [Datasource] Reset compteur vendeur pour: $conversationId');
+      }
+
       return Message.fromJson(_mapSupabaseToMessage(response));
       
     } catch (e) {

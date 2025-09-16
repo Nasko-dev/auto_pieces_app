@@ -141,9 +141,17 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
     print('👤 [Controller] UserId actuel: $userId');
     print('🔄 [Controller] senderId == userId ? ${senderId == userId}');
+    print('🧐 [Controller] DEBUG: senderId="$senderId" (${senderId.runtimeType})');
+    print('🧐 [Controller] DEBUG: userId="$userId" (${userId.runtimeType})');
+    print('🧐 [Controller] DEBUG: senderId.toString()="${senderId.toString()}"');
+    print('🧐 [Controller] DEBUG: userId.toString()="${userId.toString()}"');
 
-    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
-    if (senderId == userId) {
+    // ✅ CRITICAL: Vérifications multiples pour être sûr que ce n'est pas notre message
+    final isOwnMessage = senderId == userId ||
+                        senderId.toString() == userId.toString() ||
+                        senderId.toString() == userId;
+
+    if (isOwnMessage) {
       print('🚫 [Controller] C\'est notre propre message → IGNORER COMPLÈTEMENT');
       return;  // SORTIR IMMÉDIATEMENT
     }
