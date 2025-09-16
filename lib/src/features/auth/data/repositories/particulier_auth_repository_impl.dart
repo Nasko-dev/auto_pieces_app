@@ -5,6 +5,7 @@ import '../../domain/entities/particulier.dart';
 import '../../domain/repositories/particulier_auth_repository.dart';
 import '../datasources/particulier_auth_remote_datasource.dart';
 import '../datasources/particulier_auth_local_datasource.dart';
+import '../models/particulier_model.dart';
 
 class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
   final ParticulierAuthRemoteDataSource remoteDataSource;
@@ -113,6 +114,29 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
     } catch (e) {
       print('❌ [Repository] Erreur vérification: $e');
       return const Right(false);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Particulier>> updateParticulier(Particulier particulier) async {
+    try {
+      print('💾 [Repository] Mise à jour particulier: ${particulier.id}');
+      
+      // Convertir en ParticulierModel pour la datasource
+      final particulierModel = ParticulierModel.fromEntity(particulier);
+      final updatedParticulier = await remoteDataSource.updateParticulier(particulierModel);
+      
+      // Mettre en cache la version mise à jour
+      await localDataSource.cacheParticulier(updatedParticulier);
+      
+      print('✅ [Repository] Particulier mis à jour avec succès');
+      return Right(updatedParticulier);
+    } on ServerException catch (e) {
+      print('❌ [Repository] Erreur serveur: ${e.message}');
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Erreur inattendue: $e');
+      return Left(ServerFailure('Erreur lors de la mise à jour: $e'));
     }
   }
 }

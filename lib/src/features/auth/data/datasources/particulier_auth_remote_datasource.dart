@@ -11,6 +11,8 @@ abstract class ParticulierAuthRemoteDataSource {
   Future<ParticulierModel> getCurrentParticulier();
 
   Future<bool> isLoggedIn();
+
+  Future<ParticulierModel> updateParticulier(ParticulierModel particulier);
 }
 
 class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSource {
@@ -243,6 +245,39 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
       return user != null;
     } catch (e) {
       return false;
+    }
+  }
+
+  @override
+  Future<ParticulierModel> updateParticulier(ParticulierModel particulier) async {
+    try {
+      print('💾 [DataSource] Mise à jour particulier: ${particulier.id}');
+
+      final dataToUpdate = {
+        'first_name': particulier.firstName,
+        'last_name': particulier.lastName,
+        'phone': particulier.phone,
+        'address': particulier.address,
+        'city': particulier.city,
+        'zip_code': particulier.zipCode,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      print('📊 [DataSource] Données à mettre à jour: $dataToUpdate');
+
+      final response = await supabaseClient
+          .from('particuliers')
+          .update(dataToUpdate)
+          .eq('id', particulier.id)
+          .select()
+          .single();
+
+      print('✅ [DataSource] Particulier mis à jour: $response');
+
+      return ParticulierModel.fromJson(response);
+    } catch (e) {
+      print('❌ [DataSource] Erreur mise à jour: $e');
+      throw ServerException('Erreur lors de la mise à jour du particulier: $e');
     }
   }
 }
