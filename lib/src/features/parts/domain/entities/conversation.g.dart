@@ -21,6 +21,9 @@ _$ConversationImpl _$$ConversationImplFromJson(Map<String, dynamic> json) =>
       sellerName: json['sellerName'] as String?,
       sellerCompany: json['sellerCompany'] as String?,
       sellerAvatarUrl: json['sellerAvatarUrl'] as String?,
+      userName: json['userName'] as String?,
+      userDisplayName: json['userDisplayName'] as String?,
+      userAvatarUrl: json['userAvatarUrl'] as String?,
       requestTitle: json['requestTitle'] as String?,
       lastMessageContent: json['lastMessageContent'] as String?,
       lastMessageSenderType: $enumDecodeNullable(
@@ -50,6 +53,9 @@ Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
       'sellerName': instance.sellerName,
       'sellerCompany': instance.sellerCompany,
       'sellerAvatarUrl': instance.sellerAvatarUrl,
+      'userName': instance.userName,
+      'userDisplayName': instance.userDisplayName,
+      'userAvatarUrl': instance.userAvatarUrl,
       'requestTitle': instance.requestTitle,
       'lastMessageContent': instance.lastMessageContent,
       'lastMessageSenderType':

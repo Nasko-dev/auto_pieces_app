@@ -41,6 +41,10 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
         return 'Mes annonces';
       case '/seller/messages':
         return 'Messages';
+      case '/seller/profile':
+        return 'Mon profil';
+      case '/seller/settings':
+        return 'Paramètres';
       default:
         return 'Tableau de bord';
     }

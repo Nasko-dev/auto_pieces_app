@@ -66,7 +66,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       body: conversationsAsync.isLoading 
         ? const Center(child: CircularProgressIndicator())
         : conversationsAsync.error != null
@@ -103,7 +103,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         bottom: 8,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -116,7 +116,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
           ),
           _buildSellerAvatar(conversation),
           const SizedBox(width: 12),
@@ -127,18 +127,19 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                 Text(
                   _getSellerDisplayName(conversation),
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
+                    color: Colors.black,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  _getSellerSubtitle(conversation),
+                  'En ligne',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -147,10 +148,38 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
             ),
           ),
           IconButton(
+            icon: const Icon(Icons.phone_outlined, color: Colors.black),
             onPressed: () {
-              _showOptionsMenu(context);
+              // TODO: Functionality téléphone
             },
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            onPressed: () {
+              // TODO: Functionality vidéo
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
+            onSelected: (value) => _handleMenuAction(value),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'block',
+                child: ListTile(
+                  leading: Icon(Icons.block),
+                  title: Text('Bloquer le vendeur'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -236,23 +265,25 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: sortedMessages.length,
       itemBuilder: (context, index) {
         final message = sortedMessages[index];
         final isFromMe = message.isFromParticulier;
-        final showTimestamp = index == 0 || 
+        final showTimestamp = index == 0 ||
             _shouldShowTimestamp(
               sortedMessages[index - 1].createdAt,
               message.createdAt,
             );
 
-        return Column(
-          children: [
-            if (showTimestamp) _buildTimestamp(message.createdAt),
-            _buildMessageBubbleWithAvatar(message, conversation),
-            const SizedBox(height: 4),
-          ],
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            children: [
+              if (showTimestamp) _buildTimestamp(message.createdAt),
+              _buildMessageBubbleWithAvatar(message, conversation),
+            ],
+          ),
         );
       },
     );
@@ -272,74 +303,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
-  Widget _buildMessageBubble(dynamic message, bool isFromMe, ThemeData theme) {
-    return Align(
-      alignment: isFromMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isFromMe 
-            ? theme.colorScheme.primary
-            : Colors.white,
-          borderRadius: BorderRadius.circular(20).copyWith(
-            bottomRight: isFromMe ? const Radius.circular(4) : null,
-            bottomLeft: !isFromMe ? const Radius.circular(4) : null,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message.content,
-              style: TextStyle(
-                fontSize: 16,
-                color: isFromMe ? Colors.white : Colors.black87,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  _formatMessageTime(message.createdAt),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isFromMe 
-                      ? Colors.white.withOpacity(0.7)
-                      : Colors.grey[600],
-                  ),
-                ),
-                if (isFromMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    message.isRead ? Icons.done_all : Icons.done,
-                    size: 16,
-                    color: message.isRead 
-                      ? Colors.blue[200]
-                      : Colors.white.withOpacity(0.7),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildMessageInput(ThemeData theme) {
     return Container(
@@ -349,10 +312,10 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         top: 8,
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(color: Colors.grey, width: 0.2),
+          top: BorderSide(color: Colors.grey.shade200, width: 1),
         ),
       ),
       child: SafeArea(
@@ -361,20 +324,22 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.grey[300]!),
+                  color: const Color(0xFFF3F4F6), // Gris Instagram
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: TextField(
                   controller: _messageController,
                   maxLines: null,
                   textCapitalization: TextCapitalization.sentences,
+                  style: const TextStyle(fontSize: 15),
                   decoration: const InputDecoration(
-                    hintText: 'Tapez votre message...',
+                    hintText: 'Message...',
+                    hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 12,
+                      vertical: 10,
                     ),
                   ),
                 ),
@@ -382,22 +347,22 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
             ),
             const SizedBox(width: 8),
             Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(24),
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Color(0xFF3B82F6), // Bleu Instagram
+                shape: BoxShape.circle,
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(16),
                   onTap: _isSending ? null : _sendMessage,
                   child: Center(
-                    child: _isSending 
+                    child: _isSending
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 16,
+                          height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -406,7 +371,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                       : const Icon(
                           Icons.send,
                           color: Colors.white,
-                          size: 20,
+                          size: 16,
                         ),
                   ),
                 ),
@@ -510,33 +475,15 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     }
   }
 
-  void _showOptionsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Supprimer la conversation'),
-              onTap: () {
-                Navigator.pop(context);
-                _deleteConversation();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.block),
-              title: const Text('Bloquer le vendeur'),
-              onTap: () {
-                Navigator.pop(context);
-                _blockConversation();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'delete':
+        _deleteConversation();
+        break;
+      case 'block':
+        _blockConversation();
+        break;
+    }
   }
 
   void _deleteConversation() async {
@@ -629,21 +576,24 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   Widget _buildSellerAvatar(dynamic conversation) {
     if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
-      // Afficher la vraie photo de profil du vendeur
+      // Avatar style Instagram avec vraie photo
       return Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
         ),
         child: ClipOval(
           child: Image.network(
             conversation.sellerAvatarUrl!,
-            width: 40,
-            height: 40,
+            width: 32,
+            height: 32,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback si l'image ne charge pas
               return _buildDefaultSellerAvatar();
             },
             loadingBuilder: (context, child, loadingProgress) {
@@ -654,23 +604,37 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         ),
       );
     } else {
-      // Avatar par défaut
       return _buildDefaultSellerAvatar();
     }
   }
 
   Widget _buildDefaultSellerAvatar() {
     return Container(
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF405DE6), const Color(0xFF5851DB)], // Gradient Instagram bleu
+        ),
         shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: const Icon(
-        Icons.store,
+        Icons.business,
         color: Colors.white,
-        size: 20,
+        size: 16,
       ),
     );
   }

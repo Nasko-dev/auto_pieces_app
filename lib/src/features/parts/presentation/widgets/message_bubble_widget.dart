@@ -34,8 +34,8 @@ class MessageBubbleWidget extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         margin: EdgeInsets.only(
-          left: isFromCurrentUser ? 64 : 8,
-          right: isFromCurrentUser ? 8 : 64,
+          left: isFromCurrentUser ? 80 : 8,
+          right: isFromCurrentUser ? 8 : 80,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -53,20 +53,17 @@ class MessageBubbleWidget extends StatelessWidget {
                 crossAxisAlignment: isFromCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isFromCurrentUser
-                    ? Theme.of(context).primaryColor
+                    ? const Color(0xFF3B82F6) // Bleu Instagram
                     : isOffer
                         ? Colors.green[50]
-                        : const Color(0xFFE6F3FF), // Bleu clair légèrement assombri
-                borderRadius: BorderRadius.circular(16).copyWith(
-                  bottomRight: isFromCurrentUser ? const Radius.circular(4) : null,
-                  bottomLeft: !isFromCurrentUser ? const Radius.circular(4) : null,
-                ),
+                        : const Color(0xFFF3F4F6), // Gris clair Instagram
+                borderRadius: BorderRadius.circular(20), // Plus arrondi style Instagram
                 border: isOffer
                     ? Border.all(color: Colors.green, width: 1)
-                    : null,
+                    : (!isFromCurrentUser ? Border.all(color: Colors.grey.shade200, width: 1) : null),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +78,8 @@ class MessageBubbleWidget extends StatelessWidget {
                           : isOffer
                               ? Colors.green[800]
                               : Colors.black87,
-                      fontSize: 16,
+                      fontSize: 15, // Légèrement plus petit style Instagram
+                      height: 1.4,
                     ),
                   ),
                   
@@ -242,18 +240,29 @@ class MessageBubbleWidget extends StatelessWidget {
 
   Widget _buildOtherUserAvatar() {
     if (otherUserAvatarUrl != null && otherUserAvatarUrl!.isNotEmpty) {
-      // Afficher la vraie photo de profil
+      // Avatar style Instagram avec vraie photo
       return Container(
-        width: 28,
-        height: 28,
-        decoration: const BoxDecoration(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: ClipOval(
           child: Image.network(
             otherUserAvatarUrl!,
-            width: 28,
-            height: 28,
+            width: 24,
+            height: 24,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _buildDefaultOtherUserAvatar();
@@ -275,16 +284,33 @@ class MessageBubbleWidget extends StatelessWidget {
     final isSellerMessage = currentUserType == MessageSenderType.user; // Si l'utilisateur actuel est un particulier, l'autre est un vendeur
 
     return Container(
-      width: 28,
-      height: 28,
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
-        color: isSellerMessage ? const Color(0xFF34C759) : const Color(0xFF9CA3AF),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isSellerMessage
+              ? [const Color(0xFF405DE6), const Color(0xFF5851DB)] // Gradient Instagram bleu
+              : [const Color(0xFF9CA3AF), const Color(0xFF6B7280)], // Gradient gris
+        ),
         shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Icon(
         isSellerMessage ? Icons.business : Icons.person,
         color: Colors.white,
-        size: 16,
+        size: 12,
       ),
     );
   }

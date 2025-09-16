@@ -126,11 +126,30 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     return Scaffold(
       appBar: AppBar(
-        title: _buildAppBarTitle(conversation),
-        backgroundColor: const Color(0xFF007AFF),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.1),
+        title: _buildInstagramAppBarTitle(conversation),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            onPressed: () {
+              // TODO: Functionality téléphone
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            onPressed: () {
+              // TODO: Functionality vidéo
+            },
+          ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
             onSelected: (value) => _handleMenuAction(value),
             itemBuilder: (context) => [
               const PopupMenuItem(
@@ -245,8 +264,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             message: message,
             currentUserType: MessageSenderType.seller, // Côté vendeur
             isLastMessage: index == messages.length - 1,
-            otherUserName: 'Client',
-            otherUserAvatarUrl: null, // Pas d'avatar pour les particuliers pour l'instant
+            otherUserName: _getUserDisplayName(conversation),
+            otherUserAvatarUrl: conversation?.userAvatarUrl,
             otherUserCompany: null,
           ),
         );
@@ -254,36 +273,24 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
   }
 
-  Widget _buildAppBarTitle(dynamic conversation) {
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
     return Row(
       children: [
-        // Avatar du client
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.person,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
+        // Avatar du particulier
+        _buildUserAvatar(conversation),
 
         const SizedBox(width: 12),
 
-        // Informations du client
+        // Informations style Instagram
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                conversation?.requestTitle ?? 'Conversation',
+                _getUserDisplayName(conversation),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -291,9 +298,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                'Client Particulier',
+                'En ligne',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.grey.shade600,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                 ),
@@ -407,6 +414,82 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             child: const Text('Supprimer'),
           ),
         ],
+      ),
+    );
+  }
+
+  String _getUserDisplayName(dynamic conversation) {
+    // Afficher le nom du particulier depuis les nouvelles données
+    if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
+      return conversation.userDisplayName!;
+    } else if (conversation?.userName != null && conversation.userName!.isNotEmpty) {
+      return conversation.userName!;
+    } else {
+      return 'Client';
+    }
+  }
+
+  Widget _buildUserAvatar(dynamic conversation) {
+    if (conversation?.userAvatarUrl != null && conversation.userAvatarUrl!.isNotEmpty) {
+      // Avatar avec vraie photo du particulier
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.userAvatarUrl!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultUserAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultUserAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultUserAvatar();
+    }
+  }
+
+  Widget _buildDefaultUserAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF9CA3AF), const Color(0xFF6B7280)], // Gradient gris pour particulier
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.person,
+        color: Colors.white,
+        size: 16,
       ),
     );
   }

@@ -110,6 +110,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_created_at,
           total_messages,
           sellers!inner(avatar_url),
+          particuliers!inner(first_name, last_name, phone),
           part_requests (
             vehicle_brand,
             vehicle_model,
@@ -229,7 +230,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 last_message_created_at,
                 unread_count,
                 total_messages,
-                sellers!inner(avatar_url)
+                sellers!inner(avatar_url),
+                particuliers!inner(first_name, last_name, phone)
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
@@ -577,6 +579,37 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       }
     }
 
+    // Extraire les informations du particulier depuis particuliers
+    String? userName;
+    String? userDisplayName;
+    String? userAvatarUrl;
+    if (json['particuliers'] != null) {
+      final particuliers = json['particuliers'];
+      if (particuliers is Map<String, dynamic>) {
+        final firstName = particuliers['first_name'];
+        final lastName = particuliers['last_name'];
+        final phone = particuliers['phone'];
+
+        userName = phone; // Utiliser le téléphone comme nom d'utilisateur
+        userDisplayName = (firstName != null && lastName != null)
+            ? '$firstName $lastName'.trim()
+            : (firstName ?? lastName ?? phone ?? 'Particulier');
+        // Pour l'instant pas d'avatar pour les particuliers
+        userAvatarUrl = null;
+      } else if (particuliers is List && particuliers.isNotEmpty) {
+        final particulier = particuliers.first;
+        final firstName = particulier['first_name'];
+        final lastName = particulier['last_name'];
+        final phone = particulier['phone'];
+
+        userName = phone;
+        userDisplayName = (firstName != null && lastName != null)
+            ? '$firstName $lastName'.trim()
+            : (firstName ?? lastName ?? phone ?? 'Particulier');
+        userAvatarUrl = null;
+      }
+    }
+
     return {
       'id': json['id'],
       'requestId': json['request_id'],
@@ -589,6 +622,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'sellerName': json['seller_name'],
       'sellerCompany': json['seller_company'],
       'sellerAvatarUrl': sellerAvatarUrl,
+      'userName': userName,
+      'userDisplayName': userDisplayName,
+      'userAvatarUrl': userAvatarUrl,
       'requestTitle': json['request_title'],
       'lastMessageContent': json['last_message_content'],
       'lastMessageSenderType': json['last_message_sender_type'] ?? 'user', // Garder la string directement
