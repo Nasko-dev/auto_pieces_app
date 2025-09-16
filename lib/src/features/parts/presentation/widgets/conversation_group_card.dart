@@ -93,20 +93,12 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color:
-                hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
-            shape: BoxShape.circle,
-            border:
-                hasUnread
-                    ? Border.all(
-                      color: const Color(0xFF007AFF).withOpacity(0.3),
-                      width: 2,
-                    )
-                    : null,
+            color: const Color.fromARGB(160, 233, 233, 233),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             _getPartIcon(group.partType),
-            color: Colors.white,
+            color: const Color(0xFF007AFF),
             size: 24,
           ),
         ),
@@ -257,11 +249,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   IconData _getPartIcon(String? partType) {
     switch (partType) {
       case 'engine':
-        return Icons.mail;
+        return Icons.inbox;
       case 'body':
-        return Icons.car_repair;
+        return Icons.inventory_2;
       default:
-        return Icons.auto_fix_high;
+        return Icons.folder;
     }
   }
 
@@ -375,16 +367,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
         conversation.userAvatarUrl!.isNotEmpty) {
       // Afficher la photo de profil du particulier
       return Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border:
-              hasUnread
-                  ? Border.all(color: const Color(0xFF007AFF), width: 2)
-                  : null,
-        ),
-        child: ClipOval(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
           child: Image.network(
             conversation.userAvatarUrl!,
             width: 32,
@@ -392,11 +379,17 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               // Fallback si l'image ne charge pas
-              return _buildDefaultAvatar(false, hasUnread); // false = particulier
+              return _buildDefaultAvatar(
+                false,
+                hasUnread,
+              ); // false = particulier
             },
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return _buildDefaultAvatar(false, hasUnread); // false = particulier
+              return _buildDefaultAvatar(
+                false,
+                hasUnread,
+              ); // false = particulier
             },
           ),
         ),
@@ -418,7 +411,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                 : (isFromSeller
                     ? const Color(0xFF34C759)
                     : const Color(0xFF9CA3AF)),
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
         isFromSeller ? Icons.business : Icons.person,
@@ -444,8 +437,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     }
 
     // Priorité 3 : Nom d'utilisateur (téléphone)
-    if (conversation.userName != null &&
-        conversation.userName!.isNotEmpty) {
+    if (conversation.userName != null && conversation.userName!.isNotEmpty) {
       return conversation.userName!;
     }
 

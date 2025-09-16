@@ -781,12 +781,21 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       final rejectedIds = rejections.map((r) => r['part_request_id'] as String).toSet();
 
-      // Filtrer les demandes pour exclure celles refusées par ce vendeur
-      final filteredResult = result.where((json) => 
-        !rejectedIds.contains(json['id'] as String)
-      ).toList();
+      // Récupérer les conversations de ce vendeur pour filtrer les demandes déjà contactées
+      final conversations = await _supabase
+          .from('conversations')
+          .select('request_id')
+          .eq('seller_id', currentUser.id);
 
-      print('📊 [DataSource] ${filteredResult.length}/${result.length} demandes après filtrage refus');
+      final contactedIds = conversations.map((c) => c['request_id'] as String).toSet();
+
+      // Filtrer les demandes pour exclure celles refusées ET celles déjà contactées par ce vendeur
+      final filteredResult = result.where((json) {
+        final requestId = json['id'] as String;
+        return !rejectedIds.contains(requestId) && !contactedIds.contains(requestId);
+      }).toList();
+
+      print('📊 [DataSource] ${filteredResult.length}/${result.length} demandes après filtrage refus et contacts');
       
       // Log des données pour debug
       if (filteredResult.isNotEmpty) {

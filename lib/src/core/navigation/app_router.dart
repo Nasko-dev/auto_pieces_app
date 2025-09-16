@@ -197,7 +197,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'seller-conversation-detail',
             builder: (context, state) {
               final conversationId = state.pathParameters['conversationId']!;
-              return SellerConversationDetailPage(conversationId: conversationId);
+              final prefilledMessage = state.uri.queryParameters['prefilled'];
+              return SellerConversationDetailPage(
+                conversationId: conversationId,
+                prefilledMessage: prefilledMessage,
+              );
             },
           ),
           GoRoute(

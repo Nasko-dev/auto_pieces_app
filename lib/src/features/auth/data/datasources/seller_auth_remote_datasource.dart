@@ -280,13 +280,21 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         throw const AuthFailure('Aucun utilisateur connecté');
       }
 
+      print('🔍 [DEBUG getCurrentSeller] User ID: ${user.id}');
+
       final sellerData = await _supabaseClient
           .from('sellers')
           .select()
           .eq('id', user.id)
           .single();
 
-      return SellerModel.fromJson(sellerData);
+      print('🔍 [DEBUG getCurrentSeller] Données récupérées: $sellerData');
+
+      final sellerModel = SellerModel.fromJson(sellerData);
+      print('🔍 [DEBUG getCurrentSeller] SellerModel créé: $sellerModel');
+      print('🔍 [DEBUG getCurrentSeller] Company Name dans model: ${sellerModel.companyName}');
+
+      return sellerModel;
       
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {

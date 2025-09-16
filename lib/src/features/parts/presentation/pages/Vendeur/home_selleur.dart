@@ -6,7 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
+import '../../../../../core/providers/seller_auth_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../auth/domain/entities/seller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
@@ -28,9 +30,23 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     });
   }
 
+  Future<void> _onRefresh() async {
+    HapticFeedback.lightImpact();
+    await ref.read(sellerDashboardControllerProvider.notifier).refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(sellerDashboardControllerProvider);
+    final currentSellerAsync = ref.watch(currentSellerProviderAlt);
+
+    // Debug: Vérifier l'état du provider
+    print('🔍 [DEBUG Build] Provider state: ${currentSellerAsync.runtimeType}');
+    currentSellerAsync.when(
+      data: (seller) => print('🔍 [DEBUG Build] Provider data: $seller'),
+      loading: () => print('🔍 [DEBUG Build] Provider loading'),
+      error: (error, stack) => print('🔍 [DEBUG Build] Provider error: $error'),
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.white,
@@ -63,20 +79,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: AppTheme.primaryBlue,
+          backgroundColor: AppTheme.white,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
             children: [
-              // En-tête
-              const Text(
-                'Dashboard Vendeur',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.darkBlue,
-                ),
-              ),
+              // En-tête personnalisé
+              _buildPersonalizedHeader(currentSellerAsync),
               const SizedBox(height: 6),
               _buildWelcomeText(dashboardState),
               const SizedBox(height: 20),
@@ -157,6 +168,61 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     );
   }
 
+  Widget _buildPersonalizedHeader(AsyncValue<Seller?> currentSellerAsync) {
+    return currentSellerAsync.when(
+      data: (seller) {
+        // Debug: Afficher les informations du vendeur
+        print('🔍 [DEBUG Header] Seller: $seller');
+        print('🔍 [DEBUG Header] Company Name: ${seller?.companyName}');
+        print('🔍 [DEBUG Header] First Name: ${seller?.firstName}');
+        print('🔍 [DEBUG Header] Last Name: ${seller?.lastName}');
+
+        String headerText;
+        if (seller?.companyName != null && seller!.companyName!.isNotEmpty) {
+          headerText = 'Bonjour ${seller.companyName}';
+          print('✅ [DEBUG Header] Utilise company name: ${seller.companyName}');
+        } else if (seller?.firstName != null && seller!.firstName!.isNotEmpty) {
+          final name =
+              seller.lastName != null
+                  ? '${seller.firstName} ${seller.lastName}'
+                  : seller.firstName!;
+          headerText = 'Bonjour $name';
+          print('✅ [DEBUG Header] Utilise nom personnel: $name');
+        } else {
+          headerText = 'Bonjour Vendeur';
+          print('⚠️ [DEBUG Header] Utilise fallback');
+        }
+
+        return Text(
+          headerText,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.darkBlue,
+          ),
+        );
+      },
+      loading:
+          () => const Text(
+            'Bonjour Vendeur',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.darkBlue,
+            ),
+          ),
+      error:
+          (error, stack) => const Text(
+            'Bonjour Vendeur',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.darkBlue,
+            ),
+          ),
+    );
+  }
+
   Widget _buildWelcomeText(SellerDashboardState dashboardState) {
     return dashboardState.when(
       initial:
@@ -170,7 +236,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
           ),
       loading:
           () => const Text(
-            'Chargement...',
+            '',
             style: TextStyle(
               fontSize: 16,
               color: AppTheme.gray,
@@ -204,7 +270,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return _buildNotificationsContent(dashboardState);
   }
 
-  Widget _buildStatsCards() {
+  Widget buildStatsCards() {
     return Row(
       children: [
         Expanded(
@@ -240,7 +306,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -569,7 +635,9 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     HapticFeedback.lightImpact();
     // TODO: Implémenter navigation vers conversation
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonction conversation en cours de développement')),
+      const SnackBar(
+        content: Text('Fonction conversation en cours de développement'),
+      ),
     );
   }
 
@@ -590,19 +658,23 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       // Récupérer les informations du vendeur (nom par défaut pour l'instant)
       String sellerName = 'Vendeur';
       String? sellerCompany;
-      
+
       // TODO: Récupérer les vraies infos du vendeur depuis le provider
       // Utiliser un nom par défaut pour l'instant
       try {
         // Ici on pourrait récupérer les infos depuis un provider ou la DB
         sellerName = 'Vendeur Professionnel';
       } catch (e) {
-        print('⚠️ [HomeSellerPage] Impossible de récupérer les infos vendeur: $e');
+        print(
+          '⚠️ [HomeSellerPage] Impossible de récupérer les infos vendeur: $e',
+        );
       }
 
       // Créer ou récupérer la conversation
-      print('🚀 [HomeSellerPage] Création conversation pour request: ${partRequest.id}');
-      
+      print(
+        '🚀 [HomeSellerPage] Création conversation pour request: ${partRequest.id}',
+      );
+
       final dataSource = ConversationsRemoteDataSourceImpl(
         supabaseClient: Supabase.instance.client,
       );
@@ -614,23 +686,38 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
       final conversation = await dataSource.createOrGetConversation(
         requestId: partRequest.id,
-        userId: partRequest.userId!, // L'ID du particulier qui a fait la demande
+        userId:
+            partRequest.userId!, // L'ID du particulier qui a fait la demande
         sellerId: sellerId,
         sellerName: sellerName,
         sellerCompany: sellerCompany,
         requestTitle: partRequest.partNames.join(', '),
       );
 
-      print('✅ [HomeSellerPage] Conversation créée/récupérée: ${conversation.id}');
+      print(
+        '✅ [HomeSellerPage] Conversation créée/récupérée: ${conversation.id}',
+      );
 
-      // Naviguer vers la conversation
+      // Naviguer vers la conversation avec message pré-généré
       if (mounted) {
-        context.push('/seller/conversation/${conversation.id}');
+        final partNamesStr =
+            partRequest.partNames.isNotEmpty
+                ? partRequest.partNames.join(', ')
+                : 'des pièces';
+        final vehicleStr =
+            partRequest.vehicleInfo.isNotEmpty
+                ? partRequest.vehicleInfo
+                : 'votre véhicule';
+        final prefilledMessage =
+            "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
+        final encodedMessage = Uri.encodeComponent(prefilledMessage);
+        context.push(
+          '/seller/conversation/${conversation.id}?prefilled=$encodedMessage',
+        );
       }
 
       // Rafraîchir les notifications
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
-      
     } catch (e) {
       print('❌ [HomeSellerPage] Erreur création conversation: $e');
       if (mounted) {
@@ -940,8 +1027,8 @@ class _ModernNotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          partRequest.vehicleInfo.isNotEmpty 
-                              ? partRequest.vehicleInfo 
+                          partRequest.vehicleInfo.isNotEmpty
+                              ? partRequest.vehicleInfo
                               : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,

@@ -53,41 +53,7 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(child: widget.child),
-          // Indicateur de page au-dessus de la bottom bar
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              border: Border(
-                top: BorderSide(color: AppTheme.lightGray, width: 0.5),
-              ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1976D2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getCurrentPageName(context),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: const Color(0xFF1976D2),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      body: Column(children: [Expanded(child: widget.child)]),
       // Bottom bar vendeur
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -176,7 +142,8 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
                     Icon(
                       isSelected ? selectedIcon : icon,
                       size: 22,
-                      color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                      color:
+                          isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
                     ),
                     // Point rouge pour messages non lus
                     if (hasUnread)

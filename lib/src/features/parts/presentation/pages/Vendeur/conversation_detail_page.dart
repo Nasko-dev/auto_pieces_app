@@ -15,10 +15,12 @@ import '../../../../../core/providers/session_providers.dart';
 
 class SellerConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
+  final String? prefilledMessage;
 
   const SellerConversationDetailPage({
     super.key,
     required this.conversationId,
+    this.prefilledMessage,
   });
 
   @override
@@ -34,15 +36,20 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   void initState() {
     super.initState();
     print('💬 [UI] SellerConversationDetailPage initialisée pour: ${widget.conversationId}');
-    
+
+    // Pré-remplir le message si fourni
+    if (widget.prefilledMessage != null) {
+      _messageController.text = widget.prefilledMessage!;
+    }
+
     // Charger les messages pour toutes les conversations
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
-      
+
       // Marquer la conversation comme lue
       _markAsRead();
-      
+
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
     });

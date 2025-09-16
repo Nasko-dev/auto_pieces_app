@@ -77,8 +77,8 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
     );
   }
 
-  void refresh() {
-    loadNotifications();
+  Future<void> refresh() async {
+    await loadNotifications();
   }
 }
 
