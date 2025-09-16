@@ -42,7 +42,9 @@ mixin _$Conversation {
   String? get vehicleModel => throw _privateConstructorUsedError;
   int? get vehicleYear => throw _privateConstructorUsedError;
   String? get vehicleEngine => throw _privateConstructorUsedError;
-  String? get partType => throw _privateConstructorUsedError;
+  String? get partType =>
+      throw _privateConstructorUsedError; // Nom du particulier
+  String? get particulierFirstName => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -77,7 +79,8 @@ abstract class $ConversationCopyWith<$Res> {
       String? vehicleModel,
       int? vehicleYear,
       String? vehicleEngine,
-      String? partType});
+      String? partType,
+      String? particulierFirstName});
 }
 
 /// @nodoc
@@ -114,6 +117,7 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
     Object? vehicleYear = freezed,
     Object? vehicleEngine = freezed,
     Object? partType = freezed,
+    Object? particulierFirstName = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -200,6 +204,10 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
           ? _value.partType
           : partType // ignore: cast_nullable_to_non_nullable
               as String?,
+      particulierFirstName: freezed == particulierFirstName
+          ? _value.particulierFirstName
+          : particulierFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -233,7 +241,8 @@ abstract class _$$ConversationImplCopyWith<$Res>
       String? vehicleModel,
       int? vehicleYear,
       String? vehicleEngine,
-      String? partType});
+      String? partType,
+      String? particulierFirstName});
 }
 
 /// @nodoc
@@ -268,6 +277,7 @@ class __$$ConversationImplCopyWithImpl<$Res>
     Object? vehicleYear = freezed,
     Object? vehicleEngine = freezed,
     Object? partType = freezed,
+    Object? particulierFirstName = freezed,
   }) {
     return _then(_$ConversationImpl(
       id: null == id
@@ -354,6 +364,10 @@ class __$$ConversationImplCopyWithImpl<$Res>
           ? _value.partType
           : partType // ignore: cast_nullable_to_non_nullable
               as String?,
+      particulierFirstName: freezed == particulierFirstName
+          ? _value.particulierFirstName
+          : particulierFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -382,7 +396,8 @@ class _$ConversationImpl implements _Conversation {
       this.vehicleModel,
       this.vehicleYear,
       this.vehicleEngine,
-      this.partType});
+      this.partType,
+      this.particulierFirstName});
 
   factory _$ConversationImpl.fromJson(Map<String, dynamic> json) =>
       _$$ConversationImplFromJson(json);
@@ -433,10 +448,13 @@ class _$ConversationImpl implements _Conversation {
   final String? vehicleEngine;
   @override
   final String? partType;
+// Nom du particulier
+  @override
+  final String? particulierFirstName;
 
   @override
   String toString() {
-    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType)';
+    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, particulierFirstName: $particulierFirstName)';
   }
 
   @override
@@ -482,7 +500,9 @@ class _$ConversationImpl implements _Conversation {
             (identical(other.vehicleEngine, vehicleEngine) ||
                 other.vehicleEngine == vehicleEngine) &&
             (identical(other.partType, partType) ||
-                other.partType == partType));
+                other.partType == partType) &&
+            (identical(other.particulierFirstName, particulierFirstName) ||
+                other.particulierFirstName == particulierFirstName));
   }
 
   @JsonKey(ignore: true)
@@ -509,7 +529,8 @@ class _$ConversationImpl implements _Conversation {
         vehicleModel,
         vehicleYear,
         vehicleEngine,
-        partType
+        partType,
+        particulierFirstName
       ]);
 
   @JsonKey(ignore: true)
@@ -548,7 +569,8 @@ abstract class _Conversation implements Conversation {
       final String? vehicleModel,
       final int? vehicleYear,
       final String? vehicleEngine,
-      final String? partType}) = _$ConversationImpl;
+      final String? partType,
+      final String? particulierFirstName}) = _$ConversationImpl;
 
   factory _Conversation.fromJson(Map<String, dynamic> json) =
       _$ConversationImpl.fromJson;
@@ -595,6 +617,8 @@ abstract class _Conversation implements Conversation {
   String? get vehicleEngine;
   @override
   String? get partType;
+  @override // Nom du particulier
+  String? get particulierFirstName;
   @override
   @JsonKey(ignore: true)
   _$$ConversationImplCopyWith<_$ConversationImpl> get copyWith =>

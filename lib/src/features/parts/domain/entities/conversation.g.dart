@@ -34,6 +34,7 @@ _$ConversationImpl _$$ConversationImplFromJson(Map<String, dynamic> json) =>
       vehicleYear: (json['vehicleYear'] as num?)?.toInt(),
       vehicleEngine: json['vehicleEngine'] as String?,
       partType: json['partType'] as String?,
+      particulierFirstName: json['particulierFirstName'] as String?,
     );
 
 Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
@@ -60,6 +61,7 @@ Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
       'vehicleYear': instance.vehicleYear,
       'vehicleEngine': instance.vehicleEngine,
       'partType': instance.partType,
+      'particulierFirstName': instance.particulierFirstName,
     };
 
 const _$ConversationStatusEnumMap = {
