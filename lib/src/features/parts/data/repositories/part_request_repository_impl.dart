@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/device_service.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
@@ -452,37 +453,21 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
 
   @override
   Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId}) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure('No internet connection'));
-    }
-
-    try {
-      await _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId);
-      return const Right(null);
-    } on UnauthorizedException {
-      return const Left(AuthFailure('User not authenticated'));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    return ErrorHandler.handleVoidAsync(
+      () => _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId),
+      checkNetwork: true,
+      networkCheck: _networkInfo.isConnected,
+      context: 'incrementUnreadCountForUser',
+    );
   }
 
   @override
   Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId}) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure('No internet connection'));
-    }
-
-    try {
-      await _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId);
-      return const Right(null);
-    } on UnauthorizedException {
-      return const Left(AuthFailure('User not authenticated'));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    return ErrorHandler.handleVoidAsync(
+      () => _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId),
+      checkNetwork: true,
+      networkCheck: _networkInfo.isConnected,
+      context: 'markParticulierMessagesAsRead',
+    );
   }
 }

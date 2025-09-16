@@ -11,6 +11,8 @@ import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/manage_conversation.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';
 import '../../../../core/services/realtime_service.dart';
+import '../../../../core/utils/logger.dart';
+import 'base_conversation_controller.dart';
 
 part 'conversations_controller.freezed.dart';
 
@@ -28,7 +30,7 @@ class ConversationsState with _$ConversationsState {
   }) = _ConversationsState;
 }
 
-class ConversationsController extends StateNotifier<ConversationsState> {
+class ConversationsController extends BaseConversationController<ConversationsState> {
   final GetConversations _getConversations;
   final GetConversationMessages _getConversationMessages;
   final SendMessage _sendMessage;
@@ -39,7 +41,6 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   final ConversationsRemoteDataSource _dataSource;
   final RealtimeService _realtimeService;
 
-  Timer? _refreshTimer;
   StreamSubscription? _allMessagesSubscription;
   StreamSubscription? _conversationsSubscription;
 
@@ -197,12 +198,11 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   // ✅ SUPPRIMÉ: Méthode de tri plus nécessaire - DB déjà triée par last_message_at
 
   void _startRefreshTimer() {
-    _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) {
-        _refreshConversationsQuietly();
-      }
-    });
+    startIntelligentPolling(
+      interval: const Duration(seconds: 30),
+      onPoll: _refreshConversationsQuietly,
+      logPrefix: 'ConversationsController',
+    );
   }
 
   Future<void> _refreshConversationsQuietly() async {
@@ -603,10 +603,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
 
   @override
   void dispose() {
-    print('🧹 [Controller] Nettoyage ressources');
-    _refreshTimer?.cancel();
+    Logger.info('🧹 [Controller] Nettoyage ressources');
     _allMessagesSubscription?.cancel();
     _conversationsSubscription?.cancel();
-    super.dispose();
+    super.dispose(); // Appelle stopPolling() dans BaseConversationController
   }
 }
