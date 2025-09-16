@@ -16,6 +16,7 @@ class UserSettingsModel with _$UserSettingsModel {
     String? postalCode,
     @Default('France') String country,
     String? phone,
+    String? avatarUrl,
     @Default(true) bool notificationsEnabled,
     @Default(true) bool emailNotificationsEnabled,
     @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
@@ -35,6 +36,7 @@ class UserSettingsModel with _$UserSettingsModel {
         postalCode: postalCode,
         country: country,
         phone: phone,
+        avatarUrl: avatarUrl,
         notificationsEnabled: notificationsEnabled,
         emailNotificationsEnabled: emailNotificationsEnabled,
         createdAt: createdAt,
@@ -49,6 +51,7 @@ class UserSettingsModel with _$UserSettingsModel {
         postalCode: entity.postalCode,
         country: entity.country,
         phone: entity.phone,
+        avatarUrl: entity.avatarUrl,
         notificationsEnabled: entity.notificationsEnabled,
         emailNotificationsEnabled: entity.emailNotificationsEnabled,
         createdAt: entity.createdAt,

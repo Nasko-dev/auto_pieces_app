@@ -16,6 +16,7 @@ _$UserSettingsModelImpl _$$UserSettingsModelImplFromJson(
       postalCode: json['postalCode'] as String?,
       country: json['country'] as String? ?? 'France',
       phone: json['phone'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
       emailNotificationsEnabled:
           json['emailNotificationsEnabled'] as bool? ?? true,
@@ -33,6 +34,7 @@ Map<String, dynamic> _$$UserSettingsModelImplToJson(
       'postalCode': instance.postalCode,
       'country': instance.country,
       'phone': instance.phone,
+      'avatarUrl': instance.avatarUrl,
       'notificationsEnabled': instance.notificationsEnabled,
       'emailNotificationsEnabled': instance.emailNotificationsEnabled,
       'createdAt': _dateTimeToJson(instance.createdAt),

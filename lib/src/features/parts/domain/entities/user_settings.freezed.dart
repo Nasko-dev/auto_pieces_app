@@ -23,6 +23,7 @@ mixin _$UserSettings {
   String? get postalCode => throw _privateConstructorUsedError;
   String get country => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
+  String? get avatarUrl => throw _privateConstructorUsedError;
   bool get notificationsEnabled => throw _privateConstructorUsedError;
   bool get emailNotificationsEnabled => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -47,6 +48,7 @@ abstract class $UserSettingsCopyWith<$Res> {
       String? postalCode,
       String country,
       String? phone,
+      String? avatarUrl,
       bool notificationsEnabled,
       bool emailNotificationsEnabled,
       DateTime? createdAt,
@@ -73,6 +75,7 @@ class _$UserSettingsCopyWithImpl<$Res, $Val extends UserSettings>
     Object? postalCode = freezed,
     Object? country = null,
     Object? phone = freezed,
+    Object? avatarUrl = freezed,
     Object? notificationsEnabled = null,
     Object? emailNotificationsEnabled = null,
     Object? createdAt = freezed,
@@ -106,6 +109,10 @@ class _$UserSettingsCopyWithImpl<$Res, $Val extends UserSettings>
       phone: freezed == phone
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      avatarUrl: freezed == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       notificationsEnabled: null == notificationsEnabled
           ? _value.notificationsEnabled
@@ -143,6 +150,7 @@ abstract class _$$UserSettingsImplCopyWith<$Res>
       String? postalCode,
       String country,
       String? phone,
+      String? avatarUrl,
       bool notificationsEnabled,
       bool emailNotificationsEnabled,
       DateTime? createdAt,
@@ -167,6 +175,7 @@ class __$$UserSettingsImplCopyWithImpl<$Res>
     Object? postalCode = freezed,
     Object? country = null,
     Object? phone = freezed,
+    Object? avatarUrl = freezed,
     Object? notificationsEnabled = null,
     Object? emailNotificationsEnabled = null,
     Object? createdAt = freezed,
@@ -201,6 +210,10 @@ class __$$UserSettingsImplCopyWithImpl<$Res>
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
+      avatarUrl: freezed == avatarUrl
+          ? _value.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       notificationsEnabled: null == notificationsEnabled
           ? _value.notificationsEnabled
           : notificationsEnabled // ignore: cast_nullable_to_non_nullable
@@ -232,6 +245,7 @@ class _$UserSettingsImpl implements _UserSettings {
       this.postalCode,
       this.country = 'France',
       this.phone,
+      this.avatarUrl,
       this.notificationsEnabled = true,
       this.emailNotificationsEnabled = true,
       this.createdAt,
@@ -253,6 +267,8 @@ class _$UserSettingsImpl implements _UserSettings {
   @override
   final String? phone;
   @override
+  final String? avatarUrl;
+  @override
   @JsonKey()
   final bool notificationsEnabled;
   @override
@@ -265,7 +281,7 @@ class _$UserSettingsImpl implements _UserSettings {
 
   @override
   String toString() {
-    return 'UserSettings(userId: $userId, displayName: $displayName, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone, notificationsEnabled: $notificationsEnabled, emailNotificationsEnabled: $emailNotificationsEnabled, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserSettings(userId: $userId, displayName: $displayName, address: $address, city: $city, postalCode: $postalCode, country: $country, phone: $phone, avatarUrl: $avatarUrl, notificationsEnabled: $notificationsEnabled, emailNotificationsEnabled: $emailNotificationsEnabled, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -282,6 +298,8 @@ class _$UserSettingsImpl implements _UserSettings {
                 other.postalCode == postalCode) &&
             (identical(other.country, country) || other.country == country) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
             (identical(other.notificationsEnabled, notificationsEnabled) ||
                 other.notificationsEnabled == notificationsEnabled) &&
             (identical(other.emailNotificationsEnabled,
@@ -303,6 +321,7 @@ class _$UserSettingsImpl implements _UserSettings {
       postalCode,
       country,
       phone,
+      avatarUrl,
       notificationsEnabled,
       emailNotificationsEnabled,
       createdAt,
@@ -324,6 +343,7 @@ abstract class _UserSettings implements UserSettings {
       final String? postalCode,
       final String country,
       final String? phone,
+      final String? avatarUrl,
       final bool notificationsEnabled,
       final bool emailNotificationsEnabled,
       final DateTime? createdAt,
@@ -343,6 +363,8 @@ abstract class _UserSettings implements UserSettings {
   String get country;
   @override
   String? get phone;
+  @override
+  String? get avatarUrl;
   @override
   bool get notificationsEnabled;
   @override

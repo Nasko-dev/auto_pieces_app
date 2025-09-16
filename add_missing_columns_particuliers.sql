@@ -12,6 +12,10 @@ ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT true;
 ALTER TABLE public.particuliers
 ADD COLUMN IF NOT EXISTS email_notifications_enabled BOOLEAN DEFAULT true;
 
+-- Ajouter la colonne pour l'avatar
+ALTER TABLE public.particuliers
+ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
 -- Créer un index sur country pour améliorer les performances
 CREATE INDEX IF NOT EXISTS idx_particuliers_country
 ON public.particuliers USING btree (country) TABLESPACE pg_default;
