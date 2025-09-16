@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/particulier_conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
-import 'package:cente_pice/src/features/parts/domain/entities/particulier_message.dart';
-import 'package:cente_pice/src/core/providers/particulier_conversations_providers.dart';
-import '../providers/conversations_providers.dart';
 
 class ConversationItemWidget extends ConsumerWidget {
   final dynamic
@@ -29,33 +26,18 @@ class ConversationItemWidget extends ConsumerWidget {
     int unreadCount = 0;
 
     if (isParticulier) {
-      // Pour les particuliers, utiliser les compteurs locaux du provider
-      final localCount = ref.watch(
-        particulierConversationsControllerProvider.select(
-          (state) =>
-              state.localUnreadCounts[(conversation as ParticulierConversation)
-                  .id] ??
-              0,
-        ),
-      );
-      unreadCount = localCount;
+      // Pour les particuliers, utiliser les compteurs DB de la conversation
+      unreadCount = (conversation as ParticulierConversation).unreadCount;
     } else {
-      // Pour les vendeurs, utiliser aussi les compteurs locaux
-      final localCount = ref.watch(
-        conversationsControllerProvider.select(
-          (state) =>
-              state.localUnreadCounts[(conversation as Conversation).id] ?? 0,
-        ),
-      );
-      unreadCount = localCount;
+      // Pour les vendeurs, utiliser les compteurs DB
+      unreadCount = (conversation as Conversation).unreadCount;
     }
 
     final hasUnread = unreadCount > 0;
     final sellerName =
         isParticulier
-            ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
-            : (_getMotorName() ??
-                'Particulier'); // Côté vendeur : afficher le nom personnalisé
+            ? _getSellerDisplayName() // Côté particulier : afficher le nom de l'entreprise ou fallback
+            : (_getParticulierDisplayName() ?? 'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -338,14 +320,6 @@ class ConversationItemWidget extends ConsumerWidget {
   }
 
   // Helper methods pour récupérer les données selon le type de conversation
-  String? _getSellerName() {
-    if (conversation is Conversation) {
-      return (conversation as Conversation).sellerName;
-    } else if (conversation is ParticulierConversation) {
-      return (conversation as ParticulierConversation).sellerName;
-    }
-    return null;
-  }
 
   String? _getRequestTitle() {
     if (conversation is Conversation) {
@@ -392,6 +366,40 @@ class ConversationItemWidget extends ConsumerWidget {
         return particConv.messages.last.createdAt;
       }
       return particConv.lastMessageAt;
+    }
+    return null;
+  }
+
+  String _getSellerDisplayName() {
+    if (conversation is ParticulierConversation) {
+      final conv = conversation as ParticulierConversation;
+
+      // Priorité 1 : Utiliser le nom de l'entreprise si disponible
+      if (conv.sellerCompanyName != null && conv.sellerCompanyName!.isNotEmpty) {
+        return conv.sellerCompanyName!;
+      }
+
+      // Fallback : utiliser le nom complet du vendeur
+      if (conv.sellerName.isNotEmpty) {
+        return conv.sellerName;
+      }
+    }
+
+    // Fallback final
+    return 'Vendeur Professionnel';
+  }
+
+  String? _getParticulierDisplayName() {
+    if (conversation is Conversation) {
+      final conv = conversation as Conversation;
+
+      // Priorité 1 : Utiliser le prénom du particulier si disponible
+      if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
+        return conv.particulierFirstName!;
+      }
+
+      // Fallback : utiliser le nom du véhicule si pas de prénom
+      return _getMotorName();
     }
     return null;
   }

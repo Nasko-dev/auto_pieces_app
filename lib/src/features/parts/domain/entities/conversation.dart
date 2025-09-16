@@ -34,6 +34,8 @@ class Conversation with _$Conversation {
     int? vehicleYear,
     String? vehicleEngine,
     String? partType,
+    // Nom du particulier
+    String? particulierFirstName,
   }) = _Conversation;
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>

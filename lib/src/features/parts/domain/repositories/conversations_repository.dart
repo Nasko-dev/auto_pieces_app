@@ -27,7 +27,19 @@ abstract class ConversationsRepository {
     required String conversationId,
     required String userId,
   });
-  
+
+  Future<Either<Failure, void>> incrementUnreadCount({
+    required String conversationId,
+  });
+
+  Future<Either<Failure, void>> incrementUnreadCountForUser({
+    required String conversationId,
+  });
+
+  Future<Either<Failure, void>> incrementUnreadCountForSeller({
+    required String conversationId,
+  });
+
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   });

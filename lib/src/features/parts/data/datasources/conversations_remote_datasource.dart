@@ -27,6 +27,15 @@ abstract class ConversationsRemoteDataSource {
     required String conversationId,
     required String userId,
   });
+  Future<void> incrementUnreadCount({
+    required String conversationId,
+  });
+  Future<void> incrementUnreadCountForUser({
+    required String conversationId,
+  });
+  Future<void> incrementUnreadCountForSeller({
+    required String conversationId,
+  });
   Future<void> updateConversationStatus({
     required String conversationId,
     required ConversationStatus status,
@@ -92,7 +101,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
     print('🏪 [Datasource] Récupération conversations vendeur: $sellerId');
-    
+
     final response = await _supabaseClient
         .from('conversations')
         .select('''
@@ -110,6 +119,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_content,
           last_message_sender_type,
           last_message_created_at,
+          unread_count,
+          unread_count_for_user,
+          unread_count_for_seller,
           total_messages,
           sellers!inner(avatar_url),
           part_requests (
@@ -379,8 +391,12 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
       print('✅ [Datasource] Message envoyé avec succès');
       
-      // Mettre à jour la conversation
-      await _updateConversationLastMessage(conversationId, content);
+      // Mettre à jour la conversation avec le bon sender type
+      await _updateConversationLastMessage(conversationId, content, senderTypeString);
+
+      // ✅ NOUVEAU: Avec trigger intelligent, plus besoin de reset manuel
+      // Le trigger DB gère automatiquement les bons compteurs selon sender_type
+      print('✅ [Datasource] Trigger DB gère les compteurs automatiquement');
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
@@ -390,20 +406,20 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
   }
 
-  Future<void> _updateConversationLastMessage(String conversationId, String content) async {
+  Future<void> _updateConversationLastMessage(String conversationId, String content, String senderType) async {
     try {
       await _supabaseClient
           .from('conversations')
           .update({
             'last_message_content': content,
             'last_message_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
-            'last_message_sender_type': 'user',
+            'last_message_sender_type': senderType, // ✅ CORRECTION: Utiliser le vrai sender type
             'last_message_created_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
             'updated_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
           })
           .eq('id', conversationId);
-      
-      print('✅ [Datasource] Conversation mise à jour');
+
+      print('✅ [Datasource] Conversation mise à jour avec sender_type: $senderType');
     } catch (e) {
       print('⚠️ [Datasource] Erreur mise à jour conversation: $e');
     }
@@ -415,30 +431,132 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String userId,
   }) async {
     print('👀 [Datasource] Marquage messages comme lus: $conversationId');
-    
-    try {
-      // Marquer les messages comme lus (seulement ceux du vendeur)
-      await _supabaseClient
-          .from('messages')
-          .update({
-            'is_read': true,
-            'read_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
-          })
-          .eq('conversation_id', conversationId)
-          .eq('sender_type', 'seller')
-          .eq('is_read', false);
 
-      // Mettre à jour le compteur de la conversation
-      await _supabaseClient
-          .from('conversations')
-          .update({'unread_count': 0})
-          .eq('id', conversationId);
+    try {
+      // Déterminer le type d'utilisateur pour savoir quels messages marquer
+      final isSellerResult = await _checkIfUserIsSeller(userId);
+
+      if (isSellerResult) {
+        // Vendeur : marquer les messages des particuliers comme lus
+        await _supabaseClient
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .eq('sender_type', 'user')
+            .eq('is_read', false);
+      } else {
+        // Particulier : marquer les messages des vendeurs comme lus
+        await _supabaseClient
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .eq('sender_type', 'seller')
+            .eq('is_read', false);
+      }
+
+      // Remettre les compteurs à 0 selon le type d'utilisateur
+      if (isSellerResult) {
+        // Vendeur lit → reset son compteur
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_seller': 0})
+            .eq('id', conversationId);
+      } else {
+        // Particulier lit → reset son compteur
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_user': 0})
+            .eq('id', conversationId);
+      }
 
       print('✅ [Datasource] Messages marqués comme lus');
-      
+
     } catch (e) {
       print('❌ [Datasource] Erreur marquage lecture: $e');
       throw ServerException('Erreur lors du marquage des messages comme lus: $e');
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCount({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur non lu: $conversationId');
+
+    try {
+      // Utiliser une requête SQL pour incrémenter atomiquement
+      await _supabaseClient.rpc('increment_unread_count', params: {
+        'conversation_id_param': conversationId,
+      });
+
+      print('✅ [Datasource] Compteur non lu incrémenté');
+
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation compteur: $e');
+      // Fallback : récupérer le compteur actuel et incrémenter
+      try {
+        final response = await _supabaseClient
+            .from('conversations')
+            .select('unread_count')
+            .eq('id', conversationId)
+            .single();
+
+        final currentCount = (response['unread_count'] as int?) ?? 0;
+
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count': currentCount + 1})
+            .eq('id', conversationId);
+
+        print('✅ [Datasource] Compteur incrémenté (fallback)');
+      } catch (fallbackError) {
+        print('❌ [Datasource] Erreur fallback incrémentation: $fallbackError');
+        throw ServerException('Erreur lors de l\'incrémentation du compteur: $fallbackError');
+      }
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForUser({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur particulier: $conversationId');
+
+    try {
+      await _supabaseClient
+          .from('conversations')
+          .update({'unread_count_for_user': 'unread_count_for_user + 1'})
+          .eq('id', conversationId);
+
+      print('✅ [Datasource] Compteur particulier incrémenté');
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation particulier: $e');
+      throw ServerException('Erreur lors de l\'incrémentation du compteur particulier: $e');
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForSeller({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur vendeur: $conversationId');
+
+    try {
+      await _supabaseClient
+          .from('conversations')
+          .update({'unread_count_for_seller': 'unread_count_for_seller + 1'})
+          .eq('id', conversationId);
+
+      print('✅ [Datasource] Compteur vendeur incrémenté');
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation vendeur: $e');
+      throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $e');
     }
   }
 
@@ -685,7 +803,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'lastMessageContent': json['last_message_content'],
       'lastMessageSenderType': json['last_message_sender_type'] ?? 'user', // Garder la string directement
       'lastMessageCreatedAt': json['last_message_created_at'],
-      'unreadCount': json['unread_count'] ?? 0,
+      'unreadCount': json['unread_count'] ?? 0, // ⚠️ Ancien champ, à supprimer plus tard
       'totalMessages': json['total_messages'] ?? 0,
       // Nouvelles données du véhicule
       'vehicleBrand': vehicleBrand,
@@ -693,7 +811,25 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'vehicleYear': vehicleYear,
       'vehicleEngine': vehicleEngine,
       'partType': partType,
+      // Nom du particulier
+      'particulierFirstName': particulierFirstName,
     };
+  }
+
+  // ✅ NOUVEAU: Mapping spécifique vendeur
+  Map<String, dynamic> _mapSupabaseToConversationForSeller(Map<String, dynamic> json) {
+    final baseMapping = _mapSupabaseToConversation(json);
+    // Remplacer par le compteur vendeur
+    baseMapping['unreadCount'] = json['unread_count_for_seller'] ?? 0;
+    return baseMapping;
+  }
+
+  // ✅ NOUVEAU: Mapping spécifique particulier
+  Map<String, dynamic> _mapSupabaseToConversationForUser(Map<String, dynamic> json) {
+    final baseMapping = _mapSupabaseToConversation(json);
+    // Remplacer par le compteur particulier
+    baseMapping['unreadCount'] = json['unread_count_for_user'] ?? 0;
+    return baseMapping;
   }
 
   Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {

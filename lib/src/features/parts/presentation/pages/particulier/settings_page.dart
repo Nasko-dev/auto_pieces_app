@@ -607,6 +607,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         },
         (savedSettings) {
           print('✅ [SettingsPage] Paramètres sauvegardés en BDD: ${savedSettings.userId}');
+
+          // Invalider les providers pour mettre à jour les indicateurs rouges
+          ref.invalidate(particulierSettingsStatusProvider);
+          ref.invalidate(particulierMenuStatusProvider);
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(

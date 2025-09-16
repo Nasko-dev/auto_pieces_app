@@ -3,9 +3,8 @@ import '../entities/conversation_group.dart';
 
 class ConversationGroupingService {
   static List<ConversationGroup> groupConversations(
-    List<Conversation> conversations, {
-    Map<String, int>? localUnreadCounts,
-  }) {
+    List<Conversation> conversations,
+  ) {
     print('🔄 [GroupingService] Groupement de ${conversations.length} conversations');
 
     // Map pour regrouper par clé unique
@@ -29,9 +28,9 @@ class ConversationGroupingService {
       final firstConv = conversations.first;
 
       // Calculer le nombre total de messages non lus
-      // Utiliser les compteurs locaux si disponibles, sinon les compteurs des conversations
+      // Utiliser directement les compteurs des conversations (DB-based)
       final totalUnreadCount = conversations
-          .map((c) => localUnreadCounts?[c.id] ?? c.unreadCount)
+          .map((c) => c.unreadCount)
           .fold(0, (sum, count) => sum + count);
 
       return ConversationGroup(
