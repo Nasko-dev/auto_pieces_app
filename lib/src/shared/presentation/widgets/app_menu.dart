@@ -106,30 +106,15 @@ class AppMenu extends ConsumerWidget {
   }
 
   void _showProfile(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/profile');
   }
 
   void _showSettings(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Paramètres - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/settings');
   }
 
   void _showHelp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Aide - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/help');
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {

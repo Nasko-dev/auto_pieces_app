@@ -7,8 +7,10 @@ import 'src/core/navigation/app_router.dart';
 import 'src/core/constants/app_constants.dart';
 import 'src/core/providers/particulier_auth_providers.dart';
 import 'src/core/providers/session_providers.dart' as session_providers;
+import 'src/core/providers/user_settings_providers.dart' as user_settings;
 import 'src/core/services/realtime_service.dart';
 import 'src/core/services/session_service.dart';
+import 'src/core/services/device_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +79,8 @@ void main() async {
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           // Override pour le provider de session_providers.dart
           session_providers.sessionSharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          // Override pour le DeviceService dans user_settings
+          user_settings.deviceServiceProvider.overrideWithValue(DeviceService(sharedPreferences)),
         ],
         child: const MyApp(),
       ),

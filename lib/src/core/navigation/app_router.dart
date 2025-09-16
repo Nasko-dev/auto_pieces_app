@@ -12,6 +12,9 @@ import '../../features/parts/presentation/pages/particulier/requests_page.dart';
 import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
 import '../../features/parts/presentation/pages/particulier/conversations_list_page.dart';
 import '../../features/parts/presentation/pages/particulier/chat_page.dart';
+import '../../features/parts/presentation/pages/particulier/help_page.dart';
+import '../../features/parts/presentation/pages/particulier/profile_page.dart';
+import '../../features/parts/presentation/pages/particulier/settings_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/messages_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
@@ -132,6 +135,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/become-seller',
             name: 'become-seller',
             builder: (context, state) => const BecomeSellerPage(),
+          ),
+          GoRoute(
+            path: '/help',
+            name: 'help',
+            builder: (context, state) => const HelpPage(),
+          ),
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const SettingsPage(),
           ),
         ],
       ),
