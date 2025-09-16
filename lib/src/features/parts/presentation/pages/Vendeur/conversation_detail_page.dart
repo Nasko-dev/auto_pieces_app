@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../domain/entities/message.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart';
@@ -179,6 +180,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           ChatInputWidget(
             controller: _messageController,
             onSend: (content) => _sendMessage(),
+            onCamera: _takePhoto,
+            onGallery: _pickFromGallery,
+            onOffer: _createOffer,
             isLoading: isSendingMessage,
           ),
         ],
@@ -562,6 +566,149 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         SnackBar(
           content: Text(message),
           backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    print('📷 [UI-Vendeur] Prise de photo');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        print('✅ [UI-Vendeur] Photo prise: ${photo.path}');
+        // TODO: Envoyer la photo en tant que message
+        _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-Vendeur] Erreur prise photo: $e');
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    print('🖼️ [UI-Vendeur] Sélection galerie');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        print('✅ [UI-Vendeur] Image sélectionnée: ${image.path}');
+        // TODO: Envoyer l'image en tant que message
+        _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-Vendeur] Erreur galerie: $e');
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  Future<void> _createOffer() async {
+    print('💰 [UI-Vendeur] Création offre');
+
+    // Afficher une dialog pour créer l'offre
+    final offer = await _showOfferDialog();
+
+    if (offer != null) {
+      print('✅ [UI-Vendeur] Offre créée: $offer');
+      // TODO: Envoyer l'offre en tant que message spécial
+      _showSuccessSnackBar('Offre créée ! Envoi d\'offres bientôt disponible.');
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showOfferDialog() async {
+    final priceController = TextEditingController();
+    final availabilityController = TextEditingController();
+    final deliveryController = TextEditingController();
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Faire une offre'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: priceController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Prix (€)',
+                hintText: 'Ex: 150.00',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: availabilityController,
+              decoration: const InputDecoration(
+                labelText: 'Disponibilité',
+                hintText: 'Ex: En stock, Sur commande...',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: deliveryController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Délai de livraison (jours)',
+                hintText: 'Ex: 2',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final price = double.tryParse(priceController.text);
+              final availability = availabilityController.text.trim();
+              final delivery = int.tryParse(deliveryController.text);
+
+              if (price != null && price > 0) {
+                Navigator.of(context).pop({
+                  'price': price,
+                  'availability': availability.isNotEmpty ? availability : null,
+                  'delivery_days': delivery,
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Veuillez entrer un prix valide'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Créer l\'offre'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
           duration: const Duration(seconds: 3),
         ),
       );
