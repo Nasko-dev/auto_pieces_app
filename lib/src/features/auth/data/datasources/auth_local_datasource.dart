@@ -23,7 +23,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> cacheUser(UserModel user) async {
     _cachedUser = user;
     if (kDebugMode) {
-      print('User cached: ${user.toJson()}');
     }
   }
 
@@ -31,7 +30,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> clearCache() async {
     _cachedUser = null;
     if (kDebugMode) {
-      print('User cache cleared');
     }
   }
 }

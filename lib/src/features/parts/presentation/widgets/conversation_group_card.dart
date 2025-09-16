@@ -42,8 +42,8 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
           BoxShadow(
             color:
                 hasUnread
-                    ? const Color(0xFF007AFF).withOpacity(0.1)
-                    : Colors.black.withOpacity(0.04),
+                    ? const Color(0xFF007AFF).withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.04),
             blurRadius: hasUnread ? 8 : 4,
             offset: const Offset(0, 2),
           ),

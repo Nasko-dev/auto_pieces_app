@@ -50,9 +50,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
     String? companyName,
     String? phone,
   }) async {
-    print('🔥 [DATASOURCE] Début registerSeller');
-    print('📧 [DATASOURCE] Email: $email');
-    print('🏢 [DATASOURCE] Entreprise: $companyName');
     
     try {
       // Validation des données
@@ -64,7 +61,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         throw const AuthFailure('Format d\'email invalide');
       }
 
-      print('🔐 [DATASOURCE] Création utilisateur Auth...');
       
       // 1. Créer l'utilisateur dans Supabase Auth
       final authResponse = await _supabaseClient.auth.signUp(
@@ -79,15 +75,12 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         },
       );
 
-      print('📋 [DATASOURCE] Réponse Auth: ${authResponse.user?.id}');
 
       if (authResponse.user == null) {
-        print('❌ [DATASOURCE] Pas d\'utilisateur créé');
         throw const AuthFailure('Erreur lors de la création du compte');
       }
 
       final user = authResponse.user!;
-      print('✅ [DATASOURCE] Utilisateur Auth créé: ${user.id}');
       
       // Créer le profil vendeur dans la table sellers
       final sellerInsertData = {
@@ -101,12 +94,9 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         'updated_at': DateTime.now().toIso8601String(),
       };
       
-      print('🗄️ [DATASOURCE] Insertion dans table sellers...');
-      print('📊 [DATASOURCE] Données: $sellerInsertData');
       
       await _supabaseClient.from('sellers').insert(sellerInsertData);
       
-      print('✅ [DATASOURCE] Profil vendeur créé avec succès !');
       
       // Créer le SellerModel à partir des données insérées
       final sellerModel = SellerModel(
@@ -126,12 +116,8 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
       return sellerModel;
       
     } on AuthException catch (e) {
-      print('❌ [DATASOURCE] AuthException: ${e.message}');
       throw AuthFailure(_mapSupabaseAuthError(e.message));
     } on PostgrestException catch (e) {
-      print('❌ [DATASOURCE] PostgrestException: ${e.message}');
-      print('🔍 [DATASOURCE] Code erreur: ${e.code}');
-      print('🔍 [DATASOURCE] Détails: ${e.details}');
       
       // Gestion des erreurs spécifiques
       if (e.code == '23505') {
@@ -145,7 +131,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
       
       throw AuthFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [DATASOURCE] Erreur inattendue: $e');
       throw AuthFailure('Erreur inattendue: $e');
     }
   }
@@ -203,14 +188,11 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
   @override
   Future<void> logoutSeller() async {
     try {
-      print('🚪 [DATASOURCE] Début déconnexion vendeur');
       
       // Déconnexion Supabase Auth (nettoie la session)
       await _supabaseClient.auth.signOut(scope: SignOutScope.global);
       
-      print('✅ [DATASOURCE] Déconnexion vendeur réussie');
     } catch (e) {
-      print('❌ [DATASOURCE] Erreur déconnexion vendeur: $e');
       throw const AuthFailure('Erreur lors de la déconnexion');
     }
   }
@@ -280,7 +262,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         throw const AuthFailure('Aucun utilisateur connecté');
       }
 
-      print('🔍 [DEBUG getCurrentSeller] User ID: ${user.id}');
 
       final sellerData = await _supabaseClient
           .from('sellers')
@@ -288,11 +269,8 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
           .eq('id', user.id)
           .single();
 
-      print('🔍 [DEBUG getCurrentSeller] Données récupérées: $sellerData');
 
       final sellerModel = SellerModel.fromJson(sellerData);
-      print('🔍 [DEBUG getCurrentSeller] SellerModel créé: $sellerModel');
-      print('🔍 [DEBUG getCurrentSeller] Company Name dans model: ${sellerModel.companyName}');
 
       return sellerModel;
       

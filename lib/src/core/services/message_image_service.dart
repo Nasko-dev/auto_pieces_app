@@ -17,7 +17,6 @@ class MessageImageService {
     required File imageFile,
   }) async {
     try {
-      print('📸 [MessageImageService] Upload image pour conversation: $conversationId');
 
       // Vérifier et créer le bucket si nécessaire
       await _ensureBucketExists();
@@ -30,7 +29,6 @@ class MessageImageService {
       final fileName = '${_uuid.v4()}.$fileExtension';
       final filePath = '$conversationId/$fileName';
 
-      print('📁 [MessageImageService] Chemin de sauvegarde: $filePath');
 
       // Upload vers Supabase Storage
       await _supabaseClient.storage
@@ -49,14 +47,11 @@ class MessageImageService {
           .from(_bucketName)
           .getPublicUrl(filePath);
 
-      print('✅ [MessageImageService] Image uploadée avec succès: $publicUrl');
       return publicUrl;
 
     } on StorageException catch (e) {
-      print('❌ [MessageImageService] Erreur Supabase Storage: ${e.message}');
       throw ServerFailure('Erreur d\'upload: ${e.message}');
     } catch (e) {
-      print('❌ [MessageImageService] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de l\'upload de l\'image: $e');
     }
   }
@@ -73,25 +68,20 @@ class MessageImageService {
       // Le chemin est après '/storage/v1/object/public/message-images/'
       final bucketIndex = pathSegments.indexOf(_bucketName);
       if (bucketIndex == -1 || bucketIndex >= pathSegments.length - 1) {
-        print('⚠️ [MessageImageService] URL image invalide: $imageUrl');
         return;
       }
 
       final filePath = pathSegments.sublist(bucketIndex + 1).join('/');
 
-      print('🗑️ [MessageImageService] Suppression image: $filePath');
 
       await _supabaseClient.storage
           .from(_bucketName)
           .remove([filePath]);
 
-      print('✅ [MessageImageService] Image supprimée avec succès');
 
     } on StorageException catch (e) {
-      print('❌ [MessageImageService] Erreur suppression: ${e.message}');
       // Ne pas throw d'erreur pour la suppression
     } catch (e) {
-      print('❌ [MessageImageService] Erreur inattendue suppression: $e');
       // Ne pas throw d'erreur pour la suppression
     }
   }
@@ -136,7 +126,6 @@ class MessageImageService {
       await _supabaseClient.storage.from(_bucketName).list();
       return true;
     } catch (e) {
-      print('❌ [MessageImageService] Bucket $_bucketName n\'existe pas: $e');
       return false;
     }
   }
@@ -146,9 +135,7 @@ class MessageImageService {
     try {
       // Tenter une opération sur le bucket pour vérifier son existence
       await _supabaseClient.storage.from(_bucketName).list();
-      print('✅ [MessageImageService] Bucket $_bucketName existe déjà');
     } catch (e) {
-      print('⚠️ [MessageImageService] Bucket $_bucketName n\'existe pas, création...');
 
       try {
         // Créer le bucket
@@ -157,9 +144,7 @@ class MessageImageService {
           allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
           fileSizeLimit: '5242880', // 5MB en string
         ));
-        print('✅ [MessageImageService] Bucket $_bucketName créé avec succès');
       } catch (createError) {
-        print('❌ [MessageImageService] Erreur création bucket: $createError');
         // Si la création échoue, on continue quand même
         // Le bucket pourrait exister mais avoir des permissions restrictives
       }

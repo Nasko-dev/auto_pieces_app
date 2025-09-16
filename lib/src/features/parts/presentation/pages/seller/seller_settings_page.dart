@@ -57,18 +57,15 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       return;
     }
 
-    print('🔄 [SellerSettingsPage] Chargement des paramètres vendeur...');
     final getSellerSettings = ref.read(getSellerSettingsProvider);
     final result = await getSellerSettings(currentUser.id);
 
     result.fold(
       (failure) {
-        print('❌ [SellerSettingsPage] Erreur chargement paramètres: ${failure.message}');
         setState(() => _isLoadingSettings = false);
       },
       (settings) {
         if (settings != null && mounted) {
-          print('📋 [SellerSettingsPage] Paramètres trouvés');
           setState(() {
             _companyNameController.text = settings.companyName ?? '';
             _phoneController.text = settings.phone ?? '';
@@ -82,9 +79,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _isLoadingSettings = false;
           });
-          print('✅ [SellerSettingsPage] Paramètres chargés dans les champs');
         } else {
-          print('ℹ️ [SellerSettingsPage] Aucun paramètre trouvé, utilisation des valeurs par défaut');
           setState(() => _isLoadingSettings = false);
         }
       },
@@ -153,7 +148,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -167,7 +162,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -272,7 +267,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -286,7 +281,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withOpacity(0.1),
+                  color: AppTheme.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -444,7 +439,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -458,7 +453,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.warning.withOpacity(0.1),
+                  color: AppTheme.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -682,7 +677,6 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
 
       result.fold(
         (failure) {
-          print('❌ [SellerSettingsPage] Erreur sauvegarde: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -692,7 +686,6 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
           );
         },
         (savedSettings) {
-          print('✅ [SellerSettingsPage] Paramètres sauvegardés en BDD: ${savedSettings.sellerId}');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(
@@ -712,7 +705,6 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       // Masquer l'indicateur de chargement
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      print('❌ [SellerSettingsPage] Exception inattendue: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),

@@ -27,7 +27,6 @@ final authStateListenerProvider = StreamProvider<AuthState>((ref) {
   
   // Écouter les changements d'état d'authentification
   return supabase.auth.onAuthStateChange.map((authState) {
-    print('🔄 [AuthListener] État auth changé: ${authState.event}');
     
     // Mettre à jour le cache selon l'événement
     switch (authState.event) {
@@ -36,13 +35,11 @@ final authStateListenerProvider = StreamProvider<AuthState>((ref) {
       case AuthChangeEvent.userUpdated:
         // Mettre à jour le cache de session
         sessionService.updateCachedSession();
-        print('💾 [AuthListener] Cache mis à jour après ${authState.event}');
         break;
         
       case AuthChangeEvent.signedOut:
         // Nettoyer le cache
         sessionService.clearCache();
-        print('🧹 [AuthListener] Cache nettoyé après déconnexion');
         break;
         
       default:
@@ -81,16 +78,13 @@ final isAutoReconnectEnabledProvider = Provider<bool>((ref) {
 final initialAuthCheckProvider = FutureProvider<bool>((ref) async {
   final sessionService = ref.watch(sessionServiceProvider);
   
-  print('🔍 [InitialAuth] Vérification session initiale...');
   
   // Tenter l'auto-reconnexion
   final hasReconnected = await sessionService.autoReconnect();
   
   if (hasReconnected) {
-    print('✅ [InitialAuth] Session restaurée avec succès');
     return true;
   }
   
-  print('ℹ️ [InitialAuth] Pas de session à restaurer');
   return false;
 });

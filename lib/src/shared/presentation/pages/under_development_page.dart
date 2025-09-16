@@ -41,7 +41,7 @@ class UnderDevelopmentPage extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -90,7 +90,7 @@ class UnderDevelopmentPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.black.withOpacity(0.05),
+                      color: AppTheme.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),

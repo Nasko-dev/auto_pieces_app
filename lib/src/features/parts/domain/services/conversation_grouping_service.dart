@@ -5,7 +5,6 @@ class ConversationGroupingService {
   static List<ConversationGroup> groupConversations(
     List<Conversation> conversations,
   ) {
-    print('🔄 [GroupingService] Groupement de ${conversations.length} conversations');
 
     // Map pour regrouper par clé unique
     final Map<String, List<Conversation>> grouped = {};
@@ -20,7 +19,6 @@ class ConversationGroupingService {
       }
     }
 
-    print('🏷️ [GroupingService] ${grouped.length} groupes créés');
 
     // Convertir en ConversationGroup et trier
     final groups = grouped.entries.map((entry) {
@@ -58,7 +56,6 @@ class ConversationGroupingService {
       return bLastMessage.compareTo(aLastMessage); // Plus récent en premier
     });
 
-    print('✅ [GroupingService] Groupement terminé');
     return groups;
   }
 

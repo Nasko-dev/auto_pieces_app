@@ -41,7 +41,6 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     final currentSellerAsync = ref.watch(currentSellerProviderAlt);
 
     // Debug: Vérifier l'état du provider
-    print('🔍 [DEBUG Build] Provider state: ${currentSellerAsync.runtimeType}');
     currentSellerAsync.when(
       data: (seller) => print('🔍 [DEBUG Build] Provider data: $seller'),
       loading: () => print('🔍 [DEBUG Build] Provider loading'),
@@ -69,7 +68,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withOpacity(0.8),
+                AppTheme.primaryBlue.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -105,7 +104,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppTheme.gray.withOpacity(0.3),
+                      AppTheme.gray.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),
@@ -143,7 +142,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 4,
-                    shadowColor: AppTheme.primaryBlue.withOpacity(0.3),
+                    shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -172,25 +171,18 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return currentSellerAsync.when(
       data: (seller) {
         // Debug: Afficher les informations du vendeur
-        print('🔍 [DEBUG Header] Seller: $seller');
-        print('🔍 [DEBUG Header] Company Name: ${seller?.companyName}');
-        print('🔍 [DEBUG Header] First Name: ${seller?.firstName}');
-        print('🔍 [DEBUG Header] Last Name: ${seller?.lastName}');
 
         String headerText;
         if (seller?.companyName != null && seller!.companyName!.isNotEmpty) {
           headerText = 'Bonjour ${seller.companyName}';
-          print('✅ [DEBUG Header] Utilise company name: ${seller.companyName}');
         } else if (seller?.firstName != null && seller!.firstName!.isNotEmpty) {
           final name =
               seller.lastName != null
                   ? '${seller.firstName} ${seller.lastName}'
                   : seller.firstName!;
           headerText = 'Bonjour $name';
-          print('✅ [DEBUG Header] Utilise nom personnel: $name');
         } else {
           headerText = 'Bonjour Vendeur';
-          print('⚠️ [DEBUG Header] Utilise fallback');
         }
 
         return Text(
@@ -424,15 +416,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.03),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppTheme.primaryBlue.withOpacity(0.2),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryBlue.withOpacity(0.08),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -452,7 +444,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryBlue.withOpacity(0.1),
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -506,15 +498,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -526,7 +518,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -559,15 +551,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -579,7 +571,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppTheme.error.withOpacity(0.1),
+              color: AppTheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -719,7 +711,6 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       // Rafraîchir les notifications
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
     } catch (e) {
-      print('❌ [HomeSellerPage] Erreur création conversation: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -833,15 +824,15 @@ class _StatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -855,7 +846,7 @@ class _StatsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -914,15 +905,15 @@ class _QuickActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -940,7 +931,7 @@ class _QuickActionCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -984,15 +975,15 @@ class _ModernNotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1012,7 +1003,7 @@ class _ModernNotificationCard extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -1053,7 +1044,7 @@ class _ModernNotificationCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.success.withOpacity(0.1),
+                      color: AppTheme.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(

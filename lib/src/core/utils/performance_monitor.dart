@@ -50,7 +50,6 @@ class PerformanceMonitor {
 
     // Log en debug
     if (kDebugMode) {
-      print('📊 Performance: $type = ${value.toStringAsFixed(2)}ms');
     }
   }
 

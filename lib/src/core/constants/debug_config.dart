@@ -13,7 +13,6 @@ class DebugConfig {
   static void log(String message, {bool force = false, bool? module}) {
     if (force || enableDebugLogs || (module ?? false)) {
       // ignore: avoid_print
-      print(message);
     }
   }
 }

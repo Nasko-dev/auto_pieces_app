@@ -137,13 +137,13 @@ class HelpPage extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             AppTheme.primaryBlue,
-            AppTheme.primaryBlue.withOpacity(0.8),
+            AppTheme.primaryBlue.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.3),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -157,7 +157,7 @@ class HelpPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.white.withOpacity(0.2),
+                  color: AppTheme.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -200,7 +200,7 @@ class HelpPage extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -216,7 +216,7 @@ class HelpPage extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryBlue.withOpacity(0.1),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -278,10 +278,10 @@ class HelpPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppTheme.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2)),
+        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -295,7 +295,7 @@ class HelpPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(

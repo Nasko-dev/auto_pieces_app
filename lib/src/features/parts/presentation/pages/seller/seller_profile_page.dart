@@ -46,18 +46,15 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       return;
     }
 
-    print('🔄 [SellerProfilePage] Chargement du profil vendeur...');
     final getSellerSettings = ref.read(getSellerSettingsProvider);
     final result = await getSellerSettings(currentUser.id);
 
     result.fold(
       (failure) {
-        print('❌ [SellerProfilePage] Erreur chargement profil: ${failure.message}');
         setState(() => _isLoadingProfile = false);
       },
       (settings) {
         if (settings != null && mounted) {
-          print('📋 [SellerProfilePage] Profil trouvé: ${settings.companyName}');
           setState(() {
             _companyNameController.text = settings.companyName ?? 'Mon Entreprise';
             _notificationsEnabled = settings.notificationsEnabled;
@@ -66,9 +63,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
             _userEmail = settings.email;
             _isLoadingProfile = false;
           });
-          print('✅ [SellerProfilePage] Profil chargé dans les champs');
         } else {
-          print('ℹ️ [SellerProfilePage] Aucun profil trouvé, utilisation des valeurs par défaut');
           setState(() {
             _companyNameController.text = 'Mon Entreprise';
             _userEmail = currentUser.email ?? 'Email non disponible';
@@ -136,7 +131,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -280,7 +275,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.lightGray.withOpacity(0.3),
+              color: AppTheme.lightGray.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -330,7 +325,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -344,7 +339,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -462,7 +457,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -577,7 +572,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          print('❌ [SellerProfilePage] Erreur sauvegarde: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -587,7 +581,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
           );
         },
         (savedSettings) {
-          print('✅ [SellerProfilePage] Nom de l\'entreprise sauvegardé: ${savedSettings.companyName}');
           setState(() {
             _isEditingName = false;
           });
@@ -609,7 +602,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      print('❌ [SellerProfilePage] Exception sauvegarde: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),
@@ -640,15 +632,12 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          print('❌ [SellerProfilePage] Erreur sauvegarde notifications: ${failure.message}');
           _loadSellerProfile();
         },
         (savedSettings) {
-          print('✅ [SellerProfilePage] Préférences notifications sauvegardées');
         },
       );
     } catch (e) {
-      print('❌ [SellerProfilePage] Exception sauvegarde notifications: $e');
       _loadSellerProfile();
     }
   }
@@ -705,7 +694,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withOpacity(0.1),
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: const Icon(
@@ -746,7 +735,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withOpacity(0.1),
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: const Icon(
@@ -817,7 +806,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         _uploadAndSaveAvatar(File(pickedFile.path));
       }
     } catch (e) {
-      print('❌ [SellerProfilePage] Erreur sélection image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la sélection de l\'image: $e'),
@@ -852,7 +840,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         imageFile: imageFile,
       );
 
-      print('📸 [SellerProfilePage] Image uploadée: $imageUrl');
 
       final sellerSettings = SellerSettings(
         sellerId: currentUser.id,
@@ -869,7 +856,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          print('❌ [SellerProfilePage] Erreur sauvegarde avatar: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -878,7 +864,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
           );
         },
         (savedSettings) {
-          print('✅ [SellerProfilePage] Avatar sauvegardé: ${savedSettings.avatarUrl}');
           setState(() {
             _avatarUrl = savedSettings.avatarUrl;
           });
@@ -899,7 +884,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         },
       );
     } catch (e) {
-      print('❌ [SellerProfilePage] Erreur upload avatar: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de l\'upload: $e'),
@@ -942,7 +926,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          print('❌ [SellerProfilePage] Erreur suppression avatar: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur: ${failure.message}'),
@@ -951,7 +934,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
           );
         },
         (savedSettings) {
-          print('✅ [SellerProfilePage] Avatar supprimé');
           setState(() {
             _avatarUrl = null;
           });
@@ -972,7 +954,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         },
       );
     } catch (e) {
-      print('❌ [SellerProfilePage] Erreur suppression avatar: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'),

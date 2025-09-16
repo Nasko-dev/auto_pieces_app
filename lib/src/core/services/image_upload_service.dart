@@ -16,7 +16,6 @@ class ImageUploadService {
     required File imageFile,
   }) async {
     try {
-      print('📸 [ImageUploadService] Upload avatar pour utilisateur: $userId');
 
       // Lire le fichier en bytes
       final bytes = await imageFile.readAsBytes();
@@ -26,7 +25,6 @@ class ImageUploadService {
       final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
       final filePath = '$userId/$fileName';
 
-      print('📁 [ImageUploadService] Chemin de sauvegarde: $filePath');
 
       // Upload vers Supabase Storage
       await _supabaseClient.storage
@@ -45,14 +43,11 @@ class ImageUploadService {
           .from(_bucketName)
           .getPublicUrl(filePath);
 
-      print('✅ [ImageUploadService] Image uploadée avec succès: $publicUrl');
       return publicUrl;
 
     } on StorageException catch (e) {
-      print('❌ [ImageUploadService] Erreur Supabase Storage: ${e.message}');
       throw ServerFailure('Erreur d\'upload: ${e.message}');
     } catch (e) {
-      print('❌ [ImageUploadService] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de l\'upload de l\'image: $e');
     }
   }
@@ -69,25 +64,20 @@ class ImageUploadService {
       // Le chemin est après '/storage/v1/object/public/avatars/'
       final avatarIndex = pathSegments.indexOf('avatars');
       if (avatarIndex == -1 || avatarIndex >= pathSegments.length - 1) {
-        print('⚠️ [ImageUploadService] URL avatar invalide: $avatarUrl');
         return;
       }
 
       final filePath = pathSegments.sublist(avatarIndex + 1).join('/');
 
-      print('🗑️ [ImageUploadService] Suppression avatar: $filePath');
 
       await _supabaseClient.storage
           .from(_bucketName)
           .remove([filePath]);
 
-      print('✅ [ImageUploadService] Avatar supprimé avec succès');
 
     } on StorageException catch (e) {
-      print('❌ [ImageUploadService] Erreur suppression: ${e.message}');
       // Ne pas throw d'erreur pour la suppression, continuer silencieusement
     } catch (e) {
-      print('❌ [ImageUploadService] Erreur inattendue suppression: $e');
       // Ne pas throw d'erreur pour la suppression, continuer silencieusement
     }
   }

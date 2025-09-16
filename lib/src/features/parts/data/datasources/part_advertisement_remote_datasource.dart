@@ -187,7 +187,6 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       await client.rpc('increment_view_count', params: {'ad_id': id});
     } catch (e) {
       // Pas critique, on peut ignorer l'erreur
-      print('Erreur lors de l\'incrémentation des vues: $e');
     }
   }
 
@@ -197,7 +196,6 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       await client.rpc('increment_contact_count', params: {'ad_id': id});
     } catch (e) {
       // Pas critique, on peut ignorer l'erreur
-      print('Erreur lors de l\'incrémentation des contacts: $e');
     }
   }
 }

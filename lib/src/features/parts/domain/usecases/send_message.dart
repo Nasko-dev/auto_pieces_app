@@ -12,7 +12,6 @@ class SendMessage implements UseCase<Message, SendMessageParams> {
 
   @override
   Future<Either<Failure, Message>> call(SendMessageParams params) async {
-    print('📤 [UseCase] SendMessage - contenu: ${params.content}');
     return await repository.sendMessage(
       conversationId: params.conversationId,
       senderId: params.senderId,

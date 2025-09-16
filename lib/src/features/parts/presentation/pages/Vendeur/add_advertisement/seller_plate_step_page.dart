@@ -65,9 +65,9 @@ class _SellerPlateStepPageState extends ConsumerState<SellerPlateStepPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.05),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2)),
+                      border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,9 +136,9 @@ class _SellerPlateStepPageState extends ConsumerState<SellerPlateStepPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.05),
+                      color: Colors.orange.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [

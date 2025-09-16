@@ -34,7 +34,7 @@ class YannkoWelcomePage extends StatelessWidget {
       fontSize: f * s,
       fontWeight: FontWeight.w500,
       height: 1.35,
-      color: _textPrimary.withOpacity(0.92),
+      color: _textPrimary.withValues(alpha: 0.92),
     );
 
     return Scaffold(

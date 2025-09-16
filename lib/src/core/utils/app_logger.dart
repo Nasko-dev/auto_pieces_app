@@ -50,7 +50,6 @@ class AppLogger {
   static void _log(String emoji, String category, String message) {
     if (_debugMode) {
       final logMessage = '$emoji [$category] $message';
-      print(logMessage);
       developer.log(logMessage, name: category);
     }
   }

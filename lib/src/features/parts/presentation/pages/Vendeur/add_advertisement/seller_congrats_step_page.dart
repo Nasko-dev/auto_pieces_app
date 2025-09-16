@@ -31,7 +31,7 @@ class SellerCongratsStepPage extends StatelessWidget {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: AppTheme.success.withOpacity(0.1),
+                      color: AppTheme.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(60),
                     ),
                     child: const Icon(
@@ -77,10 +77,10 @@ class SellerCongratsStepPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppTheme.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.success.withOpacity(0.3)),
+                      border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.success.withOpacity(0.1),
+                          color: AppTheme.success.withValues(alpha: 0.1),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -93,7 +93,7 @@ class SellerCongratsStepPage extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.success.withOpacity(0.1),
+                                color: AppTheme.success.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -123,7 +123,7 @@ class SellerCongratsStepPage extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.success.withOpacity(0.1),
+                                color: AppTheme.success.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -153,9 +153,9 @@ class SellerCongratsStepPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.05),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.2)),
+                      border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

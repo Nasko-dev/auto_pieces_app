@@ -56,18 +56,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    print('🔄 [SettingsPage] Chargement des paramètres utilisateur...');
     final getUserSettings = ref.read(getUserSettingsProvider);
     final result = await getUserSettings(currentUser.id);
     
     result.fold(
       (failure) {
-        print('❌ [SettingsPage] Erreur chargement paramètres: ${failure.message}');
         setState(() => _isLoadingSettings = false);
       },
       (settings) {
         if (settings != null && mounted) {
-          print('📋 [SettingsPage] Paramètres trouvés: ${settings.address}, ${settings.city}, ${settings.postalCode}');
           setState(() {
             _addressController.text = settings.address ?? '';
             _cityController.text = settings.city ?? '';
@@ -78,9 +75,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _isLoadingSettings = false;
           });
-          print('✅ [SettingsPage] Paramètres chargés dans les champs');
         } else {
-          print('ℹ️ [SettingsPage] Aucun paramètre trouvé, utilisation des valeurs par défaut');
           setState(() => _isLoadingSettings = false);
         }
       },
@@ -144,7 +139,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -158,7 +153,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -359,7 +354,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -373,7 +368,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withOpacity(0.1),
+                  color: AppTheme.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -596,7 +591,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
       result.fold(
         (failure) {
-          print('❌ [SettingsPage] Erreur sauvegarde: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -606,7 +600,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           );
         },
         (savedSettings) {
-          print('✅ [SettingsPage] Paramètres sauvegardés en BDD: ${savedSettings.userId}');
 
           // Invalider les providers pour mettre à jour les indicateurs rouges
           ref.invalidate(particulierSettingsStatusProvider);
@@ -634,7 +627,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       // Masquer l'indicateur de chargement
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       
-      print('❌ [SettingsPage] Exception inattendue: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),

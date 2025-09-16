@@ -360,7 +360,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: _textGray.withOpacity(0.7),
+                color: _textGray.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
               prefixIcon: Icon(icon, color: _blue, size: 20),
@@ -400,9 +400,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.1),
+          color: Colors.green.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(_radius),
-          border: Border.all(color: Colors.green.withOpacity(0.3)),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -635,7 +635,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _submitRequest() async {
-    print('🚀 [HomePage] Début soumission formulaire');
 
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty &&
@@ -643,10 +642,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       allParts.add(_partController.text);
     }
 
-    print('🔩 [HomePage] Pièces sélectionnées: ${allParts.join(", ")}');
 
     if (allParts.isEmpty) {
-      print('❌ [HomePage] Aucune pièce sélectionnée');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez spécifier au moins une pièce'),
@@ -657,9 +654,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     // Créer les paramètres de la demande
-    print('📝 [HomePage] Création des paramètres');
-    print('🚗 [HomePage] Mode manuel: $_isManualMode');
-    print('🔧 [HomePage] Type de pièce: $_selectedType');
 
     // Récupérer les informations du véhicule selon le mode
     String? vehicleBrand;
@@ -675,11 +669,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         vehicleBrand = _marqueController.text.isNotEmpty ? _marqueController.text : null;
         vehicleModel = _modeleController.text.isNotEmpty ? _modeleController.text : null;
         vehicleYear = _anneeController.text.isNotEmpty ? int.tryParse(_anneeController.text) : null;
-        print('🚗 [HomePage] Mode manuel carrosserie - Marque: $vehicleBrand, Modèle: $vehicleModel, Année: $vehicleYear');
       } else if (_selectedType == 'engine') {
         // Moteur : motorisation seulement
         vehicleEngine = _motorisationController.text.isNotEmpty ? _motorisationController.text : null;
-        print('🔧 [HomePage] Mode manuel moteur - Motorisation: $vehicleEngine');
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
@@ -694,10 +686,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           vehicleModel = info.model;
           vehicleYear = info.year;
           
-          print('🚗 [HomePage] Infos carrosserie récupérées depuis l\'API:');
-          print('   - Marque: $vehicleBrand');
-          print('   - Modèle: $vehicleModel');
-          print('   - Année: $vehicleYear');
         } else if (_selectedType == 'engine') {
           // Moteur : motorisation seulement depuis l'API
           final engineParts = <String>[];
@@ -706,8 +694,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (info.power != null) engineParts.add('${info.power}cv');
           vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
           
-          print('🚗 [HomePage] Motorisation récupérée depuis l\'API:');
-          print('   - Motorisation: $vehicleEngine');
         }
       }
     }
@@ -724,14 +710,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       isAnonymous: true, // Pour l'instant, on reste en mode anonyme
     );
 
-    print('📤 [HomePage] Envoi vers le controller');
 
     // Envoyer la demande via le controller
     final controller = ref.read(partRequestControllerProvider.notifier);
     final success = await controller.createPartRequest(params);
 
     if (success && mounted) {
-      print('🎉 [HomePage] Succès de la soumission');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -743,12 +727,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
 
       // Reset form
-      print('🔄 [HomePage] Réinitialisation du formulaire');
       _resetForm();
     } else if (mounted) {
-      print('💥 [HomePage] Échec de la soumission');
       final state = ref.read(partRequestControllerProvider);
-      print('📝 [HomePage] Erreur: ${state.error}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.error ?? 'Erreur lors de l\'envoi de la demande'),
@@ -794,7 +775,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(color: _textGray.withOpacity(0.7)),
+              hintStyle: TextStyle(color: _textGray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
@@ -870,9 +851,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _blue.withOpacity(0.1),
+        color: _blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _blue.withOpacity(0.3), width: 1),
+        border: Border.all(color: _blue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -892,7 +873,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: _blue.withOpacity(0.2),
+                color: _blue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.close, size: 12, color: _blue),
@@ -992,8 +973,8 @@ class _TypeCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       selected
-                          ? _blue.withOpacity(0.12)
-                          : _blue.withOpacity(0.08),
+                          ? _blue.withValues(alpha: 0.12)
+                          : _blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 24, color: selected ? _blue : _blue),

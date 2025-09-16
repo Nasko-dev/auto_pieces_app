@@ -16,7 +16,6 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
   @override
   Future<SellerSettingsModel?> getSellerSettings(String sellerId) async {
     try {
-      print('🔍 [SellerSettingsDataSource] Récupération paramètres pour sellerId: $sellerId');
 
       // Récupérer depuis la table sellers en utilisant l'ID du vendeur
       final response = await _supabaseClient
@@ -26,11 +25,9 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
           .maybeSingle();
 
       if (response == null) {
-        print('ℹ️ [SellerSettingsDataSource] Aucun vendeur trouvé pour cet utilisateur');
         return null;
       }
 
-      print('✅ [SellerSettingsDataSource] Paramètres récupérés depuis sellers: $response');
 
       // Adapter les données de la table sellers vers le modèle SellerSettings
       final adaptedData = {
@@ -56,10 +53,8 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
 
       return SellerSettingsModel.fromJson(adaptedData);
     } on PostgrestException catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la récupération des paramètres: $e');
     }
   }
@@ -67,7 +62,6 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
   @override
   Future<SellerSettingsModel> saveSellerSettings(SellerSettingsModel settings) async {
     try {
-      print('💾 [SellerSettingsDataSource] Sauvegarde paramètres dans sellers pour: ${settings.sellerId}');
 
       final now = DateTime.now().toIso8601String();
 
@@ -80,7 +74,6 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
 
       if (existingRecord != null) {
         // Mise à jour de l'enregistrement existant en préservant les valeurs existantes
-        print('📝 [SellerSettingsDataSource] Mise à jour enregistrement existant: ${existingRecord['id']}');
 
         // Construire les données en préservant les valeurs existantes si les nouvelles sont nulles
         final dataToSave = {
@@ -106,11 +99,9 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
             .maybeSingle();
 
         if (response == null) {
-          print('⚠️ [SellerSettingsDataSource] Aucune ligne retournée après update');
           return settings;
         }
 
-        print('✅ [SellerSettingsDataSource] Paramètres mis à jour: $response');
 
         // Adapter la réponse
         final adaptedResponse = {
@@ -136,14 +127,11 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
 
         return SellerSettingsModel.fromJson(adaptedResponse);
       } else {
-        print('❌ [SellerSettingsDataSource] Vendeur non trouvé pour mise à jour: ${settings.sellerId}');
         throw ServerFailure('Vendeur non trouvé');
       }
     } on PostgrestException catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la sauvegarde des paramètres: $e');
     }
   }
@@ -151,7 +139,6 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
   @override
   Future<void> deleteSellerSettings(String sellerId) async {
     try {
-      print('🗑️ [SellerSettingsDataSource] Effacement des données de profil pour: $sellerId');
 
       // Effacer seulement les données de profil (pas l'email ni l'authentification)
       final dataToUpdate = {
@@ -172,12 +159,9 @@ class SellerSettingsRemoteDataSourceImpl implements SellerSettingsRemoteDataSour
           .update(dataToUpdate)
           .eq('id', sellerId);
 
-      print('✅ [SellerSettingsDataSource] Données de profil effacées dans sellers');
     } on PostgrestException catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [SellerSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la suppression des paramètres: $e');
     }
   }

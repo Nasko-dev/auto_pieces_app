@@ -18,11 +18,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<UserSettingsModel?> getUserSettings(String userId) async {
     try {
-      print('🔍 [UserSettingsDataSource] Récupération paramètres pour userId: $userId');
 
       // Obtenir le device_id pour rechercher les paramètres persistants
       final deviceId = await _deviceService.getDeviceId();
-      print('📱 [UserSettingsDataSource] Recherche avec device_id: $deviceId');
 
       // Récupérer depuis la table particuliers en utilisant le device_id
       final response = await _supabaseClient
@@ -33,11 +31,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           .maybeSingle();
 
       if (response == null) {
-        print('ℹ️ [UserSettingsDataSource] Aucun particulier trouvé pour cet utilisateur');
         return null;
       }
 
-      print('✅ [UserSettingsDataSource] Paramètres récupérés depuis particuliers: $response');
 
       // Adapter les données de la table particuliers vers le modèle UserSettings
       final adaptedData = {
@@ -58,10 +54,8 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
 
       return UserSettingsModel.fromJson(adaptedData);
     } on PostgrestException catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la récupération des paramètres: $e');
     }
   }
@@ -69,11 +63,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<UserSettingsModel> saveUserSettings(UserSettingsModel settings) async {
     try {
-      print('💾 [UserSettingsDataSource] Sauvegarde paramètres dans particuliers pour: ${settings.userId}');
 
       // Obtenir le device_id pour la sauvegarde persistante
       final deviceId = await _deviceService.getDeviceId();
-      print('📱 [UserSettingsDataSource] Sauvegarde avec device_id: $deviceId');
 
       final now = DateTime.now().toIso8601String();
 
@@ -89,7 +81,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
 
       if (existingRecord != null) {
         // Mise à jour de l'enregistrement existant en préservant les valeurs existantes
-        print('📝 [UserSettingsDataSource] Mise à jour enregistrement existant: ${existingRecord['id']}');
 
         // Construire les données en préservant les valeurs existantes si les nouvelles sont nulles
         dataToSave = {
@@ -113,11 +104,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
             .maybeSingle();
 
         if (response == null) {
-          print('⚠️ [UserSettingsDataSource] Aucune ligne retournée après update');
           return settings;
         }
 
-        print('✅ [UserSettingsDataSource] Paramètres mis à jour: $response');
 
         // Adapter la réponse
         final adaptedResponse = {
@@ -138,7 +127,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         return UserSettingsModel.fromJson(adaptedResponse);
       } else {
         // Créer un nouvel enregistrement avec l'ID actuel et le device_id
-        print('🆕 [UserSettingsDataSource] Création nouvel enregistrement');
         dataToSave = {
           'id': settings.userId,
           'device_id': deviceId,
@@ -163,11 +151,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
             .maybeSingle();
 
         if (response == null) {
-          print('⚠️ [UserSettingsDataSource] Aucune ligne retournée après création');
           return settings;
         }
 
-        print('✅ [UserSettingsDataSource] Nouvel enregistrement créé: $response');
 
         // Adapter la réponse
         final adaptedResponse = {
@@ -188,10 +174,8 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         return UserSettingsModel.fromJson(adaptedResponse);
       }
     } on PostgrestException catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la sauvegarde des paramètres: $e');
     }
   }
@@ -199,7 +183,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<void> deleteUserSettings(String userId) async {
     try {
-      print('🗑️ [UserSettingsDataSource] Effacement des paramètres de localisation pour: $userId');
 
       // Effacer seulement les colonnes de localisation dans la table particuliers
       final dataToUpdate = {
@@ -215,12 +198,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           .update(dataToUpdate)
           .eq('id', userId);
 
-      print('✅ [UserSettingsDataSource] Paramètres de localisation effacés dans particuliers');
     } on PostgrestException catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur PostgreSQL: ${e.message}');
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
-      print('❌ [UserSettingsDataSource] Erreur inattendue: $e');
       throw ServerFailure('Erreur lors de la suppression des paramètres: $e');
     }
   }

@@ -113,7 +113,7 @@ class _CarModelSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.darkBlue.withOpacity(0.06),
+            color: AppTheme.darkBlue.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -134,7 +134,7 @@ class _CarModelSection extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -159,7 +159,7 @@ class _CarModelSection extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -257,8 +257,8 @@ class _ConversationCard extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               color: isInsideSection 
-                ? AppTheme.gray.withOpacity(.1)
-                : AppTheme.primaryBlue.withOpacity(.12),
+                ? AppTheme.gray.withValues(alpha: .1)
+                : AppTheme.primaryBlue.withValues(alpha: .12),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -322,7 +322,7 @@ class _ConversationCard extends StatelessWidget {
           const SizedBox(width: 8),
           Icon(
             Icons.chevron_right,
-            color: AppTheme.gray.withOpacity(0.6),
+            color: AppTheme.gray.withValues(alpha: 0.6),
             size: 20,
           ),
         ],
@@ -338,7 +338,7 @@ class _StateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isClosed = state.toLowerCase().startsWith('f'); // Fermé
-    final bg = isClosed ? AppTheme.success.withOpacity(0.1) : AppTheme.error.withOpacity(0.1);
+    final bg = isClosed ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.error.withValues(alpha: 0.1);
     final fg = isClosed ? AppTheme.success : AppTheme.error;
     final icon = isClosed ? Icons.lock_outline : Icons.block;
     final label = isClosed ? 'Fermé' : 'Bloqué';

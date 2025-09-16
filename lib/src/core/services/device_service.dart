@@ -14,9 +14,7 @@ class DeviceService {
     if (deviceId == null || deviceId.isEmpty) {
       deviceId = _generateDeviceId();
       await _prefs.setString(_deviceIdKey, deviceId);
-      print('📱 [DeviceService] Nouveau device ID généré: $deviceId');
     } else {
-      print('📱 [DeviceService] Device ID existant trouvé: $deviceId');
     }
     
     return deviceId;
@@ -38,6 +36,5 @@ class DeviceService {
   /// Efface l'identifiant de l'appareil (utile pour les tests)
   Future<void> clearDeviceId() async {
     await _prefs.remove(_deviceIdKey);
-    print('🗑️ [DeviceService] Device ID supprimé');
   }
 }

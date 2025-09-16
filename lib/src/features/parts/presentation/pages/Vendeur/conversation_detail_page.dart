@@ -35,7 +35,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   @override
   void initState() {
     super.initState();
-    print('💬 [UI] SellerConversationDetailPage initialisée pour: ${widget.conversationId}');
 
     // Pré-remplir le message si fourni
     if (widget.prefilledMessage != null) {
@@ -56,7 +55,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   void _markAsRead() {
-    print('👀 [UI-VendeurDetail] Marquage conversation comme lue: ${widget.conversationId}');
     // ✅ SIMPLE: Éviter setState during build en différant l'appel
     Future.microtask(() {
       ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
@@ -64,7 +62,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
   
   void _subscribeToRealtimeMessages() {
-    print('🔔 [SellerConversationDetailPage] Abonnement realtime pour conversation: ${widget.conversationId}');
     
     final realtimeService = ref.read(realtimeServiceProvider);
     
@@ -75,7 +72,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen((message) {
       // Vérifier que c'est bien pour notre conversation
       if (message.conversationId == widget.conversationId) {
-        print('🎆 [SellerConversationDetailPage] Nouveau message reçu en temps réel!');
         
         // Envoyer au controller via la méthode unifiée
         ref.read(conversationsControllerProvider.notifier)
@@ -123,7 +119,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final error = ref.watch(conversationsErrorProvider);
     final conversation = _getConversationFromList();
 
-    print('💬 [UI] Chat vendeur - ${messages.length} messages, loading: $isLoadingMessages');
 
     // Auto-scroll vers le bas quand de nouveaux messages arrivent
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -141,7 +136,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -336,7 +331,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    print('📤 [UI] Envoi message vendeur: $content');
     
     ref.read(conversationsControllerProvider.notifier).sendMessage(
       conversationId: widget.conversationId,
@@ -491,7 +485,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -510,7 +504,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final phoneNumber = conversation?.userName; // userName contient le téléphone
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📞 [UI] Tentative d\'appel vers: $phoneNumber');
 
       // Nettoyer le numéro (enlever espaces, tirets, etc.)
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -519,17 +512,13 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       try {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri);
-          print('✅ [UI] Appel lancé avec succès');
         } else {
-          print('⚠️ [UI] Impossible de lancer l\'appel');
           _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
         }
       } catch (e) {
-        print('❌ [UI] Erreur lors du lancement de l\'appel: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel');
       }
     } else {
-      print('⚠️ [UI] Numéro de téléphone non disponible');
       _showErrorSnackBar('Numéro de téléphone non disponible');
     }
   }
@@ -539,7 +528,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final phoneNumber = conversation?.userName;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📹 [UI] Tentative d\'appel vidéo vers: $phoneNumber');
 
       // Pour l'appel vidéo, on peut essayer différentes applications
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -550,19 +538,16 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       try {
         if (await canLaunchUrl(whatsappUri)) {
           await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-          print('✅ [UI] WhatsApp ouvert avec succès');
         } else {
           // Fallback vers l'application de téléphone par défaut
           final telUri = Uri(scheme: 'tel', path: cleanPhone);
           if (await canLaunchUrl(telUri)) {
             await launchUrl(telUri);
-            print('✅ [UI] Application téléphone lancée');
           } else {
             _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
           }
         }
       } catch (e) {
-        print('❌ [UI] Erreur lors du lancement de l\'appel vidéo: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
       }
     } else {
@@ -583,7 +568,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Future<void> _takePhoto() async {
-    print('📷 [UI-Vendeur] Prise de photo');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -595,17 +579,14 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       );
 
       if (photo != null) {
-        print('✅ [UI-Vendeur] Photo prise: ${photo.path}');
         await _sendImageMessage(File(photo.path));
       }
     } catch (e) {
-      print('❌ [UI-Vendeur] Erreur prise photo: $e');
       _showErrorSnackBar('Erreur lors de la prise de photo');
     }
   }
 
   Future<void> _pickFromGallery() async {
-    print('🖼️ [UI-Vendeur] Sélection galerie');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -617,17 +598,14 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       );
 
       if (image != null) {
-        print('✅ [UI-Vendeur] Image sélectionnée: ${image.path}');
         await _sendImageMessage(File(image.path));
       }
     } catch (e) {
-      print('❌ [UI-Vendeur] Erreur galerie: $e');
       _showErrorSnackBar('Erreur lors de la sélection d\'image');
     }
   }
 
   Future<void> _sendImageMessage(File imageFile) async {
-    print('🚀 [UI-Vendeur] Début envoi image message');
 
     try {
       final conversationId = widget.conversationId;
@@ -648,7 +626,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         imageFile: imageFile,
       );
 
-      print('✅ [UI-Vendeur] Image uploadée: $imageUrl');
 
       // Envoyer le message via le provider
       await ref.read(conversationsControllerProvider.notifier).sendMessage(
@@ -662,24 +639,20 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         },
       );
 
-      print('✅ [UI-Vendeur] Message image envoyé avec succès');
       _showSuccessSnackBar('Image envoyée !');
 
     } catch (e) {
-      print('❌ [UI-Vendeur] Erreur envoi image: $e');
       _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
     }
   }
 
   Future<void> _createOffer() async {
-    print('💰 [UI-Vendeur] Création offre');
 
     // Afficher une dialog pour créer l'offre
     final offer = await _showOfferDialog();
 
     if (offer != null) {
       try {
-        print('✅ [UI-Vendeur] Envoi offre: ${offer['price']}€ - ${offer['delivery_days']} jours');
 
         // Afficher un indicateur de chargement
         _showInfoSnackBar('Envoi de l\'offre en cours...');
@@ -695,7 +668,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
         _showSuccessSnackBar('Offre envoyée avec succès !');
       } catch (e) {
-        print('❌ [UI-Vendeur] Erreur envoi offre: $e');
         _showErrorSnackBar('Erreur lors de l\'envoi de l\'offre');
       }
     }

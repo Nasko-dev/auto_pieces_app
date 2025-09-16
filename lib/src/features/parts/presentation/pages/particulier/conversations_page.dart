@@ -28,7 +28,6 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
       // Initialiser le realtime pour refresh automatique instantané
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId != null) {
-        print('📡 [UI-Particulier] Initialisation realtime pour: $userId');
         controller.initializeRealtime(userId);
       }
     });

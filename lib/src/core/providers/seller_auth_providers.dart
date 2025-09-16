@@ -46,58 +46,47 @@ final currentSellerProvider = FutureProvider<Seller?>((ref) async {
   final supabaseClient = ref.watch(supabaseClientProvider);
   final repository = ref.watch(sellerAuthRepositoryProvider);
 
-  print('🔍 [DEBUG currentSellerProvider] Début récupération vendeur');
 
   // Vérifier s'il y a un utilisateur connecté
   final currentUser = supabaseClient.auth.currentUser;
   if (currentUser == null) {
-    print('⚠️ [DEBUG currentSellerProvider] Aucun utilisateur connecté');
     return null;
   }
 
-  print('✅ [DEBUG currentSellerProvider] Utilisateur connecté: ${currentUser.id}');
 
   try {
     final result = await repository.getCurrentSeller();
     return result.fold(
       (failure) {
-        print('❌ [DEBUG currentSellerProvider] Erreur: $failure');
         return null;
       },
       (seller) {
-        print('✅ [DEBUG currentSellerProvider] Vendeur récupéré: ${seller.companyName}');
         return seller;
       },
     );
   } catch (e) {
-    print('❌ [DEBUG currentSellerProvider] Exception: $e');
     return null;
   }
 });
 
 // Provider alternatif - test direct
 final currentSellerProviderAlt = FutureProvider.autoDispose<Seller?>((ref) async {
-  print('🔍 [DEBUG Alt Provider] Début récupération vendeur');
 
   final supabaseClient = ref.watch(supabaseClientProvider);
   final repository = ref.watch(sellerAuthRepositoryProvider);
 
   final currentUser = supabaseClient.auth.currentUser;
   if (currentUser == null) {
-    print('⚠️ [DEBUG Alt Provider] Aucun utilisateur connecté');
     return null;
   }
 
-  print('✅ [DEBUG Alt Provider] Utilisateur connecté: ${currentUser.id}');
 
   final result = await repository.getCurrentSeller();
   return result.fold(
     (failure) {
-      print('❌ [DEBUG Alt Provider] Erreur: $failure');
       return null;
     },
     (seller) {
-      print('✅ [DEBUG Alt Provider] Vendeur récupéré: ${seller.companyName}');
       return seller;
     },
   );

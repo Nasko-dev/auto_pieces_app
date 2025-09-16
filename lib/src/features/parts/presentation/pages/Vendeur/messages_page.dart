@@ -75,7 +75,6 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       );
     }
 
-    print('🏦 [Vendeur] ${conversationGroups.length} groupes de conversations');
 
     // Utiliser RefreshIndicator pour permettre l'actualisation manuelle
     return RefreshIndicator(
