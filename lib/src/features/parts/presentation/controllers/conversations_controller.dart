@@ -130,6 +130,14 @@ class ConversationsController extends StateNotifier<ConversationsState> {
 
     print('🎉 [Controller] *** NOUVEAU MESSAGE REÇU *** ');
     print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
+    print('👤 [Controller] UserId actuel: $userId');
+    print('🔄 [Controller] senderId == userId ? ${senderId == userId}');
+
+    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
+    if (senderId == userId) {
+      print('🚫 [Controller] C\'est notre propre message → IGNORER COMPLÈTEMENT');
+      return;  // SORTIR IMMÉDIATEMENT
+    }
 
     // ✅ DB-BASED: Si c'est un message du particulier, incrémenter en DB sauf si conversation active
     if (senderType == 'user') {
@@ -142,14 +150,12 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         _incrementUnreadCountInDB(conversationId);
       }
     } else {
-      print('📤 [Controller] Notre propre message, pas de compteur');
+      print('📤 [Controller] Message vendeur d\'un autre utilisateur, pas de compteur pour nous');
     }
 
-    // Si ce n'est pas notre propre message, refresh immédiatement
-    if (senderId != userId) {
-      print('🚀 [Controller] Message d\'un autre utilisateur → REFRESH IMMÉDIAT');
-      await loadConversations();
-    }
+    // Refresh pour les messages des autres utilisateurs
+    print('🚀 [Controller] Message d\'un autre utilisateur → REFRESH IMMÉDIAT');
+    await loadConversations();
   }
 
   // Méthode simplifiée pour recevoir des messages du RealtimeService
