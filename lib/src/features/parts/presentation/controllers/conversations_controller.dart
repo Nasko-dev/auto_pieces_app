@@ -531,16 +531,17 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('📊 [Controller] Conversation $conversationId maintenant active');
   }
 
-  // ✅ DB-BASED: Incrémenter compteur en DB - SANS REFRESH AUTO
+  // ✅ DB-BASED: Incrémenter compteur vendeur en DB - SANS REFRESH AUTO
   void _incrementUnreadCountInDB(String conversationId) async {
     try {
-      await _dataSource.incrementUnreadCount(conversationId: conversationId);
-      print('✅ [Controller] Compteur DB incrémenté pour: $conversationId');
+      // Utiliser le compteur spécifique vendeur
+      await _dataSource.incrementUnreadCountForSeller(conversationId: conversationId);
+      print('✅ [Controller] Compteur VENDEUR DB incrémenté pour: $conversationId');
 
       // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
       _updateLocalUnreadCount(conversationId, 1);
     } catch (e) {
-      print('❌ [Controller] Erreur incrémentation DB: $e');
+      print('❌ [Controller] Erreur incrémentation DB vendeur: $e');
     }
   }
 

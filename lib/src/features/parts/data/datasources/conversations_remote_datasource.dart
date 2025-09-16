@@ -28,6 +28,12 @@ abstract class ConversationsRemoteDataSource {
   Future<void> incrementUnreadCount({
     required String conversationId,
   });
+  Future<void> incrementUnreadCountForUser({
+    required String conversationId,
+  });
+  Future<void> incrementUnreadCountForSeller({
+    required String conversationId,
+  });
   Future<void> updateConversationStatus({
     required String conversationId,
     required ConversationStatus status,
@@ -112,6 +118,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_sender_type,
           last_message_created_at,
           unread_count,
+          unread_count_for_user,
+          unread_count_for_seller,
           total_messages,
           part_requests (
             vehicle_brand,
@@ -128,8 +136,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
     return response.map((json) {
-      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count: ${json['unread_count']})');
-      return Conversation.fromJson(_mapSupabaseToConversation(json));
+      final unreadForSeller = json['unread_count_for_seller'] ?? 0;
+      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count_for_seller: $unreadForSeller)');
+      return Conversation.fromJson(_mapSupabaseToConversationForSeller(json));
     }).toList();
   }
 
@@ -311,14 +320,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
-      // ✅ WORKAROUND: Si c'est un vendeur, remettre compteur à 0 (pas de self-count)
-      if (senderTypeString == 'seller') {
-        await _supabaseClient
-            .from('conversations')
-            .update({'unread_count': 0})
-            .eq('id', conversationId);
-        print('🔄 [Datasource] Reset compteur vendeur pour: $conversationId');
-      }
+      // ✅ NOUVEAU: Avec trigger intelligent, plus besoin de reset manuel
+      // Le trigger DB gère automatiquement les bons compteurs selon sender_type
+      print('✅ [Datasource] Trigger DB gère les compteurs automatiquement');
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
@@ -382,11 +386,20 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             .eq('is_read', false);
       }
 
-      // Remettre le compteur à 0 dans tous les cas
-      await _supabaseClient
-          .from('conversations')
-          .update({'unread_count': 0})
-          .eq('id', conversationId);
+      // Remettre les compteurs à 0 selon le type d'utilisateur
+      if (isSellerResult) {
+        // Vendeur lit → reset son compteur
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_seller': 0})
+            .eq('id', conversationId);
+      } else {
+        // Particulier lit → reset son compteur
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_user': 0})
+            .eq('id', conversationId);
+      }
 
       print('✅ [Datasource] Messages marqués comme lus');
 
@@ -432,6 +445,44 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         print('❌ [Datasource] Erreur fallback incrémentation: $fallbackError');
         throw ServerException('Erreur lors de l\'incrémentation du compteur: $fallbackError');
       }
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForUser({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur particulier: $conversationId');
+
+    try {
+      await _supabaseClient
+          .from('conversations')
+          .update({'unread_count_for_user': 'unread_count_for_user + 1'})
+          .eq('id', conversationId);
+
+      print('✅ [Datasource] Compteur particulier incrémenté');
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation particulier: $e');
+      throw ServerException('Erreur lors de l\'incrémentation du compteur particulier: $e');
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForSeller({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur vendeur: $conversationId');
+
+    try {
+      await _supabaseClient
+          .from('conversations')
+          .update({'unread_count_for_seller': 'unread_count_for_seller + 1'})
+          .eq('id', conversationId);
+
+      print('✅ [Datasource] Compteur vendeur incrémenté');
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation vendeur: $e');
+      throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $e');
     }
   }
 
@@ -596,7 +647,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'lastMessageContent': json['last_message_content'],
       'lastMessageSenderType': json['last_message_sender_type'] ?? 'user', // Garder la string directement
       'lastMessageCreatedAt': json['last_message_created_at'],
-      'unreadCount': json['unread_count'] ?? 0,
+      'unreadCount': json['unread_count'] ?? 0, // ⚠️ Ancien champ, à supprimer plus tard
       'totalMessages': json['total_messages'] ?? 0,
       // Nouvelles données du véhicule
       'vehicleBrand': vehicleBrand,
@@ -605,6 +656,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'vehicleEngine': vehicleEngine,
       'partType': partType,
     };
+  }
+
+  // ✅ NOUVEAU: Mapping spécifique vendeur
+  Map<String, dynamic> _mapSupabaseToConversationForSeller(Map<String, dynamic> json) {
+    final baseMapping = _mapSupabaseToConversation(json);
+    // Remplacer par le compteur vendeur
+    baseMapping['unreadCount'] = json['unread_count_for_seller'] ?? 0;
+    return baseMapping;
+  }
+
+  // ✅ NOUVEAU: Mapping spécifique particulier
+  Map<String, dynamic> _mapSupabaseToConversationForUser(Map<String, dynamic> json) {
+    final baseMapping = _mapSupabaseToConversation(json);
+    // Remplacer par le compteur particulier
+    baseMapping['unreadCount'] = json['unread_count_for_user'] ?? 0;
+    return baseMapping;
   }
 
   Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {

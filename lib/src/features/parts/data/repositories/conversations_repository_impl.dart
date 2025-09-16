@@ -123,6 +123,46 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   }
 
   @override
+  Future<Either<Failure, void>> incrementUnreadCountForUser({
+    required String conversationId,
+  }) async {
+    try {
+      print('📈 [Repository] Incrémentation compteur particulier: $conversationId');
+      await remoteDataSource.incrementUnreadCountForUser(
+        conversationId: conversationId,
+      );
+      print('✅ [Repository] Compteur particulier incrémenté');
+      return const Right(null);
+    } on ServerException catch (e) {
+      print('❌ [Repository] Erreur serveur: ${e.message}');
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Erreur générale: $e');
+      return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur particulier'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> incrementUnreadCountForSeller({
+    required String conversationId,
+  }) async {
+    try {
+      print('📈 [Repository] Incrémentation compteur vendeur: $conversationId');
+      await remoteDataSource.incrementUnreadCountForSeller(
+        conversationId: conversationId,
+      );
+      print('✅ [Repository] Compteur vendeur incrémenté');
+      return const Right(null);
+    } on ServerException catch (e) {
+      print('❌ [Repository] Erreur serveur: ${e.message}');
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Erreur générale: $e');
+      return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur vendeur'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   }) async {
