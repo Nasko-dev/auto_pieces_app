@@ -25,6 +25,7 @@ import '../../features/parts/presentation/pages/seller/seller_profile_page.dart'
 import '../../features/parts/presentation/pages/seller/seller_settings_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
+import '../../shared/presentation/pages/under_development_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Utiliser try-catch pour éviter les erreurs au démarrage
@@ -83,6 +84,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/welcome',
         name: 'welcome',
         builder: (context, state) => const WelcomePage(),
+      ),
+      GoRoute(
+        path: '/under-development',
+        name: 'under-development',
+        builder: (context, state) => const UnderDevelopmentPage(),
       ),
       // Routes d'authentification vendeur
       GoRoute(
