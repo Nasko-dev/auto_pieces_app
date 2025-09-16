@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../domain/entities/message.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart';
@@ -138,15 +139,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         actions: [
           IconButton(
             icon: const Icon(Icons.phone_outlined, color: Colors.black),
-            onPressed: () {
-              // TODO: Functionality téléphone
-            },
+            onPressed: () => _makePhoneCall(conversation),
           ),
           IconButton(
             icon: const Icon(Icons.videocam_outlined, color: Colors.black),
-            onPressed: () {
-              // TODO: Functionality vidéo
-            },
+            onPressed: () => _makeVideoCall(conversation),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.black),
@@ -492,5 +489,82 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         size: 16,
       ),
     );
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du particulier
+    final phoneNumber = conversation?.userName; // userName contient le téléphone
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📞 [UI] Tentative d\'appel vers: $phoneNumber');
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+          print('✅ [UI] Appel lancé avec succès');
+        } else {
+          print('⚠️ [UI] Impossible de lancer l\'appel');
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        print('❌ [UI] Erreur lors du lancement de l\'appel: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      print('⚠️ [UI] Numéro de téléphone non disponible');
+      _showErrorSnackBar('Numéro de téléphone non disponible');
+    }
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du particulier
+    final phoneNumber = conversation?.userName;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📹 [UI] Tentative d\'appel vidéo vers: $phoneNumber');
+
+      // Pour l'appel vidéo, on peut essayer différentes applications
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // Essayer WhatsApp d'abord (plus populaire pour la vidéo)
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+          print('✅ [UI] WhatsApp ouvert avec succès');
+        } else {
+          // Fallback vers l'application de téléphone par défaut
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+            print('✅ [UI] Application téléphone lancée');
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        print('❌ [UI] Erreur lors du lancement de l\'appel vidéo: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showErrorSnackBar('Numéro de téléphone non disponible');
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }

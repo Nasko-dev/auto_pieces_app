@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/french_license_plate.dart';
 import '../../widgets/message_bubble_widget.dart';
@@ -149,15 +150,11 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
           ),
           IconButton(
             icon: const Icon(Icons.phone_outlined, color: Colors.black),
-            onPressed: () {
-              // TODO: Functionality téléphone
-            },
+            onPressed: () => _makePhoneCall(conversation),
           ),
           IconButton(
             icon: const Icon(Icons.videocam_outlined, color: Colors.black),
-            onPressed: () {
-              // TODO: Functionality vidéo
-            },
+            onPressed: () => _makeVideoCall(conversation),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.black),
@@ -660,6 +657,33 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     } else {
       // Sinon afficher le type de pièce
       return conversation.partType ?? 'Pièce auto';
+    }
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Pour l'instant, nous n'avons pas le numéro du vendeur dans les données
+    // On peut implémenter une solution alternative
+    print('📞 [UI-Particulier] Tentative d\'appel vers le vendeur');
+
+    _showInfoSnackBar('Contactez le vendeur via la messagerie pour obtenir son numéro');
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Pour l'instant, nous n'avons pas le numéro du vendeur dans les données
+    print('📹 [UI-Particulier] Tentative d\'appel vidéo vers le vendeur');
+
+    _showInfoSnackBar('Contactez le vendeur via la messagerie pour organiser un appel vidéo');
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 }
