@@ -21,6 +21,9 @@ import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.d
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
 import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_profile_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_settings_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -190,6 +193,21 @@ final routerProvider = Provider<GoRouter>((ref) {
               final conversationId = state.pathParameters['conversationId']!;
               return SellerConversationDetailPage(conversationId: conversationId);
             },
+          ),
+          GoRoute(
+            path: '/seller/profile',
+            name: 'seller-profile',
+            builder: (context, state) => const SellerProfilePage(),
+          ),
+          GoRoute(
+            path: '/seller/settings',
+            name: 'seller-settings',
+            builder: (context, state) => const SellerSettingsPage(),
+          ),
+          GoRoute(
+            path: '/seller/help',
+            name: 'seller-help',
+            builder: (context, state) => const SellerHelpPage(),
           ),
         ],
       ),

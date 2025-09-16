@@ -106,30 +106,15 @@ class SellerMenu extends ConsumerWidget {
   }
 
   void _showProfile(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil vendeur - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/seller/profile');
   }
 
   void _showSettings(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Paramètres vendeur - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/seller/settings');
   }
 
   void _showHelp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Aide vendeur - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/seller/help');
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
