@@ -1,32 +1,27 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'seller_settings.freezed.dart';
-part 'seller_settings.g.dart';
 
 @freezed
 class SellerSettings with _$SellerSettings {
   const factory SellerSettings({
     required String sellerId,
-    String? companyName,
+    required String email,
     String? firstName,
     String? lastName,
-    String? email,
+    String? companyName,
     String? phone,
     String? address,
     String? city,
     String? postalCode,
-    String? country,
     String? siret,
-    String? description,
     String? avatarUrl,
     @Default(true) bool notificationsEnabled,
     @Default(true) bool emailNotificationsEnabled,
-    bool? isActive,
-    Map<String, dynamic>? preferences,
+    @Default(true) bool isActive,
+    @Default(false) bool isVerified,
+    DateTime? emailVerifiedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _SellerSettings;
-
-  factory SellerSettings.fromJson(Map<String, dynamic> json) =>
-      _$SellerSettingsFromJson(json);
 }

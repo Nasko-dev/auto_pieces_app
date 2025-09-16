@@ -30,6 +30,11 @@ mixin _$Conversation {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   String? get sellerName => throw _privateConstructorUsedError;
   String? get sellerCompany => throw _privateConstructorUsedError;
+  String? get sellerAvatarUrl => throw _privateConstructorUsedError;
+  String? get sellerPhone => throw _privateConstructorUsedError;
+  String? get userName => throw _privateConstructorUsedError;
+  String? get userDisplayName => throw _privateConstructorUsedError;
+  String? get userAvatarUrl => throw _privateConstructorUsedError;
   String? get requestTitle => throw _privateConstructorUsedError;
   String? get lastMessageContent => throw _privateConstructorUsedError;
   MessageSenderType? get lastMessageSenderType =>
@@ -69,6 +74,11 @@ abstract class $ConversationCopyWith<$Res> {
       DateTime updatedAt,
       String? sellerName,
       String? sellerCompany,
+      String? sellerAvatarUrl,
+      String? sellerPhone,
+      String? userName,
+      String? userDisplayName,
+      String? userAvatarUrl,
       String? requestTitle,
       String? lastMessageContent,
       MessageSenderType? lastMessageSenderType,
@@ -106,6 +116,11 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
     Object? updatedAt = null,
     Object? sellerName = freezed,
     Object? sellerCompany = freezed,
+    Object? sellerAvatarUrl = freezed,
+    Object? sellerPhone = freezed,
+    Object? userName = freezed,
+    Object? userDisplayName = freezed,
+    Object? userAvatarUrl = freezed,
     Object? requestTitle = freezed,
     Object? lastMessageContent = freezed,
     Object? lastMessageSenderType = freezed,
@@ -159,6 +174,26 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
       sellerCompany: freezed == sellerCompany
           ? _value.sellerCompany
           : sellerCompany // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerAvatarUrl: freezed == sellerAvatarUrl
+          ? _value.sellerAvatarUrl
+          : sellerAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userName: freezed == userName
+          ? _value.userName
+          : userName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userDisplayName: freezed == userDisplayName
+          ? _value.userDisplayName
+          : userDisplayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userAvatarUrl: freezed == userAvatarUrl
+          ? _value.userAvatarUrl
+          : userAvatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       requestTitle: freezed == requestTitle
           ? _value.requestTitle
@@ -231,6 +266,11 @@ abstract class _$$ConversationImplCopyWith<$Res>
       DateTime updatedAt,
       String? sellerName,
       String? sellerCompany,
+      String? sellerAvatarUrl,
+      String? sellerPhone,
+      String? userName,
+      String? userDisplayName,
+      String? userAvatarUrl,
       String? requestTitle,
       String? lastMessageContent,
       MessageSenderType? lastMessageSenderType,
@@ -266,6 +306,11 @@ class __$$ConversationImplCopyWithImpl<$Res>
     Object? updatedAt = null,
     Object? sellerName = freezed,
     Object? sellerCompany = freezed,
+    Object? sellerAvatarUrl = freezed,
+    Object? sellerPhone = freezed,
+    Object? userName = freezed,
+    Object? userDisplayName = freezed,
+    Object? userAvatarUrl = freezed,
     Object? requestTitle = freezed,
     Object? lastMessageContent = freezed,
     Object? lastMessageSenderType = freezed,
@@ -319,6 +364,26 @@ class __$$ConversationImplCopyWithImpl<$Res>
       sellerCompany: freezed == sellerCompany
           ? _value.sellerCompany
           : sellerCompany // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerAvatarUrl: freezed == sellerAvatarUrl
+          ? _value.sellerAvatarUrl
+          : sellerAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userName: freezed == userName
+          ? _value.userName
+          : userName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userDisplayName: freezed == userDisplayName
+          ? _value.userDisplayName
+          : userDisplayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userAvatarUrl: freezed == userAvatarUrl
+          ? _value.userAvatarUrl
+          : userAvatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       requestTitle: freezed == requestTitle
           ? _value.requestTitle
@@ -386,6 +451,11 @@ class _$ConversationImpl implements _Conversation {
       required this.updatedAt,
       this.sellerName,
       this.sellerCompany,
+      this.sellerAvatarUrl,
+      this.sellerPhone,
+      this.userName,
+      this.userDisplayName,
+      this.userAvatarUrl,
       this.requestTitle,
       this.lastMessageContent,
       this.lastMessageSenderType,
@@ -424,6 +494,16 @@ class _$ConversationImpl implements _Conversation {
   @override
   final String? sellerCompany;
   @override
+  final String? sellerAvatarUrl;
+  @override
+  final String? sellerPhone;
+  @override
+  final String? userName;
+  @override
+  final String? userDisplayName;
+  @override
+  final String? userAvatarUrl;
+  @override
   final String? requestTitle;
   @override
   final String? lastMessageContent;
@@ -454,7 +534,7 @@ class _$ConversationImpl implements _Conversation {
 
   @override
   String toString() {
-    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, particulierFirstName: $particulierFirstName)';
+    return 'Conversation(id: $id, requestId: $requestId, userId: $userId, sellerId: $sellerId, status: $status, lastMessageAt: $lastMessageAt, createdAt: $createdAt, updatedAt: $updatedAt, sellerName: $sellerName, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone, userName: $userName, userDisplayName: $userDisplayName, userAvatarUrl: $userAvatarUrl, requestTitle: $requestTitle, lastMessageContent: $lastMessageContent, lastMessageSenderType: $lastMessageSenderType, lastMessageCreatedAt: $lastMessageCreatedAt, unreadCount: $unreadCount, totalMessages: $totalMessages, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType)';
   }
 
   @override
@@ -479,6 +559,16 @@ class _$ConversationImpl implements _Conversation {
                 other.sellerName == sellerName) &&
             (identical(other.sellerCompany, sellerCompany) ||
                 other.sellerCompany == sellerCompany) &&
+            (identical(other.sellerAvatarUrl, sellerAvatarUrl) ||
+                other.sellerAvatarUrl == sellerAvatarUrl) &&
+            (identical(other.sellerPhone, sellerPhone) ||
+                other.sellerPhone == sellerPhone) &&
+            (identical(other.userName, userName) ||
+                other.userName == userName) &&
+            (identical(other.userDisplayName, userDisplayName) ||
+                other.userDisplayName == userDisplayName) &&
+            (identical(other.userAvatarUrl, userAvatarUrl) ||
+                other.userAvatarUrl == userAvatarUrl) &&
             (identical(other.requestTitle, requestTitle) ||
                 other.requestTitle == requestTitle) &&
             (identical(other.lastMessageContent, lastMessageContent) ||
@@ -519,6 +609,11 @@ class _$ConversationImpl implements _Conversation {
         updatedAt,
         sellerName,
         sellerCompany,
+        sellerAvatarUrl,
+        sellerPhone,
+        userName,
+        userDisplayName,
+        userAvatarUrl,
         requestTitle,
         lastMessageContent,
         lastMessageSenderType,
@@ -559,6 +654,11 @@ abstract class _Conversation implements Conversation {
       required final DateTime updatedAt,
       final String? sellerName,
       final String? sellerCompany,
+      final String? sellerAvatarUrl,
+      final String? sellerPhone,
+      final String? userName,
+      final String? userDisplayName,
+      final String? userAvatarUrl,
       final String? requestTitle,
       final String? lastMessageContent,
       final MessageSenderType? lastMessageSenderType,
@@ -595,6 +695,16 @@ abstract class _Conversation implements Conversation {
   String? get sellerName;
   @override
   String? get sellerCompany;
+  @override
+  String? get sellerAvatarUrl;
+  @override
+  String? get sellerPhone;
+  @override
+  String? get userName;
+  @override
+  String? get userDisplayName;
+  @override
+  String? get userAvatarUrl;
   @override
   String? get requestTitle;
   @override

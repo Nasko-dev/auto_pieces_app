@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../domain/entities/message.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
+import '../../../../../core/providers/message_image_providers.dart';
+import '../../../../../core/providers/session_providers.dart';
 
 class SellerConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -126,23 +131,26 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(conversation?.requestTitle ?? 'Conversation'),
-            if (conversation?.requestTitle != null)
-              Text(
-                'Client',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-          ],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.1),
+        title: _buildInstagramAppBarTitle(conversation),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: const Color(0xFF007AFF),
-        foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            onPressed: () => _makePhoneCall(conversation),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            onPressed: () => _makeVideoCall(conversation),
+          ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
             onSelected: (value) => _handleMenuAction(value),
             itemBuilder: (context) => [
               const PopupMenuItem(
@@ -169,12 +177,15 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error),
+            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
           ),
           // Zone de saisie
           ChatInputWidget(
             controller: _messageController,
             onSend: (content) => _sendMessage(),
+            onCamera: _takePhoto,
+            onGallery: _pickFromGallery,
+            onOffer: _createOffer,
             isLoading: isSendingMessage,
           ),
         ],
@@ -182,7 +193,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
 
     if (isLoading && messages.isEmpty) {
       return const Center(
@@ -257,9 +268,51 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             message: message,
             currentUserType: MessageSenderType.seller, // Côté vendeur
             isLastMessage: index == messages.length - 1,
+            otherUserName: _getUserDisplayName(conversation),
+            otherUserAvatarUrl: conversation?.userAvatarUrl,
+            otherUserCompany: null,
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du particulier
+        _buildUserAvatar(conversation),
+
+        const SizedBox(width: 12),
+
+        // Informations style Instagram
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getUserDisplayName(conversation),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'En ligne',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -367,5 +420,502 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         ],
       ),
     );
+  }
+
+  String _getUserDisplayName(dynamic conversation) {
+    // Afficher le nom du particulier depuis les nouvelles données
+    if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
+      return conversation.userDisplayName!;
+    } else if (conversation?.userName != null && conversation.userName!.isNotEmpty) {
+      return conversation.userName!;
+    } else {
+      return 'Client';
+    }
+  }
+
+  Widget _buildUserAvatar(dynamic conversation) {
+    if (conversation?.userAvatarUrl != null && conversation.userAvatarUrl!.isNotEmpty) {
+      // Avatar avec vraie photo du particulier
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.userAvatarUrl!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultUserAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultUserAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultUserAvatar();
+    }
+  }
+
+  Widget _buildDefaultUserAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF9CA3AF), const Color(0xFF6B7280)], // Gradient gris pour particulier
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.person,
+        color: Colors.white,
+        size: 16,
+      ),
+    );
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du particulier
+    final phoneNumber = conversation?.userName; // userName contient le téléphone
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📞 [UI] Tentative d\'appel vers: $phoneNumber');
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+          print('✅ [UI] Appel lancé avec succès');
+        } else {
+          print('⚠️ [UI] Impossible de lancer l\'appel');
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        print('❌ [UI] Erreur lors du lancement de l\'appel: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      print('⚠️ [UI] Numéro de téléphone non disponible');
+      _showErrorSnackBar('Numéro de téléphone non disponible');
+    }
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du particulier
+    final phoneNumber = conversation?.userName;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📹 [UI] Tentative d\'appel vidéo vers: $phoneNumber');
+
+      // Pour l'appel vidéo, on peut essayer différentes applications
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // Essayer WhatsApp d'abord (plus populaire pour la vidéo)
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+          print('✅ [UI] WhatsApp ouvert avec succès');
+        } else {
+          // Fallback vers l'application de téléphone par défaut
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+            print('✅ [UI] Application téléphone lancée');
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        print('❌ [UI] Erreur lors du lancement de l\'appel vidéo: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showErrorSnackBar('Numéro de téléphone non disponible');
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    print('📷 [UI-Vendeur] Prise de photo');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        print('✅ [UI-Vendeur] Photo prise: ${photo.path}');
+        await _sendImageMessage(File(photo.path));
+      }
+    } catch (e) {
+      print('❌ [UI-Vendeur] Erreur prise photo: $e');
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    print('🖼️ [UI-Vendeur] Sélection galerie');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        print('✅ [UI-Vendeur] Image sélectionnée: ${image.path}');
+        await _sendImageMessage(File(image.path));
+      }
+    } catch (e) {
+      print('❌ [UI-Vendeur] Erreur galerie: $e');
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  Future<void> _sendImageMessage(File imageFile) async {
+    print('🚀 [UI-Vendeur] Début envoi image message');
+
+    try {
+      final conversationId = widget.conversationId;
+      final userId = ref.read(currentUserProvider)?.id;
+
+      if (userId == null) {
+        _showErrorSnackBar('Utilisateur non connecté');
+        return;
+      }
+
+      // Afficher un indicateur de chargement
+      _showInfoSnackBar('Envoi de l\'image en cours...');
+
+      // Upload de l'image vers Supabase Storage
+      final imageService = ref.read(messageImageServiceProvider);
+      final imageUrl = await imageService.uploadMessageImage(
+        conversationId: conversationId,
+        imageFile: imageFile,
+      );
+
+      print('✅ [UI-Vendeur] Image uploadée: $imageUrl');
+
+      // Envoyer le message via le provider
+      await ref.read(conversationsControllerProvider.notifier).sendMessage(
+        conversationId: conversationId,
+        content: '', // Contenu vide pour les images
+        messageType: MessageType.image,
+        attachments: [imageUrl],
+        metadata: {
+          'imageUrl': imageUrl,
+          'fileName': imageFile.path.split('/').last,
+        },
+      );
+
+      print('✅ [UI-Vendeur] Message image envoyé avec succès');
+      _showSuccessSnackBar('Image envoyée !');
+
+    } catch (e) {
+      print('❌ [UI-Vendeur] Erreur envoi image: $e');
+      _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
+    }
+  }
+
+  Future<void> _createOffer() async {
+    print('💰 [UI-Vendeur] Création offre');
+
+    // Afficher une dialog pour créer l'offre
+    final offer = await _showOfferDialog();
+
+    if (offer != null) {
+      try {
+        print('✅ [UI-Vendeur] Envoi offre: ${offer['price']}€ - ${offer['delivery_days']} jours');
+
+        // Afficher un indicateur de chargement
+        _showInfoSnackBar('Envoi de l\'offre en cours...');
+
+        // Envoyer l'offre via le controller
+        await ref.read(conversationsControllerProvider.notifier).sendMessage(
+          conversationId: widget.conversationId,
+          content: 'Offre de prix', // Contenu générique
+          messageType: MessageType.offer,
+          offerPrice: offer['price'],
+          offerDeliveryDays: offer['delivery_days'],
+        );
+
+        _showSuccessSnackBar('Offre envoyée avec succès !');
+      } catch (e) {
+        print('❌ [UI-Vendeur] Erreur envoi offre: $e');
+        _showErrorSnackBar('Erreur lors de l\'envoi de l\'offre');
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showOfferDialog() async {
+    final priceController = TextEditingController();
+    final deliveryController = TextEditingController();
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // En-tête avec icône bleue
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)], // Bleu au lieu de vert
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Icon(
+                  Icons.local_offer,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Titre
+              const Text(
+                'Faire une offre',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3748),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Sous-titre
+              Text(
+                'Proposez votre meilleur prix',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Champ Prix avec thème bleu
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: TextField(
+                  controller: priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    labelText: 'Prix',
+                    labelStyle: TextStyle(color: Colors.grey[600]),
+                    suffixText: '€',
+                    suffixStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3B82F6), // Bleu
+                    ),
+                    hintText: '150.00',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(20),
+                    prefixIcon: const Icon(
+                      Icons.euro,
+                      color: Color(0xFF3B82F6), // Bleu
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Champ Délai avec thème bleu
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: TextField(
+                  controller: deliveryController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    labelText: 'Délai de livraison',
+                    labelStyle: TextStyle(color: Colors.grey[600]),
+                    suffixText: 'jours',
+                    suffixStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF3B82F6), // Bleu
+                    ),
+                    hintText: '2',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(20),
+                    prefixIcon: const Icon(
+                      Icons.schedule,
+                      color: Color(0xFF3B82F6), // Bleu
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Boutons avec thème bleu
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Annuler',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final priceText = priceController.text.trim();
+                        final deliveryText = deliveryController.text.trim();
+
+                        final price = double.tryParse(priceText);
+                        final delivery = int.tryParse(deliveryText);
+
+                        if (price != null && price > 0) {
+                          Navigator.of(context).pop({
+                            'price': price,
+                            'delivery_days': delivery,
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Veuillez entrer un prix valide'),
+                              backgroundColor: Colors.orange,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6), // Bleu au lieu de vert
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        'Envoyer l\'offre',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }

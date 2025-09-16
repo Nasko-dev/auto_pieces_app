@@ -25,7 +25,8 @@
       "Bash(git commit:*)",
       "WebFetch(domain:vehicle-identification.tecalliance.services)",
       "Bash(r)",
-      "Bash(socat:*)"
+      "Bash(socat:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],

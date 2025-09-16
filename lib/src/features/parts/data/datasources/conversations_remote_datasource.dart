@@ -16,6 +16,8 @@ abstract class ConversationsRemoteDataSource {
     required String senderId,
     required String content,
     MessageType messageType = MessageType.text,
+    List<String> attachments = const [],
+    Map<String, dynamic> metadata = const {},
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
@@ -121,6 +123,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           unread_count_for_user,
           unread_count_for_seller,
           total_messages,
+          sellers!inner(avatar_url),
           part_requests (
             vehicle_brand,
             vehicle_model,
@@ -135,38 +138,61 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    // Optimisation : Récupérer tous les prénoms en une seule requête
-    final userIds = response.map((json) => json['user_id'] as String).toSet().toList();
-    Map<String, String> prenoms = {};
-
-    if (userIds.isNotEmpty) {
-      try {
-        final prenomsResponse = await _supabaseClient
-            .from('particuliers')
-            .select('id, first_name')
-            .inFilter('id', userIds);
-
-        for (final particulier in prenomsResponse) {
-          if (particulier['first_name'] != null) {
-            prenoms[particulier['id']] = particulier['first_name'];
-          }
-        }
-      } catch (e) {
-        // Silencieusement ignorer les erreurs de récupération des prénoms
-      }
-    }
-
-    // Convertir les conversations avec les prénoms récupérés
     final conversations = <Conversation>[];
+    
     for (final json in response) {
-      final unreadForSeller = json['unread_count_for_seller'] ?? 0;
-      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count_for_seller: $unreadForSeller)');
+      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']}');
+      
+      // Charger les messages pour cette conversation et calculer unreadCount localement
+      final messagesResponse = await _supabaseClient
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', json['id'])
+          .order('created_at', ascending: true);
+      
+      final messages = messagesResponse.map((msgData) {
+        return Message(
+          id: msgData['id'],
+          conversationId: msgData['conversation_id'],
+          senderId: msgData['sender_id'],
+          senderType: msgData['sender_type'] == 'user' 
+              ? MessageSenderType.user 
+              : MessageSenderType.seller,
+          content: msgData['content'],
+          isRead: msgData['is_read'] ?? false,
+          createdAt: DateTime.parse(msgData['created_at']),
+          updatedAt: DateTime.parse(msgData['updated_at']),
+        );
+      }).toList();
+      
+      // Calculer unreadCount : messages des autres utilisateurs non lus
+      print('=============== CALCUL UNREAD VENDEUR ${json['id']} ===============');
+      print('👥 [Datasource-Vendeur] Seller ID: $sellerId');
+      print('📨 [Datasource-Vendeur] Total messages: ${messages.length}');
+      
+      for (final msg in messages) {
+        print('📧 [Datasource-Vendeur] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
+      }
+      
+      final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
+      final unreadCount = unreadMessages.length;
+      
+      print('🔴 [Datasource-Vendeur] Messages non lus trouvés: $unreadCount');
+      for (final msg in unreadMessages) {
+        print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
+      }
+      print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
+      print('================================================================');
+      
+      // Récupérer les informations du particulier
+      final userInfo = await _getUserInfo(json['user_id']);
 
-      // Ajouter le prénom au JSON depuis le cache
-      final userId = json['user_id'] as String;
-      json['particulier_first_name'] = prenoms[userId];
+      // Modifier le JSON pour inclure notre unreadCount calculé et les infos utilisateur
+      final modifiedJson = Map<String, dynamic>.from(json);
+      modifiedJson['unread_count'] = unreadCount;
+      modifiedJson['user_info'] = userInfo;
 
-      conversations.add(Conversation.fromJson(_mapSupabaseToConversationForSeller(json)));
+      conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
     }
 
     return conversations;
@@ -220,17 +246,24 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 last_message_sender_type,
                 last_message_created_at,
                 unread_count,
-                total_messages
+                total_messages,
+                sellers!inner(avatar_url)
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
 
           print('📋 [Datasource] Reçu ${response.length} conversations pour tous les user_ids');
 
-          return response.map((json) {
+          final conversations = <Conversation>[];
+          for (final json in response) {
             print('📄 [Datasource] Conversion conversation: ${json['id']} (user: ${json['user_id']})');
-            return Conversation.fromJson(_mapSupabaseToConversation(json));
-          }).toList();
+            // Récupérer les informations du vendeur
+            final sellerInfo = await _getSellerInfo(json['seller_id']);
+            final modifiedJson = Map<String, dynamic>.from(json);
+            modifiedJson['seller_info'] = sellerInfo;
+            conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+          }
+          return conversations;
         } else {
           print('⚠️ [Datasource] Aucun utilisateur trouvé pour ce device_id');
         }
@@ -260,17 +293,24 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             last_message_sender_type,
             last_message_created_at,
             unread_count,
-            total_messages
+            total_messages,
+            sellers!inner(avatar_url)
           ''')
           .eq('user_id', userId)
           .order('last_message_at', ascending: false);
 
       print('📋 [Datasource] Reçu ${response.length} conversations (fallback)');
 
-      return response.map((json) {
+      final conversations = <Conversation>[];
+      for (final json in response) {
         print('📄 [Datasource] Conversion conversation: ${json['id']}');
-        return Conversation.fromJson(_mapSupabaseToConversation(json));
-      }).toList();
+        // Récupérer les informations du vendeur
+        final sellerInfo = await _getSellerInfo(json['seller_id']);
+        final modifiedJson = Map<String, dynamic>.from(json);
+        modifiedJson['seller_info'] = sellerInfo;
+        conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
+      }
+      return conversations;
       
     } catch (e) {
       print('❌ [Datasource] Erreur récupération conversations particulier: $e');
@@ -307,6 +347,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String senderId,
     required String content,
     MessageType messageType = MessageType.text,
+    List<String> attachments = const [],
+    Map<String, dynamic> metadata = const {},
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
@@ -332,6 +374,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         'sender_type': senderTypeString,
         'content': content,
         'message_type': messageType.toString().split('.').last,
+        'attachments': attachments,
+        'metadata': metadata,
         'offer_price': offerPrice,
         'offer_availability': offerAvailability,
         'offer_delivery_days': offerDeliveryDays,
@@ -645,6 +689,43 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   // Helper methods pour la conversion
+  Future<Map<String, dynamic>?> _getUserInfo(String userId) async {
+    try {
+      final response = await _supabaseClient
+          .from('particuliers')
+          .select('first_name, last_name, phone, avatar_url')
+          .eq('id', userId)
+          .limit(1);
+
+      if (response.isNotEmpty) {
+        return response.first;
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur récupération info particulier: $e');
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> _getSellerInfo(String sellerId) async {
+    try {
+      // Récupérer toutes les infos du vendeur incluant les paramètres professionnels
+      final response = await _supabaseClient
+          .from('sellers')
+          .select('id, first_name, last_name, company_name, phone, avatar_url, address, city')
+          .eq('id', sellerId)
+          .limit(1);
+
+      if (response.isNotEmpty) {
+        final sellerData = response.first;
+        print('📋 [Datasource] Infos vendeur récupérées pour $sellerId: entreprise="${sellerData['company_name']}", avatar="${sellerData['avatar_url']}"');
+        return sellerData;
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur récupération info vendeur: $e');
+    }
+    return null;
+  }
+
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
     // Extraire les données du véhicule depuis part_requests
     String? vehicleBrand;
@@ -662,8 +743,45 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       partType = partRequest['part_type'];
     }
 
-    // Extraire le prénom du particulier ajouté par la requête séparée
-    String? particulierFirstName = json['particulier_first_name'];
+    // Extraire l'avatar du vendeur depuis sellers
+    String? sellerAvatarUrl;
+    if (json['sellers'] != null) {
+      final sellers = json['sellers'];
+      if (sellers is Map<String, dynamic>) {
+        sellerAvatarUrl = sellers['avatar_url'];
+      } else if (sellers is List && sellers.isNotEmpty) {
+        sellerAvatarUrl = sellers.first['avatar_url'];
+      }
+    }
+
+    // Extraire les informations complètes du vendeur depuis seller_info
+    String? sellerPhone;
+    if (json['seller_info'] != null) {
+      final sellerInfo = json['seller_info'] as Map<String, dynamic>;
+      sellerPhone = sellerInfo['phone'];
+
+      // Mettre à jour l'avatar depuis seller_info si pas déjà récupéré
+      if (sellerAvatarUrl == null) {
+        sellerAvatarUrl = sellerInfo['avatar_url'];
+      }
+    }
+
+    // Extraire les informations du particulier depuis user_info
+    String? userName;
+    String? userDisplayName;
+    String? userAvatarUrl;
+    if (json['user_info'] != null) {
+      final userInfo = json['user_info'] as Map<String, dynamic>;
+      final firstName = userInfo['first_name'];
+      final lastName = userInfo['last_name'];
+      final phone = userInfo['phone'];
+
+      userName = phone; // Utiliser le téléphone comme nom d'utilisateur
+      userDisplayName = (firstName != null && lastName != null)
+          ? '$firstName $lastName'.trim()
+          : (firstName ?? lastName ?? phone ?? 'Particulier');
+      userAvatarUrl = userInfo['avatar_url'];
+    }
 
     return {
       'id': json['id'],
@@ -676,6 +794,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'updatedAt': json['updated_at'],
       'sellerName': json['seller_name'],
       'sellerCompany': json['seller_company'],
+      'sellerAvatarUrl': sellerAvatarUrl,
+      'sellerPhone': sellerPhone,
+      'userName': userName,
+      'userDisplayName': userDisplayName,
+      'userAvatarUrl': userAvatarUrl,
       'requestTitle': json['request_title'],
       'lastMessageContent': json['last_message_content'],
       'lastMessageSenderType': json['last_message_sender_type'] ?? 'user', // Garder la string directement

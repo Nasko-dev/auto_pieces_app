@@ -68,6 +68,9 @@ dependencies:
   # Image Picking
   image_picker: ^1.0.7
 
+  # Communication
+  url_launcher: ^6.2.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

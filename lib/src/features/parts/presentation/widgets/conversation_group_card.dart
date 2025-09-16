@@ -15,7 +15,8 @@ class ConversationGroupCard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ConversationGroupCard> createState() => _ConversationGroupCardState();
+  ConsumerState<ConversationGroupCard> createState() =>
+      _ConversationGroupCardState();
 }
 
 class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
@@ -33,14 +34,16 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: hasUnread
-            ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
-            : Border.all(color: Colors.grey.shade200),
+        border:
+            hasUnread
+                ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
+                : Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: hasUnread
-                ? const Color(0xFF007AFF).withOpacity(0.1)
-                : Colors.black.withOpacity(0.04),
+            color:
+                hasUnread
+                    ? const Color(0xFF007AFF).withOpacity(0.1)
+                    : Colors.black.withOpacity(0.04),
             blurRadius: hasUnread ? 8 : 4,
             offset: const Offset(0, 2),
           ),
@@ -78,8 +81,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     );
   }
 
-  Widget _buildGroupHeader(ConversationGroup group, bool hasUnread, int conversationsWithUnread) {
-
+  Widget _buildGroupHeader(
+    ConversationGroup group,
+    bool hasUnread,
+    int conversationsWithUnread,
+  ) {
     return Row(
       children: [
         // Icône de la pièce
@@ -87,14 +93,16 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
+            color:
+                hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
             shape: BoxShape.circle,
-            border: hasUnread
-                ? Border.all(
-                    color: const Color(0xFF007AFF).withOpacity(0.3),
-                    width: 2,
-                  )
-                : null,
+            border:
+                hasUnread
+                    ? Border.all(
+                      color: const Color(0xFF007AFF).withOpacity(0.3),
+                      width: 2,
+                    )
+                    : null,
           ),
           child: Icon(
             _getPartIcon(group.partType),
@@ -125,13 +133,17 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
               const SizedBox(height: 4),
 
               // Compteur de conversations avec statut messages non lus
-              _buildConversationStatus(group.conversationCount, conversationsWithUnread),
+              _buildConversationStatus(
+                group.conversationCount,
+                conversationsWithUnread,
+              ),
             ],
           ),
         ),
 
         // Badge nombre de conversations non lues
-        if (conversationsWithUnread > 0) _buildUnreadConversationsBadge(conversationsWithUnread),
+        if (conversationsWithUnread > 0)
+          _buildUnreadConversationsBadge(conversationsWithUnread),
 
         const SizedBox(width: 8),
 
@@ -145,21 +157,24 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     );
   }
 
-
   Widget _buildConversationsList(List<Conversation> conversations) {
     return Column(
-      children: conversations.map((conversation) {
-        return _buildConversationItem(conversation);
-      }).toList(),
+      children:
+          conversations.map((conversation) {
+            return _buildConversationItem(conversation);
+          }).toList(),
     );
   }
 
   Widget _buildConversationItem(Conversation conversation) {
     // Utiliser les compteurs locaux au lieu de conversation.unreadCount
-    final localUnreadCount = ref.watch(conversationUnreadCountProvider(conversation.id));
+    final localUnreadCount = ref.watch(
+      conversationUnreadCountProvider(conversation.id),
+    );
     final hasUnread = localUnreadCount > 0;
     final lastMessage = conversation.lastMessageContent;
-    final lastMessageTime = conversation.lastMessageCreatedAt ?? conversation.lastMessageAt;
+    final lastMessageTime =
+        conversation.lastMessageCreatedAt ?? conversation.lastMessageAt;
 
     return Material(
       color: Colors.transparent,
@@ -170,22 +185,8 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           child: Row(
             children: [
-              // Avatar du particulier
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: hasUnread
-                      ? const Color(0xFF007AFF)
-                      : const Color(0xFF9CA3AF),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
+              // Avatar du vendeur ou particulier
+              _buildUserAvatar(conversation, hasUnread),
 
               const SizedBox(width: 12),
 
@@ -198,11 +199,15 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                       children: [
                         Expanded(
                           child: Text(
-                            _getParticulierDisplayName(widget.group),
+                            _getUserDisplayName(conversation),
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
-                              color: hasUnread ? const Color(0xFF007AFF) : Colors.black87,
+                              fontWeight:
+                                  hasUnread ? FontWeight.w600 : FontWeight.w500,
+                              color:
+                                  hasUnread
+                                      ? const Color(0xFF007AFF)
+                                      : Colors.black87,
                             ),
                           ),
                         ),
@@ -217,8 +222,14 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                             _formatMessageTime(lastMessageTime),
                             style: TextStyle(
                               fontSize: 11,
-                              color: hasUnread ? const Color(0xFF007AFF) : Colors.grey[500],
-                              fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                              color:
+                                  hasUnread
+                                      ? const Color(0xFF007AFF)
+                                      : Colors.grey[500],
+                              fontWeight:
+                                  hasUnread
+                                      ? FontWeight.w500
+                                      : FontWeight.normal,
                             ),
                           ),
                       ],
@@ -228,10 +239,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                       const SizedBox(height: 2),
                       Text(
                         lastMessage,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -261,7 +269,9 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   int _getConversationsWithUnreadCount(ConversationGroup group) {
     int count = 0;
     for (final conversation in group.conversations) {
-      final localUnreadCount = ref.watch(conversationUnreadCountProvider(conversation.id));
+      final localUnreadCount = ref.watch(
+        conversationUnreadCountProvider(conversation.id),
+      );
       if (localUnreadCount > 0) {
         count++;
       }
@@ -270,7 +280,10 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   }
 
   // Widget pour afficher le statut des conversations
-  Widget _buildConversationStatus(int totalConversations, int conversationsWithUnread) {
+  Widget _buildConversationStatus(
+    int totalConversations,
+    int conversationsWithUnread,
+  ) {
     if (conversationsWithUnread == 0) {
       // Aucun message non lu
       return Text(
@@ -355,58 +368,85 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
     return 'Maintenant';
   }
 
-  // Obtenir le nom d'affichage du particulier
-  String _getParticulierDisplayName(ConversationGroup group) {
-    if (group.conversations.isNotEmpty) {
-      final firstConv = group.conversations.first;
+  Widget _buildUserAvatar(Conversation conversation, bool hasUnread) {
+    // Déterminer si c'est un vendeur ou un particulier
+    final isFromSeller = conversation.sellerName != null;
 
-      // Priorité 1 : Utiliser le prénom du particulier si disponible
-      if (firstConv.particulierFirstName != null && firstConv.particulierFirstName!.isNotEmpty) {
-        return firstConv.particulierFirstName!;
-      }
-
-      // Fallback : utiliser les informations du véhicule
-      final vehicleInfo = _getVehicleInfo(firstConv);
-      if (vehicleInfo != null && vehicleInfo.isNotEmpty) {
-        return vehicleInfo;
-      }
+    if (isFromSeller &&
+        conversation.sellerAvatarUrl != null &&
+        conversation.sellerAvatarUrl!.isNotEmpty) {
+      // Afficher la photo de profil du vendeur
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border:
+              hasUnread
+                  ? Border.all(color: const Color(0xFF007AFF), width: 2)
+                  : null,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.sellerAvatarUrl!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback si l'image ne charge pas
+              return _buildDefaultAvatar(isFromSeller, hasUnread);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultAvatar(isFromSeller, hasUnread);
+            },
+          ),
+        ),
+      );
+    } else {
+      // Avatar par défaut
+      return _buildDefaultAvatar(isFromSeller, hasUnread);
     }
-
-    return 'Particulier';
   }
 
-  // Construire les informations du véhicule
-  String? _getVehicleInfo(Conversation conv) {
-    // Construire le nom du véhicule selon le type de pièce
-    if (conv.partType == 'engine') {
-      if (conv.vehicleEngine != null && conv.vehicleEngine!.isNotEmpty) {
-        return conv.vehicleEngine!;
+  Widget _buildDefaultAvatar(bool isFromSeller, bool hasUnread) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color:
+            hasUnread
+                ? const Color(0xFF007AFF)
+                : (isFromSeller
+                    ? const Color(0xFF34C759)
+                    : const Color(0xFF9CA3AF)),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        isFromSeller ? Icons.business : Icons.person,
+        color: Colors.white,
+        size: 18,
+      ),
+    );
+  }
+
+  String _getUserDisplayName(Conversation conversation) {
+    // Déterminer qui est affiché selon le contexte
+    final isFromSeller = conversation.sellerName != null;
+
+    if (isFromSeller) {
+      // Pour un vendeur, afficher le nom de l'entreprise en priorité, sinon le nom du vendeur
+      if (conversation.sellerCompany != null &&
+          conversation.sellerCompany!.isNotEmpty) {
+        return conversation.sellerCompany!;
+      } else if (conversation.sellerName != null &&
+          conversation.sellerName!.isNotEmpty) {
+        return conversation.sellerName!;
+      } else {
+        return 'Vendeur Professionnel';
       }
-    } else if (conv.partType == 'body') {
-      final parts = <String>[];
-      if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
-      if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
-      if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
-
-      if (parts.isNotEmpty) {
-        return parts.join(' ');
-      }
+    } else {
+      return 'Particulier';
     }
-
-    // Fallback : essayer toutes les infos disponibles
-    final parts = <String>[];
-    if (conv.vehicleBrand != null) parts.add(conv.vehicleBrand!);
-    if (conv.vehicleModel != null) parts.add(conv.vehicleModel!);
-    if (conv.vehicleYear != null) parts.add(conv.vehicleYear.toString());
-
-    if (parts.isEmpty && conv.vehicleEngine != null) {
-      return conv.vehicleEngine!;
-    }
-
-    if (parts.isNotEmpty) {
-      return parts.join(' ');
-    }
-
-    return null;
   }
 }

@@ -1,106 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../errors/failures.dart';
-import '../errors/exceptions.dart';
-import '../../features/parts/domain/entities/seller_settings.dart';
+import '../network/network_info.dart';
+import '../../features/parts/data/datasources/seller_settings_remote_datasource.dart';
+import '../../features/parts/data/repositories/seller_settings_repository_impl.dart';
+import '../../features/parts/domain/repositories/seller_settings_repository.dart';
+import '../../features/parts/domain/usecases/get_seller_settings.dart';
+import '../../features/parts/domain/usecases/save_seller_settings.dart';
 
-/// Provider pour récupérer les paramètres vendeur
+// DataSource
+final sellerSettingsRemoteDataSourceProvider = Provider<SellerSettingsRemoteDataSource>((ref) {
+  return SellerSettingsRemoteDataSourceImpl(
+    Supabase.instance.client,
+  );
+});
+
+// Repository
+final sellerSettingsRepositoryProvider = Provider<SellerSettingsRepository>((ref) {
+  return SellerSettingsRepositoryImpl(
+    remoteDataSource: ref.watch(sellerSettingsRemoteDataSourceProvider),
+    networkInfo: ref.watch(networkInfoProvider),
+  );
+});
+
+// Use Cases
 final getSellerSettingsProvider = Provider<GetSellerSettings>((ref) {
-  return GetSellerSettings();
+  return GetSellerSettings(ref.watch(sellerSettingsRepositoryProvider));
 });
 
-/// Provider pour sauvegarder les paramètres vendeur
 final saveSellerSettingsProvider = Provider<SaveSellerSettings>((ref) {
-  return SaveSellerSettings();
+  return SaveSellerSettings(ref.watch(sellerSettingsRepositoryProvider));
 });
-
-/// Use case pour récupérer les paramètres vendeur
-class GetSellerSettings {
-  final SupabaseClient _supabase = Supabase.instance.client;
-
-  Future<Either<Failure, SellerSettings>> call(String sellerId) async {
-    try {
-      final response = await _supabase
-          .from('sellers')
-          .select()
-          .eq('id', sellerId)
-          .single();
-
-      final prefs = response['preferences'] != null
-          ? Map<String, dynamic>.from(response['preferences'])
-          : <String, dynamic>{};
-
-      final settings = SellerSettings(
-        sellerId: response['id'],
-        companyName: response['company_name'],
-        firstName: response['first_name'],
-        lastName: response['last_name'],
-        email: response['email'],
-        phone: response['phone'],
-        address: response['address'],
-        city: response['city'],
-        postalCode: response['postal_code'],
-        country: response['country'],
-        siret: response['siret'],
-        description: response['description'],
-        avatarUrl: response['avatar_url'],
-        notificationsEnabled: prefs['notifications_enabled'] ?? true,
-        emailNotificationsEnabled: prefs['email_notifications_enabled'] ?? true,
-        isActive: response['is_active'] ?? true,
-        preferences: prefs,
-        createdAt: response['created_at'] != null
-            ? DateTime.parse(response['created_at'])
-            : null,
-        updatedAt: response['updated_at'] != null
-            ? DateTime.parse(response['updated_at'])
-            : null,
-      );
-
-      return Right(settings);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-}
-
-/// Use case pour sauvegarder les paramètres vendeur
-class SaveSellerSettings {
-  final SupabaseClient _supabase = Supabase.instance.client;
-
-  Future<Either<Failure, SellerSettings>> call(SellerSettings settings) async {
-    try {
-      await _supabase.from('sellers').update({
-        'company_name': settings.companyName,
-        'first_name': settings.firstName,
-        'last_name': settings.lastName,
-        'email': settings.email,
-        'phone': settings.phone,
-        'address': settings.address,
-        'city': settings.city,
-        'postal_code': settings.postalCode,
-        'country': settings.country,
-        'siret': settings.siret,
-        'description': settings.description,
-        'avatar_url': settings.avatarUrl,
-        'preferences': {
-          ...?settings.preferences,
-          'notifications_enabled': settings.notificationsEnabled,
-          'email_notifications_enabled': settings.emailNotificationsEnabled,
-        },
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', settings.sellerId);
-
-      // Retourner les paramètres mis à jour
-      return Right(settings.copyWith(
-        updatedAt: DateTime.now(),
-      ));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-}

@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'seller_settings.dart';
+part of 'seller_settings_model.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,8 +14,12 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
+SellerSettingsModel _$SellerSettingsModelFromJson(Map<String, dynamic> json) {
+  return _SellerSettingsModel.fromJson(json);
+}
+
 /// @nodoc
-mixin _$SellerSettings {
+mixin _$SellerSettingsModel {
   String get sellerId => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String? get firstName => throw _privateConstructorUsedError;
@@ -31,20 +35,24 @@ mixin _$SellerSettings {
   bool get emailNotificationsEnabled => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get emailVerifiedAt => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $SellerSettingsCopyWith<SellerSettings> get copyWith =>
+  $SellerSettingsModelCopyWith<SellerSettingsModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $SellerSettingsCopyWith<$Res> {
-  factory $SellerSettingsCopyWith(
-          SellerSettings value, $Res Function(SellerSettings) then) =
-      _$SellerSettingsCopyWithImpl<$Res, SellerSettings>;
+abstract class $SellerSettingsModelCopyWith<$Res> {
+  factory $SellerSettingsModelCopyWith(
+          SellerSettingsModel value, $Res Function(SellerSettingsModel) then) =
+      _$SellerSettingsModelCopyWithImpl<$Res, SellerSettingsModel>;
   @useResult
   $Res call(
       {String sellerId,
@@ -62,15 +70,18 @@ abstract class $SellerSettingsCopyWith<$Res> {
       bool emailNotificationsEnabled,
       bool isActive,
       bool isVerified,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? emailVerifiedAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
 /// @nodoc
-class _$SellerSettingsCopyWithImpl<$Res, $Val extends SellerSettings>
-    implements $SellerSettingsCopyWith<$Res> {
-  _$SellerSettingsCopyWithImpl(this._value, this._then);
+class _$SellerSettingsModelCopyWithImpl<$Res, $Val extends SellerSettingsModel>
+    implements $SellerSettingsModelCopyWith<$Res> {
+  _$SellerSettingsModelCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
@@ -177,11 +188,11 @@ class _$SellerSettingsCopyWithImpl<$Res, $Val extends SellerSettings>
 }
 
 /// @nodoc
-abstract class _$$SellerSettingsImplCopyWith<$Res>
-    implements $SellerSettingsCopyWith<$Res> {
-  factory _$$SellerSettingsImplCopyWith(_$SellerSettingsImpl value,
-          $Res Function(_$SellerSettingsImpl) then) =
-      __$$SellerSettingsImplCopyWithImpl<$Res>;
+abstract class _$$SellerSettingsModelImplCopyWith<$Res>
+    implements $SellerSettingsModelCopyWith<$Res> {
+  factory _$$SellerSettingsModelImplCopyWith(_$SellerSettingsModelImpl value,
+          $Res Function(_$SellerSettingsModelImpl) then) =
+      __$$SellerSettingsModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -200,17 +211,20 @@ abstract class _$$SellerSettingsImplCopyWith<$Res>
       bool emailNotificationsEnabled,
       bool isActive,
       bool isVerified,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? emailVerifiedAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
 /// @nodoc
-class __$$SellerSettingsImplCopyWithImpl<$Res>
-    extends _$SellerSettingsCopyWithImpl<$Res, _$SellerSettingsImpl>
-    implements _$$SellerSettingsImplCopyWith<$Res> {
-  __$$SellerSettingsImplCopyWithImpl(
-      _$SellerSettingsImpl _value, $Res Function(_$SellerSettingsImpl) _then)
+class __$$SellerSettingsModelImplCopyWithImpl<$Res>
+    extends _$SellerSettingsModelCopyWithImpl<$Res, _$SellerSettingsModelImpl>
+    implements _$$SellerSettingsModelImplCopyWith<$Res> {
+  __$$SellerSettingsModelImplCopyWithImpl(_$SellerSettingsModelImpl _value,
+      $Res Function(_$SellerSettingsModelImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -235,7 +249,7 @@ class __$$SellerSettingsImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
-    return _then(_$SellerSettingsImpl(
+    return _then(_$SellerSettingsModelImpl(
       sellerId: null == sellerId
           ? _value.sellerId
           : sellerId // ignore: cast_nullable_to_non_nullable
@@ -313,9 +327,9 @@ class __$$SellerSettingsImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
-class _$SellerSettingsImpl implements _SellerSettings {
-  const _$SellerSettingsImpl(
+@JsonSerializable()
+class _$SellerSettingsModelImpl extends _SellerSettingsModel {
+  const _$SellerSettingsModelImpl(
       {required this.sellerId,
       required this.email,
       this.firstName,
@@ -331,9 +345,16 @@ class _$SellerSettingsImpl implements _SellerSettings {
       this.emailNotificationsEnabled = true,
       this.isActive = true,
       this.isVerified = false,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.emailVerifiedAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.createdAt,
-      this.updatedAt});
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      this.updatedAt})
+      : super._();
+
+  factory _$SellerSettingsModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SellerSettingsModelImplFromJson(json);
 
   @override
   final String sellerId;
@@ -370,22 +391,25 @@ class _$SellerSettingsImpl implements _SellerSettings {
   @JsonKey()
   final bool isVerified;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? emailVerifiedAt;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? createdAt;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'SellerSettings(sellerId: $sellerId, email: $email, firstName: $firstName, lastName: $lastName, companyName: $companyName, phone: $phone, address: $address, city: $city, postalCode: $postalCode, siret: $siret, avatarUrl: $avatarUrl, notificationsEnabled: $notificationsEnabled, emailNotificationsEnabled: $emailNotificationsEnabled, isActive: $isActive, isVerified: $isVerified, emailVerifiedAt: $emailVerifiedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SellerSettingsModel(sellerId: $sellerId, email: $email, firstName: $firstName, lastName: $lastName, companyName: $companyName, phone: $phone, address: $address, city: $city, postalCode: $postalCode, siret: $siret, avatarUrl: $avatarUrl, notificationsEnabled: $notificationsEnabled, emailNotificationsEnabled: $emailNotificationsEnabled, isActive: $isActive, isVerified: $isVerified, emailVerifiedAt: $emailVerifiedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SellerSettingsImpl &&
+            other is _$SellerSettingsModelImpl &&
             (identical(other.sellerId, sellerId) ||
                 other.sellerId == sellerId) &&
             (identical(other.email, email) || other.email == email) &&
@@ -420,6 +444,7 @@ class _$SellerSettingsImpl implements _SellerSettings {
                 other.updatedAt == updatedAt));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -445,13 +470,20 @@ class _$SellerSettingsImpl implements _SellerSettings {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$SellerSettingsImplCopyWith<_$SellerSettingsImpl> get copyWith =>
-      __$$SellerSettingsImplCopyWithImpl<_$SellerSettingsImpl>(
+  _$$SellerSettingsModelImplCopyWith<_$SellerSettingsModelImpl> get copyWith =>
+      __$$SellerSettingsModelImplCopyWithImpl<_$SellerSettingsModelImpl>(
           this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SellerSettingsModelImplToJson(
+      this,
+    );
+  }
 }
 
-abstract class _SellerSettings implements SellerSettings {
-  const factory _SellerSettings(
+abstract class _SellerSettingsModel extends SellerSettingsModel {
+  const factory _SellerSettingsModel(
       {required final String sellerId,
       required final String email,
       final String? firstName,
@@ -467,9 +499,16 @@ abstract class _SellerSettings implements SellerSettings {
       final bool emailNotificationsEnabled,
       final bool isActive,
       final bool isVerified,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? emailVerifiedAt,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? createdAt,
-      final DateTime? updatedAt}) = _$SellerSettingsImpl;
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      final DateTime? updatedAt}) = _$SellerSettingsModelImpl;
+  const _SellerSettingsModel._() : super._();
+
+  factory _SellerSettingsModel.fromJson(Map<String, dynamic> json) =
+      _$SellerSettingsModelImpl.fromJson;
 
   @override
   String get sellerId;
@@ -502,13 +541,16 @@ abstract class _SellerSettings implements SellerSettings {
   @override
   bool get isVerified;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get emailVerifiedAt;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt;
   @override
   @JsonKey(ignore: true)
-  _$$SellerSettingsImplCopyWith<_$SellerSettingsImpl> get copyWith =>
+  _$$SellerSettingsModelImplCopyWith<_$SellerSettingsModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

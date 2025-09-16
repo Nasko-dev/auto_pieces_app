@@ -16,6 +16,8 @@ abstract class ConversationsRepository {
     required String senderId,
     required String content,
     MessageType messageType = MessageType.text,
+    List<String> attachments = const [],
+    Map<String, dynamic> metadata = const {},
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,

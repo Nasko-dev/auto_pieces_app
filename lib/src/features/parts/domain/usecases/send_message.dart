@@ -18,6 +18,8 @@ class SendMessage implements UseCase<Message, SendMessageParams> {
       senderId: params.senderId,
       content: params.content,
       messageType: params.messageType,
+      attachments: params.attachments,
+      metadata: params.metadata,
       offerPrice: params.offerPrice,
       offerAvailability: params.offerAvailability,
       offerDeliveryDays: params.offerDeliveryDays,
@@ -30,6 +32,8 @@ class SendMessageParams {
   final String senderId;
   final String content;
   final MessageType messageType;
+  final List<String> attachments;
+  final Map<String, dynamic> metadata;
   final double? offerPrice;
   final String? offerAvailability;
   final int? offerDeliveryDays;
@@ -39,6 +43,8 @@ class SendMessageParams {
     required this.senderId,
     required this.content,
     this.messageType = MessageType.text,
+    this.attachments = const [],
+    this.metadata = const {},
     this.offerPrice,
     this.offerAvailability,
     this.offerDeliveryDays,
