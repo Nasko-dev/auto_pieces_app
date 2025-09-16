@@ -12,6 +12,7 @@ class UserSettings with _$UserSettings {
     String? postalCode,
     @Default('France') String country,
     String? phone,
+    String? avatarUrl,
     @Default(true) bool notificationsEnabled,
     @Default(true) bool emailNotificationsEnabled,
     DateTime? createdAt,

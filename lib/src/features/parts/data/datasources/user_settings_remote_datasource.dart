@@ -49,6 +49,7 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         // Utiliser des valeurs par défaut si les colonnes n'existent pas
         'country': response['country'] ?? 'France',
         'phone': response['phone'],
+        'avatarUrl': response['avatar_url'],
         'notificationsEnabled': response['notifications_enabled'] ?? true,
         'emailNotificationsEnabled': response['email_notifications_enabled'] ?? true,
         'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
@@ -76,10 +77,10 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
 
       final now = DateTime.now().toIso8601String();
 
-      // D'abord, chercher si un enregistrement existe avec ce device_id
+      // D'abord, récupérer l'enregistrement complet existant avec ce device_id
       final existingRecord = await _supabaseClient
           .from('particuliers')
-          .select('id')
+          .select()
           .eq('device_id', deviceId)
           .eq('is_anonymous', true)
           .maybeSingle();
@@ -87,13 +88,20 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
       final Map<String, dynamic> dataToSave;
 
       if (existingRecord != null) {
-        // Mise à jour de l'enregistrement existant
+        // Mise à jour de l'enregistrement existant en préservant les valeurs existantes
         print('📝 [UserSettingsDataSource] Mise à jour enregistrement existant: ${existingRecord['id']}');
+
+        // Construire les données en préservant les valeurs existantes si les nouvelles sont nulles
         dataToSave = {
-          'address': settings.address,
-          'city': settings.city,
-          'zip_code': settings.postalCode,
-          'phone': settings.phone,
+          'first_name': settings.displayName ?? existingRecord['first_name'],
+          'address': settings.address ?? existingRecord['address'],
+          'city': settings.city ?? existingRecord['city'],
+          'zip_code': settings.postalCode ?? existingRecord['zip_code'],
+          'phone': settings.phone ?? existingRecord['phone'],
+          'avatar_url': settings.avatarUrl ?? existingRecord['avatar_url'],
+          'country': settings.country ?? existingRecord['country'],
+          'notifications_enabled': settings.notificationsEnabled,
+          'email_notifications_enabled': settings.emailNotificationsEnabled,
           'updated_at': now,
         };
 
@@ -120,6 +128,7 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'postalCode': response['zip_code'],
           'country': response['country'] ?? settings.country,
           'phone': response['phone'],
+          'avatarUrl': response['avatar_url'],
           'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
           'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
           'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
@@ -134,10 +143,15 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'id': settings.userId,
           'device_id': deviceId,
           'is_anonymous': true,
+          'first_name': settings.displayName,
           'address': settings.address,
           'city': settings.city,
           'zip_code': settings.postalCode,
           'phone': settings.phone,
+          'avatar_url': settings.avatarUrl,
+          'country': settings.country,
+          'notifications_enabled': settings.notificationsEnabled,
+          'email_notifications_enabled': settings.emailNotificationsEnabled,
           'created_at': now,
           'updated_at': now,
         };
@@ -164,6 +178,7 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'postalCode': response['zip_code'],
           'country': response['country'] ?? settings.country,
           'phone': response['phone'],
+          'avatarUrl': response['avatar_url'],
           'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
           'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
           'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
