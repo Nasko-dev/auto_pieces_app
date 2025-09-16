@@ -126,19 +126,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(conversation?.requestTitle ?? 'Conversation'),
-            if (conversation?.requestTitle != null)
-              Text(
-                'Client',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-          ],
-        ),
+        title: _buildAppBarTitle(conversation),
         backgroundColor: const Color(0xFF007AFF),
         foregroundColor: Colors.white,
         actions: [
@@ -257,9 +245,63 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             message: message,
             currentUserType: MessageSenderType.seller, // Côté vendeur
             isLastMessage: index == messages.length - 1,
+            otherUserName: 'Client',
+            otherUserAvatarUrl: null, // Pas d'avatar pour les particuliers pour l'instant
+            otherUserCompany: null,
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du client
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.person,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+
+        const SizedBox(width: 12),
+
+        // Informations du client
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                conversation?.requestTitle ?? 'Conversation',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Client Particulier',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

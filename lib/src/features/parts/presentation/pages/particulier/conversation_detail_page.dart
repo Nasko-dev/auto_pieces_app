@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../shared/presentation/widgets/french_license_plate.dart';
+import '../../widgets/message_bubble_widget.dart';
+import '../../../domain/entities/conversation_enums.dart';
 
 class ConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -83,7 +85,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                     _buildAppBar(context, conversation, theme),
                     _buildConversationInfo(conversation, theme),
                     Expanded(
-                      child: _buildMessagesList(conversation.messages, theme),
+                      child: _buildMessagesList(conversation.messages, conversation, theme),
                     ),
                     _buildMessageInput(theme),
                   ],
@@ -116,38 +118,30 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back, color: Colors.white),
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.store,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
+          _buildSellerAvatar(conversation),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  conversation.sellerName ?? 'Vendeur',
+                  _getSellerDisplayName(conversation),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  conversation.partType ?? 'Pièce auto',
+                  _getSellerSubtitle(conversation),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 14,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -223,7 +217,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
-  Widget _buildMessagesList(List<dynamic> messages, ThemeData theme) {
+  Widget _buildMessagesList(List<dynamic> messages, dynamic conversation, ThemeData theme) {
     if (messages.isEmpty) {
       return const Center(
         child: Text(
@@ -256,7 +250,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         return Column(
           children: [
             if (showTimestamp) _buildTimestamp(message.createdAt),
-            _buildMessageBubble(message, isFromMe, theme),
+            _buildMessageBubbleWithAvatar(message, conversation),
             const SizedBox(height: 4),
           ],
         );
@@ -620,5 +614,88 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   String _formatMessageTime(DateTime dateTime) {
     final localDateTime = dateTime.toLocal(); // Conversion UTC vers heure locale
     return '${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildMessageBubbleWithAvatar(dynamic message, dynamic conversation) {
+    return MessageBubbleWidget(
+      message: message,
+      currentUserType: MessageSenderType.user, // Côté particulier
+      isLastMessage: false, // Géré différemment dans cette page
+      otherUserName: _getSellerDisplayName(conversation),
+      otherUserAvatarUrl: conversation.sellerAvatarUrl,
+      otherUserCompany: conversation.sellerCompany,
+    );
+  }
+
+  Widget _buildSellerAvatar(dynamic conversation) {
+    if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
+      // Afficher la vraie photo de profil du vendeur
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.sellerAvatarUrl!,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback si l'image ne charge pas
+              return _buildDefaultSellerAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultSellerAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      // Avatar par défaut
+      return _buildDefaultSellerAvatar();
+    }
+  }
+
+  Widget _buildDefaultSellerAvatar() {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.store,
+        color: Colors.white,
+        size: 20,
+      ),
+    );
+  }
+
+  String _getSellerDisplayName(dynamic conversation) {
+    // Priorité : nom d'entreprise > nom vendeur > "Vendeur"
+    if (conversation.sellerCompany != null && conversation.sellerCompany!.isNotEmpty) {
+      return conversation.sellerCompany!;
+    } else if (conversation.sellerName != null && conversation.sellerName!.isNotEmpty) {
+      return conversation.sellerName!;
+    } else {
+      return 'Vendeur Professionnel';
+    }
+  }
+
+  String _getSellerSubtitle(dynamic conversation) {
+    // Si on affiche l'entreprise en haut, mettre le nom du vendeur en bas
+    if (conversation.sellerCompany != null &&
+        conversation.sellerCompany!.isNotEmpty &&
+        conversation.sellerName != null &&
+        conversation.sellerName!.isNotEmpty) {
+      return conversation.sellerName!;
+    } else {
+      // Sinon afficher le type de pièce
+      return conversation.partType ?? 'Pièce auto';
+    }
   }
 }

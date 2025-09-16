@@ -6,12 +6,18 @@ class MessageBubbleWidget extends StatelessWidget {
   final Message message;
   final bool isLastMessage;
   final MessageSenderType currentUserType;
+  final String? otherUserName;
+  final String? otherUserAvatarUrl;
+  final String? otherUserCompany;
 
   const MessageBubbleWidget({
     super.key,
     required this.message,
     required this.currentUserType,
     this.isLastMessage = false,
+    this.otherUserName,
+    this.otherUserAvatarUrl,
+    this.otherUserCompany,
   });
 
   @override
@@ -28,12 +34,24 @@ class MessageBubbleWidget extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         margin: EdgeInsets.only(
-          left: isFromCurrentUser ? 64 : 0,
-          right: isFromCurrentUser ? 0 : 64,
+          left: isFromCurrentUser ? 64 : 8,
+          right: isFromCurrentUser ? 8 : 64,
         ),
-        child: Column(
-          crossAxisAlignment: isFromCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            // Avatar de l'autre utilisateur (seulement si ce n'est pas le message de l'utilisateur actuel)
+            if (!isFromCurrentUser) ...[
+              _buildOtherUserAvatar(),
+              const SizedBox(width: 8),
+            ],
+
+            // Bulle de message
+            Flexible(
+              child: Column(
+                crossAxisAlignment: isFromCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -95,6 +113,9 @@ class MessageBubbleWidget extends StatelessWidget {
                       ],
                     ],
                   ),
+                  ],
+                ),
+              ),
                 ],
               ),
             ),
@@ -217,5 +238,54 @@ class MessageBubbleWidget extends StatelessWidget {
   String _formatTime(DateTime timestamp) {
     final localTime = timestamp.toLocal(); // Conversion UTC vers heure locale du téléphone
     return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildOtherUserAvatar() {
+    if (otherUserAvatarUrl != null && otherUserAvatarUrl!.isNotEmpty) {
+      // Afficher la vraie photo de profil
+      return Container(
+        width: 28,
+        height: 28,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            otherUserAvatarUrl!,
+            width: 28,
+            height: 28,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultOtherUserAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultOtherUserAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultOtherUserAvatar();
+    }
+  }
+
+  Widget _buildDefaultOtherUserAvatar() {
+    // Déterminer l'icône selon le type d'utilisateur
+    final isSellerMessage = currentUserType == MessageSenderType.user; // Si l'utilisateur actuel est un particulier, l'autre est un vendeur
+
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: isSellerMessage ? const Color(0xFF34C759) : const Color(0xFF9CA3AF),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        isSellerMessage ? Icons.business : Icons.person,
+        color: Colors.white,
+        size: 16,
+      ),
+    );
   }
 }
