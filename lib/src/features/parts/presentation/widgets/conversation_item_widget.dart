@@ -40,14 +40,8 @@ class ConversationItemWidget extends ConsumerWidget {
       );
       unreadCount = localCount;
     } else {
-      // Pour les vendeurs, utiliser aussi les compteurs locaux
-      final localCount = ref.watch(
-        conversationsControllerProvider.select(
-          (state) =>
-              state.localUnreadCounts[(conversation as Conversation).id] ?? 0,
-        ),
-      );
-      unreadCount = localCount;
+      // Pour les vendeurs, utiliser les compteurs DB
+      unreadCount = (conversation as Conversation).unreadCount;
     }
 
     final hasUnread = unreadCount > 0;

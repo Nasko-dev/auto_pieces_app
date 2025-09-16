@@ -25,8 +25,6 @@ class ConversationsState with _$ConversationsState {
     String? error,
     String? activeConversationId,
     @Default(0) int totalUnreadCount,
-    // ✅ SIMPLE: Compteur local par conversation pour vendeurs aussi
-    @Default({}) Map<String, int> localUnreadCounts,
   }) = _ConversationsState;
 }
 
@@ -133,26 +131,15 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('🎉 [Controller] *** NOUVEAU MESSAGE REÇU *** ');
     print('🔍 [Controller] Conversation: $conversationId, Sender: $senderId, Type: $senderType');
 
-    // ✅ SIMPLE: Si c'est un message du particulier, incrémenter compteur local SEULEMENT si pas dans la conversation
+    // ✅ DB-BASED: Si c'est un message du particulier, incrémenter en DB sauf si conversation active
     if (senderType == 'user') {
       if (state.activeConversationId == conversationId) {
-        print('👀 [Controller] Message reçu dans conversation active → compteur reste à 0');
+        print('👀 [Controller] Message reçu dans conversation active → marqué comme lu automatiquement');
+        // Marquer le message comme lu immédiatement si la conversation est ouverte
+        _markConversationAsReadInDB(conversationId);
       } else {
-        print('🔥 [Controller] Message du particulier → +1 compteur local');
-
-        final currentCount = state.localUnreadCounts[conversationId] ?? 0;
-        final newCounts = Map<String, int>.from(state.localUnreadCounts);
-        newCounts[conversationId] = currentCount + 1;
-
-        // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
-        Future.microtask(() {
-          state = state.copyWith(
-            localUnreadCounts: newCounts,
-            totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-          );
-        });
-
-        print('📊 [Controller] Nouveau compteur conv $conversationId: ${newCounts[conversationId]}');
+        print('🔥 [Controller] Message du particulier → +1 compteur en DB');
+        _incrementUnreadCountInDB(conversationId);
       }
     } else {
       print('📤 [Controller] Notre propre message, pas de compteur');
@@ -261,25 +248,16 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       (conversations) {
         print('✅ [Controller] ${conversations.length} conversations chargées');
 
-        // Synchroniser les compteurs locaux avec les vraies données de la DB au démarrage
-        final newLocalCounts = Map<String, int>.from(state.localUnreadCounts);
-        for (final conversation in conversations) {
-          // Si pas de compteur local pour cette conversation, utiliser le compteur de la DB
-          if (!newLocalCounts.containsKey(conversation.id)) {
-            newLocalCounts[conversation.id] = conversation.unreadCount;
-          }
-        }
-
-        final totalUnread = newLocalCounts.values.fold(0, (sum, count) => sum + count);
+        // ✅ DB-BASED: Utiliser directement les compteurs de la DB
+        final totalUnread = conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
 
         state = state.copyWith(
-          conversations: conversations, // Base triée en DB par last_message_at DESC
+          conversations: conversations, // Triées en DB par last_message_at DESC avec unreadCount
           isLoading: false,
           error: null,
-          localUnreadCounts: newLocalCounts, // Compteurs synchronisés
           totalUnreadCount: totalUnread,
         );
-        print('📊 [Controller] Compteurs locaux synchronisés: ${newLocalCounts.length} conversations, total: $totalUnread');
+        print('📊 [Controller] ${conversations.length} conversations chargées, total unread: $totalUnread');
         
         // Initialiser le refresh timer après le premier chargement
         initializeRealtime(userId);
@@ -543,20 +521,47 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     );
   }
 
-  // ✅ SIMPLE: Marquer conversation comme active et remettre compteur à 0
+  // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
-    print('👀 [Controller] Ouverture conversation: $conversationId → compteur = 0 + active');
+    print('👀 [Controller] Ouverture conversation: $conversationId → compteur DB = 0 + active');
 
-    final newCounts = Map<String, int>.from(state.localUnreadCounts);
-    newCounts[conversationId] = 0;
+    // Marquer en DB
+    _markConversationAsReadInDB(conversationId);
 
-    state = state.copyWith(
-      localUnreadCounts: newCounts,
-      totalUnreadCount: newCounts.values.fold(0, (sum, count) => sum + count),
-      activeConversationId: conversationId, // ✅ Définir comme conversation active
-    );
+    // Marquer comme conversation active
+    state = state.copyWith(activeConversationId: conversationId);
 
     print('📊 [Controller] Conversation $conversationId maintenant active');
+  }
+
+  // ✅ DB-BASED: Incrémenter compteur en DB
+  void _incrementUnreadCountInDB(String conversationId) async {
+    try {
+      final result = await _dataSource.incrementUnreadCount(conversationId: conversationId);
+      print('✅ [Controller] Compteur DB incrémenté pour: $conversationId');
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      print('❌ [Controller] Erreur incrémentation DB: $e');
+    }
+  }
+
+  // ✅ DB-BASED: Marquer conversation comme lue en DB
+  void _markConversationAsReadInDB(String conversationId) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      await _dataSource.markMessagesAsRead(
+        conversationId: conversationId,
+        userId: userId,
+      );
+      print('✅ [Controller] Conversation marquée comme lue en DB: $conversationId');
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      print('❌ [Controller] Erreur marquage DB: $e');
+    }
   }
 
   // ✅ SIMPLE: Désactiver la conversation active

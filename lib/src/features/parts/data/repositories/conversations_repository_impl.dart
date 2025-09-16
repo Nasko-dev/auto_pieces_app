@@ -103,6 +103,26 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   }
 
   @override
+  Future<Either<Failure, void>> incrementUnreadCount({
+    required String conversationId,
+  }) async {
+    try {
+      print('📈 [Repository] Incrémentation compteur: $conversationId');
+      await remoteDataSource.incrementUnreadCount(
+        conversationId: conversationId,
+      );
+      print('✅ [Repository] Compteur incrémenté');
+      return const Right(null);
+    } on ServerException catch (e) {
+      print('❌ [Repository] Erreur serveur: ${e.message}');
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('❌ [Repository] Erreur générale: $e');
+      return Left(ServerFailure( 'Erreur lors de l\'incrémentation du compteur'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   }) async {

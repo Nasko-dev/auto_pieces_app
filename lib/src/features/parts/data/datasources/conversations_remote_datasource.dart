@@ -25,6 +25,9 @@ abstract class ConversationsRemoteDataSource {
     required String conversationId,
     required String userId,
   });
+  Future<void> incrementUnreadCount({
+    required String conversationId,
+  });
   Future<void> updateConversationStatus({
     required String conversationId,
     required ConversationStatus status,
@@ -90,7 +93,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
     print('🏪 [Datasource] Récupération conversations vendeur: $sellerId');
-    
+
     final response = await _supabaseClient
         .from('conversations')
         .select('''
@@ -108,6 +111,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_content,
           last_message_sender_type,
           last_message_created_at,
+          unread_count,
           total_messages,
           part_requests (
             vehicle_brand,
@@ -123,60 +127,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
-    final conversations = <Conversation>[];
-    
-    for (final json in response) {
-      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']}');
-      
-      // Charger les messages pour cette conversation et calculer unreadCount localement
-      final messagesResponse = await _supabaseClient
-          .from('messages')
-          .select('*')
-          .eq('conversation_id', json['id'])
-          .order('created_at', ascending: true);
-      
-      final messages = messagesResponse.map((msgData) {
-        return Message(
-          id: msgData['id'],
-          conversationId: msgData['conversation_id'],
-          senderId: msgData['sender_id'],
-          senderType: msgData['sender_type'] == 'user' 
-              ? MessageSenderType.user 
-              : MessageSenderType.seller,
-          content: msgData['content'],
-          isRead: msgData['is_read'] ?? false,
-          createdAt: DateTime.parse(msgData['created_at']),
-          updatedAt: DateTime.parse(msgData['updated_at']),
-        );
-      }).toList();
-      
-      // Calculer unreadCount : messages des autres utilisateurs non lus
-      print('=============== CALCUL UNREAD VENDEUR ${json['id']} ===============');
-      print('👥 [Datasource-Vendeur] Seller ID: $sellerId');
-      print('📨 [Datasource-Vendeur] Total messages: ${messages.length}');
-      
-      for (final msg in messages) {
-        print('📧 [Datasource-Vendeur] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
-      }
-      
-      final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
-      final unreadCount = unreadMessages.length;
-      
-      print('🔴 [Datasource-Vendeur] Messages non lus trouvés: $unreadCount');
-      for (final msg in unreadMessages) {
-        print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
-      }
-      print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
-      print('================================================================');
-      
-      // Modifier le JSON pour inclure notre unreadCount calculé
-      final modifiedJson = Map<String, dynamic>.from(json);
-      modifiedJson['unread_count'] = unreadCount;
-      
-      conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
-    }
-
-    return conversations;
+    return response.map((json) {
+      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']} (unread_count: ${json['unread_count']})');
+      return Conversation.fromJson(_mapSupabaseToConversation(json));
+    }).toList();
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -390,30 +344,85 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String userId,
   }) async {
     print('👀 [Datasource] Marquage messages comme lus: $conversationId');
-    
-    try {
-      // Marquer les messages comme lus (seulement ceux du vendeur)
-      await _supabaseClient
-          .from('messages')
-          .update({
-            'is_read': true,
-            'read_at': 'now()',  // Utiliser la fonction Supabase pour timestamp UTC
-          })
-          .eq('conversation_id', conversationId)
-          .eq('sender_type', 'seller')
-          .eq('is_read', false);
 
-      // Mettre à jour le compteur de la conversation
+    try {
+      // Déterminer le type d'utilisateur pour savoir quels messages marquer
+      final isSellerResult = await _checkIfUserIsSeller(userId);
+
+      if (isSellerResult) {
+        // Vendeur : marquer les messages des particuliers comme lus
+        await _supabaseClient
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .eq('sender_type', 'user')
+            .eq('is_read', false);
+      } else {
+        // Particulier : marquer les messages des vendeurs comme lus
+        await _supabaseClient
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .eq('sender_type', 'seller')
+            .eq('is_read', false);
+      }
+
+      // Remettre le compteur à 0 dans tous les cas
       await _supabaseClient
           .from('conversations')
           .update({'unread_count': 0})
           .eq('id', conversationId);
 
       print('✅ [Datasource] Messages marqués comme lus');
-      
+
     } catch (e) {
       print('❌ [Datasource] Erreur marquage lecture: $e');
       throw ServerException('Erreur lors du marquage des messages comme lus: $e');
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCount({
+    required String conversationId,
+  }) async {
+    print('📈 [Datasource] Incrémentation compteur non lu: $conversationId');
+
+    try {
+      // Utiliser une requête SQL pour incrémenter atomiquement
+      await _supabaseClient.rpc('increment_unread_count', params: {
+        'conversation_id_param': conversationId,
+      });
+
+      print('✅ [Datasource] Compteur non lu incrémenté');
+
+    } catch (e) {
+      print('❌ [Datasource] Erreur incrémentation compteur: $e');
+      // Fallback : récupérer le compteur actuel et incrémenter
+      try {
+        final response = await _supabaseClient
+            .from('conversations')
+            .select('unread_count')
+            .eq('id', conversationId)
+            .single();
+
+        final currentCount = (response['unread_count'] as int?) ?? 0;
+
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count': currentCount + 1})
+            .eq('id', conversationId);
+
+        print('✅ [Datasource] Compteur incrémenté (fallback)');
+      } catch (fallbackError) {
+        print('❌ [Datasource] Erreur fallback incrémentation: $fallbackError');
+        throw ServerException('Erreur lors de l\'incrémentation du compteur: $fallbackError');
+      }
     }
   }
 
