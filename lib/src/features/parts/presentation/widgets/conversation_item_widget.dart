@@ -383,12 +383,17 @@ class ConversationItemWidget extends ConsumerWidget {
     if (conversation is Conversation) {
       final conv = conversation as Conversation;
 
+      // DEBUG: Afficher le prénom reçu
+      print('🐛 [Widget] Conv ${conv.id}: particulierFirstName = "${conv.particulierFirstName}"');
+
       // Priorité 1 : Utiliser le prénom du particulier si disponible
       if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
+        print('✅ [Widget] Utilisation du prénom: "${conv.particulierFirstName}"');
         return conv.particulierFirstName!;
       }
 
       // Fallback : utiliser le nom du véhicule si pas de prénom
+      print('⚠️ [Widget] Pas de prénom, fallback vers véhicule');
       return _getMotorName();
     }
     return null;
