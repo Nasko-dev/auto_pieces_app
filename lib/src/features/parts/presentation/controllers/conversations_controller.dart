@@ -64,11 +64,20 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         _realtimeService = realtimeService,
         super(const ConversationsState());
 
-  // Initialiser le realtime et le refresh timer
+  // ✅ OPTIMISATION: Variable pour éviter les initialisations multiples
+  bool _isRealtimeInitialized = false;
+
+  // Initialiser le realtime et le refresh timer - UNE SEULE FOIS
   void initializeRealtime(String userId) {
+    if (_isRealtimeInitialized) {
+      print('⚠️ [Controller] Realtime déjà initialisé, ignorer');
+      return;
+    }
+
     print('📡 [Controller] Initialisation realtime et refresh timer pour: $userId');
     _startRefreshTimer();
     _subscribeToAllUserMessages(userId);
+    _isRealtimeInitialized = true;
   }
 
   // S'abonner à tous les messages de l'utilisateur
@@ -153,59 +162,31 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       print('📤 [Controller] Message vendeur d\'un autre utilisateur, pas de compteur pour nous');
     }
 
-    // Refresh pour les messages des autres utilisateurs
-    print('🚀 [Controller] Message d\'un autre utilisateur → REFRESH IMMÉDIAT');
-    await loadConversations();
+    // ✅ OPTIMISATION: Plus de refresh automatique, juste mise à jour locale
+    print('✅ [Controller] Message traité, pas de refresh (éviter boucles)');
   }
 
-  // Méthode simplifiée pour recevoir des messages du RealtimeService
+  // ✅ OPTIMISÉ: Méthode publique simplifiée pour les pages de chat
   void handleIncomingMessage(Message newMessage) {
-    print('🎉 [Controller] *** NOUVEAU MESSAGE DÉTECTÉ - REFRESH AUTOMATIQUE ***');
-    print('📨 [Controller] Message reçu du RealtimeService: ${newMessage.content}');
-    
+    print('📨 [Controller] handleIncomingMessage: ${newMessage.content}');
+
+    // Ajouter le message localement aux messages de la conversation
     final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
     final conversationMessages = currentMessages[newMessage.conversationId] ?? [];
-    
+
     if (!conversationMessages.any((m) => m.id == newMessage.id)) {
       final updatedMessages = [...conversationMessages, newMessage];
-      // Tri par timestamp Supabase (UTC) - fiable car généré côté serveur
       updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       currentMessages[newMessage.conversationId] = updatedMessages;
-      
+
       state = state.copyWith(conversationMessages: currentMessages);
-      print('✅ [Controller] Message ajouté à la conversation');
-      
-      // Plus besoin de recalculer - compteurs locaux gérés en temps réel
-      
-      // 🚀 TRI OPTIMISÉ après nouveau message (évite un refresh DB complet)
-      print('🚀 [Controller] Re-tri optimisé suite au nouveau message');
-      _sortConversationsIfNeeded();
+      print('✅ [Controller] Message ajouté localement');
     }
+
+    // Note: Les compteurs sont gérés par _handleGlobalNewMessage via trigger realtime
   }
 
-  // Tri optimisé - seulement quand nécessaire (après nouveau message)
-  void _sortConversationsIfNeeded() {
-    final conversations = [...state.conversations];
-    conversations.sort((a, b) {
-      // Prioriser lastMessageAt (plus fiable car vient de la DB)
-      if (a.lastMessageAt != null && b.lastMessageAt != null) {
-        return b.lastMessageAt.compareTo(a.lastMessageAt);
-      }
-      
-      // Fallback sur les messages en mémoire si lastMessageAt indisponible
-      final messagesA = state.conversationMessages[a.id] ?? [];
-      final messagesB = state.conversationMessages[b.id] ?? [];
-      
-      if (messagesA.isEmpty && messagesB.isEmpty) return 0;
-      if (messagesA.isEmpty) return 1;
-      if (messagesB.isEmpty) return -1;
-      
-      return messagesB.last.createdAt.compareTo(messagesA.last.createdAt);
-    });
-    
-    state = state.copyWith(conversations: conversations);
-    print('🔄 [Controller] Conversations re-triées après nouveau message');
-  }
+  // ✅ SUPPRIMÉ: Méthode de tri plus nécessaire - DB déjà triée par last_message_at
 
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
@@ -264,9 +245,11 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           totalUnreadCount: totalUnread,
         );
         print('📊 [Controller] ${conversations.length} conversations chargées, total unread: $totalUnread');
-        
-        // Initialiser le refresh timer après le premier chargement
-        initializeRealtime(userId);
+
+        // ✅ OPTIMISATION: Initialiser le realtime seulement au premier chargement
+        if (!_isRealtimeInitialized) {
+          initializeRealtime(userId);
+        }
       },
     );
   }
@@ -375,8 +358,8 @@ class ConversationsController extends StateNotifier<ConversationsState> {
             );
           }
           
-          // Recharger les conversations pour mettre à jour l'aperçu
-          _refreshConversationsQuietly();
+          // ✅ OPTIMISATION: Pas de refresh automatique, les triggers realtime s'en chargent
+          // _refreshConversationsQuietly(); // SUPPRIMÉ pour éviter double refresh
         } catch (e) {
           print('❌ [Controller] Erreur lors du traitement local: $e');
           state = state.copyWith(
@@ -540,19 +523,20 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     print('📊 [Controller] Conversation $conversationId maintenant active');
   }
 
-  // ✅ DB-BASED: Incrémenter compteur en DB
+  // ✅ DB-BASED: Incrémenter compteur en DB - SANS REFRESH AUTO
   void _incrementUnreadCountInDB(String conversationId) async {
     try {
-      final result = await _dataSource.incrementUnreadCount(conversationId: conversationId);
+      await _dataSource.incrementUnreadCount(conversationId: conversationId);
       print('✅ [Controller] Compteur DB incrémenté pour: $conversationId');
-      // Refresh pour récupérer le nouveau compteur
-      loadConversations();
+
+      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
+      _updateLocalUnreadCount(conversationId, 1);
     } catch (e) {
       print('❌ [Controller] Erreur incrémentation DB: $e');
     }
   }
 
-  // ✅ DB-BASED: Marquer conversation comme lue en DB
+  // ✅ DB-BASED: Marquer conversation comme lue en DB - SANS REFRESH AUTO
   void _markConversationAsReadInDB(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
@@ -563,11 +547,32 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         userId: userId,
       );
       print('✅ [Controller] Conversation marquée comme lue en DB: $conversationId');
-      // Refresh pour récupérer le nouveau compteur
-      loadConversations();
+
+      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
+      _updateLocalUnreadCount(conversationId, -999); // Reset à 0
     } catch (e) {
       print('❌ [Controller] Erreur marquage DB: $e');
     }
+  }
+
+  // ✅ OPTIMISATION: Mise à jour locale pour éviter les full reload
+  void _updateLocalUnreadCount(String conversationId, int delta) {
+    final updatedConversations = state.conversations.map((conv) {
+      if (conv.id == conversationId) {
+        final newCount = delta == -999 ? 0 : (conv.unreadCount + delta).clamp(0, 9999);
+        return conv.copyWith(unreadCount: newCount);
+      }
+      return conv;
+    }).toList();
+
+    final newTotal = updatedConversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+
+    state = state.copyWith(
+      conversations: updatedConversations,
+      totalUnreadCount: newTotal,
+    );
+
+    print('📊 [Controller] Local update: conv $conversationId = ${delta == -999 ? 0 : "+" + delta.toString()}, total = $newTotal');
   }
 
   // ✅ SIMPLE: Désactiver la conversation active
