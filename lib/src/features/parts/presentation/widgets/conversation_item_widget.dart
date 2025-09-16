@@ -393,9 +393,19 @@ class ConversationItemWidget extends ConsumerWidget {
     if (conversation is Conversation) {
       final conv = conversation as Conversation;
 
-      // Priorité 1 : Utiliser le prénom du particulier si disponible
+      // Priorité 1 : Utiliser le nom d'affichage complet du particulier
+      if (conv.userDisplayName != null && conv.userDisplayName!.isNotEmpty) {
+        return conv.userDisplayName!;
+      }
+
+      // Priorité 2 : Utiliser le prénom du particulier si disponible
       if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
         return conv.particulierFirstName!;
+      }
+
+      // Priorité 3 : Utiliser le nom d'utilisateur (téléphone)
+      if (conv.userName != null && conv.userName!.isNotEmpty) {
+        return conv.userName!;
       }
 
       // Fallback : utiliser le nom du véhicule si pas de prénom

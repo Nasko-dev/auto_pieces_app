@@ -70,11 +70,11 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: conversationsAsync.isLoading 
+      body: conversationsAsync.isLoading
         ? const Center(child: CircularProgressIndicator())
         : conversationsAsync.error != null
             ? _buildErrorView(context, conversationsAsync.error!)
-            : () {
+            : (() {
                 final conversation = conversationsAsync.conversations
                     .where((c) => c.id == widget.conversationId)
                     .firstOrNull;
@@ -142,8 +142,9 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                       isLoading: _isSending,
                     ),
                   ],
+                  ),
                 );
-              }(),
+              })()
     );
   }
 

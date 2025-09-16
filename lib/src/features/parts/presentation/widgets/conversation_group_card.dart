@@ -369,13 +369,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   }
 
   Widget _buildUserAvatar(Conversation conversation, bool hasUnread) {
-    // Déterminer si c'est un vendeur ou un particulier
-    final isFromSeller = conversation.sellerName != null;
+    // Côté vendeur : afficher la photo du particulier (client)
 
-    if (isFromSeller &&
-        conversation.sellerAvatarUrl != null &&
-        conversation.sellerAvatarUrl!.isNotEmpty) {
-      // Afficher la photo de profil du vendeur
+    if (conversation.userAvatarUrl != null &&
+        conversation.userAvatarUrl!.isNotEmpty) {
+      // Afficher la photo de profil du particulier
       return Container(
         width: 32,
         height: 32,
@@ -388,24 +386,24 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
         ),
         child: ClipOval(
           child: Image.network(
-            conversation.sellerAvatarUrl!,
+            conversation.userAvatarUrl!,
             width: 32,
             height: 32,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               // Fallback si l'image ne charge pas
-              return _buildDefaultAvatar(isFromSeller, hasUnread);
+              return _buildDefaultAvatar(false, hasUnread); // false = particulier
             },
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return _buildDefaultAvatar(isFromSeller, hasUnread);
+              return _buildDefaultAvatar(false, hasUnread); // false = particulier
             },
           ),
         ),
       );
     } else {
-      // Avatar par défaut
-      return _buildDefaultAvatar(isFromSeller, hasUnread);
+      // Avatar par défaut pour particulier
+      return _buildDefaultAvatar(false, hasUnread); // false = particulier
     }
   }
 
@@ -431,22 +429,49 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   }
 
   String _getUserDisplayName(Conversation conversation) {
-    // Déterminer qui est affiché selon le contexte
-    final isFromSeller = conversation.sellerName != null;
+    // Côté vendeur : afficher le nom du particulier (client)
 
-    if (isFromSeller) {
-      // Pour un vendeur, afficher le nom de l'entreprise en priorité, sinon le nom du vendeur
-      if (conversation.sellerCompany != null &&
-          conversation.sellerCompany!.isNotEmpty) {
-        return conversation.sellerCompany!;
-      } else if (conversation.sellerName != null &&
-          conversation.sellerName!.isNotEmpty) {
-        return conversation.sellerName!;
-      } else {
-        return 'Vendeur Professionnel';
-      }
-    } else {
-      return 'Particulier';
+    // Priorité 1 : Nom d'affichage complet du particulier
+    if (conversation.userDisplayName != null &&
+        conversation.userDisplayName!.isNotEmpty) {
+      return conversation.userDisplayName!;
     }
+
+    // Priorité 2 : Prénom du particulier
+    if (conversation.particulierFirstName != null &&
+        conversation.particulierFirstName!.isNotEmpty) {
+      return conversation.particulierFirstName!;
+    }
+
+    // Priorité 3 : Nom d'utilisateur (téléphone)
+    if (conversation.userName != null &&
+        conversation.userName!.isNotEmpty) {
+      return conversation.userName!;
+    }
+
+    // Fallback : Infos du véhicule si disponibles
+    final vehicleInfo = _getVehicleDisplayName(conversation);
+    if (vehicleInfo != null && vehicleInfo.isNotEmpty) {
+      return vehicleInfo;
+    }
+
+    // Fallback final
+    return 'Client';
+  }
+
+  String? _getVehicleDisplayName(Conversation conversation) {
+    final parts = <String>[];
+
+    if (conversation.vehicleBrand != null) {
+      parts.add(conversation.vehicleBrand!);
+    }
+    if (conversation.vehicleModel != null) {
+      parts.add(conversation.vehicleModel!);
+    }
+    if (conversation.vehicleYear != null) {
+      parts.add(conversation.vehicleYear.toString());
+    }
+
+    return parts.isNotEmpty ? parts.join(' ') : null;
   }
 }
