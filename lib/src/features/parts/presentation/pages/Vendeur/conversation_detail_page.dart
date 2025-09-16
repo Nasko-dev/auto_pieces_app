@@ -176,7 +176,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error),
+            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
           ),
           // Zone de saisie
           ChatInputWidget(
@@ -189,7 +189,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
 
     if (isLoading && messages.isEmpty) {
       return const Center(

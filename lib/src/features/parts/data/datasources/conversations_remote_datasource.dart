@@ -110,7 +110,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           last_message_created_at,
           total_messages,
           sellers!inner(avatar_url),
-          particuliers!inner(first_name, last_name, phone),
           part_requests (
             vehicle_brand,
             vehicle_model,
@@ -171,10 +170,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
       print('================================================================');
       
-      // Modifier le JSON pour inclure notre unreadCount calculé
+      // Récupérer les informations du particulier
+      final userInfo = await _getUserInfo(json['user_id']);
+
+      // Modifier le JSON pour inclure notre unreadCount calculé et les infos utilisateur
       final modifiedJson = Map<String, dynamic>.from(json);
       modifiedJson['unread_count'] = unreadCount;
-      
+      modifiedJson['user_info'] = userInfo;
+
       conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
     }
 
@@ -230,8 +233,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 last_message_created_at,
                 unread_count,
                 total_messages,
-                sellers!inner(avatar_url),
-                particuliers!inner(first_name, last_name, phone)
+                sellers!inner(avatar_url)
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
@@ -551,6 +553,23 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   // Helper methods pour la conversion
+  Future<Map<String, dynamic>?> _getUserInfo(String userId) async {
+    try {
+      final response = await _supabaseClient
+          .from('particuliers')
+          .select('first_name, last_name, phone')
+          .eq('id', userId)
+          .limit(1);
+
+      if (response.isNotEmpty) {
+        return response.first;
+      }
+    } catch (e) {
+      print('⚠️ [Datasource] Erreur récupération info particulier: $e');
+    }
+    return null;
+  }
+
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
     // Extraire les données du véhicule depuis part_requests
     String? vehicleBrand;
@@ -579,35 +598,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       }
     }
 
-    // Extraire les informations du particulier depuis particuliers
+    // Extraire les informations du particulier depuis user_info
     String? userName;
     String? userDisplayName;
     String? userAvatarUrl;
-    if (json['particuliers'] != null) {
-      final particuliers = json['particuliers'];
-      if (particuliers is Map<String, dynamic>) {
-        final firstName = particuliers['first_name'];
-        final lastName = particuliers['last_name'];
-        final phone = particuliers['phone'];
+    if (json['user_info'] != null) {
+      final userInfo = json['user_info'] as Map<String, dynamic>;
+      final firstName = userInfo['first_name'];
+      final lastName = userInfo['last_name'];
+      final phone = userInfo['phone'];
 
-        userName = phone; // Utiliser le téléphone comme nom d'utilisateur
-        userDisplayName = (firstName != null && lastName != null)
-            ? '$firstName $lastName'.trim()
-            : (firstName ?? lastName ?? phone ?? 'Particulier');
-        // Pour l'instant pas d'avatar pour les particuliers
-        userAvatarUrl = null;
-      } else if (particuliers is List && particuliers.isNotEmpty) {
-        final particulier = particuliers.first;
-        final firstName = particulier['first_name'];
-        final lastName = particulier['last_name'];
-        final phone = particulier['phone'];
-
-        userName = phone;
-        userDisplayName = (firstName != null && lastName != null)
-            ? '$firstName $lastName'.trim()
-            : (firstName ?? lastName ?? phone ?? 'Particulier');
-        userAvatarUrl = null;
-      }
+      userName = phone; // Utiliser le téléphone comme nom d'utilisateur
+      userDisplayName = (firstName != null && lastName != null)
+          ? '$firstName $lastName'.trim()
+          : (firstName ?? lastName ?? phone ?? 'Particulier');
+      // Pour l'instant pas d'avatar pour les particuliers
+      userAvatarUrl = null;
     }
 
     return {
