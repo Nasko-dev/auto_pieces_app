@@ -39,12 +39,15 @@ class MessageBubbleWidget extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Avatar de l'autre utilisateur (seulement si ce n'est pas le message de l'utilisateur actuel)
             if (!isFromCurrentUser) ...[
-              _buildOtherUserAvatar(),
-              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 4), // Petit décalage pour aligner avec le texte
+                child: _buildOtherUserAvatar(),
+              ),
+              const SizedBox(width: 12),
             ],
 
             // Bulle de message
@@ -242,8 +245,8 @@ class MessageBubbleWidget extends StatelessWidget {
     if (otherUserAvatarUrl != null && otherUserAvatarUrl!.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
       return Container(
-        width: 24,
-        height: 24,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
@@ -261,8 +264,8 @@ class MessageBubbleWidget extends StatelessWidget {
         child: ClipOval(
           child: Image.network(
             otherUserAvatarUrl!,
-            width: 24,
-            height: 24,
+            width: 32,
+            height: 32,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _buildDefaultOtherUserAvatar();
@@ -284,8 +287,8 @@ class MessageBubbleWidget extends StatelessWidget {
     final isSellerMessage = currentUserType == MessageSenderType.user; // Si l'utilisateur actuel est un particulier, l'autre est un vendeur
 
     return Container(
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -310,7 +313,7 @@ class MessageBubbleWidget extends StatelessWidget {
       child: Icon(
         isSellerMessage ? Icons.business : Icons.person,
         color: Colors.white,
-        size: 12,
+        size: 16,
       ),
     );
   }
