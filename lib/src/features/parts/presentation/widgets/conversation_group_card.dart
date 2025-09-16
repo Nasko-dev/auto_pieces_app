@@ -198,7 +198,7 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                       children: [
                         Expanded(
                           child: Text(
-                            _getParticulierDisplayName(group),
+                            _getParticulierDisplayName(widget.group),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w500,
