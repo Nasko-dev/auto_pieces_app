@@ -78,13 +78,13 @@ class RealtimeService {
             table: 'messages',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre conversation
-              if (payload.newRecord?['conversation_id'] != conversationId) {
+              if (payload.newRecord['conversation_id'] != conversationId) {
                 return;
               }
-              
+
               // Mapper et envoyer le message au stream spécifique
               try {
-                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                final message = _mapSupabaseToMessage(payload.newRecord);
                 
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
@@ -101,12 +101,12 @@ class RealtimeService {
             table: 'messages',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre conversation
-              if (payload.newRecord?['conversation_id'] != conversationId) {
+              if (payload.newRecord['conversation_id'] != conversationId) {
                 return;
               }
               // Pour les updates, envoyer aussi au stream spécifique
               try {
-                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                final message = _mapSupabaseToMessage(payload.newRecord);
                 
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
@@ -146,7 +146,7 @@ class RealtimeService {
             table: 'conversations',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre utilisateur
-              if (payload.newRecord?['user_id'] != userId) {
+              if (payload.newRecord['user_id'] != userId) {
                 return;
               }
               _conversationStreamController.add({
@@ -162,7 +162,7 @@ class RealtimeService {
             table: 'conversations',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre utilisateur
-              if (payload.newRecord?['user_id'] != userId) {
+              if (payload.newRecord['user_id'] != userId) {
                 return;
               }
               _conversationStreamController.add({

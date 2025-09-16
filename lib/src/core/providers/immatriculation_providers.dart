@@ -436,7 +436,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
           .select()
           .eq('user_id', userId);
           
-      return response ?? [];
+      return response;
     } catch (e) {
       return [];
     }

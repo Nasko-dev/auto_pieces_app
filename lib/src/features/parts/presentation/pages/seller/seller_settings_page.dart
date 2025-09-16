@@ -28,7 +28,6 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
   bool _isLoadingLocation = false;
   bool _notificationsEnabled = true;
   bool _emailNotificationsEnabled = true;
-  String? _currentAvatarUrl;
 
   @override
   void initState() {
@@ -72,7 +71,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
             _postalCodeController.text = settings.postalCode ?? '';
             _firstNameController.text = settings.firstName ?? '';
             _lastNameController.text = settings.lastName ?? '';
-            _currentAvatarUrl = settings.avatarUrl;
+            // Avatar URL géré directement par les settings
             _notificationsEnabled = settings.notificationsEnabled;
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _isLoadingSettings = false;

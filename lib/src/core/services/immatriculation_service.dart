@@ -183,7 +183,7 @@ class ImmatriculationService {
         },
         (vehicleInfo) {
           // Extraire le nombre de clics depuis rawData
-          final rawData = vehicleInfo.rawData as Map<String, dynamic>?;
+          final rawData = vehicleInfo.rawData;
           final clicks = rawData?['lastClickCount'] as int? ?? 0;
           return Right(clicks);
         },

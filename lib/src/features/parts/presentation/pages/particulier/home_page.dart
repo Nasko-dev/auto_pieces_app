@@ -22,7 +22,6 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   // Couleurs calibrées pour matcher le screen
   static const Color _blue = Color(0xFF1976D2);
-  static const Color _blueDark = Color(0xFF0F57A6);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const Color _textGray = Color(0xFF6B7280);
   static const Color _border = Color(0xFFE5E7EB);
@@ -907,7 +906,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (info.year != null) parts.add(info.year.toString());
           if (info.bodyStyle != null) parts.add(info.bodyStyle!);
           // Version et finition peuvent être extraites du rawData si disponibles
-          final rawData = info.rawData as Map<String, dynamic>?;
+          final rawData = info.rawData;
           if (rawData != null) {
             final vehicleInfo = rawData['vehicleInformation'] as Map<String, dynamic>?;
             if (vehicleInfo != null) {

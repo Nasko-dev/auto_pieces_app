@@ -79,9 +79,9 @@ class MessageImageService {
           .remove([filePath]);
 
 
-    } on StorageException catch (e) {
+    } on StorageException {
       // Ne pas throw d'erreur pour la suppression
-    } catch (e) {
+    } catch (_) {
       // Ne pas throw d'erreur pour la suppression
     }
   }

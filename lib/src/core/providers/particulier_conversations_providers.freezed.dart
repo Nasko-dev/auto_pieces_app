@@ -139,8 +139,8 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ParticulierConversationsStateImpl
-    extends _ParticulierConversationsState {
+class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
+    with DiagnosticableTreeMixin {
   const _$ParticulierConversationsStateImpl(
       {final List<ParticulierConversation> conversations = const [],
       this.isLoading = false,
@@ -167,8 +167,19 @@ class _$ParticulierConversationsStateImpl
   final String? activeConversationId;
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ParticulierConversationsState'))
+      ..add(DiagnosticsProperty('conversations', conversations))
+      ..add(DiagnosticsProperty('isLoading', isLoading))
+      ..add(DiagnosticsProperty('error', error))
+      ..add(DiagnosticsProperty('activeConversationId', activeConversationId));
   }
 
   @override

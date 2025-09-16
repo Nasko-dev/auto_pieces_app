@@ -90,7 +90,7 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'zip_code': settings.postalCode ?? existingRecord['zip_code'],
           'phone': settings.phone ?? existingRecord['phone'],
           'avatar_url': settings.avatarUrl ?? existingRecord['avatar_url'],
-          'country': settings.country ?? existingRecord['country'],
+          'country': settings.country,
           'notifications_enabled': settings.notificationsEnabled,
           'email_notifications_enabled': settings.emailNotificationsEnabled,
           'updated_at': now,

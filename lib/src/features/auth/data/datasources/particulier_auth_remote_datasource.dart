@@ -65,7 +65,7 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
               // Retourner le particulier existant avec le nouvel auth ID
               final existingParticulier = ParticulierModel.fromJson(existingUser).copyWith(
                 id: authResponse.user!.id, // Nouveau auth ID
-              ) as ParticulierModel;
+              );
               return existingParticulier;
             } else {
             }
@@ -95,7 +95,7 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
                 final convertedUser = ParticulierModel.fromJson(nonAnonymousUser).copyWith(
                   id: authResponse.user!.id,
                   isAnonymous: true,
-                ) as ParticulierModel;
+                );
                 return convertedUser;
               }
             }

@@ -149,7 +149,7 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
       final conversations = entry.value;
       final totalUnread = conversations.fold<int>(
         0,
-        (sum, conv) => sum + ((conv.unreadCount ?? 0) as int),
+        (sum, conv) => sum + conv.unreadCount,
       );
       
       return {
@@ -332,7 +332,7 @@ class _ConversationItem extends StatelessWidget {
                         // Nom du vendeur
                         Expanded(
                           child: Text(
-                            conversation.sellerName ?? 'Vendeur',
+                            conversation.sellerName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
