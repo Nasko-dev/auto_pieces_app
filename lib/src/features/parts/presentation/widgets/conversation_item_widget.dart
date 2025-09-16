@@ -54,8 +54,8 @@ class ConversationItemWidget extends ConsumerWidget {
     final sellerName =
         isParticulier
             ? 'Vendeur Professionnel' // Côté particulier : afficher le nom du vendeur
-            : (_getMotorName() ??
-                'Particulier'); // Côté vendeur : afficher le nom personnalisé
+            : (_getParticulierDisplayName() ??
+                'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -392,6 +392,21 @@ class ConversationItemWidget extends ConsumerWidget {
         return particConv.messages.last.createdAt;
       }
       return particConv.lastMessageAt;
+    }
+    return null;
+  }
+
+  String? _getParticulierDisplayName() {
+    if (conversation is Conversation) {
+      final conv = conversation as Conversation;
+
+      // Priorité 1 : Utiliser le prénom du particulier si disponible
+      if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
+        return conv.particulierFirstName!;
+      }
+
+      // Fallback : utiliser le nom du véhicule si pas de prénom
+      return _getMotorName();
     }
     return null;
   }
