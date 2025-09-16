@@ -557,7 +557,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     try {
       final response = await _supabaseClient
           .from('particuliers')
-          .select('first_name, last_name, phone')
+          .select('first_name, last_name, phone, avatar_url')
           .eq('id', userId)
           .limit(1);
 
@@ -612,8 +612,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       userDisplayName = (firstName != null && lastName != null)
           ? '$firstName $lastName'.trim()
           : (firstName ?? lastName ?? phone ?? 'Particulier');
-      // Pour l'instant pas d'avatar pour les particuliers
-      userAvatarUrl = null;
+      userAvatarUrl = userInfo['avatar_url'];
     }
 
     return {
