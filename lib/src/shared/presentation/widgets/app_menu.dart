@@ -19,7 +19,7 @@ class AppMenu extends ConsumerWidget {
         children: [
           const Icon(
             Icons.more_vert,
-            color: AppTheme.gray,
+            color: Colors.white,
           ),
           // Point rouge d'alerte si le profil OU les paramètres nécessitent une action
           menuStatusAsync.when(
