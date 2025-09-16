@@ -83,9 +83,52 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                   return _buildNotFoundView(context);
                 }
 
-                return Column(
-                  children: [
-                    _buildAppBar(context, conversation, theme),
+                return Scaffold(
+                  appBar: AppBar(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 1,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    title: _buildInstagramAppBarTitle(conversation),
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.phone_outlined, color: Colors.black),
+                        onPressed: () => _makePhoneCall(conversation),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+                        onPressed: () => _makeVideoCall(conversation),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.black),
+                        onSelected: (value) => _handleMenuAction(value),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              leading: Icon(Icons.delete, color: Colors.red),
+                              title: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'block',
+                            child: ListTile(
+                              leading: Icon(Icons.block),
+                              title: Text('Bloquer le vendeur'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  body: Column(
+                    children: [
                     _buildConversationInfo(conversation, theme),
                     Expanded(
                       child: _buildMessagesList(conversation.messages, conversation, theme),
@@ -104,91 +147,42 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
-  Widget _buildAppBar(BuildContext context, dynamic conversation, ThemeData theme) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        left: 16,
-        right: 16,
-        bottom: 8,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-          ),
-          _buildSellerAvatar(conversation),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getSellerDisplayName(conversation),
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du vendeur
+        _buildSellerAvatar(conversation),
+
+        const SizedBox(width: 12),
+
+        // Informations style Instagram
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getSellerDisplayName(conversation),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                Text(
-                  'En ligne',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.phone_outlined, color: Colors.black),
-            onPressed: () => _makePhoneCall(conversation),
-          ),
-          IconButton(
-            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
-            onPressed: () => _makeVideoCall(conversation),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-            onSelected: (value) => _handleMenuAction(value),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
-                  contentPadding: EdgeInsets.zero,
-                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const PopupMenuItem(
-                value: 'block',
-                child: ListTile(
-                  leading: Icon(Icons.block),
-                  title: Text('Bloquer le vendeur'),
-                  contentPadding: EdgeInsets.zero,
+              Text(
+                'En ligne',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

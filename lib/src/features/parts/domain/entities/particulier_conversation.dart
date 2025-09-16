@@ -25,5 +25,9 @@ class ParticulierConversation with _$ParticulierConversation {
     String? partType,
     List<String>? partNames,
     bool? hasNewMessages,
+    // Nouvelles données vendeur pour l'AppBar Instagram
+    String? sellerCompany,
+    String? sellerAvatarUrl,
+    String? sellerPhone,
   }) = _ParticulierConversation;
 }

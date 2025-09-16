@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/seller_settings_providers.dart';
@@ -20,11 +22,15 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _postalCodeController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
 
   bool _isLoadingSettings = true;
   bool _isLoadingLocation = false;
   bool _notificationsEnabled = true;
   bool _emailNotificationsEnabled = true;
+  String? _currentAvatarUrl;
+  File? _selectedImageFile;
 
   @override
   void initState() {
@@ -39,6 +45,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
     _addressController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
@@ -67,6 +75,9 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
             _addressController.text = settings.address ?? '';
             _cityController.text = settings.city ?? '';
             _postalCodeController.text = settings.postalCode ?? '';
+            _firstNameController.text = settings.firstName ?? '';
+            _lastNameController.text = settings.lastName ?? '';
+            _currentAvatarUrl = settings.avatarUrl;
             _notificationsEnabled = settings.notificationsEnabled;
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _isLoadingSettings = false;

@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart' hide realtimeServiceProvider;
@@ -27,6 +30,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   StreamSubscription? _messageSubscription;
   int _previousMessageCount = 0;
 
+  // Cache local pour les données vendeur
+  Map<String, dynamic>? _sellerInfo;
+  bool _isLoadingSellerInfo = false;
+
   @override
   void initState() {
     super.initState();
@@ -42,9 +49,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ref.read(particulierConversationsControllerProvider.notifier)
             .markConversationAsRead(widget.conversationId);
       });
-      
+
       // S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
+
+      // Charger les infos vendeur
+      _loadSellerInfo();
     });
   }
   
@@ -96,6 +106,42 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
+  Future<void> _loadSellerInfo() async {
+    final conversationsState = ref.read(particulierConversationsControllerProvider);
+    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+
+    if (conversation?.sellerId == null || _isLoadingSellerInfo) return;
+
+    setState(() {
+      _isLoadingSellerInfo = true;
+    });
+
+    try {
+      print('📋 [ChatPage] Chargement infos vendeur: ${conversation!.sellerId}');
+
+      final response = await Supabase.instance.client
+          .from('sellers')
+          .select('id, first_name, last_name, company_name, phone, avatar_url')
+          .eq('id', conversation.sellerId)
+          .limit(1);
+
+      if (response.isNotEmpty && mounted) {
+        setState(() {
+          _sellerInfo = response.first;
+          _isLoadingSellerInfo = false;
+        });
+        print('✅ [ChatPage] Infos vendeur récupérées: ${_sellerInfo!['company_name']}');
+      }
+    } catch (e) {
+      print('❌ [ChatPage] Erreur chargement vendeur: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingSellerInfo = false;
+        });
+      }
+    }
+  }
+
   @override
   void deactivate() {
     // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
@@ -128,8 +174,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
 
     // Trouver la conversation pour le titre - gestion sécurisée
-    final conversations = ref.watch(conversationsListProvider);
-    final conversation = conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+    final conversationsState = ref.watch(particulierConversationsControllerProvider);
+    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
     
     // Si pas de conversation trouvée, afficher un titre par défaut
     if (conversation == null) {
@@ -139,23 +185,28 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     print('💬 [UI] ChatPage rendu - ${messages.length} messages');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              conversation?.sellerName ?? 'Vendeur',
-              style: const TextStyle(fontSize: 16),
-            ),
-            if (conversation?.sellerCompany != null)
-              Text(
-                conversation!.sellerCompany!,
-                style: const TextStyle(fontSize: 12),
-              ),
-          ],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.1),
+        title: _buildInstagramAppBarTitle(conversation),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            onPressed: () => _makePhoneCall(conversation),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            onPressed: () => _makeVideoCall(conversation),
+          ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
             onSelected: (value) {
               switch (value) {
                 case 'close':
@@ -172,32 +223,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'close',
-                child: Row(
-                  children: [
-                    Icon(Icons.close),
-                    SizedBox(width: 8),
-                    Text('Fermer la conversation'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.close),
+                  title: Text('Fermer la conversation'),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuItem(
                 value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Supprimer'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuItem(
                 value: 'block',
-                child: Row(
-                  children: [
-                    Icon(Icons.block, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Text('Bloquer le vendeur'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.block),
+                  title: Text('Bloquer le vendeur'),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
             ],
@@ -208,13 +253,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error),
+            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
           ),
           
           // Zone de saisie
           ChatInputWidget(
             controller: _messageController,
-            onSend: _sendMessage,
+            onSend: (content) => _sendMessage(content),
+            onCamera: _takePhoto,
+            onGallery: _pickFromGallery,
+            onOffer: null, // Pas d'offres pour les particuliers
             isLoading: isSendingMessage,
           ),
         ],
@@ -222,7 +270,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
     if (isLoading && messages.isEmpty) {
       return const Center(
         child: Column(
@@ -328,6 +376,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               message: message,
               currentUserType: MessageSenderType.user, // Côté particulier
               isLastMessage: isLastMessage,
+              otherUserName: _getSellerDisplayName(conversation),
+              otherUserAvatarUrl: _sellerInfo?['avatar_url'],
+              otherUserCompany: _sellerInfo?['company_name'],
             ),
             const SizedBox(height: 12), // Plus d'espace entre messages
           ],
@@ -507,5 +558,273 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du vendeur
+        _buildSellerAvatar(conversation),
+
+        const SizedBox(width: 12),
+
+        // Informations style Instagram
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getSellerDisplayName(conversation),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'En ligne',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSellerAvatar(dynamic conversation) {
+    final avatarUrl = _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      // Avatar style Instagram avec vraie photo
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            avatarUrl,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultSellerAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultSellerAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultSellerAvatar();
+    }
+  }
+
+  Widget _buildDefaultSellerAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF405DE6), const Color(0xFF5851DB)], // Gradient Instagram bleu
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.business,
+        color: Colors.white,
+        size: 16,
+      ),
+    );
+  }
+
+  String _getSellerDisplayName(dynamic conversation) {
+    // Priorité : données chargées directement > données de conversation
+    final companyName = _sellerInfo?['company_name'];
+    final firstName = _sellerInfo?['first_name'];
+    final lastName = _sellerInfo?['last_name'];
+
+    if (companyName != null && companyName.isNotEmpty) {
+      return companyName;
+    } else if (firstName != null || lastName != null) {
+      return '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    } else if (conversation?.sellerName != null && conversation!.sellerName!.isNotEmpty) {
+      return conversation!.sellerName!;
+    } else {
+      return 'Vendeur Professionnel';
+    }
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📞 [UI-ChatPage] Tentative d\'appel vers: $phoneNumber');
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+          print('✅ [UI-ChatPage] Appel lancé avec succès');
+        } else {
+          print('⚠️ [UI-ChatPage] Impossible de lancer l\'appel');
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        print('❌ [UI-ChatPage] Erreur lors du lancement de l\'appel: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      print('⚠️ [UI-ChatPage] Numéro de téléphone vendeur non disponible');
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      print('📹 [UI-ChatPage] Tentative d\'appel vidéo vers: $phoneNumber');
+
+      // Pour l'appel vidéo, essayer WhatsApp d'abord
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+          print('✅ [UI-ChatPage] WhatsApp ouvert avec succès');
+        } else {
+          // Fallback vers l'application de téléphone
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+            print('✅ [UI-ChatPage] Application téléphone lancée');
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        print('❌ [UI-ChatPage] Erreur lors du lancement de l\'appel vidéo: $e');
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    print('📷 [UI-ChatPage] Prise de photo');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        print('✅ [UI-ChatPage] Photo prise: ${photo.path}');
+        // TODO: Envoyer la photo en tant que message
+        _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-ChatPage] Erreur prise photo: $e');
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    print('🖼️ [UI-ChatPage] Sélection galerie');
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        print('✅ [UI-ChatPage] Image sélectionnée: ${image.path}');
+        // TODO: Envoyer l'image en tant que message
+        _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      print('❌ [UI-ChatPage] Erreur galerie: $e');
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }

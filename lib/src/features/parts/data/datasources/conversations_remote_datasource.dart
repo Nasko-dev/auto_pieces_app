@@ -584,14 +584,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<Map<String, dynamic>?> _getSellerInfo(String sellerId) async {
     try {
+      // Récupérer toutes les infos du vendeur incluant les paramètres professionnels
       final response = await _supabaseClient
           .from('sellers')
-          .select('id, first_name, last_name, company_name, phone, avatar_url')
+          .select('id, first_name, last_name, company_name, phone, avatar_url, address, city')
           .eq('id', sellerId)
           .limit(1);
 
       if (response.isNotEmpty) {
-        return response.first;
+        final sellerData = response.first;
+        print('📋 [Datasource] Infos vendeur récupérées pour $sellerId: entreprise="${sellerData['company_name']}", avatar="${sellerData['avatar_url']}"');
+        return sellerData;
       }
     } catch (e) {
       print('⚠️ [Datasource] Erreur récupération info vendeur: $e');
