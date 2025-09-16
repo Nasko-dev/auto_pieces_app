@@ -375,8 +375,8 @@ class ConversationItemWidget extends ConsumerWidget {
       final conv = conversation as ParticulierConversation;
 
       // Priorité 1 : Utiliser le nom de l'entreprise si disponible
-      if (conv.sellerCompanyName != null && conv.sellerCompanyName!.isNotEmpty) {
-        return conv.sellerCompanyName!;
+      if (conv.sellerCompany != null && conv.sellerCompany!.isNotEmpty) {
+        return conv.sellerCompany!;
       }
 
       // Fallback : utiliser le nom complet du vendeur

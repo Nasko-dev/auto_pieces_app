@@ -812,7 +812,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       'vehicleEngine': vehicleEngine,
       'partType': partType,
       // Nom du particulier
-      'particulierFirstName': particulierFirstName,
+      'particulierFirstName': userDisplayName,
     };
   }
 

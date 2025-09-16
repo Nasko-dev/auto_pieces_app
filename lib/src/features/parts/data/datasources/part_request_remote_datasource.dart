@@ -962,7 +962,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             partNames: List<String>.from(partRequestData['part_names'] ?? []),
             createdAt: DateTime.parse(convData['created_at']),
             updatedAt: DateTime.parse(convData['updated_at']),
-            sellerCompanyName: sellerCompanyName,
+            sellerCompany: sellerCompanyName,
           );
 
           result.add(conversation);
@@ -1009,7 +1009,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         vehiclePlate: 'AA-123-BB',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        sellerCompanyName: 'Entreprise Test',
+        sellerCompany: 'Entreprise Test',
       );
     } catch (e) {
       print('💥 [DataSource] Erreur récupération conversation: $e');
