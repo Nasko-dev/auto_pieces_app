@@ -75,20 +75,6 @@ class YannkoWelcomePage extends StatelessWidget {
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
 
-                  SizedBox(height: 16 * s),
-
-                  // Paragraphe
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4 * s),
-                    child: Text(
-                      "Commandez vos pièces auto neuves et \n"
-                      "d'occasion en quelques clics.\n"
-                      "Livraison rapide et garantie fiabilité.",
-                      textAlign: TextAlign.center,
-                      style: body(16),
-                    ),
-                  ),
-
                   SizedBox(height: 20 * s),
 
                   // Bouton "Pièce neuve"
