@@ -50,7 +50,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
-    
+
+    // Vérifier l'état d'authentification au démarrage
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        ref.read(particulierAuthControllerProvider.notifier).checkAuthStatus();
+      }
+    });
+
     // Vérifier les demandes actives de manière asynchrone sans bloquer
     // Délai pour laisser l'UI se charger d'abord
     Future.delayed(const Duration(milliseconds: 500), () {
