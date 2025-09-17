@@ -87,7 +87,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             // HEADER INTÉGRÉ À LA PAGE
             Container(
               width: double.infinity,
-              padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 20),
+              padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 30),
+              margin: const EdgeInsets.only(bottom: 16),
               color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -164,7 +165,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 24,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
                       color: _textDark,
