@@ -41,25 +41,28 @@ class YannkoWelcomePage extends StatelessWidget {
       backgroundColor: _bg,
       body: Stack(
         children: [
-          // Contenu principal centré
-          Center(
+          // Contenu principal
+          SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24 * s),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  SizedBox(height: 32 * s),
+
                   // Logo tête guépard
-                  Image.asset(
-                    'assets/images/cheetah_head.png',
-                    height: 112 * s,
-                    fit: BoxFit.contain,
-                    errorBuilder:
-                        (_, __, ___) => Icon(
-                          Icons.pets_rounded,
-                          color: Colors.amber.shade300,
-                          size: 96 * s,
-                        ),
+                  Center(
+                    child: Image.asset(
+                      'assets/images/cheetah_head.png',
+                      height: 112 * s,
+                      fit: BoxFit.contain,
+                      errorBuilder:
+                          (_, __, ___) => Icon(
+                            Icons.pets_rounded,
+                            color: Colors.amber.shade300,
+                            size: 96 * s,
+                          ),
+                    ),
                   ),
 
                   SizedBox(height: 16 * s),
@@ -72,34 +75,42 @@ class YannkoWelcomePage extends StatelessWidget {
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
 
-                  SizedBox(height: 40 * s),
+                  const Spacer(),
 
-                  // Boutons centrés
-                  // Bouton "Pièce neuve"
-                  _YButton(
-                    color: _green,
-                    label: 'Pièce neuve',
-                    icon: Icons.inventory_2_rounded,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces neuves
-                      context.go('/under-development');
-                    },
+                  // Boutons centrés au milieu de l'écran
+                  Center(
+                    child: Column(
+                      children: [
+                        // Bouton "Pièce neuve"
+                        _YButton(
+                          color: _green,
+                          label: 'Pièce neuve',
+                          icon: Icons.inventory_2_rounded,
+                          scale: s,
+                          onTap: () {
+                            // Naviguer vers la page de connexion pour les pièces neuves
+                            context.go('/under-development');
+                          },
+                        ),
+
+                        SizedBox(height: 12 * s),
+
+                        // Bouton "Pièce occasion"
+                        _YButton(
+                          color: _orange,
+                          label: 'Pièce occasion',
+                          icon: Icons.settings,
+                          scale: s,
+                          onTap: () {
+                            // Naviguer vers la page de connexion pour les pièces d'occasion
+                            context.go('/welcome');
+                          },
+                        ),
+                      ],
+                    ),
                   ),
 
-                  SizedBox(height: 12 * s),
-
-                  // Bouton "Pièce occasion"
-                  _YButton(
-                    color: _orange,
-                    label: 'Pièce occasion',
-                    icon: Icons.settings,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces d'occasion
-                      context.go('/welcome');
-                    },
-                  ),
+                  const Spacer(),
                 ],
               ),
             ),
