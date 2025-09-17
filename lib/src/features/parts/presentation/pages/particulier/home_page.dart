@@ -100,33 +100,28 @@ class _HomePageState extends ConsumerState<HomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  // Titre avec style moderne
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Recherche',
-                          style: TextStyle(
-                            color: _textGray,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Auto Pièces',
-                          style: TextStyle(
-                            color: _textDark,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -1,
-                            height: 1.0,
-                          ),
-                        ),
-                      ],
+                  // Badge "Accueil" avec style moderne
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: _blue.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      'Accueil',
+                      style: TextStyle(
+                        color: _blue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
+
+                  const Spacer(),
 
                   // Menu stylé
                   Container(
