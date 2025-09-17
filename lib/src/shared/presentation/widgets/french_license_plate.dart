@@ -27,15 +27,13 @@ class FrenchLicensePlate extends StatefulWidget {
 
 class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
   final FocusNode _focusNode = FocusNode();
-  bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
+    // Focus listener pour les callbacks si nécessaire
     _focusNode.addListener(() {
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
+      setState(() {});
     });
     
     // Initialiser le controller avec plateNumber si fourni
@@ -73,7 +71,7 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
+        SizedBox(
           width: double.infinity,
           height: 80, // Hauteur très augmentée pour éviter le rognage
           child: Container(
@@ -178,7 +176,7 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                               child: const Center(
                                 child: SizedBox(

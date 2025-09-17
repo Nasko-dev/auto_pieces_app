@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/session_providers.dart' as session;
+import '../providers/session_providers.dart' show sessionServiceProvider;
 import '../../features/auth/presentation/pages/yannko_welcome_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/auth/presentation/pages/seller_login_page.dart';
@@ -10,31 +12,59 @@ import '../../features/parts/presentation/pages/particulier/requests_page.dart';
 import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
 import '../../features/parts/presentation/pages/particulier/conversations_list_page.dart';
 import '../../features/parts/presentation/pages/particulier/chat_page.dart';
+import '../../features/parts/presentation/pages/particulier/help_page.dart';
+import '../../features/parts/presentation/pages/particulier/profile_page.dart';
+import '../../features/parts/presentation/pages/particulier/settings_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/messages_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page.dart';
+import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
-import '../../features/parts/presentation/pages/Vendeur/add_ad_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_profile_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_settings_page.dart';
+import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
+import '../../shared/presentation/pages/under_development_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Éviter de watcher les états d'auth pour empêcher les re-builds constants
-  // qui causent la boucle infinie
-  // final particulierAuthState = ref.watch(particulierAuthControllerProvider);
-  // final sellerAuthState = ref.watch(sellerAuthStreamProvider);
+  // Utiliser try-catch pour éviter les erreurs au démarrage
+  String getInitialLocation() {
+    try {
+      // Récupérer les infos de session depuis le cache
+      final sessionService = ref.read(sessionServiceProvider);
+      final supabase = ref.read(session.supabaseClientProvider);
+      
+      // Vérifier d'abord si Supabase a une session active
+      final hasSupabaseSession = supabase.auth.currentSession != null;
+      final cachedUserType = sessionService.getCachedUserType();
+      
+      
+      // Ne rediriger que si BOTH Supabase et le cache sont cohérents
+      if (hasSupabaseSession && cachedUserType != null) {
+        if (cachedUserType == 'vendeur') {
+          return '/seller/home';
+        } else {
+          return '/home';
+        }
+      } else if (!hasSupabaseSession && cachedUserType != null) {
+        // Incohérence détectée - nettoyer le cache
+        sessionService.clearCache();
+      }
+    } catch (e) {
+      // En cas d'erreur, retourner à la page d'accueil
+      return '/';
+    }
+    return '/';
+  }
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: getInitialLocation(),
     redirect: (context, state) {
-      final location = state.matchedLocation;
       
-      // Pour éviter la boucle infinie, on simplifie énormément les redirections
-      // et on laisse les pages gérer leur propre navigation après connexion
       
-      print('🔍 [Router] Location: $location');
-      
-      // Laisser passer toutes les navigations - les pages géreront leur propre auth
+      // Permettre la navigation normale sans re-direction forcée
+      // Les pages géreront leur propre auth si nécessaire
       return null;
     },
     routes: [
@@ -47,6 +77,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/welcome',
         name: 'welcome',
         builder: (context, state) => const WelcomePage(),
+      ),
+      GoRoute(
+        path: '/under-development',
+        name: 'under-development',
+        builder: (context, state) => const UnderDevelopmentPage(),
       ),
       // Routes d'authentification vendeur
       GoRoute(
@@ -103,6 +138,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'become-seller',
             builder: (context, state) => const BecomeSellerPage(),
           ),
+          GoRoute(
+            path: '/help',
+            name: 'help',
+            builder: (context, state) => const HelpPage(),
+          ),
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
         ],
       ),
       
@@ -118,7 +168,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/add',
             name: 'seller-add',
-            builder: (context, state) => const AddAdPage(),
+            builder: (context, state) => const BecomeSellerPage(mode: SellerMode.vendeur),
           ),
           GoRoute(
             path: '/seller/ads',
@@ -131,12 +181,36 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SellerMessagesPage(),
           ),
           GoRoute(
+            path: '/seller/notifications',
+            name: 'seller-notifications',
+            builder: (context, state) => const AllNotificationsPage(),
+          ),
+          GoRoute(
             path: '/seller/conversation/:conversationId',
             name: 'seller-conversation-detail',
             builder: (context, state) {
               final conversationId = state.pathParameters['conversationId']!;
-              return SellerConversationDetailPage(conversationId: conversationId);
+              final prefilledMessage = state.uri.queryParameters['prefilled'];
+              return SellerConversationDetailPage(
+                conversationId: conversationId,
+                prefilledMessage: prefilledMessage,
+              );
             },
+          ),
+          GoRoute(
+            path: '/seller/profile',
+            name: 'seller-profile',
+            builder: (context, state) => const SellerProfilePage(),
+          ),
+          GoRoute(
+            path: '/seller/settings',
+            name: 'seller-settings',
+            builder: (context, state) => const SellerSettingsPage(),
+          ),
+          GoRoute(
+            path: '/seller/help',
+            name: 'seller-help',
+            builder: (context, state) => const SellerHelpPage(),
           ),
         ],
       ),

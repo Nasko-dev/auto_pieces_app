@@ -1,16 +1,13 @@
 import 'package:dartz/dartz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/network_info.dart';
-import '../../../../core/services/device_service.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
-import '../../domain/entities/particulier_message.dart';
-import '../../domain/entities/conversation_enums.dart';
 import '../../domain/repositories/part_request_repository.dart';
 import '../datasources/part_request_remote_datasource.dart';
 
@@ -434,4 +431,39 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> hasActivePartRequest() async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      final hasActive = await _remoteDataSource.hasActivePartRequest();
+      return Right(hasActive);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId}) async {
+    return ErrorHandler.handleVoidAsync(
+      () => _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId),
+      checkNetwork: true,
+      networkCheck: () => _networkInfo.isConnected,
+      context: 'incrementUnreadCountForUser',
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId}) async {
+    return ErrorHandler.handleVoidAsync(
+      () => _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId),
+      checkNetwork: true,
+      networkCheck: () => _networkInfo.isConnected,
+      context: 'markParticulierMessagesAsRead',
+    );
+  }
 }

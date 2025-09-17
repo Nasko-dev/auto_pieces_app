@@ -11,6 +11,18 @@ class WelcomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
+          onPressed: () {
+            if (context.mounted) {
+              context.go('/');
+            }
+          },
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -132,8 +144,8 @@ class WelcomePage extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isOutlined 
-                      ? AppTheme.primaryBlue.withOpacity(0.1)
-                      : AppTheme.white.withOpacity(0.2),
+                      ? AppTheme.primaryBlue.withValues(alpha: 0.1)
+                      : AppTheme.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -162,7 +174,7 @@ class WelcomePage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: isOutlined 
                             ? AppTheme.gray 
-                            : AppTheme.white.withOpacity(0.8),
+                            : AppTheme.white.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -182,7 +194,6 @@ class WelcomePage extends ConsumerWidget {
   }
 
   void _loginAsParticulier(WidgetRef ref, BuildContext context) async {
-    print('🎯 [WelcomePage] Début login particulier');
     await ref.read(particulierAuthControllerProvider.notifier).signInAnonymously();
     
     // Redirection après connexion réussie

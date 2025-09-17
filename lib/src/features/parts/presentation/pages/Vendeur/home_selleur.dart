@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
+import '../../../../../core/providers/seller_auth_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../auth/domain/entities/seller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
-import 'conversation_detail_page.dart';
+import '../../../data/datasources/conversations_remote_datasource.dart';
 
 class HomeSellerPage extends ConsumerStatefulWidget {
   const HomeSellerPage({super.key});
@@ -27,9 +30,22 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     });
   }
 
+  Future<void> _onRefresh() async {
+    HapticFeedback.lightImpact();
+    await ref.read(sellerDashboardControllerProvider.notifier).refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(sellerDashboardControllerProvider);
+    final currentSellerAsync = ref.watch(currentSellerProviderAlt);
+
+    // Debug: Vérifier l'état du provider (désactivé en production)
+    currentSellerAsync.when(
+      data: (seller) => null, // print('🔍 [DEBUG Build] Provider data: $seller'),
+      loading: () => null, // print('🔍 [DEBUG Build] Provider loading'),
+      error: (error, stack) => null, // print('🔍 [DEBUG Build] Provider error: $error'),
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.white,
@@ -52,7 +68,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withOpacity(0.8),
+                AppTheme.primaryBlue.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -62,51 +78,21 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: AppTheme.primaryBlue,
+          backgroundColor: AppTheme.white,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
             children: [
-              // En-tête
-              const Text(
-                'Dashboard Vendeur',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.darkBlue,
-                ),
-              ),
+              // En-tête personnalisé
+              _buildPersonalizedHeader(currentSellerAsync),
               const SizedBox(height: 6),
               _buildWelcomeText(dashboardState),
               const SizedBox(height: 20),
 
               // Contenu basé sur l'état
               _buildDashboardContent(dashboardState),
-
-              const SizedBox(height: 16),
-
-              // Bouton "Voir plus"
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    // Navigation vers toutes les notifications
-                  },
-                  icon: const Icon(
-                    Icons.visibility_outlined,
-                    color: AppTheme.primaryBlue,
-                    size: 18,
-                  ),
-                  label: const Text(
-                    'Voir plus de notifications',
-                    style: TextStyle(
-                      color: AppTheme.primaryBlue,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
 
               const SizedBox(height: 24),
 
@@ -118,7 +104,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppTheme.gray.withOpacity(0.3),
+                      AppTheme.gray.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),
@@ -156,7 +142,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 4,
-                    shadowColor: AppTheme.primaryBlue.withOpacity(0.3),
+                    shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -181,6 +167,54 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     );
   }
 
+  Widget _buildPersonalizedHeader(AsyncValue<Seller?> currentSellerAsync) {
+    return currentSellerAsync.when(
+      data: (seller) {
+        // Debug: Afficher les informations du vendeur
+
+        String headerText;
+        if (seller?.companyName != null && seller!.companyName!.isNotEmpty) {
+          headerText = 'Bonjour ${seller.companyName}';
+        } else if (seller?.firstName != null && seller!.firstName!.isNotEmpty) {
+          final name =
+              seller.lastName != null
+                  ? '${seller.firstName} ${seller.lastName}'
+                  : seller.firstName!;
+          headerText = 'Bonjour $name';
+        } else {
+          headerText = 'Bonjour Vendeur';
+        }
+
+        return Text(
+          headerText,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.darkBlue,
+          ),
+        );
+      },
+      loading:
+          () => const Text(
+            'Bonjour Vendeur',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.darkBlue,
+            ),
+          ),
+      error:
+          (error, stack) => const Text(
+            'Bonjour Vendeur',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.darkBlue,
+            ),
+          ),
+    );
+  }
+
   Widget _buildWelcomeText(SellerDashboardState dashboardState) {
     return dashboardState.when(
       initial:
@@ -194,7 +228,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
           ),
       loading:
           () => const Text(
-            'Chargement...',
+            '',
             style: TextStyle(
               fontSize: 16,
               color: AppTheme.gray,
@@ -228,7 +262,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return _buildNotificationsContent(dashboardState);
   }
 
-  Widget _buildStatsCards() {
+  Widget buildStatsCards() {
     return Row(
       children: [
         Expanded(
@@ -264,7 +298,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,7 +408,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                       () => _rejectRequest(context, notification.partRequest),
                 ),
               );
-            }).toList(),
+            }),
 
             if (notifications.length > 3) ...[
               const SizedBox(height: 16),
@@ -382,15 +416,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.03),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppTheme.primaryBlue.withOpacity(0.2),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryBlue.withOpacity(0.08),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -399,7 +433,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    context.go('/seller/messages');
+                    context.pushNamed('seller-notifications');
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
@@ -410,7 +444,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryBlue.withOpacity(0.1),
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -464,15 +498,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -484,7 +518,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -517,15 +551,15 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -537,7 +571,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppTheme.error.withOpacity(0.1),
+              color: AppTheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -593,17 +627,89 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     HapticFeedback.lightImpact();
     // TODO: Implémenter navigation vers conversation
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonction conversation en cours de développement')),
+      const SnackBar(
+        content: Text('Fonction conversation en cours de développement'),
+      ),
     );
   }
 
-  void _acceptAndRespond(BuildContext context, PartRequest partRequest) {
-    // TODO: Créer une conversation et y amener le vendeur pour répondre
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonction répondre en cours de développement')),
-    );
-    // Rafraîchir les notifications
-    ref.read(sellerDashboardControllerProvider.notifier).refresh();
+  void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
+    try {
+      // Récupérer l'ID du vendeur connecté
+      final sellerId = Supabase.instance.client.auth.currentUser?.id;
+      if (sellerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur : Vendeur non connecté'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Récupérer les informations du vendeur (nom par défaut pour l'instant)
+      String sellerName = 'Vendeur';
+      String? sellerCompany;
+
+      // TODO: Récupérer les vraies infos du vendeur depuis le provider
+      // Utiliser un nom par défaut pour l'instant
+      try {
+        // Ici on pourrait récupérer les infos depuis un provider ou la DB
+        sellerName = 'Vendeur Professionnel';
+      } catch (e) {
+        // Ignorer l'erreur de récupération du nom vendeur
+      }
+
+      final dataSource = ConversationsRemoteDataSourceImpl(
+        supabaseClient: Supabase.instance.client,
+      );
+
+      // Vérifier que l'on a bien l'ID du particulier
+      if (partRequest.userId == null) {
+        throw Exception('ID utilisateur manquant dans la demande');
+      }
+
+      final conversation = await dataSource.createOrGetConversation(
+        requestId: partRequest.id,
+        userId:
+            partRequest.userId!, // L'ID du particulier qui a fait la demande
+        sellerId: sellerId,
+        sellerName: sellerName,
+        sellerCompany: sellerCompany,
+        requestTitle: partRequest.partNames.join(', '),
+      );
+
+      // Naviguer vers la conversation avec message pré-généré
+      if (!mounted) return;
+      final partNamesStr =
+          partRequest.partNames.isNotEmpty
+              ? partRequest.partNames.join(', ')
+              : 'des pièces';
+      final vehicleStr =
+          partRequest.vehicleInfo.isNotEmpty
+              ? partRequest.vehicleInfo
+              : 'votre véhicule';
+      final prefilledMessage =
+          "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
+      final encodedMessage = Uri.encodeComponent(prefilledMessage);
+      // ignore: use_build_context_synchronously
+      context.push(
+        '/seller/conversation/${conversation.id}?prefilled=$encodedMessage',
+      );
+
+      // Rafraîchir les notifications
+      ref.read(sellerDashboardControllerProvider.notifier).refresh();
+    } catch (e) {
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur : ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _rejectRequest(BuildContext context, PartRequest partRequest) {
@@ -665,7 +771,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Demande "${partRequest.partType}" refusée avec succès',
+                'Demande "${partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule"}" refusée avec succès',
               ),
               backgroundColor: AppTheme.success,
             ),
@@ -673,12 +779,14 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du refus: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du refus: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     }
 
     // Rafraîchir les notifications pour refléter les changements
@@ -708,15 +816,15 @@ class _StatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -730,7 +838,7 @@ class _StatsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 18),
@@ -789,15 +897,15 @@ class _QuickActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -815,7 +923,7 @@ class _QuickActionCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -859,15 +967,15 @@ class _ModernNotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.03),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -887,7 +995,7 @@ class _ModernNotificationCard extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -902,7 +1010,9 @@ class _ModernNotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${partRequest.vehicleBrand} ${partRequest.vehicleModel}',
+                          partRequest.vehicleInfo.isNotEmpty
+                              ? partRequest.vehicleInfo
+                              : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -926,7 +1036,7 @@ class _ModernNotificationCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.success.withOpacity(0.1),
+                      color: AppTheme.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(

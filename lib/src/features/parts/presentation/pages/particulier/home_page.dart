@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
-import '../../../../../core/constants/car_parts_list.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
+
+// Provider pour le client Supabase
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -17,7 +22,6 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   // Couleurs calibrées pour matcher le screen
   static const Color _blue = Color(0xFF1976D2);
-  static const Color _blueDark = Color(0xFF0F57A6);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const Color _textGray = Color(0xFF6B7280);
   static const Color _border = Color(0xFFE5E7EB);
@@ -38,13 +42,21 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  List<String> _selectedParts = [];
+  final List<String> _selectedParts = [];
 
   @override
   void initState() {
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
+    
+    // Vérifier les demandes actives de manière asynchrone sans bloquer
+    // Délai pour laisser l'UI se charger d'abord
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+      }
+    });
   }
 
   @override
@@ -250,12 +262,14 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       const SizedBox(height: 20),
 
-      // Titre pour les champs manuels
-      const Align(
+      // Titre pour les champs manuels selon le type
+      Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          'Informations du véhicule',
-          style: TextStyle(
+          _selectedType == 'engine' 
+            ? 'Informations de motorisation'
+            : 'Informations du véhicule',
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: _textDark,
@@ -264,50 +278,47 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       const SizedBox(height: 16),
 
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _marqueController,
-              label: 'Marque',
-              hint: 'Ex: Renault',
-              icon: Icons.directions_car,
+      // Champs selon le type de pièce sélectionné
+      if (_selectedType == 'engine') ...[
+        // Pièces moteur : uniquement motorisation
+        _buildTextField(
+          controller: _motorisationController,
+          label: 'Motorisation',
+          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
+          icon: Icons.speed,
+        ),
+      ] else ...[
+        // Pièces carrosserie/intérieur : marque, modèle, année
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _marqueController,
+                label: 'Marque',
+                hint: 'Ex: Renault',
+                icon: Icons.directions_car,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _modeleController,
-              label: 'Modèle',
-              hint: 'Ex: Clio',
-              icon: Icons.model_training,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTextField(
+                controller: _modeleController,
+                label: 'Modèle',
+                hint: 'Ex: Clio',
+                icon: Icons.model_training,
+              ),
             ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _anneeController,
-              label: 'Année',
-              hint: 'Ex: 2020',
-              icon: Icons.calendar_today,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _motorisationController,
-              label: 'Motorisation',
-              hint: 'Ex: 1.6L Essence',
-              icon: Icons.speed,
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _anneeController,
+          label: 'Année',
+          hint: 'Ex: 2020',
+          icon: Icons.calendar_today,
+          keyboardType: TextInputType.number,
+        ),
+      ],
     ];
   }
 
@@ -348,7 +359,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: _textGray.withOpacity(0.7),
+                color: _textGray.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
               prefixIcon: Icon(icon, color: _blue, size: 20),
@@ -388,9 +399,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.1),
+          color: Colors.green.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(_radius),
-          border: Border.all(color: Colors.green.withOpacity(0.3)),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -512,22 +523,68 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canContinueManual() {
-    return _marqueController.text.isNotEmpty &&
-        _modeleController.text.isNotEmpty &&
-        _anneeController.text.isNotEmpty &&
-        _motorisationController.text.isNotEmpty;
+    if (_selectedType == 'engine') {
+      // Pièces moteur : seulement motorisation requise
+      return _motorisationController.text.isNotEmpty;
+    } else {
+      // Pièces carrosserie/intérieur : marque, modèle, année requises
+      return _marqueController.text.isNotEmpty &&
+          _modeleController.text.isNotEmpty &&
+          _anneeController.text.isNotEmpty;
+    }
   }
 
   bool _canSubmit() {
     return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
   }
 
-  void _onTextChanged() {
+  void _onTextChanged() async {
     final query = _partController.text;
-    setState(() {
-      _suggestions = CarPartsList.searchParts(query);
-      _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
-    });
+    
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    // Déterminer la catégorie selon le type sélectionné
+    String? categoryFilter;
+    if (_selectedType == 'engine') {
+      categoryFilter = 'moteur';
+    } else if (_selectedType == 'body') {
+      categoryFilter = 'interieur'; // Pour les pièces carrosserie/intérieur
+    }
+
+    try {
+      // Recherche dans la base de données avec catégorie
+      final response = await ref.read(supabaseClientProvider).rpc('search_parts', params: {
+        'search_query': query,
+        'filter_category': categoryFilter,
+        'limit_results': 8,
+      });
+
+      if (response != null && mounted) {
+        final parts = (response as List)
+            .map((data) => data['name'] as String)
+            .take(8)
+            .toList();
+
+        setState(() {
+          _suggestions = parts;
+          _showSuggestions = parts.isNotEmpty && _focusNode.hasFocus;
+        });
+      }
+    } catch (e) {
+      // En cas d'erreur, on affiche une liste vide
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+      }
+    }
   }
 
   void _onFocusChanged() {
@@ -559,25 +616,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
-  void _validatePlateAndScroll() {
-    if (_plate.text.isNotEmpty) {
-      setState(() {
-        _showDescription = true;
-      });
-
-      // Scroll automatique vers la section description
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      });
-    }
-  }
-
   Future<void> _submitRequest() async {
-    print('🚀 [HomePage] Début soumission formulaire');
 
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty &&
@@ -585,10 +624,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       allParts.add(_partController.text);
     }
 
-    print('🔩 [HomePage] Pièces sélectionnées: ${allParts.join(", ")}');
 
     if (allParts.isEmpty) {
-      print('❌ [HomePage] Aucune pièce sélectionnée');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez spécifier au moins une pièce'),
@@ -599,9 +636,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     // Créer les paramètres de la demande
-    print('📝 [HomePage] Création des paramètres');
-    print('🚗 [HomePage] Mode manuel: $_isManualMode');
-    print('🔧 [HomePage] Type de pièce: $_selectedType');
 
     // Récupérer les informations du véhicule selon le mode
     String? vehicleBrand;
@@ -634,10 +668,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           vehicleModel = info.model;
           vehicleYear = info.year;
           
-          print('🚗 [HomePage] Infos carrosserie récupérées depuis l\'API:');
-          print('   - Marque: $vehicleBrand');
-          print('   - Modèle: $vehicleModel');
-          print('   - Année: $vehicleYear');
         } else if (_selectedType == 'engine') {
           // Moteur : motorisation seulement depuis l'API
           final engineParts = <String>[];
@@ -646,8 +676,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (info.power != null) engineParts.add('${info.power}cv');
           vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
           
-          print('🚗 [HomePage] Motorisation récupérée depuis l\'API:');
-          print('   - Motorisation: $vehicleEngine');
         }
       }
     }
@@ -664,14 +692,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       isAnonymous: true, // Pour l'instant, on reste en mode anonyme
     );
 
-    print('📤 [HomePage] Envoi vers le controller');
 
     // Envoyer la demande via le controller
     final controller = ref.read(partRequestControllerProvider.notifier);
     final success = await controller.createPartRequest(params);
 
     if (success && mounted) {
-      print('🎉 [HomePage] Succès de la soumission');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -683,12 +709,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
 
       // Reset form
-      print('🔄 [HomePage] Réinitialisation du formulaire');
       _resetForm();
     } else if (mounted) {
-      print('💥 [HomePage] Échec de la soumission');
       final state = ref.read(partRequestControllerProvider);
-      print('📝 [HomePage] Erreur: ${state.error}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.error ?? 'Erreur lors de l\'envoi de la demande'),
@@ -734,7 +757,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(color: _textGray.withOpacity(0.7)),
+              hintStyle: TextStyle(color: _textGray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
@@ -810,9 +833,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _blue.withOpacity(0.1),
+        color: _blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _blue.withOpacity(0.3), width: 1),
+        border: Border.all(color: _blue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -832,7 +855,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: _blue.withOpacity(0.2),
+                color: _blue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.close, size: 12, color: _blue),
@@ -852,11 +875,31 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-        if (info.make != null) parts.add(info.make!);
-        if (info.model != null) parts.add(info.model!);
-        if (info.year != null) parts.add(info.year.toString());
-        if (info.engineSize != null) parts.add(info.engineSize!);
-        if (info.fuelType != null) parts.add(info.fuelType!);
+        
+        // Affichage différentiel selon le type de pièce
+        if (_selectedType == 'engine') {
+          // Pour les pièces moteur : afficher uniquement la motorisation
+          if (info.engineSize != null) parts.add(info.engineSize!);
+          if (info.fuelType != null) parts.add(info.fuelType!);
+          if (info.engineCode != null) parts.add(info.engineCode!);
+        } else {
+          // Pour les pièces carrosserie/intérieur : afficher marque, modèle, année, version et finition
+          if (info.make != null) parts.add(info.make!);
+          if (info.model != null) parts.add(info.model!);
+          if (info.year != null) parts.add(info.year.toString());
+          if (info.bodyStyle != null) parts.add(info.bodyStyle!);
+          // Version et finition peuvent être extraites du rawData si disponibles
+          final rawData = info.rawData;
+          if (rawData != null) {
+            final vehicleInfo = rawData['vehicleInformation'] as Map<String, dynamic>?;
+            if (vehicleInfo != null) {
+              final version = vehicleInfo['version']?.toString();
+              final finition = vehicleInfo['trim']?.toString() ?? vehicleInfo['finition']?.toString();
+              if (version != null) parts.add(version);
+              if (finition != null) parts.add(finition);
+            }
+          }
+        }
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
@@ -912,8 +955,8 @@ class _TypeCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       selected
-                          ? _blue.withOpacity(0.12)
-                          : _blue.withOpacity(0.08),
+                          ? _blue.withValues(alpha: 0.12)
+                          : _blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 24, color: selected ? _blue : _blue),

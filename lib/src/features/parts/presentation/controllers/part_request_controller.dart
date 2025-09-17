@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/providers/part_request_providers.dart';
+import '../../../../core/providers/immatriculation_providers.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
@@ -27,24 +28,41 @@ class PartRequestController extends StateNotifier<PartRequestState> {
   final CreatePartRequest _createPartRequest;
   final GetUserPartRequests _getUserPartRequests;
   final GetPartRequestResponses _getPartRequestResponses;
+  final Ref _ref;
 
   PartRequestController({
     required CreatePartRequest createPartRequest,
     required GetUserPartRequests getUserPartRequests,
     required GetPartRequestResponses getPartRequestResponses,
+    required Ref ref,
   })  : _createPartRequest = createPartRequest,
         _getUserPartRequests = getUserPartRequests,
         _getPartRequestResponses = getPartRequestResponses,
+        _ref = ref,
         super(const PartRequestState());
 
   // Créer une nouvelle demande
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
-    print('🚀 [PartRequest] Début création de demande');
-    print('📋 [PartRequest] Paramètres: ${params.toString()}');
-    print('🔧 [PartRequest] Type: ${params.partType}');
-    print('🔩 [PartRequest] Pièces: ${params.partNames.join(", ")}');
-    print('🚗 [PartRequest] Véhicule: ${params.vehicleBrand} ${params.vehicleModel}');
-    print('👤 [PartRequest] Anonyme: ${params.isAnonymous}');
+    
+    // Vérifier d'abord s'il y a déjà une demande active
+    final repository = _ref.read(partRequestRepositoryProvider);
+    final hasActiveResult = await repository.hasActivePartRequest();
+    
+    final hasActive = hasActiveResult.fold(
+      (failure) {
+        return false; // En cas d'erreur, on laisse continuer
+      },
+      (hasActive) => hasActive,
+    );
+    
+    if (hasActive) {
+      state = state.copyWith(
+        isCreating: false,
+        error: 'Une demande est déjà en cours. Veuillez attendre sa clôture.',
+      );
+      return false;
+    }
+    
     
     state = state.copyWith(isCreating: true, error: null);
 
@@ -52,8 +70,6 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
     return result.fold(
       (failure) {
-        print('❌ [PartRequest] Erreur lors de la création');
-        print('💥 [PartRequest] Message d\'erreur: ${failure.message}');
         state = state.copyWith(
           isCreating: false,
           error: failure.message,
@@ -61,9 +77,6 @@ class PartRequestController extends StateNotifier<PartRequestState> {
         return false;
       },
       (request) {
-        print('✅ [PartRequest] Demande créée avec succès');
-        print('🆔 [PartRequest] ID: ${request.id}');
-        print('📊 [PartRequest] Status: ${request.status}');
         
         // Ajouter la nouvelle demande à la liste
         final updatedRequests = <PartRequest>[request, ...state.requests];
@@ -73,7 +86,9 @@ class PartRequestController extends StateNotifier<PartRequestState> {
           error: null,
         );
         
-        print('📝 [PartRequest] Nombre total de demandes: ${updatedRequests.length}');
+        // Mettre à jour le statut des demandes actives dans le provider de recherche
+        _ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+        
         return true;
       },
     );
@@ -81,26 +96,18 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
   // Charger les demandes de l'utilisateur
   Future<void> loadUserPartRequests() async {
-    print('📥 [PartRequest] Début chargement des demandes utilisateur');
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _getUserPartRequests(NoParams());
 
     result.fold(
       (failure) {
-        print('❌ [PartRequest] Erreur lors du chargement');
-        print('💥 [PartRequest] Message d\'erreur: ${failure.message}');
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (requests) {
-        print('✅ [PartRequest] Demandes chargées avec succès');
-        print('📊 [PartRequest] Nombre de demandes: ${requests.length}');
-        for (final request in requests) {
-          print('🔖 [PartRequest] - ${request.vehicleInfo} | ${request.partNames.join(", ")} | ${request.status}');
-        }
         state = state.copyWith(
           isLoading: false,
           requests: requests,
@@ -181,5 +188,6 @@ final partRequestControllerProvider = StateNotifierProvider<PartRequestControlle
     createPartRequest: ref.read(createPartRequestProvider),
     getUserPartRequests: ref.read(getUserPartRequestsProvider),
     getPartRequestResponses: ref.read(getPartRequestResponsesProvider),
+    ref: ref,
   );
 });

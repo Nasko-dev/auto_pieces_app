@@ -69,7 +69,6 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
           }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) {
-              print('🔄 [SellerRegisterPage] Navigation vers /seller/home');
               context.go('/seller/home');
             }
           });
@@ -381,7 +380,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16 * s),
                       ),
-                      disabledBackgroundColor: _primaryBlue.withOpacity(0.6),
+                      disabledBackgroundColor: _primaryBlue.withValues(alpha: 0.6),
                     ),
                     child: authState.isLoading
                         ? SizedBox(

@@ -49,7 +49,6 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
           // Navigation vers l'accueil vendeur avec un délai pour s'assurer que l'état est bien mis à jour
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) {
-              print('🔄 [SellerLoginPage] Navigation vers /seller/home');
               context.go('/seller/home');
             }
           });
@@ -229,7 +228,7 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16 * s),
                       ),
-                      disabledBackgroundColor: _primaryBlue.withOpacity(0.6),
+                      disabledBackgroundColor: _primaryBlue.withValues(alpha: 0.6),
                     ),
                     child: authState.isLoading
                         ? SizedBox(

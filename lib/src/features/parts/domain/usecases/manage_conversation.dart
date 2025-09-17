@@ -10,7 +10,6 @@ class MarkMessagesAsRead implements UseCase<void, MarkMessagesAsReadParams> {
 
   @override
   Future<Either<Failure, void>> call(MarkMessagesAsReadParams params) async {
-    print('👀 [UseCase] MarkMessagesAsRead - conversationId: ${params.conversationId}');
     return await repository.markMessagesAsRead(
       conversationId: params.conversationId,
       userId: params.userId,
@@ -25,7 +24,6 @@ class DeleteConversation implements UseCase<void, ConversationParams> {
 
   @override
   Future<Either<Failure, void>> call(ConversationParams params) async {
-    print('🗑️ [UseCase] DeleteConversation - conversationId: ${params.conversationId}');
     return await repository.deleteConversation(conversationId: params.conversationId);
   }
 }
@@ -37,7 +35,6 @@ class BlockConversation implements UseCase<void, ConversationParams> {
 
   @override
   Future<Either<Failure, void>> call(ConversationParams params) async {
-    print('🚫 [UseCase] BlockConversation - conversationId: ${params.conversationId}');
     return await repository.blockConversation(conversationId: params.conversationId);
   }
 }
@@ -49,7 +46,6 @@ class CloseConversation implements UseCase<void, ConversationParams> {
 
   @override
   Future<Either<Failure, void>> call(ConversationParams params) async {
-    print('📪 [UseCase] CloseConversation - conversationId: ${params.conversationId}');
     return await repository.closeConversation(conversationId: params.conversationId);
   }
 }

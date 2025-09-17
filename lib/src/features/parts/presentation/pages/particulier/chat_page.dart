@@ -1,11 +1,19 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
-import '../../providers/conversations_providers.dart';
+import '../../providers/conversations_providers.dart' hide realtimeServiceProvider;
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
+import '../../../../../core/providers/particulier_conversations_providers.dart';
+import '../../../../../core/providers/message_image_providers.dart';
+import '../../../../../core/providers/session_providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -22,21 +30,125 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
+  StreamSubscription? _messageSubscription;
+  int _previousMessageCount = 0;
+
+  // Cache local pour les données vendeur
+  Map<String, dynamic>? _sellerInfo;
+  bool _isLoadingSellerInfo = false;
 
   @override
   void initState() {
     super.initState();
-    print('💬 [UI] ChatPage initialisée pour: ${widget.conversationId}');
     
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
+      
+      // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
+      Future.microtask(() {
+        ref.read(particulierConversationsControllerProvider.notifier)
+            .markConversationAsRead(widget.conversationId);
+      });
+
+      // S'abonner aux messages en temps réel via RealtimeService
+      _subscribeToRealtimeMessages();
+
+      // Charger les infos vendeur
+      _loadSellerInfo();
     });
+  }
+  
+  void _subscribeToRealtimeMessages() {
+    
+    final realtimeService = ref.read(realtimeServiceProvider);
+    
+    // S'abonner aux messages de cette conversation spécifique
+    realtimeService.subscribeToMessages(widget.conversationId);
+    
+    // Écouter les nouveaux messages via le stream spécifique à cette conversation
+    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+      (message) {
+        
+        // Vérifier que c'est bien pour notre conversation
+        if (message.conversationId == widget.conversationId) {
+          
+          // Envoyer au controller via la méthode unifiée
+          ref.read(conversationsControllerProvider.notifier)
+              .handleIncomingMessage(message);
+          
+          // Faire défiler vers le bas
+          _scrollToBottom();
+        } else {
+        }
+      },
+      onError: (error) {
+      },
+      onDone: () {
+      },
+    );
+  }
+  
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+  Future<void> _loadSellerInfo() async {
+    final conversationsState = ref.read(particulierConversationsControllerProvider);
+    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+
+    if (conversation?.sellerId == null || _isLoadingSellerInfo) return;
+
+    setState(() {
+      _isLoadingSellerInfo = true;
+    });
+
+    try {
+      // Vérifier que le sellerId n'est pas null
+      final sellerId = conversation?.sellerId;
+      if (sellerId == null) return;
+
+      final response = await Supabase.instance.client
+          .from('sellers')
+          .select('id, first_name, last_name, company_name, phone, avatar_url')
+          .eq('id', sellerId)
+          .limit(1);
+
+      if (response.isNotEmpty && mounted) {
+        setState(() {
+          _sellerInfo = response.first;
+          _isLoadingSellerInfo = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSellerInfo = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void deactivate() {
+    // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
+    ref.read(particulierConversationsControllerProvider.notifier)
+        .setConversationInactive();
+    super.deactivate();
   }
 
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
     super.dispose();
@@ -49,33 +161,46 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
 
-    // Trouver la conversation pour le titre
-    final conversations = ref.watch(conversationsListProvider);
-    final conversation = conversations.firstWhere(
-      (c) => c.id == widget.conversationId,
-      orElse: () => throw Exception('Conversation non trouvée'),
-    );
+    // Auto-scroll quand de nouveaux messages arrivent
+    if (messages.length > _previousMessageCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+      _previousMessageCount = messages.length;
+    }
 
-    print('💬 [UI] ChatPage rendu - ${messages.length} messages');
+    // Trouver la conversation pour le titre - gestion sécurisée
+    final conversationsState = ref.watch(particulierConversationsControllerProvider);
+    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+    
+    // Si pas de conversation trouvée, afficher un titre par défaut
+    if (conversation == null) {
+    }
+
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              conversation.sellerName ?? 'Vendeur',
-              style: const TextStyle(fontSize: 16),
-            ),
-            if (conversation.sellerCompany != null)
-              Text(
-                conversation.sellerCompany!,
-                style: const TextStyle(fontSize: 12),
-              ),
-          ],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.1),
+        title: _buildInstagramAppBarTitle(conversation),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            onPressed: () => _makePhoneCall(conversation),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            onPressed: () => _makeVideoCall(conversation),
+          ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
             onSelected: (value) {
               switch (value) {
                 case 'close':
@@ -92,32 +217,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'close',
-                child: Row(
-                  children: [
-                    Icon(Icons.close),
-                    SizedBox(width: 8),
-                    Text('Fermer la conversation'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.close),
+                  title: Text('Fermer la conversation'),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuItem(
                 value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Supprimer'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuItem(
                 value: 'block',
-                child: Row(
-                  children: [
-                    Icon(Icons.block, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Text('Bloquer le vendeur'),
-                  ],
+                child: ListTile(
+                  leading: Icon(Icons.block),
+                  title: Text('Bloquer le vendeur'),
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
             ],
@@ -128,13 +247,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error),
+            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
           ),
           
           // Zone de saisie
           ChatInputWidget(
             controller: _messageController,
-            onSend: _sendMessage,
+            onSend: (content) => _sendMessage(content),
+            onCamera: _takePhoto,
+            onGallery: _pickFromGallery,
+            onOffer: null, // Pas d'offres pour les particuliers
             isLoading: isSendingMessage,
           ),
         ],
@@ -142,7 +264,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
     if (isLoading && messages.isEmpty) {
       return const Center(
         child: Column(
@@ -246,9 +368,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ],
             MessageBubbleWidget(
               message: message,
+              currentUserType: MessageSenderType.user, // Côté particulier
               isLastMessage: isLastMessage,
+              otherUserName: _getSellerDisplayName(conversation),
+              otherUserAvatarUrl: _sellerInfo?['avatar_url'],
+              otherUserCompany: _sellerInfo?['company_name'],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12), // Plus d'espace entre messages
           ],
         );
       },
@@ -310,7 +436,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _sendMessage(String content) {
     if (content.trim().isEmpty) return;
 
-    print('📤 [UI] Envoi message: $content');
     
     ref.read(conversationsControllerProvider.notifier).sendMessage(
       conversationId: widget.conversationId,
@@ -426,5 +551,297 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du vendeur
+        _buildSellerAvatar(conversation),
+
+        const SizedBox(width: 12),
+
+        // Informations style Instagram
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getSellerDisplayName(conversation),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'En ligne',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSellerAvatar(dynamic conversation) {
+    final avatarUrl = _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      // Avatar style Instagram avec vraie photo
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            avatarUrl,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultSellerAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultSellerAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultSellerAvatar();
+    }
+  }
+
+  Widget _buildDefaultSellerAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF405DE6), const Color(0xFF5851DB)], // Gradient Instagram bleu
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.business,
+        color: Colors.white,
+        size: 16,
+      ),
+    );
+  }
+
+  String _getSellerDisplayName(dynamic conversation) {
+    // Priorité : données chargées directement > données de conversation
+    final companyName = _sellerInfo?['company_name'];
+    final firstName = _sellerInfo?['first_name'];
+    final lastName = _sellerInfo?['last_name'];
+
+    if (companyName != null && companyName.isNotEmpty) {
+      return companyName;
+    } else if (firstName != null || lastName != null) {
+      return '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    } else if (conversation?.sellerName != null && conversation!.sellerName!.isNotEmpty) {
+      return conversation!.sellerName!;
+    } else {
+      return 'Vendeur Professionnel';
+    }
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+
+      // Pour l'appel vidéo, essayer WhatsApp d'abord
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        } else {
+          // Fallback vers l'application de téléphone
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  Future<void> _takePhoto() async {
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        await _sendImageMessage(File(photo.path));
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        await _sendImageMessage(File(image.path));
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  Future<void> _sendImageMessage(File imageFile) async {
+
+    try {
+      final conversationId = widget.conversationId;
+      final userId = ref.read(currentUserProvider)?.id;
+
+      if (userId == null) {
+        _showErrorSnackBar('Utilisateur non connecté');
+        return;
+      }
+
+      // Afficher un indicateur de chargement
+      _showInfoSnackBar('Envoi de l\'image en cours...');
+
+      // Upload de l'image vers Supabase Storage
+      final imageService = ref.read(messageImageServiceProvider);
+      final imageUrl = await imageService.uploadMessageImage(
+        conversationId: conversationId,
+        imageFile: imageFile,
+      );
+
+
+      // Envoyer le message via le provider
+      await ref.read(conversationsControllerProvider.notifier).sendMessage(
+        conversationId: conversationId,
+        content: '', // Contenu vide pour les images
+        messageType: MessageType.image,
+        attachments: [imageUrl],
+        metadata: {
+          'imageUrl': imageUrl,
+          'fileName': imageFile.path.split('/').last,
+        },
+      );
+
+      _showSuccessSnackBar('Image envoyée !');
+
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }

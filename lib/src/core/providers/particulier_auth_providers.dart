@@ -9,6 +9,7 @@ import '../../features/auth/domain/repositories/particulier_auth_repository.dart
 import '../../features/auth/domain/usecases/particulier_anonymous_auth.dart';
 import '../../features/auth/domain/usecases/particulier_logout.dart';
 import '../../features/auth/domain/usecases/get_current_particulier.dart';
+import '../../features/auth/domain/usecases/update_particulier.dart';
 import '../../features/auth/presentation/controllers/particulier_auth_controller.dart';
 import '../services/device_service.dart';
 
@@ -68,6 +69,11 @@ final particulierLogoutProvider = Provider<ParticulierLogout>((ref) {
 final getCurrentParticulierProvider = Provider<GetCurrentParticulier>((ref) {
   final repository = ref.watch(particulierAuthRepositoryProvider);
   return GetCurrentParticulier(repository);
+});
+
+final updateParticulierProvider = Provider<UpdateParticulier>((ref) {
+  final repository = ref.watch(particulierAuthRepositoryProvider);
+  return UpdateParticulier(repository);
 });
 
 // Controller

@@ -16,6 +16,8 @@ abstract class ConversationsRepository {
     required String senderId,
     required String content,
     MessageType messageType = MessageType.text,
+    List<String> attachments = const [],
+    Map<String, dynamic> metadata = const {},
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
@@ -25,7 +27,19 @@ abstract class ConversationsRepository {
     required String conversationId,
     required String userId,
   });
-  
+
+  Future<Either<Failure, void>> incrementUnreadCount({
+    required String conversationId,
+  });
+
+  Future<Either<Failure, void>> incrementUnreadCountForUser({
+    required String conversationId,
+  });
+
+  Future<Either<Failure, void>> incrementUnreadCountForSeller({
+    required String conversationId,
+  });
+
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   });

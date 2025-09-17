@@ -13,6 +13,9 @@ abstract class PartRequestRepository {
   Future<Either<Failure, PartRequest>> updatePartRequestStatus(String id, String status);
   Future<Either<Failure, void>> deletePartRequest(String id);
   
+  // Vérification demande active
+  Future<Either<Failure, bool>> hasActivePartRequest();
+  
   // Réponses des vendeurs
   Future<Either<Failure, List<SellerResponse>>> getPartRequestResponses(String requestId);
   Future<Either<Failure, SellerResponse>> acceptSellerResponse(String responseId);
@@ -46,4 +49,6 @@ abstract class PartRequestRepository {
     required String content,
   });
   Future<Either<Failure, void>> markParticulierConversationAsRead(String conversationId);
+  Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId});
+  Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId});
 }

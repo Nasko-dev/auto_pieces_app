@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/providers/providers.dart';
+
 import '../../data/datasources/auth_local_datasource.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -45,13 +45,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     required this.repository,
   }) : super(const AsyncValue.data(null));
 
-  Future<void> _checkAuthStatus() async {
-    final result = await repository.getCurrentUser();
-    result.fold(
-      (failure) => state = const AsyncValue.data(null),
-      (user) => state = AsyncValue.data(user),
-    );
-  }
 
   Future<void> loginParticulier() async {
     state = const AsyncValue.loading();
