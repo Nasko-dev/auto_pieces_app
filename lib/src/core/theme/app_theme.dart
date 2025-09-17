@@ -61,11 +61,11 @@ class AppTheme {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: lightGray),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: lightGray),
         ),
       ),
     );
