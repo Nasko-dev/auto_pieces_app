@@ -37,7 +37,8 @@ class ConversationItemWidget extends ConsumerWidget {
     final sellerName =
         isParticulier
             ? _getSellerDisplayName() // Côté particulier : afficher le nom de l'entreprise ou fallback
-            : (_getParticulierDisplayName() ?? 'Particulier'); // Côté vendeur : afficher le nom du particulier
+            : (_getParticulierDisplayName() ??
+                'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -199,19 +200,51 @@ class ConversationItemWidget extends ConsumerWidget {
   }
 
   Widget _buildAvatar(String name, bool hasUnread) {
+
+    // Récupérer l'URL de l'avatar si c'est une ParticulierConversation
+    String? avatarUrl;
+    if (conversation is ParticulierConversation) {
+      avatarUrl = (conversation as ParticulierConversation).sellerAvatarUrl;
+    }
+
+    // Si on a une URL d'avatar valide, l'afficher
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            avatarUrl,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildInitialsAvatar(name, hasUnread);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildInitialsAvatar(name, hasUnread);
+            },
+          ),
+        ),
+      );
+    }
+
+    // Fallback vers les initiales
+    return _buildInitialsAvatar(name, hasUnread);
+  }
+
+  Widget _buildInitialsAvatar(String name, bool hasUnread) {
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
-        shape: BoxShape.circle,
-        border:
-            hasUnread
-                ? Border.all(
-                  color: const Color(0xFF007AFF).withValues(alpha: 0.3),
-                  width: 2,
-                )
-                : null,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
         child: Text(
@@ -399,7 +432,8 @@ class ConversationItemWidget extends ConsumerWidget {
       }
 
       // Priorité 2 : Utiliser le prénom du particulier si disponible
-      if (conv.particulierFirstName != null && conv.particulierFirstName!.isNotEmpty) {
+      if (conv.particulierFirstName != null &&
+          conv.particulierFirstName!.isNotEmpty) {
         return conv.particulierFirstName!;
       }
 

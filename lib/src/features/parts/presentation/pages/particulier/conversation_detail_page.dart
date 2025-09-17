@@ -30,7 +30,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     // Charger les détails de la conversation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversationDetails();
-      // _markAsRead(); // Marquage désactivé temporairement
+      _markAsRead(); // Marquage réactivé
     });
   }
 
@@ -43,6 +43,10 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _loadConversationDetails() {
     ref.read(particulierConversationsControllerProvider.notifier).loadConversationDetails(widget.conversationId);
+  }
+
+  void _markAsRead() {
+    ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
 
   void _scrollToBottom() {
@@ -72,7 +76,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                 final conversation = conversationsAsync.conversations
                     .where((c) => c.id == widget.conversationId)
                     .firstOrNull;
-          
+
                 if (conversation == null) {
                   return _buildNotFoundView(context);
                 }
@@ -143,6 +147,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildInstagramAppBarTitle(dynamic conversation) {
+
     return Row(
       children: [
         // Avatar du vendeur
@@ -309,7 +314,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (photo != null) {
-        // TODO: Envoyer la photo en tant que message
         _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
@@ -329,7 +333,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (image != null) {
-        // TODO: Envoyer l'image en tant que message
         _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
@@ -510,7 +513,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   void _blockConversation() async {
-    // TODO: Implémenter le blocage
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Fonctionnalité à venir'),
@@ -548,6 +550,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildSellerAvatar(dynamic conversation) {
+
     if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
       return Container(

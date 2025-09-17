@@ -49,39 +49,39 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
         ),
         child: SafeArea(
           child: Container(
-            height: 60,
+            height: 56,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(
                   context: context,
-                  icon: Icons.dashboard_outlined,
-                  selectedIcon: Icons.dashboard,
+                  icon: Icons.space_dashboard_outlined,
+                  selectedIcon: Icons.space_dashboard_rounded,
                   label: 'Tableau',
                   route: '/seller/home',
                   index: 0,
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.add_circle_outline,
-                  selectedIcon: Icons.add_circle,
+                  icon: Icons.add_box_outlined,
+                  selectedIcon: Icons.add_box_rounded,
                   label: 'Déposer',
                   route: '/seller/add',
                   index: 1,
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.inventory_2_outlined,
-                  selectedIcon: Icons.inventory_2,
+                  icon: Icons.inventory_outlined,
+                  selectedIcon: Icons.inventory_rounded,
                   label: 'Mes annonces',
                   route: '/seller/ads',
                   index: 2,
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.chat_bubble_outline,
-                  selectedIcon: Icons.chat_bubble,
+                  icon: Icons.forum_outlined,
+                  selectedIcon: Icons.forum_rounded,
                   label: 'Messages',
                   route: '/seller/messages',
                   index: 3,
@@ -113,46 +113,32 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
           onTap: () => context.go(route),
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Icon(
-                      isSelected ? selectedIcon : icon,
-                      size: 22,
-                      color:
-                          isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
-                    ),
-                    // Point rouge pour messages non lus
-                    if (hasUnread)
-                      Positioned(
-                        right: -2,
-                        top: -2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF3B30),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                Center(
+                  child: Icon(
+                    isSelected ? selectedIcon : icon,
+                    size: 26,
+                    color:
+                        isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
+                // Point rouge pour messages non lus
+                if (hasUnread)
+                  Positioned(
+                    right: -4,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF3B30),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
