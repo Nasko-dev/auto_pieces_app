@@ -147,6 +147,8 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    print('📱 [DEBUG] _buildInstagramAppBarTitle - conversation: ${conversation?.sellerAvatarUrl}');
+
     return Row(
       children: [
         // Avatar du vendeur
@@ -552,6 +554,9 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildSellerAvatar(dynamic conversation) {
+    print('🎨 [DEBUG] _buildSellerAvatar - URL: ${conversation.sellerAvatarUrl}');
+    print('🎨 [DEBUG] conversation type: ${conversation.runtimeType}');
+
     if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
       return Container(

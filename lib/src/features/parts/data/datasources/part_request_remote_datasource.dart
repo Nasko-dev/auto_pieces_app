@@ -776,6 +776,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
 
       // Récupérer les conversations pour tous les IDs de particulier
+      print('📊 [DEBUG] Requête SQL avec avatar_url inclus');
       final conversations = await _supabase
           .from('conversations')
           .select('''
@@ -802,11 +803,15 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .inFilter('user_id', allUserIds)
           .order('last_message_at', ascending: false);
 
+      print('📊 [DEBUG] Nombre de conversations récupérées: ${conversations.length}');
+
 
       List<ParticulierConversation> result = [];
 
       for (final convData in conversations) {
         try {
+          print('🔍 [DEBUG] Conversation ID: ${convData['id']}');
+          print('🔍 [DEBUG] Conversation complète: $convData');
           // Récupérer les messages de cette conversation
           final messagesData = await _supabase
               .from('messages')
@@ -837,11 +842,17 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
           // Récupérer les infos du vendeur
           final sellerData = convData['sellers'];
+          print('🔍 [DEBUG] sellerData complet: $sellerData');
+
           final sellerName = sellerData != null
               ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
               : 'Vendeur inconnu';
           final sellerCompanyName = sellerData?['company_name'];
           final sellerAvatarUrl = sellerData?['avatar_url'];
+
+          print('🖼️ [DEBUG] Avatar URL récupéré: $sellerAvatarUrl');
+          print('🏢 [DEBUG] Nom vendeur: $sellerName');
+          print('🏪 [DEBUG] Entreprise: $sellerCompanyName');
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
@@ -888,6 +899,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             sellerAvatarUrl: sellerAvatarUrl,
           );
 
+          print('✅ [DEBUG] Conversation créée - Avatar: ${conversation.sellerAvatarUrl}');
           result.add(conversation);
         } catch (e) {
           // Continue avec les autres conversations
