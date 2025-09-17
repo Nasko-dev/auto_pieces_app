@@ -795,7 +795,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               id,
               first_name,
               last_name,
-              company_name
+              company_name,
+              avatar_url
             )
           ''')
           .inFilter('user_id', allUserIds)
@@ -840,6 +841,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
               : 'Vendeur inconnu';
           final sellerCompanyName = sellerData?['company_name'];
+          final sellerAvatarUrl = sellerData?['avatar_url'];
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
@@ -883,6 +885,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             createdAt: DateTime.parse(convData['created_at']),
             updatedAt: DateTime.parse(convData['updated_at']),
             sellerCompany: sellerCompanyName,
+            sellerAvatarUrl: sellerAvatarUrl,
           );
 
           result.add(conversation);

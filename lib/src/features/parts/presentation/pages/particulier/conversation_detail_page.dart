@@ -30,7 +30,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     // Charger les détails de la conversation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversationDetails();
-      // _markAsRead(); // Marquage désactivé temporairement
+      _markAsRead(); // Marquage réactivé
     });
   }
 
@@ -43,6 +43,10 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _loadConversationDetails() {
     ref.read(particulierConversationsControllerProvider.notifier).loadConversationDetails(widget.conversationId);
+  }
+
+  void _markAsRead() {
+    ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
 
   void _scrollToBottom() {
