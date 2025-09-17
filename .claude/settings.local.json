@@ -28,7 +28,8 @@
       "Bash(socat:*)",
       "Bash(git push:*)",
       "Bash(dart run:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(dart analyze:*)"
     ],
     "deny": [],
     "ask": [],

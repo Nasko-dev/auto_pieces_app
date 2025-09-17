@@ -34,7 +34,7 @@ class YannkoWelcomePage extends StatelessWidget {
       fontSize: f * s,
       fontWeight: FontWeight.w500,
       height: 1.35,
-      color: _textPrimary.withOpacity(0.92),
+      color: _textPrimary.withValues(alpha: 0.92),
     );
 
     return Scaffold(
@@ -121,24 +121,23 @@ class YannkoWelcomePage extends StatelessWidget {
             ),
           ),
 
-            // Illustration scooter, ancrée en bas
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 8 * s,
-              child: IgnorePointer(
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/cheetah_delivery.png',
-                    height: 270 * s,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+          // Illustration scooter, ancrée en bas
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 8 * s,
+            child: IgnorePointer(
+              child: Center(
+                child: Image.asset(
+                  'assets/images/cheetah_delivery.png',
+                  height: 270 * s,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
