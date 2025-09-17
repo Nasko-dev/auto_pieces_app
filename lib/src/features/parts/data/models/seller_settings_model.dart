@@ -4,6 +4,20 @@ import '../../domain/entities/seller_settings.dart';
 part 'seller_settings_model.freezed.dart';
 part 'seller_settings_model.g.dart';
 
+// Helper functions pour la conversion des dates
+DateTime? _dateTimeFromJson(dynamic json) {
+  if (json == null) return null;
+  if (json is String) {
+    return DateTime.tryParse(json);
+  }
+  if (json is DateTime) return json;
+  return null;
+}
+
+String? _dateTimeToJson(DateTime? dateTime) {
+  return dateTime?.toIso8601String();
+}
+
 @freezed
 class SellerSettingsModel with _$SellerSettingsModel {
   const SellerSettingsModel._();
@@ -24,11 +38,8 @@ class SellerSettingsModel with _$SellerSettingsModel {
     @Default(true) bool emailNotificationsEnabled,
     @Default(true) bool isActive,
     @Default(false) bool isVerified,
-    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     DateTime? emailVerifiedAt,
-    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     DateTime? createdAt,
-    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     DateTime? updatedAt,
   }) = _SellerSettingsModel;
 
@@ -76,18 +87,4 @@ class SellerSettingsModel with _$SellerSettingsModel {
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
       );
-}
-
-// Helper functions pour la conversion des dates
-DateTime? _dateTimeFromJson(dynamic json) {
-  if (json == null) return null;
-  if (json is String) {
-    return DateTime.tryParse(json);
-  }
-  if (json is DateTime) return json;
-  return null;
-}
-
-String? _dateTimeToJson(DateTime? dateTime) {
-  return dateTime?.toIso8601String();
 }

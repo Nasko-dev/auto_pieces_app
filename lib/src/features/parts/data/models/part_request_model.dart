@@ -8,30 +8,30 @@ part 'part_request_model.g.dart';
 class PartRequestModel with _$PartRequestModel {
   const factory PartRequestModel({
     required String id,
-    @JsonKey(name: 'user_id') String? userId,
+    String? userId,
     
     // Informations du véhicule
-    @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
-    @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
-    @JsonKey(name: 'vehicle_model') String? vehicleModel,
-    @JsonKey(name: 'vehicle_year') int? vehicleYear,
-    @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
+    String? vehiclePlate,
+    String? vehicleBrand,
+    String? vehicleModel,
+    int? vehicleYear,
+    String? vehicleEngine,
     
     // Type de pièce recherchée
-    @JsonKey(name: 'part_type') required String partType,
-    @JsonKey(name: 'part_names') required List<String> partNames,
-    @JsonKey(name: 'additional_info') String? additionalInfo,
+    required String partType,
+    required List<String> partNames,
+    String? additionalInfo,
     
     // Métadonnées
     @Default('active') String status,
-    @JsonKey(name: 'is_anonymous') @Default(false) bool isAnonymous,
-    @JsonKey(name: 'response_count') @Default(0) int responseCount,
-    @JsonKey(name: 'pending_response_count') @Default(0) int pendingResponseCount,
+    @Default(false) bool isAnonymous,
+    @Default(0) int responseCount,
+    @Default(0) int pendingResponseCount,
     
     // Timestamps
-    @JsonKey(name: 'created_at') required DateTime createdAt,
-    @JsonKey(name: 'updated_at') required DateTime updatedAt,
-    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? expiresAt,
   }) = _PartRequestModel;
 
   const PartRequestModel._();
