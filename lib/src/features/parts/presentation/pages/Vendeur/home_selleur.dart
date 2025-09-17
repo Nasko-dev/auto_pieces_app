@@ -408,7 +408,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                       () => _rejectRequest(context, notification.partRequest),
                 ),
               );
-            }).toList(),
+            }),
 
             if (notifications.length > 3) ...[
               const SizedBox(height: 16),
@@ -680,22 +680,21 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       );
 
       // Naviguer vers la conversation avec message pré-généré
-      if (mounted) {
-        final partNamesStr =
-            partRequest.partNames.isNotEmpty
-                ? partRequest.partNames.join(', ')
-                : 'des pièces';
-        final vehicleStr =
-            partRequest.vehicleInfo.isNotEmpty
-                ? partRequest.vehicleInfo
-                : 'votre véhicule';
-        final prefilledMessage =
-            "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
-        final encodedMessage = Uri.encodeComponent(prefilledMessage);
-        context.push(
-          '/seller/conversation/${conversation.id}?prefilled=$encodedMessage',
-        );
-      }
+      if (!mounted) return;
+      final partNamesStr =
+          partRequest.partNames.isNotEmpty
+              ? partRequest.partNames.join(', ')
+              : 'des pièces';
+      final vehicleStr =
+          partRequest.vehicleInfo.isNotEmpty
+              ? partRequest.vehicleInfo
+              : 'votre véhicule';
+      final prefilledMessage =
+          "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
+      final encodedMessage = Uri.encodeComponent(prefilledMessage);
+      context.push(
+        '/seller/conversation/${conversation.id}?prefilled=$encodedMessage',
+      );
 
       // Rafraîchir les notifications
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
@@ -778,12 +777,14 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du refus: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du refus: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     }
 
     // Rafraîchir les notifications pour refléter les changements

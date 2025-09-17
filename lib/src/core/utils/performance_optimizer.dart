@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:async';
 
 /// Entrée de cache avec données et expiration
@@ -31,7 +30,7 @@ class PerformanceOptimizer {
   PerformanceOptimizer._internal();
 
   // Cache LRU pour les données fréquemment consultées
-  final _cache = LinkedHashMap<String, CacheEntry>();
+  final _cache = <String, CacheEntry>{};
   static const int _maxCacheSize = 1000;
   static const Duration _defaultTTL = Duration(minutes: 5);
 
@@ -129,8 +128,8 @@ class PerformanceOptimizer {
   }
 
   // Compteurs pour statistiques
-  int _cacheHits = 0;
-  int _cacheMisses = 0;
+  final int _cacheHits = 0;
+  final int _cacheMisses = 0;
 
 
   @override

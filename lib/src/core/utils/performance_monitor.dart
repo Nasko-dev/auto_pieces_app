@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -9,7 +8,7 @@ class PerformanceMonitor {
   factory PerformanceMonitor() => _instance;
   PerformanceMonitor._internal();
 
-  final _metrics = LinkedHashMap<String, List<PerformanceMetric>>();
+  final _metrics = <String, List<PerformanceMetric>>{};
   final _thresholds = <String, double>{};
   
   // Configuration par défaut

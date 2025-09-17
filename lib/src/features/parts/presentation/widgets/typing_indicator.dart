@@ -5,10 +5,10 @@ class TypingIndicator extends StatefulWidget {
   final String userName;
 
   const TypingIndicator({
-    Key? key,
+    super.key,
     required this.isTyping,
     this.userName = 'Vendeur',
-  }) : super(key: key);
+  });
 
   @override
   State<TypingIndicator> createState() => _TypingIndicatorState();

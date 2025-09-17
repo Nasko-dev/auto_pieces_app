@@ -337,9 +337,8 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
         requestTitle: partRequest.partNames.join(', '),
       );
 
-      if (mounted) {
-        context.push('/seller/conversation/${conversation.id}');
-      }
+      if (!mounted) return;
+      context.push('/seller/conversation/${conversation.id}');
 
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
       
@@ -417,12 +416,14 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du refus: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du refus: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     }
 
     ref.read(sellerDashboardControllerProvider.notifier).refresh();

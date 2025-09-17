@@ -807,12 +807,14 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         _uploadAndSaveAvatar(File(pickedFile.path));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la sélection de l\'image: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la sélection de l\'image: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
       setState(() {
         _isUploadingImage = false;
       });
@@ -885,12 +887,14 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de l\'upload: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'upload: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isUploadingImage = false;
@@ -955,12 +959,14 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isUploadingImage = false;

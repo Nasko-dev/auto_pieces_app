@@ -684,9 +684,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       sellerPhone = sellerInfo['phone'];
 
       // Mettre à jour l'avatar depuis seller_info si pas déjà récupéré
-      if (sellerAvatarUrl == null) {
-        sellerAvatarUrl = sellerInfo['avatar_url'];
-      }
+      sellerAvatarUrl ??= sellerInfo['avatar_url'];
     }
 
     // Extraire les informations du particulier depuis user_info

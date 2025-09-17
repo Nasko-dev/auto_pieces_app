@@ -27,7 +27,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   bool _isCompleteVehicle = false;
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  List<String> _selectedParts = [];
+  final List<String> _selectedParts = [];
 
   @override
   void initState() {
