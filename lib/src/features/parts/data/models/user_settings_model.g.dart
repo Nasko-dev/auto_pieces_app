@@ -20,8 +20,12 @@ _$UserSettingsModelImpl _$$UserSettingsModelImplFromJson(
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
       emailNotificationsEnabled:
           json['emailNotificationsEnabled'] as bool? ?? true,
-      createdAt: _dateTimeFromJson(json['createdAt']),
-      updatedAt: _dateTimeFromJson(json['updatedAt']),
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$$UserSettingsModelImplToJson(
@@ -37,6 +41,6 @@ Map<String, dynamic> _$$UserSettingsModelImplToJson(
       'avatarUrl': instance.avatarUrl,
       'notificationsEnabled': instance.notificationsEnabled,
       'emailNotificationsEnabled': instance.emailNotificationsEnabled,
-      'createdAt': _dateTimeToJson(instance.createdAt),
-      'updatedAt': _dateTimeToJson(instance.updatedAt),
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };

@@ -30,12 +30,6 @@ class YannkoWelcomePage extends StatelessWidget {
       color: _textPrimary,
       letterSpacing: -0.2 * s,
     );
-    TextStyle body(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w500,
-      height: 1.35,
-      color: _textPrimary.withValues(alpha: 0.92),
-    );
 
     return Scaffold(
       backgroundColor: _bg,

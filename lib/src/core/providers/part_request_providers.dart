@@ -7,6 +7,7 @@ import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/usecases/create_part_request.dart';
 import '../../features/parts/domain/usecases/get_user_part_requests.dart';
 import '../../features/parts/domain/usecases/get_part_request_responses.dart';
+import '../../features/parts/domain/usecases/delete_part_request.dart';
 
 // ========================================
 // DataSources
@@ -38,4 +39,8 @@ final getUserPartRequestsProvider = Provider<GetUserPartRequests>((ref) {
 
 final getPartRequestResponsesProvider = Provider<GetPartRequestResponses>((ref) {
   return GetPartRequestResponses(ref.read(partRequestRepositoryProvider));
+});
+
+final deletePartRequestProvider = Provider<DeletePartRequest>((ref) {
+  return DeletePartRequest(ref.read(partRequestRepositoryProvider));
 });

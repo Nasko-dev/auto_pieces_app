@@ -35,11 +35,8 @@ mixin _$SellerSettingsModel {
   bool get emailNotificationsEnabled => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get emailVerifiedAt => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this SellerSettingsModel to a JSON map.
@@ -74,11 +71,8 @@ abstract class $SellerSettingsModelCopyWith<$Res> {
       bool emailNotificationsEnabled,
       bool isActive,
       bool isVerified,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? emailVerifiedAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
@@ -217,11 +211,8 @@ abstract class _$$SellerSettingsModelImplCopyWith<$Res>
       bool emailNotificationsEnabled,
       bool isActive,
       bool isVerified,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? emailVerifiedAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
@@ -353,11 +344,8 @@ class _$SellerSettingsModelImpl extends _SellerSettingsModel {
       this.emailNotificationsEnabled = true,
       this.isActive = true,
       this.isVerified = false,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.emailVerifiedAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.updatedAt})
       : super._();
 
@@ -399,13 +387,10 @@ class _$SellerSettingsModelImpl extends _SellerSettingsModel {
   @JsonKey()
   final bool isVerified;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? emailVerifiedAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? createdAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? updatedAt;
 
   @override
@@ -509,11 +494,8 @@ abstract class _SellerSettingsModel extends SellerSettingsModel {
       final bool emailNotificationsEnabled,
       final bool isActive,
       final bool isVerified,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? emailVerifiedAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? updatedAt}) = _$SellerSettingsModelImpl;
   const _SellerSettingsModel._() : super._();
 
@@ -551,13 +533,10 @@ abstract class _SellerSettingsModel extends SellerSettingsModel {
   @override
   bool get isVerified;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get emailVerifiedAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt;
 
   /// Create a copy of SellerSettingsModel

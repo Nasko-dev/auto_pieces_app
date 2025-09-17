@@ -46,7 +46,8 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
       body: Consumer(
         builder: (context, ref, child) {
           final state = ref.watch(partRequestControllerProvider);
-          
+
+
           if (state.isLoading) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -155,7 +156,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   }
 }
 
-class _RequestCard extends StatelessWidget {
+class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({
@@ -163,7 +164,7 @@ class _RequestCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.white,
@@ -226,12 +227,41 @@ class _RequestCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    _getTimeAgo(request.createdAt),
-                    style: const TextStyle(
-                      color: AppTheme.gray,
-                      fontSize: 12,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        _getTimeAgo(request.createdAt),
+                        style: const TextStyle(
+                          color: AppTheme.gray,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: AppTheme.gray,
+                          size: 18,
+                        ),
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            _showDeleteDialog(context, ref);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                                SizedBox(width: 12),
+                                Text('Supprimer', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -254,7 +284,7 @@ class _RequestCard extends StatelessWidget {
   String _getTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inMinutes < 1) {
       return 'À l\'instant';
     } else if (difference.inHours < 1) {
@@ -265,6 +295,76 @@ class _RequestCard extends StatelessWidget {
       return '${difference.inDays}j';
     } else {
       return '${(difference.inDays / 7).floor()}sem';
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer la demande'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteRequest(context, ref);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteRequest(BuildContext context, WidgetRef ref) async {
+    // Afficher l'indicateur de chargement
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Text('Suppression en cours...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+
+    // Appeler la fonction de suppression du controller
+    final success = await ref
+        .read(partRequestControllerProvider.notifier)
+        .deletePartRequest(request.id);
+
+    // Masquer le snackbar précédent et afficher le résultat
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+              ? 'Demande supprimée avec succès'
+              : 'Erreur lors de la suppression'
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 }

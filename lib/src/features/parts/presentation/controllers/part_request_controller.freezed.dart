@@ -21,6 +21,7 @@ mixin _$PartRequestState {
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isCreating => throw _privateConstructorUsedError;
   bool get isLoadingResponses => throw _privateConstructorUsedError;
+  bool get isDeleting => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   PartRequest? get selectedRequest => throw _privateConstructorUsedError;
 
@@ -43,6 +44,7 @@ abstract class $PartRequestStateCopyWith<$Res> {
       bool isLoading,
       bool isCreating,
       bool isLoadingResponses,
+      bool isDeleting,
       String? error,
       PartRequest? selectedRequest});
 
@@ -69,6 +71,7 @@ class _$PartRequestStateCopyWithImpl<$Res, $Val extends PartRequestState>
     Object? isLoading = null,
     Object? isCreating = null,
     Object? isLoadingResponses = null,
+    Object? isDeleting = null,
     Object? error = freezed,
     Object? selectedRequest = freezed,
   }) {
@@ -92,6 +95,10 @@ class _$PartRequestStateCopyWithImpl<$Res, $Val extends PartRequestState>
       isLoadingResponses: null == isLoadingResponses
           ? _value.isLoadingResponses
           : isLoadingResponses // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleting: null == isDeleting
+          ? _value.isDeleting
+          : isDeleting // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -133,6 +140,7 @@ abstract class _$$PartRequestStateImplCopyWith<$Res>
       bool isLoading,
       bool isCreating,
       bool isLoadingResponses,
+      bool isDeleting,
       String? error,
       PartRequest? selectedRequest});
 
@@ -158,6 +166,7 @@ class __$$PartRequestStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? isCreating = null,
     Object? isLoadingResponses = null,
+    Object? isDeleting = null,
     Object? error = freezed,
     Object? selectedRequest = freezed,
   }) {
@@ -182,6 +191,10 @@ class __$$PartRequestStateImplCopyWithImpl<$Res>
           ? _value.isLoadingResponses
           : isLoadingResponses // ignore: cast_nullable_to_non_nullable
               as bool,
+      isDeleting: null == isDeleting
+          ? _value.isDeleting
+          : isDeleting // ignore: cast_nullable_to_non_nullable
+              as bool,
       error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
@@ -203,6 +216,7 @@ class _$PartRequestStateImpl implements _PartRequestState {
       this.isLoading = false,
       this.isCreating = false,
       this.isLoadingResponses = false,
+      this.isDeleting = false,
       this.error,
       this.selectedRequest})
       : _requests = requests,
@@ -236,13 +250,16 @@ class _$PartRequestStateImpl implements _PartRequestState {
   @JsonKey()
   final bool isLoadingResponses;
   @override
+  @JsonKey()
+  final bool isDeleting;
+  @override
   final String? error;
   @override
   final PartRequest? selectedRequest;
 
   @override
   String toString() {
-    return 'PartRequestState(requests: $requests, responses: $responses, isLoading: $isLoading, isCreating: $isCreating, isLoadingResponses: $isLoadingResponses, error: $error, selectedRequest: $selectedRequest)';
+    return 'PartRequestState(requests: $requests, responses: $responses, isLoading: $isLoading, isCreating: $isCreating, isLoadingResponses: $isLoadingResponses, isDeleting: $isDeleting, error: $error, selectedRequest: $selectedRequest)';
   }
 
   @override
@@ -259,6 +276,8 @@ class _$PartRequestStateImpl implements _PartRequestState {
                 other.isCreating == isCreating) &&
             (identical(other.isLoadingResponses, isLoadingResponses) ||
                 other.isLoadingResponses == isLoadingResponses) &&
+            (identical(other.isDeleting, isDeleting) ||
+                other.isDeleting == isDeleting) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.selectedRequest, selectedRequest) ||
                 other.selectedRequest == selectedRequest));
@@ -272,6 +291,7 @@ class _$PartRequestStateImpl implements _PartRequestState {
       isLoading,
       isCreating,
       isLoadingResponses,
+      isDeleting,
       error,
       selectedRequest);
 
@@ -292,6 +312,7 @@ abstract class _PartRequestState implements PartRequestState {
       final bool isLoading,
       final bool isCreating,
       final bool isLoadingResponses,
+      final bool isDeleting,
       final String? error,
       final PartRequest? selectedRequest}) = _$PartRequestStateImpl;
 
@@ -305,6 +326,8 @@ abstract class _PartRequestState implements PartRequestState {
   bool get isCreating;
   @override
   bool get isLoadingResponses;
+  @override
+  bool get isDeleting;
   @override
   String? get error;
   @override
