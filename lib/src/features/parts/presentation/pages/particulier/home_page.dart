@@ -83,29 +83,94 @@ class _HomePageState extends ConsumerState<HomePage> {
       // Pas d'AppBar : on crée un header bleu custom comme sur le screen
       body: Column(
         children: [
-          // HEADER BLEU
+          // HEADER MODERNE STYLE APPLE
           Container(
             width: double.infinity,
-            padding: EdgeInsets.only(top: media.padding.top + 14, bottom: 18),
-            color: _blue,
-            child: Row(
-              children: [
-                const Spacer(),
-                const Text(
-                  'Auto Pièces',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 26,
-                    height: 1.1,
-                  ),
-                ),
-                const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: AppMenu(),
+            padding: EdgeInsets.only(top: media.padding.top + 8, bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  // Avatar utilisateur (style iOS)
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _blue.withValues(alpha: 0.8),
+                          _blue,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _blue.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // Titre et sous-titre
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bonjour 👋',
+                          style: TextStyle(
+                            color: _textGray,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Trouvons vos pièces',
+                          style: TextStyle(
+                            color: _textDark,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Menu avec design moderne
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const AppMenu(),
+                  ),
+                ],
+              ),
             ),
           ),
 
