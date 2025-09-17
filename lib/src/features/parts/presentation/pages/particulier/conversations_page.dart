@@ -304,19 +304,7 @@ class _ConversationItem extends StatelessWidget {
           child: Row(
             children: [
               // Avatar vendeur exactement comme WhatsApp
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE5E5EA),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.store,
-                  color: Color(0xFF8E8E93),
-                  size: 24,
-                ),
-              ),
+              _buildSellerAvatar(conversation),
               const SizedBox(width: 12),
               
               // Contenu du message exactement comme WhatsApp
@@ -423,5 +411,43 @@ class _ConversationItem extends StatelessWidget {
   bool _hasRejectStatus() {
     // Simuler un statut "refusé" pour certaines conversations comme dans WhatsApp
     return conversation.id.hashCode % 4 == 0;
+  }
+
+  Widget _buildSellerAvatar(ParticulierConversation conversation) {
+    if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          conversation.sellerAvatarUrl!,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const CircleAvatar(
+              radius: 20,
+              backgroundColor: Color(0xFF007AFF),
+              child: Icon(Icons.store, color: Colors.white, size: 20),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const CircleAvatar(
+              radius: 20,
+              backgroundColor: Color(0xFFF2F2F7),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    return const CircleAvatar(
+      radius: 20,
+      backgroundColor: Color(0xFF007AFF),
+      child: Icon(Icons.store, color: Colors.white, size: 20),
+    );
   }
 }

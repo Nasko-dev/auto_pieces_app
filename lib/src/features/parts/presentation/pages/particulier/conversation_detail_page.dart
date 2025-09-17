@@ -73,18 +73,9 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         : conversationsAsync.error != null
             ? _buildErrorView(context, conversationsAsync.error!)
             : (() {
-                print('🔎 [DEBUG] Recherche conversation ID: ${widget.conversationId}');
-                print('🔎 [DEBUG] Conversations disponibles: ${conversationsAsync.conversations.map((c) => c.id).toList()}');
-
                 final conversation = conversationsAsync.conversations
                     .where((c) => c.id == widget.conversationId)
                     .firstOrNull;
-
-                print('🔎 [DEBUG] Conversation trouvée: ${conversation != null}');
-                if (conversation != null) {
-                  print('🔎 [DEBUG] Type de conversation: ${conversation.runtimeType}');
-                  print('🔎 [DEBUG] Avatar de la conversation trouvée: ${conversation.sellerAvatarUrl}');
-                }
 
                 if (conversation == null) {
                   return _buildNotFoundView(context);
@@ -156,7 +147,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildInstagramAppBarTitle(dynamic conversation) {
-    print('📱 [DEBUG] _buildInstagramAppBarTitle - conversation: ${conversation?.sellerAvatarUrl}');
 
     return Row(
       children: [
@@ -324,7 +314,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (photo != null) {
-        // TODO: Envoyer la photo en tant que message
         _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
@@ -344,7 +333,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (image != null) {
-        // TODO: Envoyer l'image en tant que message
         _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
@@ -525,7 +513,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   void _blockConversation() async {
-    // TODO: Implémenter le blocage
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Fonctionnalité à venir'),
@@ -563,8 +550,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Widget _buildSellerAvatar(dynamic conversation) {
-    print('🎨 [DEBUG] _buildSellerAvatar - URL: ${conversation.sellerAvatarUrl}');
-    print('🎨 [DEBUG] conversation type: ${conversation.runtimeType}');
 
     if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
