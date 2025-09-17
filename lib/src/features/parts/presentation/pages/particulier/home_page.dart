@@ -83,30 +83,60 @@ class _HomePageState extends ConsumerState<HomePage> {
       // Pas d'AppBar : on crée un header bleu custom comme sur le screen
       body: Column(
         children: [
-          // HEADER ÉPURÉ ET MODERNE
+          // HEADER MODERNE ÉQUILIBRÉ
           Container(
             width: double.infinity,
-            padding: EdgeInsets.only(top: media.padding.top + 12, bottom: 12),
-            color: Colors.white,
+            padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey.shade100,
+                  width: 1,
+                ),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  // Titre simple et épuré
-                  const Expanded(
-                    child: Text(
-                      'Auto Pièces',
-                      style: TextStyle(
-                        color: _textDark,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: -0.5,
-                      ),
+                  // Titre avec style moderne
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recherche',
+                          style: TextStyle(
+                            color: _textGray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Auto Pièces',
+                          style: TextStyle(
+                            color: _textDark,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -1,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
-                  // Menu minimaliste
-                  const AppMenu(),
+                  // Menu stylé
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const AppMenu(),
+                  ),
                 ],
               ),
             ),
