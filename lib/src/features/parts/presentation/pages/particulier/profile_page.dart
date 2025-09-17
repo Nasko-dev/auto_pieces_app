@@ -658,6 +658,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       // Masquer l'indicateur de chargement
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
@@ -696,8 +697,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     } catch (e) {
       // Masquer l'indicateur de chargement
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),
@@ -836,6 +839,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       await dataSource.deleteUserSettings(currentUser.id);
 
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -853,6 +857,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       // Recharger le profil pour refléter les changements
       _loadUserProfile();
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),

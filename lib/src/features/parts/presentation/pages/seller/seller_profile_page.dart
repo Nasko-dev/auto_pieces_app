@@ -569,6 +569,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       final result = await saveSellerSettings(sellerSettings);
 
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
@@ -602,7 +603,9 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         },
       );
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),

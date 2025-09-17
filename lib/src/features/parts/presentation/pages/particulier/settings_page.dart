@@ -588,6 +588,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       
       // Masquer l'indicateur de chargement
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(

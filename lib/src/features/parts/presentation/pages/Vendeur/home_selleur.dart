@@ -692,6 +692,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       final prefilledMessage =
           "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
       final encodedMessage = Uri.encodeComponent(prefilledMessage);
+      // ignore: use_build_context_synchronously
       context.push(
         '/seller/conversation/${conversation.id}?prefilled=$encodedMessage',
       );
@@ -700,6 +701,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
     } catch (e) {
       if (mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur : ${e.toString()}'),
