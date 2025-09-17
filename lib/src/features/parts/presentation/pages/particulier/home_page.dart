@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
+import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 
@@ -118,30 +119,22 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                     const SizedBox(width: 16),
 
-                    // Section texte
+                    // Section texte avec données utilisateur
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Bienvenue',
-                            style: TextStyle(
-                              color: _textGray,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final authState = ref.watch(particulierAuthControllerProvider);
+
+                          return authState.when(
+                            initial: () => _buildUserInfo('Bienvenue', 'Chargement...'),
+                            loading: () => _buildUserInfo('Bienvenue', 'Chargement...'),
+                            anonymousAuthenticated: (particulier) => _buildUserInfo(
+                              'Bienvenue',
+                              particulier.displayName,
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Particulier',
-                            style: TextStyle(
-                              color: _textDark,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              height: 1.1,
-                            ),
-                          ),
-                        ],
+                            error: (message) => _buildUserInfo('Bienvenue', 'Particulier'),
+                          );
+                        },
                       ),
                     ),
 
@@ -281,6 +274,32 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   // Méthodes pour la logique de l'application
+
+  Widget _buildUserInfo(String greeting, String displayName) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          greeting,
+          style: TextStyle(
+            color: _textGray,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          displayName,
+          style: const TextStyle(
+            color: _textDark,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            height: 1.1,
+          ),
+        ),
+      ],
+    );
+  }
 
   List<Widget> _buildManualFields() {
     return [
