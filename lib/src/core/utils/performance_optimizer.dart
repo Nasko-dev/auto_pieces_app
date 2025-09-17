@@ -1,6 +1,29 @@
 import 'dart:collection';
 import 'dart:async';
 
+/// Entrée de cache avec données et expiration
+class CacheEntry {
+  final dynamic data;
+  final DateTime expiry;
+
+  CacheEntry(this.data, this.expiry);
+}
+
+/// Statistiques du cache
+class CacheStats {
+  final int totalEntries;
+  final int expiredEntries;
+  final int activeRequests;
+  final double cacheHitRate;
+
+  const CacheStats({
+    required this.totalEntries,
+    required this.expiredEntries,
+    required this.activeRequests,
+    required this.cacheHitRate,
+  });
+}
+
 /// Système de cache et optimisation pour supporter 500k+ utilisateurs
 class PerformanceOptimizer {
   static final PerformanceOptimizer _instance = PerformanceOptimizer._internal();
@@ -109,33 +132,11 @@ class PerformanceOptimizer {
   int _cacheHits = 0;
   int _cacheMisses = 0;
 
-  void _recordHit() => _cacheHits++;
-  void _recordMiss() => _cacheMisses++;
-}
-
-class CacheEntry {
-  final dynamic data;
-  final DateTime expiry;
-
-  CacheEntry(this.data, this.expiry);
-}
-
-class CacheStats {
-  final int totalEntries;
-  final int expiredEntries;
-  final int activeRequests;
-  final double cacheHitRate;
-
-  CacheStats({
-    required this.totalEntries,
-    required this.expiredEntries,
-    required this.activeRequests,
-    required this.cacheHitRate,
-  });
 
   @override
   String toString() {
-    return 'CacheStats(entries: $totalEntries, expired: $expiredEntries, '
-           'requests: $activeRequests, hitRate: ${(cacheHitRate * 100).toStringAsFixed(1)}%)';
+    final stats = getStats();
+    return 'CacheStats(entries: ${stats.totalEntries}, expired: ${stats.expiredEntries}, '
+           'requests: ${stats.activeRequests}, hitRate: ${(stats.cacheHitRate * 100).toStringAsFixed(1)}%)';
   }
 }

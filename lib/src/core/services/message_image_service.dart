@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 import '../errors/failures.dart';
 
 class MessageImageService {
   final SupabaseClient _supabaseClient;
   static const String _bucketName = 'message-images';
-  static const Uuid _uuid = Uuid();
 
   MessageImageService(this._supabaseClient);
 
@@ -26,7 +24,7 @@ class MessageImageService {
       final fileExtension = _getFileExtension(imageFile.path);
 
       // Générer un nom de fichier unique
-      final fileName = '${_uuid.v4()}.$fileExtension';
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
       final filePath = '$conversationId/$fileName';
 
 

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/conversation.dart';
@@ -746,20 +746,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   // ✅ NOUVEAU: Mapping spécifique vendeur
-  Map<String, dynamic> _mapSupabaseToConversationForSeller(Map<String, dynamic> json) {
-    final baseMapping = _mapSupabaseToConversation(json);
-    // Remplacer par le compteur vendeur
-    baseMapping['unreadCount'] = json['unread_count_for_seller'] ?? 0;
-    return baseMapping;
-  }
 
   // ✅ NOUVEAU: Mapping spécifique particulier
-  Map<String, dynamic> _mapSupabaseToConversationForUser(Map<String, dynamic> json) {
-    final baseMapping = _mapSupabaseToConversation(json);
-    // Remplacer par le compteur particulier
-    baseMapping['unreadCount'] = json['unread_count_for_user'] ?? 0;
-    return baseMapping;
-  }
 
   Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {
     return {
@@ -785,20 +773,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     };
   }
 
-  ConversationStatus _stringToConversationStatus(String? status) {
-    switch (status) {
-      case 'active':
-        return ConversationStatus.active;
-      case 'closed':
-        return ConversationStatus.closed;
-      case 'deleted_by_user':
-        return ConversationStatus.deletedByUser;
-      case 'blocked_by_user':
-        return ConversationStatus.blockedByUser;
-      default:
-        return ConversationStatus.active;
-    }
-  }
 
   String _conversationStatusToString(ConversationStatus status) {
     switch (status) {
@@ -813,29 +787,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
   }
 
-  MessageSenderType _stringToSenderType(String? type) {
-    switch (type) {
-      case 'user':
-        return MessageSenderType.user;
-      case 'seller':
-        return MessageSenderType.seller;
-      default:
-        return MessageSenderType.user;
-    }
-  }
 
-  MessageType _stringToMessageType(String? type) {
-    switch (type) {
-      case 'text':
-        return MessageType.text;
-      case 'image':
-        return MessageType.image;
-      case 'offer':
-        return MessageType.offer;
-      default:
-        return MessageType.text;
-    }
-  }
 
   Future<String> _determineSenderType(String senderId) async {
     try {

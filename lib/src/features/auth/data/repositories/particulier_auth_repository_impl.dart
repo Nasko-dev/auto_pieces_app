@@ -92,7 +92,7 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
       final isLoggedIn = await remoteDataSource.isLoggedIn();
       
       return Right(isLoggedIn);
-    } catch (e) {
+    } catch (_) {
       return const Right(false);
     }
   }

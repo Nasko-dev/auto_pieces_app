@@ -119,7 +119,7 @@ class RealtimeService {
             },
           );
 
-      await _messagesChannel!.subscribe();
+      _messagesChannel!.subscribe();
       
       // Test de diagnostic Realtime
     } catch (e) {
@@ -176,7 +176,7 @@ class RealtimeService {
             },
           );
 
-      await _conversationsChannel!.subscribe();
+      _conversationsChannel!.subscribe();
       
       // Test de diagnostic Realtime
     } catch (e) {

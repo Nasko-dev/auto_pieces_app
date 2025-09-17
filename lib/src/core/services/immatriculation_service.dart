@@ -144,7 +144,7 @@ class ImmatriculationService {
     if (fuel != null) parts.add(fuel);
     if (power != null) {
       final unit = engine['powerHP'] != null ? 'HP' : 'kW';
-      parts.add('${power}$unit');
+      parts.add('$power$unit');
     }
     
     return parts.join(' - ');

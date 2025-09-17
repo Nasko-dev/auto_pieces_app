@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/conversation.dart';
@@ -186,7 +186,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     if (userId != null) {
       final result = await _getConversations(GetConversationsParams(userId: userId));
       result.fold(
-        (failure) => print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
+        (failure) => // // print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
         (conversations) {
           state = state.copyWith(conversations: conversations); // Déjà triées en DB
           // Plus besoin de recalculer - compteurs locaux gérés en temps réel
@@ -357,7 +357,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     ));
     
     result.fold(
-      (failure) => print('⚠️ [VendeurController] Erreur marquage: ${failure.message}'),
+      (failure) => // // print('⚠️ [VendeurController] Erreur marquage: ${failure.message}'),
       (_) {
         _updateConversationReadStatus(conversationId);
         

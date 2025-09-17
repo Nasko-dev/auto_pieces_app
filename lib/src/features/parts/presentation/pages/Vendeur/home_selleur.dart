@@ -42,9 +42,9 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
     // Debug: Vérifier l'état du provider
     currentSellerAsync.when(
-      data: (seller) => print('🔍 [DEBUG Build] Provider data: $seller'),
-      loading: () => print('🔍 [DEBUG Build] Provider loading'),
-      error: (error, stack) => print('🔍 [DEBUG Build] Provider error: $error'),
+      data: (seller) => // print('🔍 [DEBUG Build] Provider data: $seller'),
+      loading: () => // print('🔍 [DEBUG Build] Provider loading'),
+      error: (error, stack) => // print('🔍 [DEBUG Build] Provider error: $error'),
     );
 
     return Scaffold(
@@ -657,13 +657,13 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         // Ici on pourrait récupérer les infos depuis un provider ou la DB
         sellerName = 'Vendeur Professionnel';
       } catch (e) {
-        print(
+        // print(
           '⚠️ [HomeSellerPage] Impossible de récupérer les infos vendeur: $e',
         );
       }
 
       // Créer ou récupérer la conversation
-      print(
+      // print(
         '🚀 [HomeSellerPage] Création conversation pour request: ${partRequest.id}',
       );
 
@@ -686,7 +686,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         requestTitle: partRequest.partNames.join(', '),
       );
 
-      print(
+      // print(
         '✅ [HomeSellerPage] Conversation créée/récupérée: ${conversation.id}',
       );
 

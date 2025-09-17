@@ -396,7 +396,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
           final activeRequests = requests.where((r) => r.status == 'active').toList();
           
           // Limite de 1 pour les particuliers
-          if (activeRequests.length >= 1) {
+          if (activeRequests.isNotEmpty) {
             
             state = state.copyWith(
               hasActiveRequest: true,

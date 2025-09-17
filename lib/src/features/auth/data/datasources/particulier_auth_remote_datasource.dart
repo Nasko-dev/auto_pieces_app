@@ -35,7 +35,7 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
       
       // D'abord, vérifier tous les utilisateurs avec ce device_id
       try {
-        final allUsersWithDeviceId = await supabaseClient
+        await supabaseClient
             .from('particuliers')
             .select()
             .eq('device_id', deviceId);
