@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers/conversations_providers.dart';
 import '../../widgets/conversation_group_card.dart';
-import '../../../domain/services/conversation_grouping_service.dart';
-import '../../../domain/entities/conversation.dart';
 import '../../../domain/entities/conversation_group.dart';
 
 class SellerMessagesPage extends ConsumerStatefulWidget {
@@ -149,76 +147,5 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       ],
     );
   }
-
-  void _showDeleteDialog(String conversationId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? '
-          'Cette action ne peut pas être annulée.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .deleteConversation(conversationId);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation supprimée'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBlockDialog(String conversationId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bloquer le client'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir bloquer ce client ? '
-          'Vous ne recevrez plus de messages de sa part.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .blockConversation(conversationId);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Client bloqué'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Bloquer'),
-          ),
-        ],
-      ),
-    );
-  }
-
 }
 

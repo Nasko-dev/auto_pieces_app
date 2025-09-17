@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../shared/presentation/widgets/license_plate_input.dart';
-import '../../../../../../core/providers/immatriculation_providers.dart';
 import 'seller_shared_widgets.dart';
 
 class SellerPlateStepPage extends ConsumerStatefulWidget {

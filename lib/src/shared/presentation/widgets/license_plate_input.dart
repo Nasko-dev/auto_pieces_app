@@ -169,7 +169,6 @@ class _RateLimitWarning extends StatelessWidget {
   final int remainingAttempts;
   final int timeUntilReset;
 
-  static const Color _warning = Color(0xFFFF9500);
   static const Color _error = Color(0xFFFF3B30);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const double _radius = 12;

@@ -5,7 +5,6 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
-import '../../../../../core/providers/seller_auth_providers.dart' as seller_auth;
 
 class MyAdsPage extends ConsumerStatefulWidget {
   const MyAdsPage({super.key});

@@ -19,12 +19,11 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
   @override
   Future<Either<Failure, Particulier>> signInAnonymously() async {
     try {
-      
       final particulier = await remoteDataSource.signInAnonymously();
 
       // Mettre en cache
       await localDataSource.cacheParticulier(particulier);
-      
+
       return Right(particulier);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -39,10 +38,9 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      
       await remoteDataSource.logout();
       await localDataSource.clearCache();
-      
+
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -56,7 +54,6 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
   @override
   Future<Either<Failure, Particulier>> getCurrentParticulier() async {
     try {
-      
       // Essayer d'abord le cache
       final cachedParticulier = await localDataSource.getCachedParticulier();
       if (cachedParticulier != null) {
@@ -65,14 +62,14 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
 
       // Sinon récupérer depuis le serveur
       final particulier = await remoteDataSource.getCurrentParticulier();
-      
+
       // Mettre en cache pour la prochaine fois
       await localDataSource.cacheParticulier(particulier);
-      
+
       return Right(particulier);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
+    } on CacheException catch (_) {
       // Essayer quand même de récupérer depuis le serveur
       try {
         final particulier = await remoteDataSource.getCurrentParticulier();
@@ -81,16 +78,17 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
         return Left(ServerFailure(serverError.message));
       }
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de la récupération de l\'utilisateur: $e'));
+      return Left(
+        ServerFailure('Erreur lors de la récupération de l\'utilisateur: $e'),
+      );
     }
   }
 
   @override
   Future<Either<Failure, bool>> isLoggedIn() async {
     try {
-      
       final isLoggedIn = await remoteDataSource.isLoggedIn();
-      
+
       return Right(isLoggedIn);
     } catch (_) {
       return const Right(false);
@@ -98,16 +96,19 @@ class ParticulierAuthRepositoryImpl implements ParticulierAuthRepository {
   }
 
   @override
-  Future<Either<Failure, Particulier>> updateParticulier(Particulier particulier) async {
+  Future<Either<Failure, Particulier>> updateParticulier(
+    Particulier particulier,
+  ) async {
     try {
-      
       // Convertir en ParticulierModel pour la datasource
       final particulierModel = ParticulierModel.fromEntity(particulier);
-      final updatedParticulier = await remoteDataSource.updateParticulier(particulierModel);
-      
+      final updatedParticulier = await remoteDataSource.updateParticulier(
+        particulierModel,
+      );
+
       // Mettre en cache la version mise à jour
       await localDataSource.cacheParticulier(updatedParticulier);
-      
+
       return Right(updatedParticulier);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

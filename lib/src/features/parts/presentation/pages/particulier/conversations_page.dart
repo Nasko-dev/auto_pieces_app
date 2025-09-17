@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
-import 'conversation_detail_page.dart';
 import '../../../domain/entities/particulier_conversation.dart';
 
 class MessagesPageColored extends ConsumerStatefulWidget {
@@ -178,7 +176,6 @@ class _VehicleGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final conversations = group['conversations'] as List<ParticulierConversation>;
-    final unreadCount = group['unreadCount'] as int;
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

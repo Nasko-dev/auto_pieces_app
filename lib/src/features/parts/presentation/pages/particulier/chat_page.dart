@@ -113,11 +113,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
 
     try {
+      // Vérifier que le sellerId n'est pas null
+      final sellerId = conversation?.sellerId;
+      if (sellerId == null) return;
 
       final response = await Supabase.instance.client
           .from('sellers')
           .select('id, first_name, last_name, company_name, phone, avatar_url')
-          .eq('id', conversation.sellerId)
+          .eq('id', sellerId)
           .limit(1);
 
       if (response.isNotEmpty && mounted) {

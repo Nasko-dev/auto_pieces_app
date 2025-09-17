@@ -30,7 +30,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   int _currentStep = 0;
   String _selectedChoice = '';
   String _partName = '';
-  bool _hasMultipleParts = false;
+  bool hasMultipleParts = false;
   String _vehiclePlate = '';
   bool _isSubmitting = false;
 
@@ -57,7 +57,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onPartSubmitted(String partName, bool hasMultiple) {
     setState(() {
       _partName = partName;
-      _hasMultipleParts = hasMultiple;
+      hasMultipleParts = hasMultiple;
       _currentStep = 2;
     });
   }

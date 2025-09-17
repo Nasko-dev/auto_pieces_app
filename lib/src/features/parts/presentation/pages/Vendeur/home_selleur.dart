@@ -40,11 +40,11 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
     final dashboardState = ref.watch(sellerDashboardControllerProvider);
     final currentSellerAsync = ref.watch(currentSellerProviderAlt);
 
-    // Debug: Vérifier l'état du provider
+    // Debug: Vérifier l'état du provider (désactivé en production)
     currentSellerAsync.when(
-      data: (seller) => // print('🔍 [DEBUG Build] Provider data: $seller'),
-      loading: () => // print('🔍 [DEBUG Build] Provider loading'),
-      error: (error, stack) => // print('🔍 [DEBUG Build] Provider error: $error'),
+      data: (seller) => null, // print('🔍 [DEBUG Build] Provider data: $seller'),
+      loading: () => null, // print('🔍 [DEBUG Build] Provider loading'),
+      error: (error, stack) => null, // print('🔍 [DEBUG Build] Provider error: $error'),
     );
 
     return Scaffold(
@@ -657,15 +657,8 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         // Ici on pourrait récupérer les infos depuis un provider ou la DB
         sellerName = 'Vendeur Professionnel';
       } catch (e) {
-        // print(
-          '⚠️ [HomeSellerPage] Impossible de récupérer les infos vendeur: $e',
-        );
+        // Ignorer l'erreur de récupération du nom vendeur
       }
-
-      // Créer ou récupérer la conversation
-      // print(
-        '🚀 [HomeSellerPage] Création conversation pour request: ${partRequest.id}',
-      );
 
       final dataSource = ConversationsRemoteDataSourceImpl(
         supabaseClient: Supabase.instance.client,
@@ -684,10 +677,6 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
         sellerName: sellerName,
         sellerCompany: sellerCompany,
         requestTitle: partRequest.partNames.join(', '),
-      );
-
-      // print(
-        '✅ [HomeSellerPage] Conversation créée/récupérée: ${conversation.id}',
       );
 
       // Naviguer vers la conversation avec message pré-généré

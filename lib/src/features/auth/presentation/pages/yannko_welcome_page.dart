@@ -7,7 +7,6 @@ class YannkoWelcomePage extends StatelessWidget {
 
   // Couleurs (eyedrop approximatifs du visuel)
   static const _bg = Color(0xFF0C1F2F); // bleu nuit
-  static const _green = Color(0xFF2CC36B); // bouton "Pièce neuve"
   static const _orange = Color(0xFFFFB129); // bouton "Pièce occasion"
   static const _textPrimary = Colors.white;
 
@@ -24,68 +23,67 @@ class YannkoWelcomePage extends StatelessWidget {
       color: _textPrimary,
       letterSpacing: -0.5 * s,
     );
-    TextStyle h2(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w700,
-      color: _textPrimary,
-      letterSpacing: -0.2 * s,
-    );
 
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
         color: _bg,
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24 * s, vertical: 32 * s),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24 * s, vertical: 32 * s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Spacer(),
 
-                // Titre principal
-                Text(
-                  'Pièces Auto',
-                  style: h1(48),
-                  textAlign: TextAlign.center,
+                    // Titre principal
+                    Text(
+                      'Pièces Auto',
+                      style: h1(48),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    SizedBox(height: 12 * s),
+
+                    // Bouton "Pièce occasion"
+                    _YButton(
+                      color: _orange,
+                      label: 'Pièce occasion',
+                      icon: Icons.settings,
+                      scale: s,
+                      onTap: () {
+                        // Naviguer vers la page de connexion pour les pièces d'occasion
+                        context.go('/welcome');
+                      },
+                    ),
+
+                    const Spacer(),
+                  ],
                 ),
+              ),
+            ),
 
-                SizedBox(height: 12 * s),
-
-                // Bouton "Pièce occasion"
-                  _YButton(
-                    color: _orange,
-                    label: 'Pièce occasion',
-                    icon: Icons.settings,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces d'occasion
-                      context.go('/welcome');
-                    },
+            // Illustration scooter, ancrée en bas
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8 * s,
+              child: IgnorePointer(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/cheetah_delivery.png',
+                    height: 270 * s,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                   ),
-                ],
-              ),
-            ),
-          ),
-
-          // Illustration scooter, ancrée en bas
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 8 * s,
-            child: IgnorePointer(
-              child: Center(
-                child: Image.asset(
-                  'assets/images/cheetah_delivery.png',
-                  height: 270 * s,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

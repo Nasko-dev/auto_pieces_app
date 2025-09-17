@@ -186,7 +186,9 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     if (userId != null) {
       final result = await _getConversations(GetConversationsParams(userId: userId));
       result.fold(
-        (failure) => // // print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
+        (failure) {
+          // Ignorer l'erreur pour refresh silencieux
+        },
         (conversations) {
           state = state.copyWith(conversations: conversations); // Déjà triées en DB
           // Plus besoin de recalculer - compteurs locaux gérés en temps réel
@@ -357,10 +359,12 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     ));
     
     result.fold(
-      (failure) => // // print('⚠️ [VendeurController] Erreur marquage: ${failure.message}'),
+      (failure) {
+        // Ignorer l'erreur de marquage
+      },
       (_) {
         _updateConversationReadStatus(conversationId);
-        
+
         // 🚀 REFRESH IMMÉDIAT après marquage comme lu
         loadConversations();
       },

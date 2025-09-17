@@ -158,14 +158,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       
       // Calculer unreadCount : messages des autres utilisateurs non lus
       
-      for (final msg in messages) {
-      }
-      
       final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
       final unreadCount = unreadMessages.length;
-      
-      for (final msg in unreadMessages) {
-      }
       
       // Récupérer les informations du particulier
       final userInfo = await _getUserInfo(json['user_id']);

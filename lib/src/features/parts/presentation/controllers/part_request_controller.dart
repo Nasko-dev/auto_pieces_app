@@ -108,8 +108,6 @@ class PartRequestController extends StateNotifier<PartRequestState> {
         );
       },
       (requests) {
-        for (final request in requests) {
-        }
         state = state.copyWith(
           isLoading: false,
           requests: requests,

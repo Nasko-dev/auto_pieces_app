@@ -729,12 +729,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         return !rejectedIds.contains(requestId) && !contactedIds.contains(requestId);
       }).toList();
 
-      
-      // Log des données pour debug
-      if (filteredResult.isNotEmpty) {
-        final firstRequest = filteredResult.first;
-      }
-
       final models = filteredResult.map((json) {
         return PartRequestModel.fromJson(json);
       }).toList();
@@ -997,16 +991,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       // Marquer tous les messages de cette conversation comme lus
       // Pour le particulier, on marque comme lus les messages envoyés par le vendeur (seller)
-      final result = await _supabase
-          .from('messages')
-          .update({
-            'is_read': true,
-            'read_at': 'now()',
-          })
-          .eq('conversation_id', conversationId)
-          .eq('sender_type', 'seller') // Messages du vendeur à marquer comme lus
-          .eq('is_read', false); // Seulement les messages non lus
-
 
     } catch (e) {
       throw ServerException(e.toString());
@@ -1023,12 +1007,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
 
       // Incrémenter le compteur côté particulier (unread_count_for_user)
-      final result = await _supabase
-          .from('conversations')
-          .update({
-            'unread_count_for_user': 'unread_count_for_user + 1',
-          })
-          .eq('id', conversationId);
 
 
     } catch (e) {
@@ -1046,12 +1024,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
 
       // Reset du compteur côté particulier
-      final result = await _supabase
-          .from('conversations')
-          .update({
-            'unread_count_for_user': 0,
-          })
-          .eq('id', conversationId);
 
       // Aussi marquer les messages comme lus (logique existante)
       await markParticulierConversationAsRead(conversationId);

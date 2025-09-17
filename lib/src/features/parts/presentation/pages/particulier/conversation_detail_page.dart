@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../../domain/entities/conversation_enums.dart';
 
@@ -44,10 +43,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _loadConversationDetails() {
     ref.read(particulierConversationsControllerProvider.notifier).loadConversationDetails(widget.conversationId);
-  }
-
-  void _markAsRead() {
-    ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
 
   void _scrollToBottom() {
@@ -269,7 +264,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       itemCount: sortedMessages.length,
       itemBuilder: (context, index) {
         final message = sortedMessages[index];
-        final isFromMe = message.isFromParticulier;
         final showTimestamp = index == 0 ||
             _shouldShowTimestamp(
               sortedMessages[index - 1].createdAt,
@@ -542,11 +536,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     }
   }
 
-  String _formatMessageTime(DateTime dateTime) {
-    final localDateTime = dateTime.toLocal(); // Conversion UTC vers heure locale
-    return '${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
-  }
-
   Widget _buildMessageBubbleWithAvatar(dynamic message, dynamic conversation) {
     return MessageBubbleWidget(
       message: message,
@@ -631,19 +620,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       return conversation.sellerName!;
     } else {
       return 'Vendeur Professionnel';
-    }
-  }
-
-  String _getSellerSubtitle(dynamic conversation) {
-    // Si on affiche l'entreprise en haut, mettre le nom du vendeur en bas
-    if (conversation.sellerCompany != null &&
-        conversation.sellerCompany!.isNotEmpty &&
-        conversation.sellerName != null &&
-        conversation.sellerName!.isNotEmpty) {
-      return conversation.sellerName!;
-    } else {
-      // Sinon afficher le type de pièce
-      return conversation.partType ?? 'Pièce auto';
     }
   }
 

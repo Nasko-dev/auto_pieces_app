@@ -209,21 +209,20 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                           const SizedBox(width: 8),
                         ],
                         // Heure du dernier message - toujours alignée à droite
-                        if (lastMessageTime != null)
-                          Text(
-                            _formatMessageTime(lastMessageTime),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color:
-                                  hasUnread
-                                      ? const Color(0xFF007AFF)
-                                      : Colors.grey[500],
-                              fontWeight:
-                                  hasUnread
-                                      ? FontWeight.w500
-                                      : FontWeight.normal,
-                            ),
+                        Text(
+                          _formatMessageTime(lastMessageTime),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color:
+                                hasUnread
+                                    ? const Color(0xFF007AFF)
+                                    : Colors.grey[500],
+                            fontWeight:
+                                hasUnread
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
                           ),
+                        ),
                       ],
                     ),
 
