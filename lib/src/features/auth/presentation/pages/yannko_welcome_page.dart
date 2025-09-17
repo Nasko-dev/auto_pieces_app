@@ -41,27 +41,25 @@ class YannkoWelcomePage extends StatelessWidget {
       backgroundColor: _bg,
       body: Stack(
         children: [
-          // Contenu principal
-          SafeArea(
+          // Contenu principal centré
+          Center(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24 * s),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 32 * s),
-
                   // Logo tête guépard
-                  Center(
-                    child: Image.asset(
-                      'assets/images/cheetah_head.png',
-                      height: 112 * s,
-                      fit: BoxFit.contain,
-                      errorBuilder:
-                          (_, __, ___) => Icon(
-                            Icons.pets_rounded,
-                            color: Colors.amber.shade300,
-                            size: 96 * s,
-                          ),
-                    ),
+                  Image.asset(
+                    'assets/images/cheetah_head.png',
+                    height: 112 * s,
+                    fit: BoxFit.contain,
+                    errorBuilder:
+                        (_, __, ___) => Icon(
+                          Icons.pets_rounded,
+                          color: Colors.amber.shade300,
+                          size: 96 * s,
+                        ),
                   ),
 
                   SizedBox(height: 16 * s),
@@ -74,40 +72,34 @@ class YannkoWelcomePage extends StatelessWidget {
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
 
-                  const Spacer(),
+                  SizedBox(height: 40 * s),
 
                   // Boutons centrés
-                  Column(
-                    children: [
-                      // Bouton "Pièce neuve"
-                      _YButton(
-                        color: _green,
-                        label: 'Pièce neuve',
-                        icon: Icons.inventory_2_rounded,
-                        scale: s,
-                        onTap: () {
-                          // Naviguer vers la page de connexion pour les pièces neuves
-                          context.go('/under-development');
-                        },
-                      ),
-
-                      SizedBox(height: 12 * s),
-
-                      // Bouton "Pièce occasion"
-                      _YButton(
-                        color: _orange,
-                        label: 'Pièce occasion',
-                        icon: Icons.settings,
-                        scale: s,
-                        onTap: () {
-                          // Naviguer vers la page de connexion pour les pièces d'occasion
-                          context.go('/welcome');
-                        },
-                      ),
-                    ],
+                  // Bouton "Pièce neuve"
+                  _YButton(
+                    color: _green,
+                    label: 'Pièce neuve',
+                    icon: Icons.inventory_2_rounded,
+                    scale: s,
+                    onTap: () {
+                      // Naviguer vers la page de connexion pour les pièces neuves
+                      context.go('/under-development');
+                    },
                   ),
 
-                  const Spacer(),
+                  SizedBox(height: 12 * s),
+
+                  // Bouton "Pièce occasion"
+                  _YButton(
+                    color: _orange,
+                    label: 'Pièce occasion',
+                    icon: Icons.settings,
+                    scale: s,
+                    onTap: () {
+                      // Naviguer vers la page de connexion pour les pièces d'occasion
+                      context.go('/welcome');
+                    },
+                  ),
                 ],
               ),
             ),
