@@ -160,9 +160,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(horizontal: hPadding),
                   child: const Text(
-                    'Quel type de pièce\nrecherchez-vous ?',
+                    'Quel type de pièce recherchez-vous ?',
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
                       color: _textDark,
