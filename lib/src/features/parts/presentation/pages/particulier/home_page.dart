@@ -161,8 +161,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                   padding: EdgeInsets.symmetric(horizontal: hPadding),
                   child: const Text(
                     'Quel type de pièce recherchez-vous ?',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
                       color: _textDark,
