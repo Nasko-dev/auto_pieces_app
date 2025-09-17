@@ -43,10 +43,9 @@ class YannkoWelcomePage extends StatelessWidget {
         children: [
           // Contenu principal
           SafeArea(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24 * s),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: 32 * s),
 
@@ -75,33 +74,40 @@ class YannkoWelcomePage extends StatelessWidget {
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
 
-                  SizedBox(height: 20 * s),
+                  const Spacer(),
 
-                  // Bouton "Pièce neuve"
-                  _YButton(
-                    color: _green,
-                    label: 'Pièce neuve',
-                    icon: Icons.inventory_2_rounded,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces neuves
-                      context.go('/under-development');
-                    },
+                  // Boutons centrés
+                  Column(
+                    children: [
+                      // Bouton "Pièce neuve"
+                      _YButton(
+                        color: _green,
+                        label: 'Pièce neuve',
+                        icon: Icons.inventory_2_rounded,
+                        scale: s,
+                        onTap: () {
+                          // Naviguer vers la page de connexion pour les pièces neuves
+                          context.go('/under-development');
+                        },
+                      ),
+
+                      SizedBox(height: 12 * s),
+
+                      // Bouton "Pièce occasion"
+                      _YButton(
+                        color: _orange,
+                        label: 'Pièce occasion',
+                        icon: Icons.settings,
+                        scale: s,
+                        onTap: () {
+                          // Naviguer vers la page de connexion pour les pièces d'occasion
+                          context.go('/welcome');
+                        },
+                      ),
+                    ],
                   ),
 
-                  SizedBox(height: 12 * s),
-
-                  // Bouton "Pièce occasion"
-                  _YButton(
-                    color: _orange,
-                    label: 'Pièce occasion',
-                    icon: Icons.settings,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces d'occasion
-                      context.go('/welcome');
-                    },
-                  ),
+                  const Spacer(),
                 ],
               ),
             ),
