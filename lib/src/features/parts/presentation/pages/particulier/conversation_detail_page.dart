@@ -73,10 +73,19 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         : conversationsAsync.error != null
             ? _buildErrorView(context, conversationsAsync.error!)
             : (() {
+                print('🔎 [DEBUG] Recherche conversation ID: ${widget.conversationId}');
+                print('🔎 [DEBUG] Conversations disponibles: ${conversationsAsync.conversations.map((c) => c.id).toList()}');
+
                 final conversation = conversationsAsync.conversations
                     .where((c) => c.id == widget.conversationId)
                     .firstOrNull;
-          
+
+                print('🔎 [DEBUG] Conversation trouvée: ${conversation != null}');
+                if (conversation != null) {
+                  print('🔎 [DEBUG] Type de conversation: ${conversation.runtimeType}');
+                  print('🔎 [DEBUG] Avatar de la conversation trouvée: ${conversation.sellerAvatarUrl}');
+                }
+
                 if (conversation == null) {
                   return _buildNotFoundView(context);
                 }
