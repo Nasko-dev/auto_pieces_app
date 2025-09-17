@@ -88,15 +88,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             Container(
               width: double.infinity,
               padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey.shade100,
-                    width: 1,
-                  ),
-                ),
-              ),
+              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
