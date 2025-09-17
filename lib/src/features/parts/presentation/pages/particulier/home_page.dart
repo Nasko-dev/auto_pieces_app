@@ -93,38 +93,59 @@ class _HomePageState extends ConsumerState<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   children: [
-                    // Badge "Accueil" avec style moderne
+                    // Avatar utilisateur
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      width: 45,
+                      height: 45,
                       decoration: BoxDecoration(
-                        color: _blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(
-                          color: _blue.withValues(alpha: 0.2),
-                          width: 1,
+                        gradient: LinearGradient(
+                          colors: [
+                            _blue.withValues(alpha: 0.8),
+                            _blue,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(22.5),
                       ),
-                      child: Text(
-                        'Accueil',
-                        style: TextStyle(
-                          color: _blue,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ),
 
-                    const Spacer(),
+                    const SizedBox(width: 16),
 
-                    // Menu stylé
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
+                    // Section texte
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bienvenue',
+                            style: TextStyle(
+                              color: _textGray,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Particulier',
+                            style: TextStyle(
+                              color: _textDark,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
                       ),
-                      child: const AppMenu(),
                     ),
+
+                    // Menu sans background
+                    const AppMenu(),
                   ],
                 ),
               ),
