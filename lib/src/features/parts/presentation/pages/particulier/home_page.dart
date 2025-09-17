@@ -152,13 +152,14 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
 
             // CONTENU
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Titre aligné à gauche qui s'étend sur toute la largeur
-                  const Text(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Titre qui prend toute la largeur de l'écran
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: const Text(
                     'Quel type de pièce\nrecherchez-vous ?',
                     style: TextStyle(
                       fontSize: 26,
@@ -167,7 +168,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                       color: _textDark,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 20),
+
+                // Reste du contenu avec padding
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
 
                   // 2 CARTES (sélection)
                   Row(
@@ -257,10 +266,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ],
 
-                  // Espace bas pour resp. safe area
-                  SizedBox(height: media.padding.bottom + 8),
-                ],
-              ),
+                      // Espace bas pour resp. safe area
+                      SizedBox(height: media.padding.bottom + 8),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
