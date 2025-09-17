@@ -17,10 +17,8 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   @override
   void initState() {
     super.initState();
-    print('🏠 [RequestsPage] Initialisation de la page');
     // Charger les demandes au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('📥 [RequestsPage] Déclenchement du chargement des demandes');
       ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
     });
   }
@@ -42,30 +40,20 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
         ),
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            iconSize: 24,
-            color: AppTheme.primaryBlue,
-            onPressed: () => context.go('/'),
-            tooltip: 'Nouvelle demande',
-          ),
           const AppMenu(),
         ],
       ),
       body: Consumer(
         builder: (context, ref, child) {
           final state = ref.watch(partRequestControllerProvider);
-          print('🔄 [RequestsPage] État actuel - loading: ${state.isLoading}, error: ${state.error != null}, requests: ${state.requests.length}');
           
           if (state.isLoading) {
-            print('⏳ [RequestsPage] Affichage du loader');
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
           
           if (state.error != null) {
-            print('❌ [RequestsPage] Affichage de l\'erreur: ${state.error}');
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -105,7 +93,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
           }
           
           if (state.requests.isEmpty) {
-            print('📭 [RequestsPage] Aucune demande trouvée');
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -147,11 +134,9 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
             );
           }
           
-          print('📋 [RequestsPage] Affichage de ${state.requests.length} demandes');
           
           return RefreshIndicator(
             onRefresh: () async {
-              print('🔄 [RequestsPage] Pull-to-refresh déclenché');
               await ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
             },
             child: ListView.separated(
@@ -185,7 +170,7 @@ class _RequestCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.darkBlue.withOpacity(0.06),
+            color: AppTheme.darkBlue.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -207,7 +192,7 @@ class _RequestCard extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -298,25 +283,25 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status) {
       case 'active':
-        backgroundColor = AppTheme.warning.withOpacity(0.1);
+        backgroundColor = AppTheme.warning.withValues(alpha: 0.1);
         textColor = AppTheme.warning;
         icon = Icons.schedule;
         label = 'Active';
         break;
       case 'fulfilled':
-        backgroundColor = AppTheme.success.withOpacity(0.1);
+        backgroundColor = AppTheme.success.withValues(alpha: 0.1);
         textColor = AppTheme.success;
         icon = Icons.check_circle_outline;
         label = 'Terminé';
         break;
       case 'closed':
-        backgroundColor = AppTheme.gray.withOpacity(0.1);
+        backgroundColor = AppTheme.gray.withValues(alpha: 0.1);
         textColor = AppTheme.gray;
         icon = Icons.cancel_outlined;
         label = 'Fermé';
         break;
       default:
-        backgroundColor = AppTheme.gray.withOpacity(0.1);
+        backgroundColor = AppTheme.gray.withValues(alpha: 0.1);
         textColor = AppTheme.gray;
         icon = Icons.help_outline;
         label = 'Inconnu';
@@ -361,7 +346,7 @@ class _ResponseCountBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.success.withOpacity(0.1),
+        color: AppTheme.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

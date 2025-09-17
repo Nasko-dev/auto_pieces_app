@@ -20,7 +20,7 @@ mixin _$ParticulierConversationsState {
       throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
-  int get unreadCount => throw _privateConstructorUsedError;
+  String? get activeConversationId => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -41,7 +41,7 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      int unreadCount});
+      String? activeConversationId});
 }
 
 /// @nodoc
@@ -63,7 +63,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? conversations = null,
     Object? isLoading = null,
     Object? error = freezed,
-    Object? unreadCount = null,
+    Object? activeConversationId = freezed,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -78,10 +78,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
               as String?,
-      unreadCount: null == unreadCount
-          ? _value.unreadCount
-          : unreadCount // ignore: cast_nullable_to_non_nullable
-              as int,
+      activeConversationId: freezed == activeConversationId
+          ? _value.activeConversationId
+          : activeConversationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -99,7 +99,7 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      int unreadCount});
+      String? activeConversationId});
 }
 
 /// @nodoc
@@ -120,7 +120,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? conversations = null,
     Object? isLoading = null,
     Object? error = freezed,
-    Object? unreadCount = null,
+    Object? activeConversationId = freezed,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -135,24 +135,25 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
               as String?,
-      unreadCount: null == unreadCount
-          ? _value.unreadCount
-          : unreadCount // ignore: cast_nullable_to_non_nullable
-              as int,
+      activeConversationId: freezed == activeConversationId
+          ? _value.activeConversationId
+          : activeConversationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
 
 /// @nodoc
 
-class _$ParticulierConversationsStateImpl
-    implements _ParticulierConversationsState {
+class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
+    with DiagnosticableTreeMixin {
   const _$ParticulierConversationsStateImpl(
       {final List<ParticulierConversation> conversations = const [],
       this.isLoading = false,
       this.error,
-      this.unreadCount = 0})
-      : _conversations = conversations;
+      this.activeConversationId})
+      : _conversations = conversations,
+        super._();
 
   final List<ParticulierConversation> _conversations;
   @override
@@ -169,12 +170,22 @@ class _$ParticulierConversationsStateImpl
   @override
   final String? error;
   @override
-  @JsonKey()
-  final int unreadCount;
+  final String? activeConversationId;
 
   @override
-  String toString() {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, unreadCount: $unreadCount)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ParticulierConversationsState'))
+      ..add(DiagnosticsProperty('conversations', conversations))
+      ..add(DiagnosticsProperty('isLoading', isLoading))
+      ..add(DiagnosticsProperty('error', error))
+      ..add(DiagnosticsProperty('activeConversationId', activeConversationId));
   }
 
   @override
@@ -187,8 +198,8 @@ class _$ParticulierConversationsStateImpl
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.error, error) || other.error == error) &&
-            (identical(other.unreadCount, unreadCount) ||
-                other.unreadCount == unreadCount));
+            (identical(other.activeConversationId, activeConversationId) ||
+                other.activeConversationId == activeConversationId));
   }
 
   @override
@@ -197,7 +208,7 @@ class _$ParticulierConversationsStateImpl
       const DeepCollectionEquality().hash(_conversations),
       isLoading,
       error,
-      unreadCount);
+      activeConversationId);
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -211,12 +222,14 @@ class _$ParticulierConversationsStateImpl
 }
 
 abstract class _ParticulierConversationsState
-    implements ParticulierConversationsState {
+    extends ParticulierConversationsState {
   const factory _ParticulierConversationsState(
-      {final List<ParticulierConversation> conversations,
-      final bool isLoading,
-      final String? error,
-      final int unreadCount}) = _$ParticulierConversationsStateImpl;
+          {final List<ParticulierConversation> conversations,
+          final bool isLoading,
+          final String? error,
+          final String? activeConversationId}) =
+      _$ParticulierConversationsStateImpl;
+  const _ParticulierConversationsState._() : super._();
 
   @override
   List<ParticulierConversation> get conversations;
@@ -225,7 +238,7 @@ abstract class _ParticulierConversationsState
   @override
   String? get error;
   @override
-  int get unreadCount;
+  String? get activeConversationId;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.

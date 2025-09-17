@@ -19,12 +19,9 @@ class ImmatriculationService {
   
   Future<Either<Failure, VehicleInfo>> getVehicleInfoFromPlate(String plate) async {
     try {
-      print('🔍 [TecAllianceAPI] Début recherche pour plaque: $plate');
       final cleanPlate = _cleanPlateNumber(plate);
-      print('🔧 [TecAllianceAPI] Plaque nettoyée: $cleanPlate');
       
       if (!_isValidPlateFormat(cleanPlate)) {
-        print('❌ [TecAllianceAPI] Format de plaque invalide: $cleanPlate');
         return const Left(
           ValidationFailure('Format de plaque invalide'),
         );
@@ -33,7 +30,6 @@ class ImmatriculationService {
       // Construction de l'URL selon la doc Swagger TecAlliance: /api/v1/vrm/{country}/{numberPlate}
       final uri = Uri.parse('$_baseUrl/api/v1/vrm/FR/$cleanPlate');
       
-      print('🌐 [TecAllianceAPI] URL de requête: $uri');
       
       final response = await httpClient
           .get(
@@ -46,11 +42,8 @@ class ImmatriculationService {
           )
           .timeout(const Duration(seconds: _requestTimeoutSeconds));
       
-      print('📡 [TecAllianceAPI] Code de réponse: ${response.statusCode}');
-      print('📄 [TecAllianceAPI] Corps de réponse (${response.body.length} caractères)');
       
       if (response.statusCode != 200) {
-        print('❌ [TecAllianceAPI] Erreur serveur: ${response.statusCode}');
         return Left(
           ServerFailure(
             'Erreur serveur: ${response.statusCode} - ${response.body}',
@@ -60,7 +53,6 @@ class ImmatriculationService {
       
       return _parseResponse(response.body, cleanPlate);
     } on Exception catch (e) {
-      print('💥 [TecAllianceAPI] Exception: ${e.toString()}');
       return Left(
         NetworkFailure('Erreur réseau: ${e.toString()}'),
       );
@@ -69,13 +61,11 @@ class ImmatriculationService {
   
   Either<Failure, VehicleInfo> _parseResponse(String responseBody, String plate) {
     try {
-      print('🔬 [TecAllianceAPI] Début du parsing JSON...');
       final Map<String, dynamic> data = json.decode(responseBody);
       
       // Vérifier s'il y a des véhicules dans la réponse
       final List<dynamic>? vehicles = data['vehicles'];
       if (vehicles == null || vehicles.isEmpty) {
-        print('❌ [TecAllianceAPI] Aucun véhicule trouvé dans la réponse');
         return const Left(
           ServerFailure('Aucun véhicule trouvé pour cette plaque'),
         );
@@ -83,21 +73,16 @@ class ImmatriculationService {
       
       // Prendre le premier véhicule
       final Map<String, dynamic> vehicleData = vehicles.first;
-      print('✅ [TecAllianceAPI] Véhicule trouvé, extraction des données...');
       
       final vehicleInfo = _extractVehicleInfo(vehicleData, plate);
-      print('🚗 [TecAllianceAPI] VehicleInfo créé: ${vehicleInfo.description}');
       
       // Afficher les informations sur les clics restants
       final int? remainingClicks = data['lastClickCount'];
       if (remainingClicks != null) {
-        print('🎫 [TecAllianceAPI] Clics restants: $remainingClicks');
       }
       
       return Right(vehicleInfo);
-    } catch (e, stackTrace) {
-      print('💥 [TecAllianceAPI] Erreur de parsing: ${e.toString()}');
-      print('📚 [TecAllianceAPI] Stack trace: $stackTrace');
+    } catch (e) {
       return Left(
         ParsingFailure('Erreur lors du parsing: ${e.toString()}'),
       );
@@ -108,9 +93,6 @@ class ImmatriculationService {
     final vehicleInfo = vehicleData['vehicleInformation'] as Map<String, dynamic>? ?? {};
     final engines = vehicleData['engine'] as List<dynamic>? ?? [];
     final gearbox = vehicleData['gearbox'] as Map<String, dynamic>? ?? {};
-    final brakes = vehicleData['brakes'] as Map<String, dynamic>? ?? {};
-    final tyres = vehicleData['tyres'] as List<dynamic>? ?? [];
-    final fluids = vehicleData['fluids'] as Map<String, dynamic>? ?? {};
     
     // Extraire les données du moteur (prendre le premier)
     final engine = engines.isNotEmpty ? engines.first as Map<String, dynamic> : <String, dynamic>{};
@@ -162,7 +144,7 @@ class ImmatriculationService {
     if (fuel != null) parts.add(fuel);
     if (power != null) {
       final unit = engine['powerHP'] != null ? 'HP' : 'kW';
-      parts.add('${power}$unit');
+      parts.add('$power$unit');
     }
     
     return parts.join(' - ');
@@ -193,19 +175,16 @@ class ImmatriculationService {
     // TecAlliance retourne le nombre de clics dans chaque réponse
     // On fait une requête test pour obtenir ce nombre
     try {
-      print('🎫 [TecAllianceAPI] Vérification des crédits restants...');
       final result = await getVehicleInfoFromPlate('TEST123');
       return result.fold(
         (failure) {
           // Même en cas d'échec, on essaie d'extraire les clics depuis l'erreur
-          print('⚠️ [TecAllianceAPI] Impossible de récupérer les crédits directement');
           return const Right(0); // Valeur par défaut
         },
         (vehicleInfo) {
           // Extraire le nombre de clics depuis rawData
-          final rawData = vehicleInfo.rawData as Map<String, dynamic>?;
+          final rawData = vehicleInfo.rawData;
           final clicks = rawData?['lastClickCount'] as int? ?? 0;
-          print('✅ [TecAllianceAPI] Crédits restants: $clicks');
           return Right(clicks);
         },
       );

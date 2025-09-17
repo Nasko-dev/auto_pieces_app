@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/conversation.dart';
@@ -9,8 +9,10 @@ import '../../domain/usecases/get_conversations.dart';
 import '../../domain/usecases/get_conversation_messages.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/manage_conversation.dart';
-import '../../data/repositories/conversations_repository_impl.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';
+import '../../../../core/services/realtime_service.dart';
+import '../../../../core/utils/logger.dart';
+import 'base_conversation_controller.dart';
 
 part 'conversations_controller.freezed.dart';
 
@@ -28,7 +30,7 @@ class ConversationsState with _$ConversationsState {
   }) = _ConversationsState;
 }
 
-class ConversationsController extends StateNotifier<ConversationsState> {
+class ConversationsController extends BaseConversationController<ConversationsState> {
   final GetConversations _getConversations;
   final GetConversationMessages _getConversationMessages;
   final SendMessage _sendMessage;
@@ -37,10 +39,10 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   final BlockConversation _blockConversation;
   final CloseConversation _closeConversation;
   final ConversationsRemoteDataSource _dataSource;
+  final RealtimeService _realtimeService;
 
+  StreamSubscription? _allMessagesSubscription;
   StreamSubscription? _conversationsSubscription;
-  StreamSubscription? _messagesSubscription;
-  Timer? _refreshTimer;
 
   ConversationsController({
     required GetConversations getConversations,
@@ -51,6 +53,7 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     required BlockConversation blockConversation,
     required CloseConversation closeConversation,
     required ConversationsRemoteDataSource dataSource,
+    required RealtimeService realtimeService,
   })  : _getConversations = getConversations,
         _getConversationMessages = getConversationMessages,
         _sendMessage = sendMessage,
@@ -59,98 +62,123 @@ class ConversationsController extends StateNotifier<ConversationsState> {
         _blockConversation = blockConversation,
         _closeConversation = closeConversation,
         _dataSource = dataSource,
+        _realtimeService = realtimeService,
         super(const ConversationsState());
 
-  // Initialiser les abonnements realtime
+  // ✅ OPTIMISATION: Variable pour éviter les initialisations multiples
+  bool _isRealtimeInitialized = false;
+
+  // Initialiser le realtime et le refresh timer - UNE SEULE FOIS
   void initializeRealtime(String userId) {
-    print('📡 [Controller] Initialisation realtime pour: $userId');
-    _setupConversationsSubscription(userId);
-    _startRefreshTimer();
-  }
-
-  void _setupConversationsSubscription(String userId) {
-    _conversationsSubscription?.cancel();
-    
-    print('🔄 [Controller] Configuration abonnement conversations');
-    _conversationsSubscription = _dataSource
-        .subscribeToConversationUpdates(userId: userId)
-        .listen(
-          (updatedConversation) {
-            print('📨 [Realtime] Conversation mise à jour reçue');
-            _handleConversationUpdate(updatedConversation);
-          },
-          onError: (error) {
-            print('❌ [Realtime] Erreur conversations: $error');
-          },
-        );
-  }
-
-  void _setupMessagesSubscription(String conversationId) {
-    _messagesSubscription?.cancel();
-    
-    print('💬 [Controller] Configuration abonnement messages: $conversationId');
-    _messagesSubscription = _dataSource
-        .subscribeToNewMessages(conversationId: conversationId)
-        .listen(
-          (newMessage) {
-            print('📨 [Realtime] Nouveau message reçu');
-            _handleNewMessage(newMessage);
-          },
-          onError: (error) {
-            print('❌ [Realtime] Erreur messages: $error');
-          },
-        );
-  }
-
-  void _handleConversationUpdate(Conversation updatedConversation) {
-    final currentConversations = state.conversations;
-    final index = currentConversations.indexWhere((c) => c.id == updatedConversation.id);
-    
-    if (index != -1) {
-      final updatedConversations = [...currentConversations];
-      updatedConversations[index] = updatedConversation;
-      
-      state = state.copyWith(conversations: updatedConversations);
-      print('✅ [Controller] Conversation mise à jour dans la liste');
-    } else {
-      // Nouvelle conversation
-      state = state.copyWith(
-        conversations: [updatedConversation, ...currentConversations]
-      );
-      print('✅ [Controller] Nouvelle conversation ajoutée');
+    if (_isRealtimeInitialized) {
+      return;
     }
-    
-    _updateUnreadCount();
+
+    _startRefreshTimer();
+    _subscribeToAllUserMessages(userId);
+    _isRealtimeInitialized = true;
   }
 
-  void _handleNewMessage(Message newMessage) {
-    // Mettre à jour les messages de la conversation
+  // S'abonner à tous les messages de l'utilisateur
+  void _subscribeToAllUserMessages(String userId) {
+    
+    // S'abonner aux changements de conversations
+    _realtimeService.subscribeToConversationsForUser(userId);
+    _conversationsSubscription = _realtimeService.conversationStream.listen((event) {
+      // Recharger les conversations lors de changements
+      loadConversations();
+    });
+
+    // Pour écouter les nouveaux messages, on doit s'abonner à toutes les conversations
+    // On va améliorer cela en créant un listener global pour les messages
+    _subscribeToGlobalMessages(userId);
+  }
+
+  // S'abonner globalement aux messages de toutes les conversations de l'utilisateur
+  void _subscribeToGlobalMessages(String userId) async {
+    
+    // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
+    final channel = Supabase.instance.client
+        .channel('global_messages_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            _handleGlobalNewMessage(payload.newRecord, userId);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'conversations',
+          callback: (payload) {
+            // Refresh quand une conversation est mise à jour (ex: unread_count)
+            loadConversations();
+          },
+        );
+    
+    channel.subscribe();
+  }
+
+  // ✅ SIMPLE: Gérer un nouveau message reçu - incrémenter compteur local côté vendeur
+  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
+    final conversationId = messageData['conversation_id'] as String?;
+    final senderId = messageData['sender_id'] as String?;
+    final senderType = messageData['sender_type'] as String?;
+
+    if (conversationId == null || senderId == null || senderType == null) return;
+
+
+    // ✅ CRITICAL: Vérifications multiples pour être sûr que ce n'est pas notre message
+    final isOwnMessage = senderId == userId ||
+                        senderId.toString() == userId.toString() ||
+                        senderId.toString() == userId;
+
+    if (isOwnMessage) {
+      return;  // SORTIR IMMÉDIATEMENT
+    }
+
+    // ✅ DB-BASED: Si c'est un message du particulier, incrémenter en DB sauf si conversation active
+    if (senderType == 'user') {
+      if (state.activeConversationId == conversationId) {
+        // Marquer le message comme lu immédiatement si la conversation est ouverte
+        _markConversationAsReadInDB(conversationId);
+      } else {
+        _incrementUnreadCountInDB(conversationId);
+      }
+    } else {
+    }
+
+    // ✅ OPTIMISATION: Plus de refresh automatique, juste mise à jour locale
+  }
+
+  // ✅ OPTIMISÉ: Méthode publique simplifiée pour les pages de chat
+  void handleIncomingMessage(Message newMessage) {
+
+    // Ajouter le message localement aux messages de la conversation
     final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
     final conversationMessages = currentMessages[newMessage.conversationId] ?? [];
-    
+
     if (!conversationMessages.any((m) => m.id == newMessage.id)) {
-      currentMessages[newMessage.conversationId] = [...conversationMessages, newMessage];
-      
+      final updatedMessages = [...conversationMessages, newMessage];
+      updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      currentMessages[newMessage.conversationId] = updatedMessages;
+
       state = state.copyWith(conversationMessages: currentMessages);
-      print('✅ [Controller] Nouveau message ajouté à la conversation');
-      
-      // Marquer automatiquement comme lu si la conversation est active
-      if (state.activeConversationId == newMessage.conversationId && 
-          newMessage.senderType == MessageSenderType.seller) {
-        _autoMarkAsRead(newMessage.conversationId);
-      }
     }
-    
-    _updateUnreadCount();
+
+    // Note: Les compteurs sont gérés par _handleGlobalNewMessage via trigger realtime
   }
 
+  // ✅ SUPPRIMÉ: Méthode de tri plus nécessaire - DB déjà triée par last_message_at
+
   void _startRefreshTimer() {
-    _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) {
-        _refreshConversationsQuietly();
-      }
-    });
+    startIntelligentPolling(
+      interval: const Duration(seconds: 30),
+      onPoll: _refreshConversationsQuietly,
+      logPrefix: 'ConversationsController',
+    );
   }
 
   Future<void> _refreshConversationsQuietly() async {
@@ -158,10 +186,12 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     if (userId != null) {
       final result = await _getConversations(GetConversationsParams(userId: userId));
       result.fold(
-        (failure) => print('⚠️ [Controller] Erreur refresh silencieux: ${failure.message}'),
+        (failure) {
+          // Ignorer l'erreur pour refresh silencieux
+        },
         (conversations) {
-          state = state.copyWith(conversations: conversations);
-          _updateUnreadCount();
+          state = state.copyWith(conversations: conversations); // Déjà triées en DB
+          // Plus besoin de recalculer - compteurs locaux gérés en temps réel
         },
       );
     }
@@ -171,41 +201,42 @@ class ConversationsController extends StateNotifier<ConversationsState> {
   Future<void> loadConversations() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      print('❌ [Controller] Utilisateur non connecté');
       return;
     }
 
-    print('📋 [Controller] Chargement conversations pour: $userId');
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _getConversations(GetConversationsParams(userId: userId));
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur chargement: ${failure.message}');
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (conversations) {
-        print('✅ [Controller] ${conversations.length} conversations chargées');
+
+        // ✅ DB-BASED: Utiliser directement les compteurs de la DB
+        final totalUnread = conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+
         state = state.copyWith(
-          conversations: conversations,
+          conversations: conversations, // Triées en DB par last_message_at DESC avec unreadCount
           isLoading: false,
           error: null,
+          totalUnreadCount: totalUnread,
         );
-        _updateUnreadCount();
-        
-        // Initialiser le realtime après le premier chargement
-        initializeRealtime(userId);
+
+        // ✅ OPTIMISATION: Initialiser le realtime seulement au premier chargement
+        if (!_isRealtimeInitialized) {
+          initializeRealtime(userId);
+        }
       },
     );
   }
 
   // Charger les messages d'une conversation
   Future<void> loadConversationMessages(String conversationId) async {
-    print('💬 [Controller] Chargement messages: $conversationId');
     
     state = state.copyWith(
       isLoadingMessages: true,
@@ -218,14 +249,12 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur chargement messages: ${failure.message}');
         state = state.copyWith(
           isLoadingMessages: false,
           error: failure.message,
         );
       },
       (messages) {
-        print('✅ [Controller] ${messages.length} messages chargés');
         final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
         updatedMessages[conversationId] = messages;
         
@@ -235,38 +264,28 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           error: null,
         );
         
-        // Configuration realtime pour cette conversation
-        _setupMessagesSubscription(conversationId);
-        
-        // Marquer comme lu automatiquement
-        _autoMarkAsRead(conversationId);
+        // Plus besoin de calculs - compteurs locaux gérés en temps réel
       },
     );
   }
 
-  Future<void> _autoMarkAsRead(String conversationId) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
-      await markAsRead(conversationId);
-    }
-  }
 
   // Envoyer un message
   Future<void> sendMessage({
     required String conversationId,
     required String content,
     MessageType messageType = MessageType.text,
+    List<String> attachments = const [],
+    Map<String, dynamic> metadata = const {},
     double? offerPrice,
     String? offerAvailability,
     int? offerDeliveryDays,
   }) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      print('❌ [Controller] Utilisateur non connecté');
       return;
     }
 
-    print('📤 [Controller] Envoi message: $content');
     state = state.copyWith(isSendingMessage: true);
 
     final result = await _sendMessage(SendMessageParams(
@@ -274,6 +293,8 @@ class ConversationsController extends StateNotifier<ConversationsState> {
       senderId: userId,
       content: content,
       messageType: messageType,
+      attachments: attachments,
+      metadata: metadata,
       offerPrice: offerPrice,
       offerAvailability: offerAvailability,
       offerDeliveryDays: offerDeliveryDays,
@@ -281,38 +302,56 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur envoi: ${failure.message}');
         state = state.copyWith(
           isSendingMessage: false,
           error: failure.message,
         );
       },
       (message) {
-        print('✅ [Controller] Message envoyé avec succès');
-        
-        // Ajouter le message à la liste locale
-        final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
-        final currentMessages = updatedMessages[conversationId] ?? [];
-        updatedMessages[conversationId] = [...currentMessages, message];
-        
-        state = state.copyWith(
-          conversationMessages: updatedMessages,
-          isSendingMessage: false,
-          error: null,
-        );
-        
-        // Recharger les conversations pour mettre à jour l'aperçu
-        _refreshConversationsQuietly();
+        try {
+          
+          // Ajouter le message localement pour l'expéditeur immédiatement
+          // Le RealtimeService le recevra aussi mais _handleNewMessage évite la duplication
+          final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
+          final conversationMessages = currentMessages[conversationId] ?? [];
+          
+          if (!conversationMessages.any((m) => m.id == message.id)) {
+            final updatedMessages = [...conversationMessages, message];
+            // Tri par timestamp Supabase (UTC) - fiable car généré côté serveur
+            updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+            currentMessages[conversationId] = updatedMessages;
+            
+            
+            state = state.copyWith(
+              conversationMessages: currentMessages,
+              isSendingMessage: false,
+              error: null,
+            );
+          } else {
+            state = state.copyWith(
+              isSendingMessage: false,
+              error: null,
+            );
+          }
+          
+          // ✅ OPTIMISATION: Pas de refresh automatique, les triggers realtime s'en chargent
+          // _refreshConversationsQuietly(); // SUPPRIMÉ pour éviter double refresh
+        } catch (e) {
+          state = state.copyWith(
+            isSendingMessage: false,
+            error: 'Erreur lors du traitement du message',
+          );
+        }
       },
     );
   }
 
+  
   // Marquer comme lu
   Future<void> markAsRead(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
-    print('👀 [Controller] Marquage comme lu: $conversationId');
 
     final result = await _markMessagesAsRead(MarkMessagesAsReadParams(
       conversationId: conversationId,
@@ -320,34 +359,43 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     ));
     
     result.fold(
-      (failure) => print('⚠️ [Controller] Erreur marquage: ${failure.message}'),
+      (failure) {
+        // Ignorer l'erreur de marquage
+      },
       (_) {
-        print('✅ [Controller] Messages marqués comme lus');
         _updateConversationReadStatus(conversationId);
+
+        // 🚀 REFRESH IMMÉDIAT après marquage comme lu
+        loadConversations();
       },
     );
   }
 
   void _updateConversationReadStatus(String conversationId) {
     // Marquer les messages de cette conversation comme lus localement
+    // SEULEMENT pour les messages reçus (pas envoyés) par l'utilisateur actuel
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return;
+
     final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
     final messages = updatedMessages[conversationId];
     if (messages != null) {
-      updatedMessages[conversationId] = messages.map((msg) => 
-        msg.senderType == MessageSenderType.seller
+      updatedMessages[conversationId] = messages.map((msg) =>
+        // ✅ CORRECTION: Ne marquer comme lus QUE les messages reçus par cet utilisateur
+        // ET qui ne sont pas déjà lus
+        (msg.senderId != currentUserId && !msg.isRead)
             ? msg.copyWith(isRead: true, readAt: DateTime.now())
             : msg
       ).toList();
-      
+
       state = state.copyWith(conversationMessages: updatedMessages);
     }
-    
-    _updateUnreadCount();
+
+    // Plus besoin de recalculer - compteurs locaux gérés en temps réel
   }
 
   // Supprimer une conversation
   Future<void> deleteConversation(String conversationId) async {
-    print('🗑️ [Controller] Suppression conversation: $conversationId');
 
     final result = await _deleteConversation(ConversationParams(
       conversationId: conversationId,
@@ -355,11 +403,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur suppression: ${failure.message}');
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        print('✅ [Controller] Conversation supprimée');
         
         // Retirer de la liste locale
         final updatedConversations = state.conversations
@@ -373,15 +419,14 @@ class ConversationsController extends StateNotifier<ConversationsState> {
           conversations: updatedConversations,
           conversationMessages: updatedMessages,
         );
-        
-        _updateUnreadCount();
+
+        // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       },
     );
   }
 
   // Bloquer une conversation
   Future<void> blockConversation(String conversationId) async {
-    print('🚫 [Controller] Blocage conversation: $conversationId');
 
     final result = await _blockConversation(ConversationParams(
       conversationId: conversationId,
@@ -389,11 +434,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur blocage: ${failure.message}');
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        print('✅ [Controller] Conversation bloquée');
         
         // Retirer de la liste locale (car bloquée)
         final updatedConversations = state.conversations
@@ -401,14 +444,13 @@ class ConversationsController extends StateNotifier<ConversationsState> {
             .toList();
         
         state = state.copyWith(conversations: updatedConversations);
-        _updateUnreadCount();
+        // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       },
     );
   }
 
   // Fermer une conversation
   Future<void> closeConversation(String conversationId) async {
-    print('📪 [Controller] Fermeture conversation: $conversationId');
 
     final result = await _closeConversation(ConversationParams(
       conversationId: conversationId,
@@ -416,11 +458,9 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     
     result.fold(
       (failure) {
-        print('❌ [Controller] Erreur fermeture: ${failure.message}');
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        print('✅ [Controller] Conversation fermée');
         
         // Mettre à jour le statut localement
         final updatedConversations = state.conversations.map((c) => 
@@ -434,40 +474,88 @@ class ConversationsController extends StateNotifier<ConversationsState> {
     );
   }
 
-  // Calculer le nombre total de messages non lus
-  void _updateUnreadCount() {
-    int totalUnread = 0;
-    
-    for (final conversation in state.conversations) {
-      final messages = state.conversationMessages[conversation.id] ?? [];
-      final unreadInConversation = messages
-          .where((msg) => msg.senderType == MessageSenderType.seller && !msg.isRead)
-          .length;
-      totalUnread += unreadInConversation;
-    }
-    
-    state = state.copyWith(totalUnreadCount: totalUnread);
-    print('🔔 [Controller] Total messages non lus: $totalUnread');
+  // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
+  void markConversationAsRead(String conversationId) {
+
+    // Marquer en DB
+    _markConversationAsReadInDB(conversationId);
+
+    // Marquer comme conversation active
+    state = state.copyWith(activeConversationId: conversationId);
+
   }
+
+  // ✅ DB-BASED: Incrémenter compteur vendeur en DB - SANS REFRESH AUTO
+  void _incrementUnreadCountInDB(String conversationId) async {
+    try {
+      // Utiliser le compteur spécifique vendeur
+      await _dataSource.incrementUnreadCountForSeller(conversationId: conversationId);
+
+      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
+      _updateLocalUnreadCount(conversationId, 1);
+    } catch (e) {
+      // Ignorer l'erreur silencieusement
+    }
+  }
+
+  // ✅ DB-BASED: Marquer conversation comme lue en DB - SANS REFRESH AUTO
+  void _markConversationAsReadInDB(String conversationId) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      await _dataSource.markMessagesAsRead(
+        conversationId: conversationId,
+        userId: userId,
+      );
+
+      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
+      _updateLocalUnreadCount(conversationId, -999); // Reset à 0
+    } catch (e) {
+      // Ignorer l'erreur silencieusement
+    }
+  }
+
+  // ✅ OPTIMISATION: Mise à jour locale pour éviter les full reload
+  void _updateLocalUnreadCount(String conversationId, int delta) {
+    final updatedConversations = state.conversations.map((conv) {
+      if (conv.id == conversationId) {
+        final newCount = delta == -999 ? 0 : (conv.unreadCount + delta).clamp(0, 9999);
+        return conv.copyWith(unreadCount: newCount);
+      }
+      return conv;
+    }).toList();
+
+    final newTotal = updatedConversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+
+    state = state.copyWith(
+      conversations: updatedConversations,
+      totalUnreadCount: newTotal,
+    );
+
+  }
+
+  // ✅ SIMPLE: Désactiver la conversation active
+  void setConversationInactive() {
+    // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+    Future.microtask(() {
+      state = state.copyWith(activeConversationId: null);
+    });
+  }
+
+
 
   // Helpers
   List<Message> getMessagesForConversation(String conversationId) {
     return state.conversationMessages[conversationId] ?? [];
   }
 
-  int getUnreadCountForConversation(String conversationId) {
-    final messages = getMessagesForConversation(conversationId);
-    return messages
-        .where((msg) => msg.senderType == MessageSenderType.seller && !msg.isRead)
-        .length;
-  }
 
   @override
   void dispose() {
-    print('🧹 [Controller] Nettoyage ressources');
+    Logger.info('🧹 [Controller] Nettoyage ressources');
+    _allMessagesSubscription?.cancel();
     _conversationsSubscription?.cancel();
-    _messagesSubscription?.cancel();
-    _refreshTimer?.cancel();
-    super.dispose();
+    super.dispose(); // Appelle stopPolling() dans BaseConversationController
   }
 }

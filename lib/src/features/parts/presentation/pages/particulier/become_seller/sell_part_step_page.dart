@@ -1,30 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/theme/app_theme.dart';
-import '../../../../../../core/constants/car_parts_list.dart';
+import '../../../../../../core/providers/providers.dart';
 import 'shared_widgets.dart';
 
-class SellPartStepPage extends StatefulWidget {
+class SellPartStepPage extends ConsumerStatefulWidget {
+  final String selectedCategory;
   final Function(String partName, bool hasMultiple) onPartSubmitted;
   final VoidCallback? onClose;
 
   const SellPartStepPage({
     super.key,
+    required this.selectedCategory,
     required this.onPartSubmitted,
     this.onClose,
   });
 
   @override
-  State<SellPartStepPage> createState() => _SellPartStepPageState();
+  ConsumerState<SellPartStepPage> createState() => _SellPartStepPageState();
 }
 
-class _SellPartStepPageState extends State<SellPartStepPage> {
+class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   final TextEditingController _partController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _hasMultiple = false;
   bool _isCompleteVehicle = false;
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  List<String> _selectedParts = [];
+  final List<String> _selectedParts = [];
 
   @override
   void initState() {
@@ -41,12 +44,77 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
     super.dispose();
   }
 
-  void _onTextChanged() {
+  void _onTextChanged() async {
     final query = _partController.text;
-    setState(() {
-      _suggestions = CarPartsList.searchParts(query);
-      _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
-    });
+    
+    // Toujours appeler setState pour mettre à jour la validation du bouton
+    setState(() {});
+    
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    try {
+      // Déterminer la catégorie selon le type sélectionné  
+      String? categoryFilter;
+      
+      // Mapping pour la compatibilité avec l'ancien système
+      if (widget.selectedCategory == 'engine' || widget.selectedCategory == 'moteur') {
+        // Filtrer seulement les pièces moteur
+        categoryFilter = 'moteur';
+      } else if (widget.selectedCategory == 'body' || widget.selectedCategory == 'carrosserie') {
+        // Pour "carrosserie", on veut toutes les catégories SAUF moteur
+        categoryFilter = 'NOT_MOTEUR'; // Valeur spéciale pour gérer côté client
+      } else if (widget.selectedCategory == 'lesdeux') {
+        // Pour "lesdeux", on ne filtre pas - toutes les catégories
+        categoryFilter = null;
+      }
+      // Si autre choix, on ne filtre pas (null)
+
+
+      // Appeler la fonction sans filtre si on veut exclure moteur
+      final actualCategoryFilter = categoryFilter == 'NOT_MOTEUR' ? null : categoryFilter;
+      
+      final response = await ref.read(supabaseClientProvider).rpc('search_parts', params: {
+        'search_query': query,
+        'filter_category': actualCategoryFilter,
+        'limit_results': categoryFilter == 'NOT_MOTEUR' ? 20 : 8, // Plus de résultats pour filtrer ensuite
+      });
+
+      if (response != null && mounted) {
+        
+        // Filtrer côté client si nécessaire
+        List<Map<String, dynamic>> filteredData = (response as List).cast<Map<String, dynamic>>();
+        
+        if (categoryFilter == 'NOT_MOTEUR') {
+          // Excluer les pièces moteur
+          filteredData = filteredData.where((data) => data['category'] != 'moteur').toList();
+        }
+        
+        final parts = filteredData
+            .map((data) {
+              return data['name'] as String;
+            })
+            .take(8)
+            .toList();
+
+        setState(() {
+          _suggestions = parts;
+          _showSuggestions = parts.isNotEmpty && _focusNode.hasFocus;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+      }
+    }
   }
 
   void _onFocusChanged() {
@@ -119,6 +187,24 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
     });
   }
 
+  bool _isFormValid() {
+    final hasText = _partController.text.trim().isNotEmpty;
+    final hasParts = _selectedParts.isNotEmpty;
+    
+    
+    if (_isCompleteVehicle) {
+      // Mode véhicule complet : toujours valide
+      return true;
+    } else if (_hasMultiple) {
+      // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
+      final isValid = hasParts || hasText;
+      return isValid;
+    } else {
+      // Mode simple : valide si du texte dans le champ
+      return hasText;
+    }
+  }
+
   void _handleSubmit() {
     if (_isCompleteVehicle) {
       // Mode véhicule complet
@@ -168,7 +254,8 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
                       ),
                     ],
                   ),
-                  child: Column(
+                  child: SingleChildScrollView(
+                    child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -202,10 +289,11 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
                       const SizedBox(height: 22),
                       BecomeSellerSharedWidgets.buildPrimaryButton(
                         label: 'Suivant',
-                        enabled: true,
+                        enabled: _isFormValid(),
                         onPressed: _handleSubmit,
                       ),
                     ],
+                    ),
                   ),
                 ),
               ),
@@ -305,10 +393,10 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue.withOpacity(0.1),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.3),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -330,7 +418,7 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.2),
+                color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -378,37 +466,40 @@ class _SellPartStepPageState extends State<SellPartStepPage> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        // Case "Véhicule complet"
-        Row(
-          children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: Checkbox(
-                value: _isCompleteVehicle,
-                onChanged: _onCompleteVehicleChanged,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
-                activeColor: AppTheme.primaryBlue,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Véhicule complet',
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.3,
-                  color: AppTheme.darkGray,
+        // N'afficher "Véhicule complet" que si "lesdeux" est sélectionné
+        if (widget.selectedCategory == 'lesdeux') ...[
+          const SizedBox(height: 12),
+          // Case "Véhicule complet"
+          Row(
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: Checkbox(
+                  value: _isCompleteVehicle,
+                  onChanged: _onCompleteVehicleChanged,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  activeColor: AppTheme.primaryBlue,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Véhicule complet',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.3,
+                    color: AppTheme.darkGray,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

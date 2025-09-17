@@ -51,9 +51,6 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
     String? companyName,
     String? phone,
   }) async {
-    print('🚀 [CONTROLLER] Début inscription vendeur');
-    print('📧 [CONTROLLER] Email: $email');
-    print('🏢 [CONTROLLER] Entreprise: $companyName');
     
     state = const SellerAuthState.loading();
 
@@ -67,16 +64,13 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
       phone: phone,
     );
 
-    print('📤 [CONTROLLER] Appel du use case register...');
     final result = await _sellerRegister(params);
 
     result.fold(
       (failure) {
-        print('❌ [CONTROLLER] Erreur: ${_mapFailureToMessage(failure)}');
         state = SellerAuthState.error(_mapFailureToMessage(failure));
       },
       (seller) {
-        print('✅ [CONTROLLER] Inscription réussie: ${seller.email}');
         state = SellerAuthState.authenticated(seller);
       },
     );
@@ -164,15 +158,15 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
   // Utilitaire pour mapper les erreurs
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
-      case ServerFailure:
+      case const (ServerFailure):
         return (failure as ServerFailure).message;
-      case NetworkFailure:
+      case const (NetworkFailure):
         return (failure as NetworkFailure).message;
-      case AuthFailure:
+      case const (AuthFailure):
         return (failure as AuthFailure).message;
-      case ValidationFailure:
+      case const (ValidationFailure):
         return (failure as ValidationFailure).message;
-      case CacheFailure:
+      case const (CacheFailure):
         return (failure as CacheFailure).message;
       default:
         return 'Une erreur inattendue s\'est produite';

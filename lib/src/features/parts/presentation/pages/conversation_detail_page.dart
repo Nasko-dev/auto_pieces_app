@@ -119,7 +119,7 @@ class _ConversationDetailPageState extends State<ConversationDetailPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -254,7 +254,7 @@ class _MessageBubble extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppTheme.gray.withOpacity(0.2),
+                color: AppTheme.gray.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -283,7 +283,7 @@ class _MessageBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.darkBlue.withOpacity(0.04),
+                    color: AppTheme.darkBlue.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -319,7 +319,7 @@ class _MessageBubble extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       color: message.isFromMe
-                          ? AppTheme.white.withOpacity(0.7)
+                          ? AppTheme.white.withValues(alpha: 0.7)
                           : AppTheme.gray,
                     ),
                   ),
@@ -333,7 +333,7 @@ class _MessageBubble extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppTheme.primaryBlue.withOpacity(0.1),
+                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -372,7 +372,7 @@ class _StateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isClosed = state.toLowerCase().startsWith('f');
-    final bg = isClosed ? AppTheme.success.withOpacity(0.1) : AppTheme.error.withOpacity(0.1);
+    final bg = isClosed ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.error.withValues(alpha: 0.1);
     final fg = isClosed ? AppTheme.success : AppTheme.error;
     final icon = isClosed ? Icons.lock_outline : Icons.block;
     final label = isClosed ? 'Fermé' : 'Bloqué';

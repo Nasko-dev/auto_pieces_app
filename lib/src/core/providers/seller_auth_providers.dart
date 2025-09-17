@@ -43,21 +43,51 @@ final sellerAuthStreamProvider = StreamProvider<AuthState>((ref) {
 
 // Provider pour le vendeur authentifié
 final currentSellerProvider = FutureProvider<Seller?>((ref) async {
-  final authState = ref.watch(sellerAuthStreamProvider);
+  final supabaseClient = ref.watch(supabaseClientProvider);
   final repository = ref.watch(sellerAuthRepositoryProvider);
-  
-  return authState.when(
-    data: (authState) async {
-      if (authState.event == AuthChangeEvent.signedIn && authState.session != null) {
-        final result = await repository.getCurrentSeller();
-        return result.fold(
-          (failure) => null,
-          (seller) => seller,
-        );
-      }
+
+
+  // Vérifier s'il y a un utilisateur connecté
+  final currentUser = supabaseClient.auth.currentUser;
+  if (currentUser == null) {
+    return null;
+  }
+
+
+  try {
+    final result = await repository.getCurrentSeller();
+    return result.fold(
+      (failure) {
+        return null;
+      },
+      (seller) {
+        return seller;
+      },
+    );
+  } catch (e) {
+    return null;
+  }
+});
+
+// Provider alternatif - test direct
+final currentSellerProviderAlt = FutureProvider.autoDispose<Seller?>((ref) async {
+
+  final supabaseClient = ref.watch(supabaseClientProvider);
+  final repository = ref.watch(sellerAuthRepositoryProvider);
+
+  final currentUser = supabaseClient.auth.currentUser;
+  if (currentUser == null) {
+    return null;
+  }
+
+
+  final result = await repository.getCurrentSeller();
+  return result.fold(
+    (failure) {
       return null;
     },
-    loading: () => null,
-    error: (error, stack) => null,
+    (seller) {
+      return seller;
+    },
   );
 });

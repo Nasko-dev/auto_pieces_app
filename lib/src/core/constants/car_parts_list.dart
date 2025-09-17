@@ -1,261 +1,176 @@
 class CarPartsList {
-  static const List<String> allParts = [
+  // Liste des pièces automobiles courantes
+  static const List<String> _allParts = [
     // Moteur
-    'Moteur',
-    'Bloc moteur',
-    'Culasse',
-    'Vilebrequin',
-    'Bielles',
     'Pistons',
-    'Segments',
+    'Cylindres',
+    'Culasse',
+    'Bloc moteur',
+    'Vilebrequin',
+    'Bielle',
     'Soupapes',
     'Arbre à cames',
-    'Courroie de distribution',
-    'Chaîne de distribution',
+    'Joint de culasse',
     'Pompe à eau',
+    'Pompe à huile',
     'Thermostat',
     'Radiateur',
-    'Ventilateur de refroidissement',
-    'Durite de refroidissement',
-    'Réservoir expansion',
-    'Pompe à huile',
-    'Carter d\'huile',
-    'Joint de culasse',
-    'Joint d\'étanchéité',
-    'Filtre à huile',
-    'Filtre à air',
-    'Filtre à carburant',
-    'Injecteur',
-    'Pompe à injection',
-    'Turbocompresseur',
-    'Compresseur',
-    'Intercooler',
-    'Collecteur d\'admission',
-    'Collecteur d\'échappement',
-    'Catalyseur',
-    'Pot d\'échappement',
-    'Silencieux',
-    'Ligne d\'échappement',
-    'Sonde lambda',
-    'Bobine d\'allumage',
-    'Bougie d\'allumage',
-    'Bougie de préchauffage',
+    'Ventilateur',
+    'Courroie de distribution',
+    'Courroie d\'accessoires',
     'Alternateur',
     'Démarreur',
-    'Batterie',
-    'Courroie accessoire',
-    'Poulie',
-    'Galet tendeur',
-    'Support moteur',
-
+    'Bougies d\'allumage',
+    'Bobine d\'allumage',
+    'Injecteurs',
+    'Pompe à carburant',
+    'Filtre à air',
+    'Filtre à huile',
+    'Filtre à carburant',
+    'Turbo',
+    'Collecteur d\'admission',
+    'Collecteur d\'échappement',
+    
     // Transmission
     'Boîte de vitesses',
     'Embrayage',
     'Disque d\'embrayage',
-    'Mécanisme d\'embrayage',
+    'Plateau de pression',
     'Butée d\'embrayage',
     'Volant moteur',
-    'Arbre de transmission',
-    'Cardan',
-    'Joint de cardan',
+    'Transmission',
     'Différentiel',
-    'Pont',
-    'Demi-train',
-    'Soufflet de cardan',
-
+    'Cardans',
+    'Soufflets de cardan',
+    
+    // Suspension
+    'Amortisseurs',
+    'Ressorts',
+    'Coupelles d\'amortisseur',
+    'Barre stabilisatrice',
+    'Silentblocs',
+    'Rotules',
+    'Triangle de suspension',
+    'Biellette de barre stabilisatrice',
+    
+    // Direction
+    'Crémaillère de direction',
+    'Pompe de direction assistée',
+    'Rotule de direction',
+    'Biellette de direction',
+    'Volant',
+    'Colonne de direction',
+    
     // Freinage
     'Plaquettes de frein',
-    'Disque de frein',
-    'Tambour de frein',
+    'Disques de frein',
+    'Tambours de frein',
     'Mâchoires de frein',
-    'Étrier de frein',
-    'Maître-cylindre',
-    'Cylindre de roue',
-    'Servo-frein',
-    'ABS',
-    'Capteur ABS',
+    'Étriers de frein',
+    'Maître cylindre',
     'Liquide de frein',
     'Flexible de frein',
     'Frein à main',
-    'Câble de frein à main',
-
-    // Direction
-    'Volant',
-    'Colonne de direction',
-    'Crémaillère',
-    'Boîtier de direction',
-    'Biellette de direction',
-    'Rotule de direction',
-    'Soufflet de crémaillère',
-    'Pompe de direction assistée',
-    'Réservoir LDR',
-    'Liquide de direction',
-
-    // Suspension
-    'Amortisseur',
-    'Ressort',
-    'Coupelle d\'amortisseur',
-    'Butée de compression',
-    'Bras de suspension',
-    'Triangle de suspension',
-    'Silent-bloc',
-    'Rotule de suspension',
-    'Barre stabilisatrice',
-    'Biellette de barre stabilisatrice',
-    'Jambe de force',
-    'Combiné fileté',
-
-    // Roues et pneus
-    'Jante',
-    'Pneu',
-    'Chambre à air',
-    'Valve',
-    'Enjoliveur',
-    'Cache moyeu',
-    'Écrou de roue',
-    'Boulon de roue',
-    'Roulement de roue',
-    'Moyeu',
-
+    
     // Carrosserie
     'Pare-chocs avant',
     'Pare-chocs arrière',
-    'Aile avant',
-    'Aile arrière',
-    'Portière',
+    'Aile avant droite',
+    'Aile avant gauche',
+    'Aile arrière droite',
+    'Aile arrière gauche',
+    'Portière avant droite',
+    'Portière avant gauche',
+    'Portière arrière droite',
+    'Portière arrière gauche',
     'Capot',
     'Coffre',
     'Hayon',
     'Toit ouvrant',
+    'Rétroviseurs',
+    'Grille de calandre',
     'Becquet',
-    'Spoiler',
-    'Calandre',
-    'Grille de radiateur',
-    'Rétroviseur',
-    'Coque de rétroviseur',
-    'Glace de rétroviseur',
-    'Vitre avant',
-    'Vitre arrière',
-    'Vitre latérale',
     'Pare-brise',
     'Lunette arrière',
-    'Joint de vitre',
-    'Mécanisme lève-vitre',
-    'Poignée de portière',
-    'Serrure de portière',
-    'Barillet de serrure',
-    'Cylindre de serrure',
-
-    // Éclairage
-    'Phare avant',
-    'Feu arrière',
-    'Clignotant',
-    'Feu de brouillard',
-    'Feu de recul',
-    'Feu stop',
-    'Veilleuse',
-    'Ampoule',
-    'LED',
-    'Xenon',
-    'Projecteur',
-    'Réflecteur',
-    'Optique',
-
+    'Vitres latérales',
+    
     // Intérieur
-    'Siège avant',
-    'Siège arrière',
-    'Banquette',
-    'Appui-tête',
-    'Ceinture de sécurité',
-    'Enrouleur de ceinture',
+    'Sièges avant',
+    'Sièges arrière',
     'Tableau de bord',
-    'Compteur',
-    'Combiné d\'instruments',
-    'Autoradio',
-    'GPS',
-    'Écran multimédia',
-    'Haut-parleur',
-    'Antenne',
     'Console centrale',
-    'Boîte à gants',
-    'Vide-poches',
-    'Tapis de sol',
-    'Moquette',
-    'Garniture de portière',
-    'Poignée intérieure',
-    'Commutateur',
-    'Bouton',
-    'Manette',
+    'Volant',
     'Levier de vitesse',
-    'Pommeau de levier',
     'Frein à main',
-    'Pédale',
-    'Accélérateur',
-    'Embrayage',
-    'Frein',
-
-    // Climatisation
-    'Compresseur de climatisation',
-    'Condenseur',
-    'Évaporateur',
-    'Détendeur',
-    'Filtre déshydratant',
-    'Flexible de climatisation',
-    'Gaz réfrigérant',
-    'Ventilateur d\'habitacle',
-    'Pulseur d\'air',
-    'Résistance de chauffage',
-    'Radiateur de chauffage',
-    'Filtre d\'habitacle',
-    'Bouche d\'aération',
-    'Grille d\'aération',
-
-    // Électronique
-    'Calculateur',
-    'ECU',
-    'BCM',
+    'Tapis de sol',
+    'Garnitures de porte',
+    'Ciel de toit',
+    'Airbags',
+    'Ceintures de sécurité',
+    'Autoradio',
+    'Climatisation',
+    'Chauffage',
+    
+    // Électrique
+    'Batterie',
+    'Alternateur',
+    'Démarreur',
     'Faisceau électrique',
-    'Connecteur',
-    'Fusible',
+    'Fusibles',
     'Relais',
-    'Capteur',
-    'Sonde',
-    'Actionneur',
-    'Moteur électrique',
-    'Centrale clignotante',
-    'Régulateur de tension',
-    'Commande électronique',
-
-    // Accessoires
-    'Essuie-glace',
-    'Balai d\'essuie-glace',
-    'Moteur d\'essuie-glace',
-    'Pompe de lave-glace',
-    'Réservoir lave-glace',
-    'Gicleur',
-    'Klaxon',
-    'Avertisseur sonore',
-    'Rétroviseur intérieur',
-    'Pare-soleil',
-    'Plafonnier',
+    'Phares',
+    'Feux arrière',
+    'Clignotants',
+    'Feux de position',
     'Éclairage intérieur',
-    'Prise 12V',
-    'Allume-cigare',
-    'Cendrier',
-    'Attelage',
-    'Crochet d\'attelage',
-    'Faisceau d\'attelage',
-    'Galerie de toit',
-    'Barres de toit',
+    'Calculateur moteur',
+    'Capteurs',
+    
+    // Pneumatiques et jantes
+    'Pneus',
+    'Jantes',
+    'Enjoliveurs',
+    'Valves',
+    'Écrous de roue',
   ];
-
+  
+  /// Recherche des pièces correspondant à la requête
   static List<String> searchParts(String query) {
     if (query.isEmpty) return [];
     
-    final lowercaseQuery = query.toLowerCase();
-    return allParts
-        .where((part) => part.toLowerCase().contains(lowercaseQuery))
-        .take(8) // Limite à 8 suggestions
+    final queryLower = query.toLowerCase();
+    return _allParts
+        .where((part) => part.toLowerCase().contains(queryLower))
+        .take(10)
         .toList();
+  }
+  
+  /// Obtient toutes les pièces disponibles
+  static List<String> getAllParts() => List.from(_allParts);
+  
+  /// Obtient les pièces par catégorie
+  static List<String> getPartsByCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'moteur':
+        return _allParts.take(28).toList();
+      case 'transmission':
+        return _allParts.skip(28).take(10).toList();
+      case 'suspension':
+        return _allParts.skip(38).take(8).toList();
+      case 'direction':
+        return _allParts.skip(46).take(6).toList();
+      case 'freinage':
+        return _allParts.skip(52).take(9).toList();
+      case 'carrosserie':
+        return _allParts.skip(61).take(22).toList();
+      case 'interieur':
+        return _allParts.skip(83).take(16).toList();
+      case 'electrique':
+        return _allParts.skip(99).take(14).toList();
+      case 'pneumatiques':
+        return _allParts.skip(113).take(5).toList();
+      default:
+        return [];
+    }
   }
 }

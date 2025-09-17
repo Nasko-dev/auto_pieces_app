@@ -39,19 +39,19 @@ class OptimizedSupabaseService {
   ) async {
     var query = _supabase
         .from('part_requests')
-        .select('*')
-        .order('created_at', ascending: false)
-        .range(offset, offset + limit - 1);
+        .select('*');
 
     if (partType != null) {
       query = query.eq('part_type', partType);
     }
-    
+
     if (vehicleBrand != null) {
       query = query.eq('vehicle_brand', vehicleBrand);
     }
 
-    return await query;
+    return await query
+        .order('created_at', ascending: false)
+        .range(offset, offset + limit - 1);
   }
 
   /// Récupère les conversations vendeur avec cache optimisé
@@ -224,20 +224,18 @@ class OptimizedSupabaseService {
   Future<int> _fetchCountPartRequests(String? partType, String? vehicleBrand) async {
     var query = _supabase
         .from('part_requests')
-        .select('id', const FetchOptions(count: CountOption.exact));
+        .select('*');
 
     if (partType != null) query = query.eq('part_type', partType);
     if (vehicleBrand != null) query = query.eq('vehicle_brand', vehicleBrand);
 
     final response = await query;
-    return response.count ?? 0;
+    return (response as List).length;
   }
 
   /// Invalide les caches liés aux conversations
   void _invalidateConversationCaches(String sellerId) {
     // Pattern matching pour supprimer tous les caches de conversations
-    final keysToRemove = <String>[];
-    
     // Cette implémentation nécessiterait d'exposer les clés dans PerformanceOptimizer
     // Pour l'instant, on vide tout le cache lié aux conversations
     _cache.clearCache(); // Simplified - ideally would be more selective

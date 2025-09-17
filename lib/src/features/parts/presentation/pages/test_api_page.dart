@@ -20,13 +20,8 @@ class _TestApiPageState extends State<TestApiPage> {
   }
 
   void _startLogging() {
-    final originalPrint = print;
-    print = (Object? object) {
-      setState(() {
-        _logs.add(object.toString());
-      });
-      originalPrint(object);
-    };
+    // Note: Cannot reassign print function in production
+    // This is a placeholder for logging functionality
   }
 
   Future<void> _runTests() async {

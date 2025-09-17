@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../features/parts/presentation/providers/conversations_providers.dart';
 
-class SellerWrapper extends StatefulWidget {
+class SellerWrapper extends ConsumerStatefulWidget {
   final Widget child;
 
   const SellerWrapper({super.key, required this.child});
 
   @override
-  State<SellerWrapper> createState() => _SellerWrapperState();
+  ConsumerState<SellerWrapper> createState() => _SellerWrapperState();
 }
 
-class _SellerWrapperState extends State<SellerWrapper> {
+class _SellerWrapperState extends ConsumerState<SellerWrapper> {
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
@@ -28,67 +30,18 @@ class _SellerWrapperState extends State<SellerWrapper> {
     }
   }
 
-  String _getCurrentPageName(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    switch (location) {
-      case '/seller/home':
-        return 'Tableau de bord';
-      case '/seller/add':
-        return 'Déposer annonce';
-      case '/seller/ads':
-        return 'Mes annonces';
-      case '/seller/messages':
-        return 'Messages';
-      default:
-        return 'Tableau de bord';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(child: widget.child),
-          // Indicateur de page au-dessus de la bottom bar
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              border: Border(
-                top: BorderSide(color: AppTheme.lightGray, width: 0.5),
-              ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1976D2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getCurrentPageName(context),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: const Color(0xFF1976D2),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      body: Column(children: [Expanded(child: widget.child)]),
       // Bottom bar vendeur
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppTheme.white,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.black.withOpacity(0.08),
+              color: AppTheme.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -132,6 +85,7 @@ class _SellerWrapperState extends State<SellerWrapper> {
                   label: 'Messages',
                   route: '/seller/messages',
                   index: 3,
+                  hasUnread: ref.watch(totalUnreadCountProvider) > 0,
                 ),
               ],
             ),
@@ -148,6 +102,7 @@ class _SellerWrapperState extends State<SellerWrapper> {
     required String label,
     required String route,
     required int index,
+    bool hasUnread = false,
   }) {
     final isSelected = _getCurrentIndex(context) == index;
 
@@ -162,10 +117,30 @@ class _SellerWrapperState extends State<SellerWrapper> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isSelected ? selectedIcon : icon,
-                  size: 22,
-                  color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isSelected ? selectedIcon : icon,
+                      size: 22,
+                      color:
+                          isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                    ),
+                    // Point rouge pour messages non lus
+                    if (hasUnread)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF3B30),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(

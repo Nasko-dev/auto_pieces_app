@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/realtime_service.dart';
 import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/entities/particulier_conversation.dart';
@@ -10,12 +12,16 @@ part 'particulier_conversations_providers.freezed.dart';
 
 @freezed
 class ParticulierConversationsState with _$ParticulierConversationsState {
+  const ParticulierConversationsState._();
+
   const factory ParticulierConversationsState({
     @Default([]) List<ParticulierConversation> conversations,
     @Default(false) bool isLoading,
     String? error,
-    @Default(0) int unreadCount,
+    String? activeConversationId,
   }) = _ParticulierConversationsState;
+
+  int get unreadCount => conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
 }
 
 class ParticulierConversationsController extends StateNotifier<ParticulierConversationsState> {
@@ -31,21 +37,78 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
        _realtimeService = realtimeService,
        super(const ParticulierConversationsState()) {
     _initializeRealtimeSubscriptions();
-    _startIntelligentPolling();
+    // Le polling sera démarré dans initializeRealtime() avec les bons IDs
   }
 
   void _initializeRealtimeSubscriptions() {
-    print('🔔 [ParticulierConversations] Initialisation du polling intelligent');
     _realtimeService.startSubscriptions();
+  }
+  
+  // Abonnement global aux messages - même structure que le vendeur
+  void initializeRealtime(String userId) async {
+    _startIntelligentPolling();
+    _subscribeToGlobalMessages(userId);
+  }
+
+  // S'abonner globalement aux messages - exactement comme le vendeur
+  void _subscribeToGlobalMessages(String userId) async {
+    
+    // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
+    final channel = Supabase.instance.client
+        .channel('global_particulier_messages_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            _handleGlobalNewMessage(payload.newRecord, userId);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'conversations',
+          callback: (payload) {
+            // Refresh quand une conversation est mise à jour (ex: unread_count)
+            loadConversations();
+          },
+        );
+    
+    channel.subscribe();
+  }
+
+  // ✅ DB-BASED: Gérer un nouveau message reçu - incrémenter compteur DB
+  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
+    final conversationId = messageData['conversation_id'] as String?;
+    final senderId = messageData['sender_id'] as String?;
+    final senderType = messageData['sender_type'] as String?;
+
+    if (conversationId == null || senderId == null || senderType == null) return;
+
+
+    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
+    if (senderId == userId) {
+      return;
+    }
+
+    // ✅ DB-BASED: Si c'est un message du vendeur, incrémenter compteur DB sauf si conversation active
+    if (senderType == 'seller') {
+      if (state.activeConversationId == conversationId) {
+        // Marquer le message comme lu immédiatement si la conversation est ouverte
+        _markConversationAsReadInDB(conversationId);
+      } else {
+        _incrementUnreadCountInDB(conversationId);
+      }
+    } else {
+    }
   }
 
   void _startIntelligentPolling() {
     if (_isPollingActive) return;
     
     _isPollingActive = true;
-    print('⏰ [ParticulierConversations] Polling de fond activé (10s)');
     
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (mounted) {
         _loadConversationsQuietly();
       }
@@ -53,7 +116,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> loadConversations() async {
-    print('💬 [ParticulierConversations] Chargement conversations');
     
     state = state.copyWith(isLoading: true, error: null);
     
@@ -61,7 +123,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     
     result.fold(
       (failure) {
-        print('❌ [ParticulierConversations] Erreur: ${failure.message}');
         if (mounted) {
           state = state.copyWith(
             isLoading: false,
@@ -70,36 +131,13 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         }
       },
       (conversations) {
-        print('✅ [ParticulierConversations] ${conversations.length} conversations chargées');
-        
-        // Compter les messages non lus
-        final unreadCount = conversations.fold<int>(0, (sum, conv) => 
-          sum + conv.messages.where((msg) => !msg.isFromParticulier && !msg.isRead).length
-        );
-        
-        print('🔔 [ParticulierConversations] $unreadCount non lues');
-        
-        // Débugger les conversations pour voir leur structure
-        _debugConversations(conversations);
-        
+
         if (mounted) {
           state = state.copyWith(
             conversations: conversations,
             isLoading: false,
             error: null,
-            unreadCount: unreadCount,
           );
-          
-          print('🎯 [UI] Affichage de ${conversations.length} conversations particulier');
-          
-          // Grouper par véhicule pour débug
-          final vehicleGroups = <String, List<ParticulierConversation>>{};
-          for (final conv in conversations) {
-            final key = conv.partRequest.vehiclePlate ?? 'Sans plaque';
-            vehicleGroups[key] = (vehicleGroups[key] ?? [])..add(conv);
-          }
-          
-          print('📊 [UI] ${vehicleGroups.keys.length} groupes de véhicules');
         }
       },
     );
@@ -109,51 +147,29 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     final result = await _repository.getParticulierConversations();
     
     result.fold(
-      (failure) {
-        // Log erreur silencieusement
-        print('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}');
-      },
+      (failure) => debugPrint('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
       (conversations) {
         if (mounted) {
-          final unreadCount = conversations.fold<int>(0, (sum, conv) => 
-            sum + conv.messages.where((msg) => !msg.isFromParticulier && !msg.isRead).length
-          );
-          
           state = state.copyWith(
             conversations: conversations,
-            unreadCount: unreadCount,
           );
         }
       },
     );
   }
 
-  void _debugConversations(List<ParticulierConversation> conversations) {
-    print('📝 [ParticulierConversations] Debug des conversations:');
-    for (int i = 0; i < conversations.length; i++) {
-      final conv = conversations[i];
-      print('  - Conv $i: sellerName=${conv.sellerName}, messages=${conv.messages.length}');
-      for (int j = 0; j < conv.messages.length && j < 20; j++) {
-        final msg = conv.messages[j];
-        print('    Msg $j: isFromParticulier=${msg.isFromParticulier}, content="${msg.content}"');
-      }
-    }
-  }
 
   Future<void> loadConversationDetails(String conversationId) async {
-    print('📨 [ChatDetail] Chargement messages conversation: $conversationId');
     
     final result = await _repository.getParticulierConversationById(conversationId);
     
     result.fold(
       (failure) {
-        print('❌ [ChatDetail] Erreur: ${failure.message}');
         if (mounted) {
           state = state.copyWith(error: failure.message);
         }
       },
       (conversation) {
-        print('✅ [ChatDetail] Conversation chargée: ${conversation.messages.length} messages');
         
         // Mettre à jour la conversation dans la liste
         final updatedConversations = state.conversations.map((c) => 
@@ -171,7 +187,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> sendMessage(String conversationId, String content) async {
-    print('📤 [ChatDetail] Envoi message: $content');
     
     final result = await _repository.sendParticulierMessage(
       conversationId: conversationId,
@@ -180,34 +195,59 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     
     result.fold(
       (failure) {
-        print('❌ [ChatDetail] Erreur envoi: ${failure.message}');
         throw Exception(failure.message);
       },
       (_) {
-        print('✅ [ChatDetail] Message envoyé');
         // Recharger la conversation pour voir le nouveau message
         loadConversationDetails(conversationId);
       },
     );
   }
 
-  Future<void> markConversationAsRead(String conversationId) async {
-    print('👀 [ChatDetail] Marquer comme lu: $conversationId');
-    
-    final result = await _repository.markParticulierConversationAsRead(conversationId);
-    
-    result.fold(
-      (failure) => print('⚠️ [ChatDetail] Erreur marquage lu: ${failure.message}'),
-      (_) {
-        print('✅ [ChatDetail] Marqué comme lu');
-        // Recharger pour mettre à jour les compteurs
-        loadConversationDetails(conversationId);
-      },
-    );
+  // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
+  void markConversationAsRead(String conversationId) {
+
+    // Marquer en DB
+    _markConversationAsReadInDB(conversationId);
+
+    // Marquer comme conversation active
+    state = state.copyWith(activeConversationId: conversationId);
+
+  }
+
+  // ✅ DB-BASED: Incrémenter compteur particulier en DB
+  void _incrementUnreadCountInDB(String conversationId) async {
+    try {
+      await _repository.incrementUnreadCountForUser(conversationId: conversationId);
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      debugPrint('Erreur lors de l\'incrémentation du compteur: $e');
+    }
+  }
+
+  // ✅ DB-BASED: Marquer conversation comme lue en DB
+  void _markConversationAsReadInDB(String conversationId) async {
+    try {
+      await _repository.markParticulierMessagesAsRead(
+        conversationId: conversationId,
+      );
+      // Refresh pour récupérer le nouveau compteur
+      loadConversations();
+    } catch (e) {
+      debugPrint('Erreur lors du marquage comme lu: $e');
+    }
+  }
+
+  // ✅ SIMPLE: Désactiver la conversation active
+  void setConversationInactive() {
+    // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
+    Future.microtask(() {
+      state = state.copyWith(activeConversationId: null);
+    });
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    print('🗑️ [ChatDetail] Suppression conversation: $conversationId');
     
     // TODO: Implémenter la suppression côté repository
     // Pour l'instant, on simule en retirant de la liste locale
@@ -219,7 +259,20 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       state = state.copyWith(conversations: updatedConversations);
     }
     
-    print('✅ [ChatDetail] Conversation supprimée localement');
+  }
+  
+  Future<void> blockConversation(String conversationId) async {
+    
+    // TODO: Implémenter le blocage côté repository
+    // Pour l'instant, on simule en retirant de la liste locale
+    final updatedConversations = state.conversations
+        .where((c) => c.id != conversationId)
+        .toList();
+    
+    if (mounted) {
+      state = state.copyWith(conversations: updatedConversations);
+    }
+    
   }
 
   @override

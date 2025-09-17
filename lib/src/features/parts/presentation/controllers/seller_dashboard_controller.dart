@@ -49,14 +49,12 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
         super(const SellerDashboardState.initial());
 
   Future<void> loadNotifications() async {
-    print('📊 [SellerDashboard] Chargement notifications');
     state = const SellerDashboardState.loading();
 
     final result = await _getSellerNotifications(NoParams());
 
     result.fold(
       (failure) {
-        print('❌ [SellerDashboard] Erreur: ${failure.toString()}');
         state = SellerDashboardState.error(failure.toString());
       },
       (partRequests) {
@@ -66,8 +64,6 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
         
         final unreadCount = notifications.where((n) => n.isNew).length;
         
-        print('✅ [SellerDashboard] ${notifications.length} notifications chargées');
-        print('🔔 [SellerDashboard] $unreadCount non lues');
         
         state = SellerDashboardState.loaded(
           notifications: notifications,
@@ -77,8 +73,8 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
     );
   }
 
-  void refresh() {
-    loadNotifications();
+  Future<void> refresh() async {
+    await loadNotifications();
   }
 }
 

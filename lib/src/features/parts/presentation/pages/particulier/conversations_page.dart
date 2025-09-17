@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
-import 'conversation_detail_page.dart';
 import '../../../domain/entities/particulier_conversation.dart';
 
 class MessagesPageColored extends ConsumerStatefulWidget {
@@ -19,15 +18,22 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
   @override
   void initState() {
     super.initState();
-    // Charger les conversations au démarrage
+    // Charger les conversations au démarrage et initialiser le realtime
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      controller.loadConversations();
+      
+      // Initialiser le realtime pour refresh automatique instantané
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        controller.initializeRealtime(userId);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final conversationsAsync = ref.watch(particulierConversationsControllerProvider);
+    final conversationsState = ref.watch(particulierConversationsControllerProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFE5E5EA),
@@ -43,35 +49,47 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
           ),
         ),
         actions: [
+          // Bouton pour accéder au test des messages non lus
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Test messages non lus',
+            onPressed: () {
+              context.push('/test-unread');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {},
           ),
         ],
       ),
-      body: _buildBody(conversationsAsync),
+      body: _buildBody(conversationsState),
     );
   }
 
-  Widget _buildBody(AsyncValue<List<ParticulierConversation>> conversationsAsync) {
-    return conversationsAsync.when(
-      loading: () => const Center(
+  Widget _buildBody(ParticulierConversationsState conversationsState) {
+    if (conversationsState.isLoading && conversationsState.conversations.isEmpty) {
+      return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
         ),
-      ),
-      error: (error, _) => Center(
+      );
+    }
+    
+    if (conversationsState.error != null && conversationsState.conversations.isEmpty) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Text('Erreur: $error'),
+            Text('Erreur: ${conversationsState.error}'),
           ],
         ),
-      ),
-      data: (conversations) => _buildConversationsList(conversations),
-    );
+      );
+    }
+    
+    return _buildConversationsList(conversationsState.conversations);
   }
 
   Widget _buildConversationsList(List<ParticulierConversation> conversations) {
@@ -114,7 +132,11 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
     final Map<String, List<ParticulierConversation>> groups = {};
     
     for (final conversation in conversations) {
-      final title = conversation.requestTitle ?? 'Véhicule non spécifié';
+      // Utiliser vehiclePlate ou partType comme titre de groupe
+      final title = conversation.vehiclePlate ?? 
+                   conversation.partType ?? 
+                   conversation.partNames?.join(', ') ?? 
+                   'Véhicule non spécifié';
       if (!groups.containsKey(title)) {
         groups[title] = [];
       }
@@ -125,7 +147,7 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
       final conversations = entry.value;
       final totalUnread = conversations.fold<int>(
         0,
-        (sum, conv) => sum + ((conv.unreadCount ?? 0) as int),
+        (sum, conv) => sum + conv.unreadCount,
       );
       
       return {
@@ -154,7 +176,6 @@ class _VehicleGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final conversations = group['conversations'] as List<ParticulierConversation>;
-    final unreadCount = group['unreadCount'] as int;
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -199,7 +220,7 @@ class _VehicleGroup extends StatelessWidget {
                     ),
                     
                     // Badge avec nombre (exactement comme WhatsApp)
-                    if (conversations.length > 0) ...[
+                    if (conversations.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -308,7 +329,7 @@ class _ConversationItem extends StatelessWidget {
                         // Nom du vendeur
                         Expanded(
                           child: Text(
-                            conversation.sellerName ?? 'Vendeur',
+                            conversation.sellerName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -334,7 +355,9 @@ class _ConversationItem extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            conversation.lastMessage ?? 'Demande d\'informations sur cet...',
+                            conversation.messages.isNotEmpty 
+                              ? conversation.messages.last.content
+                              : 'Demande d\'informations sur cet...',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF8E8E93),

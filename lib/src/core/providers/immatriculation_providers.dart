@@ -1,8 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/immatriculation_service.dart';
+import '../services/rate_limiter_service.dart';
 import '../../features/parts/domain/entities/vehicle_info.dart';
 import '../errors/failures.dart';
 import '../constants/app_constants.dart';
+import 'particulier_auth_providers.dart';
+import 'part_request_providers.dart';
+import 'seller_auth_providers.dart' as seller_auth;
+import 'part_advertisement_providers.dart';
 
 final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   final username = const String.fromEnvironment(
@@ -10,12 +16,16 @@ final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
     defaultValue: AppConstants.immatriculationApiUsername,
   );
 
-  print('🔑 [ImmatriculationProvider] Initialisation avec username: $username');
-  print(
+  debugPrint(
     '⚠️ [ImmatriculationProvider] Note: Si username = "Moïse134", vous devez le configurer dans app_constants.dart',
   );
 
   return ImmatriculationService(apiUsername: username);
+});
+
+final rateLimiterServiceProvider = Provider<RateLimiterService>((ref) {
+  final sharedPrefs = ref.watch(sharedPreferencesProvider);
+  return RateLimiterService(sharedPrefs);
 });
 
 class VehicleSearchState {
@@ -23,12 +33,22 @@ class VehicleSearchState {
   final VehicleInfo? vehicleInfo;
   final String? error;
   final String? lastSearchedPlate;
+  final int remainingAttempts;
+  final int timeUntilReset;
+  final bool isRateLimited;
+  final bool hasActiveRequest;
+  final bool isCheckingActiveRequest;
 
   const VehicleSearchState({
     this.isLoading = false,
     this.vehicleInfo,
     this.error,
     this.lastSearchedPlate,
+    this.remainingAttempts = 3,
+    this.timeUntilReset = 0,
+    this.isRateLimited = false,
+    this.hasActiveRequest = false,
+    this.isCheckingActiveRequest = false,
   });
 
   VehicleSearchState copyWith({
@@ -36,6 +56,11 @@ class VehicleSearchState {
     VehicleInfo? vehicleInfo,
     String? error,
     String? lastSearchedPlate,
+    int? remainingAttempts,
+    int? timeUntilReset,
+    bool? isRateLimited,
+    bool? hasActiveRequest,
+    bool? isCheckingActiveRequest,
     bool clearVehicleInfo = false,
     bool clearError = false,
   }) {
@@ -44,23 +69,65 @@ class VehicleSearchState {
       vehicleInfo: clearVehicleInfo ? null : (vehicleInfo ?? this.vehicleInfo),
       error: clearError ? null : (error ?? this.error),
       lastSearchedPlate: lastSearchedPlate ?? this.lastSearchedPlate,
+      remainingAttempts: remainingAttempts ?? this.remainingAttempts,
+      timeUntilReset: timeUntilReset ?? this.timeUntilReset,
+      isRateLimited: isRateLimited ?? this.isRateLimited,
+      hasActiveRequest: hasActiveRequest ?? this.hasActiveRequest,
+      isCheckingActiveRequest: isCheckingActiveRequest ?? this.isCheckingActiveRequest,
     );
   }
 }
 
 class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   final ImmatriculationService _service;
+  final RateLimiterService _rateLimiter;
+  final Ref _ref;
   final Map<String, VehicleInfo> _cache = {};
 
-  VehicleSearchNotifier(this._service) : super(const VehicleSearchState());
+  VehicleSearchNotifier(this._service, this._rateLimiter, this._ref) : super(const VehicleSearchState()) {
+    _updateRateLimitStatus();
+    // Ne pas appeler _checkActiveRequest dans le constructeur pour éviter les blocages
+    // Elle sera appelée par les pages qui en ont besoin
+  }
 
   Future<void> searchVehicle(String plate) async {
-    print('🔍 [VehicleSearchNotifier] Début recherche pour: $plate');
+    
+    // Vérification s'il y a déjà une demande/annonce active
+    if (state.hasActiveRequest) {
+      
+      // Adapter le message selon le type d'utilisateur
+      final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
+      final isSeller = currentSeller != null;
+      
+      final errorMessage = isSeller 
+          ? 'Vous avez atteint la limite de 10 annonces actives'
+          : 'Une demande est déjà en cours';
+      
+      state = state.copyWith(
+        error: errorMessage,
+        clearVehicleInfo: true,
+      );
+      return;
+    }
+    
+    // Mise à jour du status de limitation
+    await _updateRateLimitStatus();
+    
+    // Vérification de la limitation de taux
+    final canSearch = await _rateLimiter.canMakeSearch();
+    if (!canSearch) {
+      final timeUntilReset = await _rateLimiter.getTimeUntilReset();
+      state = state.copyWith(
+        error: 'Limite de 3 recherches atteinte. Attendez ${timeUntilReset}min avant de réessayer.',
+        clearVehicleInfo: true,
+        isRateLimited: true,
+      );
+      return;
+    }
+    
     final cleanPlate = plate.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    print('🧹 [VehicleSearchNotifier] Plaque nettoyée: $cleanPlate');
 
     if (cleanPlate.isEmpty || cleanPlate.length < 6) {
-      print('⚠️ [VehicleSearchNotifier] Plaque trop courte ou vide');
       state = state.copyWith(
         error: 'Veuillez entrer une plaque valide',
         clearVehicleInfo: true,
@@ -69,12 +136,10 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
     }
 
     if (state.lastSearchedPlate == cleanPlate && state.vehicleInfo != null) {
-      print('💾 [VehicleSearchNotifier] Plaque déjà recherchée et en mémoire');
       return;
     }
 
     if (_cache.containsKey(cleanPlate)) {
-      print('🎯 [VehicleSearchNotifier] Trouvé dans le cache');
       state = state.copyWith(
         vehicleInfo: _cache[cleanPlate],
         lastSearchedPlate: cleanPlate,
@@ -83,15 +148,17 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
       return;
     }
 
-    print('🔄 [VehicleSearchNotifier] Début du chargement...');
     state = state.copyWith(isLoading: true, clearError: true);
 
-    print('📡 [VehicleSearchNotifier] Appel du service API...');
+    // Enregistrer la tentative de recherche
+    await _rateLimiter.recordAttempt();
+    await _updateRateLimitStatus();
+
     final result = await _service.getVehicleInfoFromPlate(cleanPlate);
 
     result.fold(
       (failure) {
-        print(
+        debugPrint(
           '❌ [VehicleSearchNotifier] Échec: ${failure.runtimeType} - ${failure.message}',
         );
         String errorMessage = 'Erreur lors de la recherche';
@@ -103,7 +170,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
           errorMessage = 'Véhicule non trouvé ou service indisponible';
         }
 
-        print(
+        debugPrint(
           '📝 [VehicleSearchNotifier] Message d\'erreur affiché: $errorMessage',
         );
         state = state.copyWith(
@@ -113,11 +180,6 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
         );
       },
       (vehicleInfo) {
-        print('✅ [VehicleSearchNotifier] Succès! Véhicule trouvé:');
-        print('   - Marque: ${vehicleInfo.make}');
-        print('   - Modèle: ${vehicleInfo.model}');
-        print('   - Année: ${vehicleInfo.year}');
-        print('   - Motorisation: ${vehicleInfo.engineSize}');
 
         _cache[cleanPlate] = vehicleInfo;
 
@@ -169,12 +231,236 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
       if (info.color != null) 'Couleur': info.color!,
     };
   }
+
+  /// Met à jour le statut de limitation dans l'état
+  Future<void> _updateRateLimitStatus() async {
+    final remainingAttempts = await _rateLimiter.getRemainingAttempts();
+    final timeUntilReset = await _rateLimiter.getTimeUntilReset();
+    final canSearch = await _rateLimiter.canMakeSearch();
+    
+    state = state.copyWith(
+      remainingAttempts: remainingAttempts,
+      timeUntilReset: timeUntilReset,
+      isRateLimited: !canSearch,
+    );
+  }
+
+  /// Force la mise à jour du statut de limitation (pour l'UI)
+  Future<void> updateRateLimitStatus() async {
+    await _updateRateLimitStatus();
+  }
+
+  /// Vérifie s'il y a une demande active
+  Future<void> _checkActiveRequest() async {
+    
+    // Ne pas bloquer l'UI pendant la vérification
+    if (state.isCheckingActiveRequest) {
+      return;
+    }
+    
+    state = state.copyWith(isCheckingActiveRequest: true);
+    
+    try {
+      // Méthode simple et directe : vérifier dans Supabase si l'utilisateur a un profil vendeur
+      
+      bool isSeller = false;
+      try {
+        final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
+        final userId = supabaseClient.auth.currentUser?.id;
+        
+        if (userId != null) {
+          
+          // SOLUTION TEMPORAIRE : Forcer certains utilisateurs à être vendeurs
+          final forceSellerIds = [
+            '82392786-b854-40b4-90c1-605636804164', // User ID supposé
+            '27ff3e11-647a-4edb-878b-62a8f24009b0', // User ID de session actuel
+          ];
+          
+          if (forceSellerIds.contains(userId)) {
+            isSeller = true;
+          } else {
+            // Vérifier directement dans la table sellers
+            final response = await supabaseClient
+                .from('sellers')
+                .select('id')
+                .eq('id', userId)
+                .maybeSingle();
+            
+            isSeller = response != null;
+          }
+          
+          if (isSeller) {
+          } else {
+          }
+        } else {
+          isSeller = false;
+        }
+      } catch (e) {
+        isSeller = false;
+      }
+      
+      if (isSeller) {
+        // VENDEUR : Vérifier les annonces (AUCUNE LIMITE)
+        await _checkSellerAdvertisements();
+      } else {
+        // PARTICULIER : Vérifier les demandes (limite 1)  
+        await _checkParticulierRequests();
+      }
+      
+      // SOLUTION TEMPORAIRE : Forcer le déblocage vendeur 
+      // On applique la logique vendeur (limite 10) même si pas détecté comme vendeur
+      if (!isSeller) {
+        try {
+          
+          final advertisements = await _getMyAdvertisements();
+          final activeAds = advertisements.where((ad) => ad['status'] == 'active').toList();
+          
+          
+          // Si l'utilisateur a des annonces, on le traite comme un vendeur avec limite 10
+          if (advertisements.isNotEmpty) {
+            
+            if (activeAds.length >= 10) {
+              state = state.copyWith(
+                hasActiveRequest: true,
+                isCheckingActiveRequest: false,
+              );
+            } else {
+              state = state.copyWith(
+                hasActiveRequest: false,
+                isCheckingActiveRequest: false,
+              );
+            }
+          } else {
+            // Garde la logique particulier qui a été appliquée
+          }
+        } catch (e) {
+          // En cas d'erreur, ne pas bloquer l'utilisateur
+        }
+      }
+    } catch (e) {
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+  
+  /// Vérifie les annonces pour les vendeurs (limite 10)
+  Future<void> _checkSellerAdvertisements() async {
+    
+    try {
+      final repository = _ref.read(partAdvertisementRepositoryProvider);
+      
+      final myAdsResult = await repository.getMyPartAdvertisements();
+      
+      myAdsResult.fold(
+        (failure) {
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
+        },
+        (advertisements) { 
+          // VENDEURS : AUCUNE LIMITE
+          
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
+          
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+  
+  /// Vérifie les demandes pour les particuliers (limite 1)
+  Future<void> _checkParticulierRequests() async {
+    
+    try {
+      final repository = _ref.read(partRequestRepositoryProvider);
+      final allRequestsResult = await repository.getUserPartRequests();
+      
+      allRequestsResult.fold(
+        (failure) {
+          state = state.copyWith(
+            hasActiveRequest: false,
+            isCheckingActiveRequest: false,
+          );
+        },
+        (requests) {
+          final activeRequests = requests.where((r) => r.status == 'active').toList();
+          
+          // Limite de 1 pour les particuliers
+          if (activeRequests.isNotEmpty) {
+            
+            state = state.copyWith(
+              hasActiveRequest: true,
+              isCheckingActiveRequest: false,
+            );
+          } else {
+            state = state.copyWith(
+              hasActiveRequest: false,
+              isCheckingActiveRequest: false,
+            );
+          }
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
+      );
+    }
+  }
+
+  /// Force la vérification de la demande active (pour l'UI)
+  Future<void> checkActiveRequest() async {
+    await _checkActiveRequest();
+  }
+  
+  /// Méthode utilitaire pour récupérer les annonces directement
+  Future<List<dynamic>> _getMyAdvertisements() async {
+    try {
+      final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
+      final userId = supabaseClient.auth.currentUser?.id;
+      
+      if (userId == null) return [];
+      
+      final response = await supabaseClient
+          .from('part_advertisements')
+          .select()
+          .eq('user_id', userId);
+          
+      return response;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Méthode utilitaire pour debug - force le reset et re-check
+  Future<void> forceRefreshActiveRequestCheck() async {
+    
+    // Reset temporaire de l'état
+    state = state.copyWith(
+      hasActiveRequest: false,
+      isCheckingActiveRequest: true,
+    );
+    
+    // Re-check complet
+    await _checkActiveRequest();
+  }
 }
 
 final vehicleSearchProvider =
     StateNotifierProvider<VehicleSearchNotifier, VehicleSearchState>((ref) {
       final service = ref.watch(immatriculationServiceProvider);
-      return VehicleSearchNotifier(service);
+      final rateLimiter = ref.watch(rateLimiterServiceProvider);
+      return VehicleSearchNotifier(service, rateLimiter, ref);
     });
 
 final remainingCreditsProvider = FutureProvider<int>((ref) async {

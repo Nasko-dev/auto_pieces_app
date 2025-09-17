@@ -20,6 +20,11 @@ _$ConversationImpl _$$ConversationImplFromJson(Map<String, dynamic> json) =>
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       sellerName: json['sellerName'] as String?,
       sellerCompany: json['sellerCompany'] as String?,
+      sellerAvatarUrl: json['sellerAvatarUrl'] as String?,
+      sellerPhone: json['sellerPhone'] as String?,
+      userName: json['userName'] as String?,
+      userDisplayName: json['userDisplayName'] as String?,
+      userAvatarUrl: json['userAvatarUrl'] as String?,
       requestTitle: json['requestTitle'] as String?,
       lastMessageContent: json['lastMessageContent'] as String?,
       lastMessageSenderType: $enumDecodeNullable(
@@ -29,6 +34,12 @@ _$ConversationImpl _$$ConversationImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['lastMessageCreatedAt'] as String),
       unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
       totalMessages: (json['totalMessages'] as num?)?.toInt() ?? 0,
+      vehicleBrand: json['vehicleBrand'] as String?,
+      vehicleModel: json['vehicleModel'] as String?,
+      vehicleYear: (json['vehicleYear'] as num?)?.toInt(),
+      vehicleEngine: json['vehicleEngine'] as String?,
+      partType: json['partType'] as String?,
+      particulierFirstName: json['particulierFirstName'] as String?,
     );
 
 Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
@@ -43,6 +54,11 @@ Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
       'updatedAt': instance.updatedAt.toIso8601String(),
       'sellerName': instance.sellerName,
       'sellerCompany': instance.sellerCompany,
+      'sellerAvatarUrl': instance.sellerAvatarUrl,
+      'sellerPhone': instance.sellerPhone,
+      'userName': instance.userName,
+      'userDisplayName': instance.userDisplayName,
+      'userAvatarUrl': instance.userAvatarUrl,
       'requestTitle': instance.requestTitle,
       'lastMessageContent': instance.lastMessageContent,
       'lastMessageSenderType':
@@ -50,6 +66,12 @@ Map<String, dynamic> _$$ConversationImplToJson(_$ConversationImpl instance) =>
       'lastMessageCreatedAt': instance.lastMessageCreatedAt?.toIso8601String(),
       'unreadCount': instance.unreadCount,
       'totalMessages': instance.totalMessages,
+      'vehicleBrand': instance.vehicleBrand,
+      'vehicleModel': instance.vehicleModel,
+      'vehicleYear': instance.vehicleYear,
+      'vehicleEngine': instance.vehicleEngine,
+      'partType': instance.partType,
+      'particulierFirstName': instance.particulierFirstName,
     };
 
 const _$ConversationStatusEnumMap = {

@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/providers/particulier_conversations_providers.dart';
 import 'auth_wrapper.dart';
 
-class MainWrapper extends StatefulWidget {
+class MainWrapper extends ConsumerStatefulWidget {
   final Widget child;
-  
+
   const MainWrapper({
     super.key,
     required this.child,
   });
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  ConsumerState<MainWrapper> createState() => _MainWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class _MainWrapperState extends ConsumerState<MainWrapper> {
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
@@ -44,7 +46,7 @@ class _MainWrapperState extends State<MainWrapper> {
             color: AppTheme.white,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.black.withOpacity(0.08),
+                color: AppTheme.black.withValues(alpha: 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -80,6 +82,7 @@ class _MainWrapperState extends State<MainWrapper> {
                     label: 'Messages',
                     route: '/messages-clients',
                     index: 2,
+                    hasUnread: ref.watch(particulierConversationsControllerProvider).unreadCount > 0,
                   ),
                   _buildNavItem(
                     context: context,
@@ -105,9 +108,10 @@ class _MainWrapperState extends State<MainWrapper> {
     required String label,
     required String route,
     required int index,
+    bool hasUnread = false,
   }) {
     final isSelected = _getCurrentIndex(context) == index;
-    
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
@@ -119,10 +123,29 @@ class _MainWrapperState extends State<MainWrapper> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isSelected ? selectedIcon : icon,
-                  size: 22,
-                  color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isSelected ? selectedIcon : icon,
+                      size: 22,
+                      color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
+                    ),
+                    // Point rouge pour messages non lus
+                    if (hasUnread)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF3B30),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(

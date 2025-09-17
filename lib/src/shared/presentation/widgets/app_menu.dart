@@ -3,16 +3,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
+import '../../../core/providers/user_settings_providers.dart';
 
 class AppMenu extends ConsumerWidget {
   const AppMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profileStatusAsync = ref.watch(particulierProfileStatusProvider);
+    final settingsStatusAsync = ref.watch(particulierSettingsStatusProvider);
+    final menuStatusAsync = ref.watch(particulierMenuStatusProvider);
+
     return PopupMenuButton<String>(
-      icon: const Icon(
-        Icons.more_vert,
-        color: AppTheme.gray,
+      icon: Stack(
+        children: [
+          const Icon(
+            Icons.more_vert,
+            color: Colors.white,
+          ),
+          // Point rouge d'alerte si le profil OU les paramètres nécessitent une action
+          menuStatusAsync.when(
+            data: (needsAction) => needsAction
+                ? Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+        ],
       ),
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -36,13 +64,36 @@ class AppMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'profile',
           child: Row(
             children: [
-              Icon(Icons.person_outline, color: AppTheme.darkGray, size: 20),
-              SizedBox(width: 12),
-              Text(
+              Stack(
+                children: [
+                  const Icon(Icons.person_outline, color: AppTheme.darkGray, size: 20),
+                  // Point rouge sur l'icône profil si nécessaire
+                  profileStatusAsync.when(
+                    data: (needsAction) => needsAction
+                        ? Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              const Text(
                 'Mon profil',
                 style: TextStyle(
                   color: AppTheme.darkGray,
@@ -52,17 +103,69 @@ class AppMenu extends ConsumerWidget {
             ],
           ),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'settings',
           child: Row(
             children: [
-              Icon(Icons.settings_outlined, color: AppTheme.darkGray, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Paramètres',
-                style: TextStyle(
-                  color: AppTheme.darkGray,
-                  fontWeight: FontWeight.w500,
+              Stack(
+                children: [
+                  const Icon(Icons.settings_outlined, color: AppTheme.darkGray, size: 20),
+                  // Point rouge sur l'icône paramètres si nécessaire (localisation + téléphone)
+                  settingsStatusAsync.when(
+                    data: (needsAction) => needsAction
+                        ? Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Text(
+                      'Paramètres',
+                      style: TextStyle(
+                        color: AppTheme.darkGray,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    // Badge texte d'alerte si nécessaire (localisation + téléphone)
+                    settingsStatusAsync.when(
+                      data: (needsAction) => needsAction
+                          ? Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Action requise',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -106,30 +209,15 @@ class AppMenu extends ConsumerWidget {
   }
 
   void _showProfile(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/profile');
   }
 
   void _showSettings(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Paramètres - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/settings');
   }
 
   void _showHelp(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Aide - Fonctionnalité à venir'),
-        backgroundColor: AppTheme.primaryBlue,
-      ),
-    );
+    context.go('/help');
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {

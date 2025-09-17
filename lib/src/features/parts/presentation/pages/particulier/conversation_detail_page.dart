@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
+import '../../widgets/message_bubble_widget.dart';
+import '../../../domain/entities/conversation_enums.dart';
 
 class ConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -26,7 +30,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     // Charger les détails de la conversation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversationDetails();
-      _markAsRead();
+      // _markAsRead(); // Marquage désactivé temporairement
     });
   }
 
@@ -39,10 +43,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _loadConversationDetails() {
     ref.read(particulierConversationsControllerProvider.notifier).loadConversationDetails(widget.conversationId);
-  }
-
-  void _markAsRead() {
-    ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
   }
 
   void _scrollToBottom() {
@@ -63,12 +63,12 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: conversationsAsync.isLoading 
+      backgroundColor: Colors.white,
+      body: conversationsAsync.isLoading
         ? const Center(child: CircularProgressIndicator())
         : conversationsAsync.error != null
             ? _buildErrorView(context, conversationsAsync.error!)
-            : () {
+            : (() {
                 final conversation = conversationsAsync.conversations
                     .where((c) => c.id == widget.conversationId)
                     .firstOrNull;
@@ -77,88 +77,107 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                   return _buildNotFoundView(context);
                 }
 
-                return Column(
-                  children: [
-                    _buildAppBar(context, conversation, theme),
+                return Scaffold(
+                  appBar: AppBar(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 1,
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
+                    title: _buildInstagramAppBarTitle(conversation),
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.phone_outlined, color: Colors.black),
+                        onPressed: () => _makePhoneCall(conversation),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+                        onPressed: () => _makeVideoCall(conversation),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.black),
+                        onSelected: (value) => _handleMenuAction(value),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              leading: Icon(Icons.delete, color: Colors.red),
+                              title: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'block',
+                            child: ListTile(
+                              leading: Icon(Icons.block),
+                              title: Text('Bloquer le vendeur'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  body: Column(
+                    children: [
                     _buildConversationInfo(conversation, theme),
                     Expanded(
-                      child: _buildMessagesList(conversation.messages, theme),
+                      child: _buildMessagesList(conversation.messages, conversation, theme),
                     ),
-                    _buildMessageInput(theme),
+                    ChatInputWidget(
+                      controller: _messageController,
+                      onSend: (content) => _sendMessage(),
+                      onCamera: _takePhoto,
+                      onGallery: _pickFromGallery,
+                      onOffer: null, // Pas d'offres pour les particuliers
+                      isLoading: _isSending,
+                    ),
                   ],
+                  ),
                 );
-              }(),
+              })()
     );
   }
 
-  Widget _buildAppBar(BuildContext context, dynamic conversation, ThemeData theme) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        left: 16,
-        right: 16,
-        bottom: 8,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.store,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  conversation.sellerName ?? 'Vendeur',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+  Widget _buildInstagramAppBarTitle(dynamic conversation) {
+    return Row(
+      children: [
+        // Avatar du vendeur
+        _buildSellerAvatar(conversation),
+
+        const SizedBox(width: 12),
+
+        // Informations style Instagram
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getSellerDisplayName(conversation),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                Text(
-                  conversation.partType ?? 'Pièce auto',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 14,
-                  ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'En ligne',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () {
-              _showOptionsMenu(context);
-            },
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -222,7 +241,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
-  Widget _buildMessagesList(List<dynamic> messages, ThemeData theme) {
+  Widget _buildMessagesList(List<dynamic> messages, dynamic conversation, ThemeData theme) {
     if (messages.isEmpty) {
       return const Center(
         child: Text(
@@ -241,23 +260,24 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: sortedMessages.length,
       itemBuilder: (context, index) {
         final message = sortedMessages[index];
-        final isFromMe = message.isFromParticulier;
-        final showTimestamp = index == 0 || 
+        final showTimestamp = index == 0 ||
             _shouldShowTimestamp(
               sortedMessages[index - 1].createdAt,
               message.createdAt,
             );
 
-        return Column(
-          children: [
-            if (showTimestamp) _buildTimestamp(message.createdAt),
-            _buildMessageBubble(message, isFromMe, theme),
-            const SizedBox(height: 4),
-          ],
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            children: [
+              if (showTimestamp) _buildTimestamp(message.createdAt),
+              _buildMessageBubbleWithAvatar(message, conversation),
+            ],
+          ),
         );
       },
     );
@@ -277,150 +297,68 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     );
   }
 
-  Widget _buildMessageBubble(dynamic message, bool isFromMe, ThemeData theme) {
-    return Align(
-      alignment: isFromMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isFromMe 
-            ? theme.colorScheme.primary
-            : Colors.white,
-          borderRadius: BorderRadius.circular(20).copyWith(
-            bottomRight: isFromMe ? const Radius.circular(4) : null,
-            bottomLeft: !isFromMe ? const Radius.circular(4) : null,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message.content,
-              style: TextStyle(
-                fontSize: 16,
-                color: isFromMe ? Colors.white : Colors.black87,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  _formatMessageTime(message.createdAt),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isFromMe 
-                      ? Colors.white.withOpacity(0.7)
-                      : Colors.grey[600],
-                  ),
-                ),
-                if (isFromMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    message.isRead ? Icons.done_all : Icons.done,
-                    size: 16,
-                    color: message.isRead 
-                      ? Colors.blue[200]
-                      : Colors.white.withOpacity(0.7),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _takePhoto() async {
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        // TODO: Envoyer la photo en tant que message
+        _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de la prise de photo');
+    }
   }
 
-  Widget _buildMessageInput(ThemeData theme) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: MediaQuery.of(context).padding.bottom + 8,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey, width: 0.2),
+  Future<void> _pickFromGallery() async {
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        // TODO: Envoyer l'image en tant que message
+        _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de la sélection d\'image');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
         ),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  controller: _messageController,
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    hintText: 'Tapez votre message...',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: _isSending ? null : _sendMessage,
-                  child: Center(
-                    child: _isSending 
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.send,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+      );
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildErrorView(BuildContext context, String error) {
@@ -515,33 +453,15 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     }
   }
 
-  void _showOptionsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Supprimer la conversation'),
-              onTap: () {
-                Navigator.pop(context);
-                _deleteConversation();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.block),
-              title: const Text('Bloquer le vendeur'),
-              onTap: () {
-                Navigator.pop(context);
-                _blockConversation();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'delete':
+        _deleteConversation();
+        break;
+      case 'block':
+        _blockConversation();
+        break;
+    }
   }
 
   void _deleteConversation() async {
@@ -604,18 +524,168 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   String _formatTimestamp(DateTime dateTime) {
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final localDateTime = dateTime.toLocal(); // Conversion UTC vers heure locale
+    final difference = now.difference(localDateTime);
     
     if (difference.inDays == 0) {
-      return 'Aujourd\'hui ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      return 'Aujourd\'hui ${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
     } else if (difference.inDays == 1) {
-      return 'Hier ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      return 'Hier ${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
     } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      return '${localDateTime.day}/${localDateTime.month}/${localDateTime.year} ${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
     }
   }
 
-  String _formatMessageTime(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  Widget _buildMessageBubbleWithAvatar(dynamic message, dynamic conversation) {
+    return MessageBubbleWidget(
+      message: message,
+      currentUserType: MessageSenderType.user, // Côté particulier
+      isLastMessage: false, // Géré différemment dans cette page
+      otherUserName: _getSellerDisplayName(conversation),
+      otherUserAvatarUrl: conversation.sellerAvatarUrl,
+      otherUserCompany: conversation.sellerCompany,
+    );
+  }
+
+  Widget _buildSellerAvatar(dynamic conversation) {
+    if (conversation.sellerAvatarUrl != null && conversation.sellerAvatarUrl!.isNotEmpty) {
+      // Avatar style Instagram avec vraie photo
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            conversation.sellerAvatarUrl!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultSellerAvatar();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildDefaultSellerAvatar();
+            },
+          ),
+        ),
+      );
+    } else {
+      return _buildDefaultSellerAvatar();
+    }
+  }
+
+  Widget _buildDefaultSellerAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color(0xFF405DE6), const Color(0xFF5851DB)], // Gradient Instagram bleu
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.business,
+        color: Colors.white,
+        size: 16,
+      ),
+    );
+  }
+
+  String _getSellerDisplayName(dynamic conversation) {
+    // Priorité : nom d'entreprise > nom vendeur > "Vendeur"
+    if (conversation.sellerCompany != null && conversation.sellerCompany!.isNotEmpty) {
+      return conversation.sellerCompany!;
+    } else if (conversation.sellerName != null && conversation.sellerName!.isNotEmpty) {
+      return conversation.sellerName!;
+    } else {
+      return 'Vendeur Professionnel';
+    }
+  }
+
+  Future<void> _makePhoneCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri(scheme: 'tel', path: cleanPhone);
+
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
+        }
+      } catch (e) {
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  Future<void> _makeVideoCall(dynamic conversation) async {
+    // Récupérer le numéro de téléphone du vendeur
+    final phoneNumber = conversation?.sellerPhone;
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+
+      // Pour l'appel vidéo, essayer WhatsApp d'abord
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
+
+      try {
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        } else {
+          // Fallback vers l'application de téléphone
+          final telUri = Uri(scheme: 'tel', path: cleanPhone);
+          if (await canLaunchUrl(telUri)) {
+            await launchUrl(telUri);
+          } else {
+            _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
+          }
+        }
+      } catch (e) {
+        _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
+      }
+    } else {
+      _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
+    }
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }
