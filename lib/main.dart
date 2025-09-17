@@ -15,61 +15,42 @@ import 'src/core/services/device_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  print('🚀 [Main] Démarrage de l\'app...');
-  print('📡 [Main] URL Supabase: ${AppConstants.supabaseUrl}');
-  print('🔑 [Main] Clé anon: ${AppConstants.supabaseAnonKey.substring(0, 20)}...');
   
   try {
-    print('🔧 [Main] Initialisation de Supabase...');
     // Initialiser Supabase
     await Supabase.initialize(
       url: AppConstants.supabaseUrl,
       anonKey: AppConstants.supabaseAnonKey,
     );
-    print('✅ [Main] Supabase initialisé avec succès !');
     
     // Initialiser le service Realtime
-    print('📡 [Main] Démarrage du service Realtime...');
     try {
       final realtimeService = RealtimeService();
       await realtimeService.startRealtimeSubscriptions();
-      print('✅ [Main] Service Realtime démarré avec succès !');
     } catch (e) {
-      print('⚠️ [Main] Erreur démarrage Realtime (non bloquant): $e');
+      debugPrint('Erreur lors de l\'initialisation du service Realtime: $e');
     }
     
     // Initialiser SharedPreferences
-    print('💾 [Main] Initialisation de SharedPreferences...');
     final sharedPreferences = await SharedPreferences.getInstance();
-    print('✅ [Main] SharedPreferences initialisé !');
     
     // Initialiser le service de session et tenter l'auto-reconnexion
-    print('🔐 [Main] Vérification session en cache...');
     final sessionService = SessionService(sharedPreferences, Supabase.instance.client);
     
     // Tenter l'auto-reconnexion si une session est en cache
     final hasReconnected = await sessionService.autoReconnect();
     
     if (hasReconnected) {
-      print('🎉 [Main] Auto-reconnexion réussie !');
       // Forcer la mise à jour du cache pour avoir le bon type d'utilisateur
       await sessionService.updateCachedSession();
-      final userType = sessionService.getCachedUserType();
-      final userEmail = sessionService.getCachedUserEmail();
-      print('👤 [Main] Type: $userType | Email: $userEmail');
-    } else {
-      print('ℹ️ [Main] Pas de session à restaurer');
     }
     
     // Vérifier l'état de l'auth final
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      print('✅ [Main] Utilisateur connecté: ${user.id}');
-      print('📧 [Main] Email: ${user.email}');
       // Mettre à jour le cache avec les infos actuelles
       await sessionService.updateCachedSession();
     } else {
-      print('👻 [Main] Aucun utilisateur connecté (mode anonyme)');
     }
 
     runApp(
@@ -86,7 +67,6 @@ void main() async {
       ),
     );
   } catch (e) {
-    print('❌ [Main] Erreur d\'initialisation: $e');
     runApp(
       const ProviderScope(
         child: MyApp(),

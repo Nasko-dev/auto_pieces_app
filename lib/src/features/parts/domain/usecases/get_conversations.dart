@@ -11,7 +11,6 @@ class GetConversations implements UseCase<List<Conversation>, GetConversationsPa
 
   @override
   Future<Either<Failure, List<Conversation>>> call(GetConversationsParams params) async {
-    print('📋 [UseCase] GetConversations - userId: ${params.userId}');
     return await repository.getConversations(userId: params.userId);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
 import '../../../core/providers/session_providers.dart' as session;
 
@@ -50,117 +49,6 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
     );
   }
 
-  Widget _buildUnauthenticatedView(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo ou icône
-              const Icon(
-                Icons.directions_car_outlined,
-                size: 80,
-                color: Color(0xFF007AFF),
-              ),
-              const SizedBox(height: 32),
-              
-              // Titre
-              const Text(
-                'Pièces d\'Occasion',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1D1D1F),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              
-              // Sous-titre
-              const Text(
-                'Connectez-vous pour accéder à vos demandes de pièces détachées',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF86868B),
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-              
-              // Bouton de connexion
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/auth/particulier/login'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Se connecter',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Bouton d'inscription
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: () => context.go('/auth/particulier/register'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF007AFF),
-                    side: const BorderSide(color: Color(0xFF007AFF)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'S\'inscrire',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              
-              // Connexion automatique (temporaire pour le debug)
-              TextButton(
-                onPressed: () {
-                  // Garder le système de connexion automatique existant
-                  ref.read(particulierAuthControllerProvider.notifier).signInAnonymously();
-                },
-                child: const Text(
-                  'Connexion automatique (temporaire)',
-                  style: TextStyle(
-                    color: Color(0xFF86868B),
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildErrorView(BuildContext context, String message) {
     return Scaffold(

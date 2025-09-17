@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/conversation.dart';
@@ -62,22 +62,18 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   @override
   Future<List<Conversation>> getConversations({required String userId}) async {
-    print('🔍 [Datasource] Récupération conversations pour user: $userId');
     
     try {
       // Détecter si c'est un vendeur ou un particulier
       final isSellerResult = await _checkIfUserIsSeller(userId);
       
       if (isSellerResult) {
-        print('🏪 [Datasource] Mode vendeur détecté');
         return _getSellerConversations(userId);
       } else {
-        print('👤 [Datasource] Mode particulier détecté');
         return _getParticulierConversations(userId);
       }
       
     } catch (e) {
-      print('❌ [Datasource] Erreur récupération conversations: $e');
       throw ServerException('Erreur lors de la récupération des conversations: $e');
     }
   }
@@ -91,16 +87,13 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .limit(1);
       
       final isSeller = sellerResponse.isNotEmpty;
-      print('🔍 [Datasource] User $userId est ${isSeller ? 'vendeur' : 'particulier'}');
       return isSeller;
     } catch (e) {
-      print('⚠️ [Datasource] Erreur vérification vendeur: $e');
       return false;
     }
   }
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
-    print('🏪 [Datasource] Récupération conversations vendeur: $sellerId');
 
     final response = await _supabaseClient
         .from('conversations')
@@ -136,12 +129,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         .eq('status', 'active')
         .order('last_message_at', ascending: false);
 
-    print('📋 [Datasource] Reçu ${response.length} conversations vendeur');
 
     final conversations = <Conversation>[];
     
     for (final json in response) {
-      print('📄 [Datasource] Conversion conversation vendeur: ${json['id']}');
       
       // Charger les messages pour cette conversation et calculer unreadCount localement
       final messagesResponse = await _supabaseClient
@@ -166,23 +157,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       }).toList();
       
       // Calculer unreadCount : messages des autres utilisateurs non lus
-      print('=============== CALCUL UNREAD VENDEUR ${json['id']} ===============');
-      print('👥 [Datasource-Vendeur] Seller ID: $sellerId');
-      print('📨 [Datasource-Vendeur] Total messages: ${messages.length}');
-      
-      for (final msg in messages) {
-        print('📧 [Datasource-Vendeur] Message ${msg.id}: senderId=${msg.senderId}, isRead=${msg.isRead}, content="${msg.content.length > 20 ? msg.content.substring(0, 20) + "..." : msg.content}"');
-      }
       
       final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
       final unreadCount = unreadMessages.length;
-      
-      print('🔴 [Datasource-Vendeur] Messages non lus trouvés: $unreadCount');
-      for (final msg in unreadMessages) {
-        print('🔴   → Message: ${msg.content.length > 30 ? msg.content.substring(0, 30) + "..." : msg.content}');
-      }
-      print('💬 [Datasource-Vendeur] FINAL Conversation ${json['id']}: $unreadCount messages non lus');
-      print('================================================================');
       
       // Récupérer les informations du particulier
       final userInfo = await _getUserInfo(json['user_id']);
@@ -199,18 +176,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
-    print('👤 [Datasource] Récupération conversations particulier: $userId');
     
     try {
       // Utiliser la même logique que les part_requests : récupérer par device_id
-      print('🔍 [Datasource] Recherche du device_id pour récupération persistante...');
       
       try {
         // Obtenir le device_id depuis le service device (plus fiable que l'auth ID)
         final prefs = await SharedPreferences.getInstance();
         final deviceService = DeviceService(prefs);
         final deviceId = await deviceService.getDeviceId();
-        print('📱 [Datasource] Device ID obtenu: $deviceId');
         
         // Récupérer tous les particuliers avec ce device_id
         final allParticuliersWithDevice = await _supabaseClient
@@ -222,11 +196,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             .map((p) => p['id'] as String)
             .toList();
             
-        print('🆔 [Datasource] IDs utilisateur trouvés pour ce device: $allUserIds');
         
         if (allUserIds.isNotEmpty) {
           // Récupérer les conversations pour TOUS ces user_id
-          print('📡 [Datasource] Requête vers conversations pour tous les IDs');
           
           final response = await _supabaseClient
               .from('conversations')
@@ -252,11 +224,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
 
-          print('📋 [Datasource] Reçu ${response.length} conversations pour tous les user_ids');
 
           final conversations = <Conversation>[];
           for (final json in response) {
-            print('📄 [Datasource] Conversion conversation: ${json['id']} (user: ${json['user_id']})');
             // Récupérer les informations du vendeur
             final sellerInfo = await _getSellerInfo(json['seller_id']);
             final modifiedJson = Map<String, dynamic>.from(json);
@@ -265,14 +235,12 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           }
           return conversations;
         } else {
-          print('⚠️ [Datasource] Aucun utilisateur trouvé pour ce device_id');
         }
         
       } catch (particulierError) {
-        print('⚠️ [Datasource] Erreur recherche particulier: $particulierError');
+      // Ignorer l'erreur silencieusement
       }
       
-      print('🔄 [Datasource] Fallback: recherche directe par auth ID actuel');
       
       // Fallback : recherche directe par l'auth ID actuel
       final response = await _supabaseClient
@@ -299,11 +267,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('user_id', userId)
           .order('last_message_at', ascending: false);
 
-      print('📋 [Datasource] Reçu ${response.length} conversations (fallback)');
 
       final conversations = <Conversation>[];
       for (final json in response) {
-        print('📄 [Datasource] Conversion conversation: ${json['id']}');
         // Récupérer les informations du vendeur
         final sellerInfo = await _getSellerInfo(json['seller_id']);
         final modifiedJson = Map<String, dynamic>.from(json);
@@ -313,14 +279,12 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       return conversations;
       
     } catch (e) {
-      print('❌ [Datasource] Erreur récupération conversations particulier: $e');
       throw ServerException('Erreur lors de la récupération des conversations: $e');
     }
   }
 
   @override
   Future<List<Message>> getConversationMessages({required String conversationId}) async {
-    print('📨 [Datasource] Récupération messages pour conversation: $conversationId');
     
     try {
       final response = await _supabaseClient
@@ -329,14 +293,12 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('conversation_id', conversationId)
           .order('created_at', ascending: true);
 
-      print('💬 [Datasource] Reçu ${response.length} messages');
 
       return response.map((json) {
         return Message.fromJson(_mapSupabaseToMessage(json));
       }).toList();
       
     } catch (e) {
-      print('❌ [Datasource] Erreur récupération messages: $e');
       throw ServerException('Erreur lors de la récupération des messages: $e');
     }
   }
@@ -354,7 +316,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     int? offerDeliveryDays,
     MessageSenderType? senderType,
   }) async {
-    print('📤 [Datasource] Envoi message: $content');
     
     try {
       // Déterminer automatiquement le sender_type si pas fourni
@@ -366,7 +327,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         senderTypeString = await _determineSenderType(senderId);
       }
       
-      print('👤 [Datasource] Sender type déterminé: $senderTypeString');
       
       final messageData = {
         'conversation_id': conversationId,
@@ -389,19 +349,16 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .select()
           .single();
 
-      print('✅ [Datasource] Message envoyé avec succès');
       
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
       // ✅ NOUVEAU: Avec trigger intelligent, plus besoin de reset manuel
       // Le trigger DB gère automatiquement les bons compteurs selon sender_type
-      print('✅ [Datasource] Trigger DB gère les compteurs automatiquement');
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
     } catch (e) {
-      print('❌ [Datasource] Erreur envoi message: $e');
       throw ServerException('Erreur lors de l\'envoi du message: $e');
     }
   }
@@ -419,9 +376,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           })
           .eq('id', conversationId);
 
-      print('✅ [Datasource] Conversation mise à jour avec sender_type: $senderType');
     } catch (e) {
-      print('⚠️ [Datasource] Erreur mise à jour conversation: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -430,7 +386,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String conversationId,
     required String userId,
   }) async {
-    print('👀 [Datasource] Marquage messages comme lus: $conversationId');
 
     try {
       // Déterminer le type d'utilisateur pour savoir quels messages marquer
@@ -475,10 +430,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             .eq('id', conversationId);
       }
 
-      print('✅ [Datasource] Messages marqués comme lus');
 
     } catch (e) {
-      print('❌ [Datasource] Erreur marquage lecture: $e');
       throw ServerException('Erreur lors du marquage des messages comme lus: $e');
     }
   }
@@ -487,7 +440,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   Future<void> incrementUnreadCount({
     required String conversationId,
   }) async {
-    print('📈 [Datasource] Incrémentation compteur non lu: $conversationId');
 
     try {
       // Utiliser une requête SQL pour incrémenter atomiquement
@@ -495,10 +447,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         'conversation_id_param': conversationId,
       });
 
-      print('✅ [Datasource] Compteur non lu incrémenté');
 
     } catch (e) {
-      print('❌ [Datasource] Erreur incrémentation compteur: $e');
       // Fallback : récupérer le compteur actuel et incrémenter
       try {
         final response = await _supabaseClient
@@ -514,9 +464,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             .update({'unread_count': currentCount + 1})
             .eq('id', conversationId);
 
-        print('✅ [Datasource] Compteur incrémenté (fallback)');
       } catch (fallbackError) {
-        print('❌ [Datasource] Erreur fallback incrémentation: $fallbackError');
         throw ServerException('Erreur lors de l\'incrémentation du compteur: $fallbackError');
       }
     }
@@ -526,7 +474,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   Future<void> incrementUnreadCountForUser({
     required String conversationId,
   }) async {
-    print('📈 [Datasource] Incrémentation compteur particulier: $conversationId');
 
     try {
       await _supabaseClient
@@ -534,9 +481,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .update({'unread_count_for_user': 'unread_count_for_user + 1'})
           .eq('id', conversationId);
 
-      print('✅ [Datasource] Compteur particulier incrémenté');
     } catch (e) {
-      print('❌ [Datasource] Erreur incrémentation particulier: $e');
       throw ServerException('Erreur lors de l\'incrémentation du compteur particulier: $e');
     }
   }
@@ -545,7 +490,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   Future<void> incrementUnreadCountForSeller({
     required String conversationId,
   }) async {
-    print('📈 [Datasource] Incrémentation compteur vendeur: $conversationId');
 
     try {
       await _supabaseClient
@@ -553,9 +497,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .update({'unread_count_for_seller': 'unread_count_for_seller + 1'})
           .eq('id', conversationId);
 
-      print('✅ [Datasource] Compteur vendeur incrémenté');
     } catch (e) {
-      print('❌ [Datasource] Erreur incrémentation vendeur: $e');
       throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $e');
     }
   }
@@ -565,7 +507,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String conversationId,
     required ConversationStatus status,
   }) async {
-    print('🔄 [Datasource] Mise à jour statut conversation: ${status.toString()}');
     
     try {
       await _supabaseClient
@@ -576,89 +517,74 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           })
           .eq('id', conversationId);
 
-      print('✅ [Datasource] Statut conversation mis à jour');
       
     } catch (e) {
-      print('❌ [Datasource] Erreur mise à jour statut: $e');
       throw ServerException('Erreur lors de la mise à jour du statut: $e');
     }
   }
 
   @override
   Future<void> deleteConversation({required String conversationId}) async {
-    print('🗑️ [Datasource] Suppression conversation: $conversationId');
     
     try {
       await updateConversationStatus(
         conversationId: conversationId,
         status: ConversationStatus.deletedByUser,
       );
-      print('✅ [Datasource] Conversation supprimée (marquée comme deleted_by_user)');
       
     } catch (e) {
-      print('❌ [Datasource] Erreur suppression conversation: $e');
       throw ServerException('Erreur lors de la suppression de la conversation: $e');
     }
   }
 
   @override
   Future<void> blockConversation({required String conversationId}) async {
-    print('🚫 [Datasource] Blocage conversation: $conversationId');
     
     try {
       await updateConversationStatus(
         conversationId: conversationId,
         status: ConversationStatus.blockedByUser,
       );
-      print('✅ [Datasource] Conversation bloquée');
       
     } catch (e) {
-      print('❌ [Datasource] Erreur blocage conversation: $e');
       throw ServerException('Erreur lors du blocage de la conversation: $e');
     }
   }
 
   @override
   Stream<Message> subscribeToNewMessages({required String conversationId}) {
-    print('📡 [Datasource] Abonnement realtime messages: $conversationId');
     
     return _supabaseClient
         .from('messages')
         .stream(primaryKey: ['id'])
         .eq('conversation_id', conversationId)
         .map((data) {
-          print('📨 [Realtime] Nouveau message reçu');
           return Message.fromJson(_mapSupabaseToMessage(data.last));
         });
   }
 
   @override
   Stream<Conversation> subscribeToConversationUpdates({required String userId}) {
-    print('📡 [Datasource] Abonnement realtime conversations: $userId');
     
     // Utiliser la même logique que getConversations pour trouver les vrais user_ids
     return Stream.fromFuture(_getAllUserIdsForDevice()).asyncExpand((userIds) {
       if (userIds.isEmpty) {
-        print('⚠️ [Realtime] Aucun user_id trouvé, fallback vers auth ID: $userId');
         return _supabaseClient
             .from('conversations')
             .stream(primaryKey: ['id'])
             .eq('user_id', userId)
             .where((data) => data.isNotEmpty)
             .map((data) {
-              print('🔄 [Realtime] Conversation mise à jour (fallback)');
               return Conversation.fromJson(_mapSupabaseToConversation(data.last));
             });
       }
       
-      print('📡 [Realtime] Abonnement pour user_ids: $userIds');
       return _supabaseClient
           .from('conversations')
           .stream(primaryKey: ['id'])
           .inFilter('user_id', userIds)
           .where((data) => data.isNotEmpty)
           .map((data) {
-            print('🔄 [Realtime] Conversation mise à jour');
             return Conversation.fromJson(_mapSupabaseToConversation(data.last));
           });
     });
@@ -680,10 +606,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .map((p) => p['id'] as String)
           .toList();
           
-      print('🆔 [Realtime] User IDs trouvés pour device: $allUserIds');
       return allUserIds;
     } catch (e) {
-      print('⚠️ [Realtime] Erreur récupération user_ids: $e');
       return [];
     }
   }
@@ -701,7 +625,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return response.first;
       }
     } catch (e) {
-      print('⚠️ [Datasource] Erreur récupération info particulier: $e');
+      // Ignorer l'erreur silencieusement
     }
     return null;
   }
@@ -717,11 +641,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
       if (response.isNotEmpty) {
         final sellerData = response.first;
-        print('📋 [Datasource] Infos vendeur récupérées pour $sellerId: entreprise="${sellerData['company_name']}", avatar="${sellerData['avatar_url']}"');
         return sellerData;
       }
     } catch (e) {
-      print('⚠️ [Datasource] Erreur récupération info vendeur: $e');
+      // Ignorer l'erreur silencieusement
     }
     return null;
   }
@@ -761,9 +684,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       sellerPhone = sellerInfo['phone'];
 
       // Mettre à jour l'avatar depuis seller_info si pas déjà récupéré
-      if (sellerAvatarUrl == null) {
-        sellerAvatarUrl = sellerInfo['avatar_url'];
-      }
+      sellerAvatarUrl ??= sellerInfo['avatar_url'];
     }
 
     // Extraire les informations du particulier depuis user_info
@@ -817,20 +738,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   // ✅ NOUVEAU: Mapping spécifique vendeur
-  Map<String, dynamic> _mapSupabaseToConversationForSeller(Map<String, dynamic> json) {
-    final baseMapping = _mapSupabaseToConversation(json);
-    // Remplacer par le compteur vendeur
-    baseMapping['unreadCount'] = json['unread_count_for_seller'] ?? 0;
-    return baseMapping;
-  }
 
   // ✅ NOUVEAU: Mapping spécifique particulier
-  Map<String, dynamic> _mapSupabaseToConversationForUser(Map<String, dynamic> json) {
-    final baseMapping = _mapSupabaseToConversation(json);
-    // Remplacer par le compteur particulier
-    baseMapping['unreadCount'] = json['unread_count_for_user'] ?? 0;
-    return baseMapping;
-  }
 
   Map<String, dynamic> _mapSupabaseToMessage(Map<String, dynamic> json) {
     return {
@@ -856,20 +765,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     };
   }
 
-  ConversationStatus _stringToConversationStatus(String? status) {
-    switch (status) {
-      case 'active':
-        return ConversationStatus.active;
-      case 'closed':
-        return ConversationStatus.closed;
-      case 'deleted_by_user':
-        return ConversationStatus.deletedByUser;
-      case 'blocked_by_user':
-        return ConversationStatus.blockedByUser;
-      default:
-        return ConversationStatus.active;
-    }
-  }
 
   String _conversationStatusToString(ConversationStatus status) {
     switch (status) {
@@ -884,29 +779,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
   }
 
-  MessageSenderType _stringToSenderType(String? type) {
-    switch (type) {
-      case 'user':
-        return MessageSenderType.user;
-      case 'seller':
-        return MessageSenderType.seller;
-      default:
-        return MessageSenderType.user;
-    }
-  }
 
-  MessageType _stringToMessageType(String? type) {
-    switch (type) {
-      case 'text':
-        return MessageType.text;
-      case 'image':
-        return MessageType.image;
-      case 'offer':
-        return MessageType.offer;
-      default:
-        return MessageType.text;
-    }
-  }
 
   Future<String> _determineSenderType(String senderId) async {
     try {
@@ -918,14 +791,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .limit(1);
       
       if (sellerCheck.isNotEmpty) {
-        print('✅ [Datasource] $senderId est un vendeur');
         return 'seller';
       } else {
-        print('👤 [Datasource] $senderId est un particulier');
         return 'user';
       }
     } catch (e) {
-      print('⚠️ [Datasource] Erreur détermination sender_type: $e');
       return 'user'; // Fallback vers user par défaut
     }
   }
@@ -939,7 +809,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     String? sellerCompany,
     required String requestTitle,
   }) async {
-    print('🔍 [Datasource] Vérification conversation existante pour request: $requestId');
     
     try {
       // 1. Vérifier si une conversation existe déjà pour cette demande spécifique
@@ -968,12 +837,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('seller_id', sellerId);
 
       if (existingConversations.isNotEmpty) {
-        print('✅ [Datasource] Conversation existante trouvée');
         return Conversation.fromJson(_mapSupabaseToConversation(existingConversations.first));
       }
 
       // 2. Créer une nouvelle conversation pour cette demande
-      print('📝 [Datasource] Création nouvelle conversation pour request: $requestId');
       
       final newConversation = {
         'request_id': requestId,
@@ -996,12 +863,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .select()
           .single();
 
-      print('✅ [Datasource] Nouvelle conversation créée: ${response['id']}');
       
       return Conversation.fromJson(_mapSupabaseToConversation(response));
       
     } catch (e) {
-      print('❌ [Datasource] Erreur création/récupération conversation: $e');
       throw ServerException('Erreur lors de la création de la conversation: $e');
     }
   }

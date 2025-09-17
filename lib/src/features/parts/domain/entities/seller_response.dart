@@ -57,6 +57,6 @@ class SellerResponse with _$SellerResponse {
   String get deliveryText {
     if (estimatedDeliveryDays == null) return 'Non précisé';
     if (estimatedDeliveryDays! <= 1) return 'Livraison immédiate';
-    return '${estimatedDeliveryDays} jours';
+    return '$estimatedDeliveryDays jours';
   }
 }

@@ -73,7 +73,6 @@ class SellerAuthRepositoryImpl implements SellerAuthRepository {
   @override
   Future<Either<Failure, void>> logoutSeller() async {
     try {
-      print('🏠 [REPOSITORY] Début déconnexion vendeur complète');
       
       // 1. Déconnexion vendeur (Supabase Auth)
       await remoteDataSource.logoutSeller();
@@ -81,16 +80,12 @@ class SellerAuthRepositoryImpl implements SellerAuthRepository {
       // 2. Nettoyer le cache des particuliers pour éviter les conflits
       try {
         await particulierLocalDataSource.clearCache();
-        print('🧹 [REPOSITORY] Cache particulier nettoyé');
       } catch (e) {
-        print('⚠️ [REPOSITORY] Impossible de nettoyer le cache particulier: $e');
         // Ne pas faire échouer la déconnexion pour ça
       }
       
-      print('✅ [REPOSITORY] Déconnexion vendeur complète réussie');
       return const Right(null);
     } catch (e) {
-      print('❌ [REPOSITORY] Erreur déconnexion vendeur: $e');
       return Left(ServerFailure('Erreur lors de la déconnexion: $e'));
     }
   }

@@ -5,7 +5,6 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
-import '../../../../../core/providers/seller_auth_providers.dart' as seller_auth;
 
 class MyAdsPage extends ConsumerStatefulWidget {
   const MyAdsPage({super.key});
@@ -21,7 +20,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     super.initState();
     // Charger les annonces au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔍 [MyAdsPage] Chargement des annonces...');
       ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
     });
   }
@@ -66,7 +64,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [blue, blue.withOpacity(0.8)],
+              colors: [blue, blue.withValues(alpha: 0.8)],
             ),
           ),
         ),
@@ -115,7 +113,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               builder: (context, ref, child) {
                 final state = ref.watch(partAdvertisementControllerProvider);
                 
-                print('🔍 [MyAdsPage] État: isLoading=${state.isLoading}, error=${state.error}, annonces=${state.advertisements.length}');
                 
                 if (state.isLoading) {
                   return const Center(
@@ -214,7 +211,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? blue.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? blue.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? blue : Colors.grey.shade300,
@@ -387,7 +384,7 @@ class _AdCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -417,7 +414,7 @@ class _AdCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(

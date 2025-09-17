@@ -15,15 +15,11 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   @override
   Future<Either<Failure, List<Conversation>>> getConversations({required String userId}) async {
     try {
-      print('📋 [Repository] Récupération conversations pour: $userId');
       final conversations = await remoteDataSource.getConversations(userId: userId);
-      print('✅ [Repository] ${conversations.length} conversations récupérées');
       return Right(conversations);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de la récupération des conversations'));
     }
   }
@@ -33,17 +29,13 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId
   }) async {
     try {
-      print('💬 [Repository] Récupération messages pour: $conversationId');
       final messages = await remoteDataSource.getConversationMessages(
         conversationId: conversationId
       );
-      print('✅ [Repository] ${messages.length} messages récupérés');
       return Right(messages);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de la récupération des messages'));
     }
   }
@@ -61,7 +53,6 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     int? offerDeliveryDays,
   }) async {
     try {
-      print('📤 [Repository] Envoi message: $content');
       final message = await remoteDataSource.sendMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -73,13 +64,10 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
         offerAvailability: offerAvailability,
         offerDeliveryDays: offerDeliveryDays,
       );
-      print('✅ [Repository] Message envoyé avec succès');
       return Right(message);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de l\'envoi du message'));
     }
   }
@@ -90,18 +78,14 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String userId,
   }) async {
     try {
-      print('👀 [Repository] Marquage messages comme lus: $conversationId');
       await remoteDataSource.markMessagesAsRead(
         conversationId: conversationId,
         userId: userId,
       );
-      print('✅ [Repository] Messages marqués comme lus');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors du marquage des messages'));
     }
   }
@@ -111,17 +95,13 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId,
   }) async {
     try {
-      print('📈 [Repository] Incrémentation compteur: $conversationId');
       await remoteDataSource.incrementUnreadCount(
         conversationId: conversationId,
       );
-      print('✅ [Repository] Compteur incrémenté');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de l\'incrémentation du compteur'));
     }
   }
@@ -131,17 +111,13 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId,
   }) async {
     try {
-      print('📈 [Repository] Incrémentation compteur particulier: $conversationId');
       await remoteDataSource.incrementUnreadCountForUser(
         conversationId: conversationId,
       );
-      print('✅ [Repository] Compteur particulier incrémenté');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur particulier'));
     }
   }
@@ -151,17 +127,13 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId,
   }) async {
     try {
-      print('📈 [Repository] Incrémentation compteur vendeur: $conversationId');
       await remoteDataSource.incrementUnreadCountForSeller(
         conversationId: conversationId,
       );
-      print('✅ [Repository] Compteur vendeur incrémenté');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur vendeur'));
     }
   }
@@ -171,15 +143,11 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId
   }) async {
     try {
-      print('🗑️ [Repository] Suppression conversation: $conversationId');
       await remoteDataSource.deleteConversation(conversationId: conversationId);
-      print('✅ [Repository] Conversation supprimée');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de la suppression de la conversation'));
     }
   }
@@ -189,15 +157,11 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId
   }) async {
     try {
-      print('🚫 [Repository] Blocage conversation: $conversationId');
       await remoteDataSource.blockConversation(conversationId: conversationId);
-      print('✅ [Repository] Conversation bloquée');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors du blocage de la conversation'));
     }
   }
@@ -207,18 +171,14 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId
   }) async {
     try {
-      print('📪 [Repository] Fermeture conversation: $conversationId');
       await remoteDataSource.updateConversationStatus(
         conversationId: conversationId,
         status: ConversationStatus.closed,
       );
-      print('✅ [Repository] Conversation fermée');
       return const Right(null);
     } on ServerException catch (e) {
-      print('❌ [Repository] Erreur serveur: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
-      print('❌ [Repository] Erreur générale: $e');
       return Left(ServerFailure( 'Erreur lors de la fermeture de la conversation'));
     }
   }
@@ -228,18 +188,15 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String conversationId
   }) {
     try {
-      print('📡 [Repository] Abonnement messages realtime: $conversationId');
       return remoteDataSource
           .subscribeToNewMessages(conversationId: conversationId)
           .map((message) => Right<Failure, Message>(message))
           .handleError((error) {
-            print('❌ [Repository] Erreur realtime messages: $error');
             return Left<Failure, Message>(
               ServerFailure( 'Erreur de connexion realtime')
             );
           });
     } catch (e) {
-      print('❌ [Repository] Erreur création stream messages: $e');
       return Stream.value(
         Left(ServerFailure( 'Erreur lors de la création du stream'))
       );
@@ -251,7 +208,6 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     required String userId
   }) {
     try {
-      print('📡 [Repository] Abonnement conversations realtime: $userId');
       return remoteDataSource
           .subscribeToConversationUpdates(userId: userId)
           .asyncMap((conversation) async {
@@ -260,13 +216,11 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
             return result;
           })
           .handleError((error) {
-            print('❌ [Repository] Erreur realtime conversations: $error');
             return Left<Failure, List<Conversation>>(
               ServerFailure( 'Erreur de connexion realtime')
             );
           });
     } catch (e) {
-      print('❌ [Repository] Erreur création stream conversations: $e');
       return Stream.value(
         Left(ServerFailure( 'Erreur lors de la création du stream'))
       );

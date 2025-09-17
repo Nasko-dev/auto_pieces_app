@@ -103,7 +103,7 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withOpacity(0.8),
+                AppTheme.primaryBlue.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -193,7 +193,7 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.1),
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(25),
             ),
             child: const Icon(
@@ -249,7 +249,7 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppTheme.error.withOpacity(0.1),
+              color: AppTheme.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(25),
             ),
             child: const Icon(
@@ -337,14 +337,15 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
         requestTitle: partRequest.partNames.join(', '),
       );
 
-      if (mounted) {
-        context.push('/seller/conversation/${conversation.id}');
-      }
+      if (!mounted) return;
+      // ignore: use_build_context_synchronously
+      context.push('/seller/conversation/${conversation.id}');
 
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
       
     } catch (e) {
       if (mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur : ${e.toString()}'),
@@ -417,12 +418,14 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du refus: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du refus: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     }
 
     ref.read(sellerDashboardControllerProvider.notifier).refresh();
@@ -452,13 +455,13 @@ class _NotificationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isNew 
-              ? AppTheme.primaryBlue.withOpacity(0.3)
-              : AppTheme.gray.withOpacity(0.2),
+              ? AppTheme.primaryBlue.withValues(alpha: 0.3)
+              : AppTheme.gray.withValues(alpha: 0.2),
           width: isNew ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.08),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -478,7 +481,7 @@ class _NotificationCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -523,7 +526,7 @@ class _NotificationCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.success.withOpacity(0.1),
+                        color: AppTheme.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -636,7 +639,7 @@ class _NotificationCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlue.withOpacity(0.1),
+                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

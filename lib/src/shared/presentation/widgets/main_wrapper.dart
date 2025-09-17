@@ -46,7 +46,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
             color: AppTheme.white,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.black.withOpacity(0.08),
+                color: AppTheme.black.withValues(alpha: 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),

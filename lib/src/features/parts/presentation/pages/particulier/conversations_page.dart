@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
-import 'conversation_detail_page.dart';
 import '../../../domain/entities/particulier_conversation.dart';
 
 class MessagesPageColored extends ConsumerStatefulWidget {
@@ -28,7 +26,6 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
       // Initialiser le realtime pour refresh automatique instantané
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId != null) {
-        print('📡 [UI-Particulier] Initialisation realtime pour: $userId');
         controller.initializeRealtime(userId);
       }
     });
@@ -150,7 +147,7 @@ class _MessagesPageColoredState extends ConsumerState<MessagesPageColored> {
       final conversations = entry.value;
       final totalUnread = conversations.fold<int>(
         0,
-        (sum, conv) => sum + ((conv.unreadCount ?? 0) as int),
+        (sum, conv) => sum + conv.unreadCount,
       );
       
       return {
@@ -179,7 +176,6 @@ class _VehicleGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final conversations = group['conversations'] as List<ParticulierConversation>;
-    final unreadCount = group['unreadCount'] as int;
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -224,7 +220,7 @@ class _VehicleGroup extends StatelessWidget {
                     ),
                     
                     // Badge avec nombre (exactement comme WhatsApp)
-                    if (conversations.length > 0) ...[
+                    if (conversations.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -333,7 +329,7 @@ class _ConversationItem extends StatelessWidget {
                         // Nom du vendeur
                         Expanded(
                           child: Text(
-                            conversation.sellerName ?? 'Vendeur',
+                            conversation.sellerName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,

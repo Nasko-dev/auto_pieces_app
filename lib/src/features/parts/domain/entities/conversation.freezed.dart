@@ -51,8 +51,12 @@ mixin _$Conversation {
       throw _privateConstructorUsedError; // Nom du particulier
   String? get particulierFirstName => throw _privateConstructorUsedError;
 
+  /// Serializes this Conversation to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Conversation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ConversationCopyWith<Conversation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -103,6 +107,8 @@ class _$ConversationCopyWithImpl<$Res, $Val extends Conversation>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Conversation
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -293,6 +299,8 @@ class __$$ConversationImplCopyWithImpl<$Res>
       _$ConversationImpl _value, $Res Function(_$ConversationImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Conversation
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -595,7 +603,7 @@ class _$ConversationImpl implements _Conversation {
                 other.particulierFirstName == particulierFirstName));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -628,7 +636,9 @@ class _$ConversationImpl implements _Conversation {
         particulierFirstName
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Conversation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ConversationImplCopyWith<_$ConversationImpl> get copyWith =>
@@ -716,8 +726,8 @@ abstract class _Conversation implements Conversation {
   @override
   int get unreadCount;
   @override
-  int get totalMessages;
-  @override // Informations du véhicule depuis part_request
+  int get totalMessages; // Informations du véhicule depuis part_request
+  @override
   String? get vehicleBrand;
   @override
   String? get vehicleModel;
@@ -726,11 +736,14 @@ abstract class _Conversation implements Conversation {
   @override
   String? get vehicleEngine;
   @override
-  String? get partType;
-  @override // Nom du particulier
-  String? get particulierFirstName;
+  String? get partType; // Nom du particulier
   @override
-  @JsonKey(ignore: true)
+  String? get particulierFirstName;
+
+  /// Create a copy of Conversation
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ConversationImplCopyWith<_$ConversationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -42,8 +42,12 @@ mixin _$SellerSettingsModel {
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
+  /// Serializes this SellerSettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of SellerSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SellerSettingsModelCopyWith<SellerSettingsModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -88,6 +92,8 @@ class _$SellerSettingsModelCopyWithImpl<$Res, $Val extends SellerSettingsModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SellerSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -227,6 +233,8 @@ class __$$SellerSettingsModelImplCopyWithImpl<$Res>
       $Res Function(_$SellerSettingsModelImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SellerSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -444,7 +452,7 @@ class _$SellerSettingsModelImpl extends _SellerSettingsModel {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -467,7 +475,9 @@ class _$SellerSettingsModelImpl extends _SellerSettingsModel {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SellerSettingsModelImplCopyWith<_$SellerSettingsModelImpl> get copyWith =>
@@ -549,8 +559,11 @@ abstract class _SellerSettingsModel extends SellerSettingsModel {
   @override
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt;
+
+  /// Create a copy of SellerSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerSettingsModelImplCopyWith<_$SellerSettingsModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -30,7 +30,9 @@ mixin _$ConversationGroup {
   List<Conversation> get conversations => throw _privateConstructorUsedError;
   int get totalUnreadCount => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ConversationGroup
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ConversationGroupCopyWith<ConversationGroup> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -63,6 +65,8 @@ class _$ConversationGroupCopyWithImpl<$Res, $Val extends ConversationGroup>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ConversationGroup
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -145,6 +149,8 @@ class __$$ConversationGroupImplCopyWithImpl<$Res>
       $Res Function(_$ConversationGroupImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ConversationGroup
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -289,7 +295,9 @@ class _$ConversationGroupImpl extends _ConversationGroup {
       const DeepCollectionEquality().hash(_conversations),
       totalUnreadCount);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ConversationGroup
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ConversationGroupImplCopyWith<_$ConversationGroupImpl> get copyWith =>
@@ -311,25 +319,28 @@ abstract class _ConversationGroup extends ConversationGroup {
   const _ConversationGroup._() : super._();
 
   @override
-  String get groupKey;
-  @override // Ex: "phare-avant_renault-clio_2015"
-  String get partName;
-  @override // Ex: "Phare avant"
-  String get vehicleInfo;
-  @override // Ex: "Renault Clio 2015"
+  String get groupKey; // Ex: "phare-avant_renault-clio_2015"
+  @override
+  String get partName; // Ex: "Phare avant"
+  @override
+  String get vehicleInfo; // Ex: "Renault Clio 2015"
+  @override
   String? get vehicleBrand;
   @override
   String? get vehicleModel;
   @override
   int? get vehicleYear;
   @override
-  String? get partType;
-  @override // "engine" ou "body"
+  String? get partType; // "engine" ou "body"
+  @override
   List<Conversation> get conversations;
   @override
   int get totalUnreadCount;
+
+  /// Create a copy of ConversationGroup
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ConversationGroupImplCopyWith<_$ConversationGroupImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

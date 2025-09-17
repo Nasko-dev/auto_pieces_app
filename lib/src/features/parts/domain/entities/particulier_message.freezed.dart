@@ -29,7 +29,9 @@ mixin _$ParticulierMessage {
   int? get offerDeliveryDays => throw _privateConstructorUsedError;
   String? get offerAvailability => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ParticulierMessageCopyWith<ParticulierMessage> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -65,6 +67,8 @@ class _$ParticulierMessageCopyWithImpl<$Res, $Val extends ParticulierMessage>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ParticulierMessage
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -165,6 +169,8 @@ class __$$ParticulierMessageImplCopyWithImpl<$Res>
       $Res Function(_$ParticulierMessageImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ParticulierMessage
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -326,7 +332,9 @@ class _$ParticulierMessageImpl implements _ParticulierMessage {
       offerDeliveryDays,
       offerAvailability);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ParticulierMessageImplCopyWith<_$ParticulierMessageImpl> get copyWith =>
@@ -373,8 +381,11 @@ abstract class _ParticulierMessage implements ParticulierMessage {
   int? get offerDeliveryDays;
   @override
   String? get offerAvailability;
+
+  /// Create a copy of ParticulierMessage
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ParticulierMessageImplCopyWith<_$ParticulierMessageImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

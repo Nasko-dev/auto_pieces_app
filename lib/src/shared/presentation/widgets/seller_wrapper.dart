@@ -30,25 +30,6 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
     }
   }
 
-  String _getCurrentPageName(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    switch (location) {
-      case '/seller/home':
-        return 'Tableau de bord';
-      case '/seller/add':
-        return 'Déposer annonce';
-      case '/seller/ads':
-        return 'Mes annonces';
-      case '/seller/messages':
-        return 'Messages';
-      case '/seller/profile':
-        return 'Mon profil';
-      case '/seller/settings':
-        return 'Paramètres';
-      default:
-        return 'Tableau de bord';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +41,7 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
           color: AppTheme.white,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.black.withOpacity(0.08),
+              color: AppTheme.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),

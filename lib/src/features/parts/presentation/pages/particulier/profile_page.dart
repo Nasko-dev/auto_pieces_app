@@ -46,18 +46,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return;
     }
 
-    print('🔄 [ProfilePage] Chargement du profil utilisateur...');
     final getUserSettings = ref.read(getUserSettingsProvider);
     final result = await getUserSettings(currentUser.id);
 
     result.fold(
       (failure) {
-        print('❌ [ProfilePage] Erreur chargement profil: ${failure.message}');
         setState(() => _isLoadingProfile = false);
       },
       (settings) {
         if (settings != null && mounted) {
-          print('📋 [ProfilePage] Profil trouvé: ${settings.displayName}');
           setState(() {
             _displayNameController.text = settings.displayName ?? 'Utilisateur';
             _notificationsEnabled = settings.notificationsEnabled;
@@ -65,9 +62,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _avatarUrl = settings.avatarUrl;
             _isLoadingProfile = false;
           });
-          print('✅ [ProfilePage] Profil chargé dans les champs');
         } else {
-          print('ℹ️ [ProfilePage] Aucun profil trouvé, utilisation des valeurs par défaut');
           setState(() {
             _displayNameController.text = 'Utilisateur';
             _isLoadingProfile = false;
@@ -139,7 +134,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -289,7 +284,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -303,7 +298,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -421,7 +416,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -435,7 +430,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withOpacity(0.1),
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -464,7 +459,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.warning.withOpacity(0.1),
+                color: AppTheme.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -501,7 +496,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.lightGray.withOpacity(0.5),
+              color: AppTheme.lightGray.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -550,7 +545,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
+            color: AppTheme.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -662,11 +657,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final result = await saveUserSettings(userSettings);
 
       // Masquer l'indicateur de chargement
+      if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
         (failure) {
-          print('❌ [ProfilePage] Erreur sauvegarde nom: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -676,7 +672,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           );
         },
         (savedSettings) {
-          print('✅ [ProfilePage] Nom sauvegardé: ${savedSettings.displayName}');
           setState(() {
             _isEditingName = false;
           });
@@ -702,9 +697,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     } catch (e) {
       // Masquer l'indicateur de chargement
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      print('❌ [ProfilePage] Exception sauvegarde nom: $e');
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),
@@ -749,17 +745,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       result.fold(
         (failure) {
-          print('❌ [ProfilePage] Erreur sauvegarde notifications: ${failure.message}');
           // Restaurer l'état précédent en cas d'erreur
           _loadUserProfile();
         },
         (savedSettings) {
-          print('✅ [ProfilePage] Préférences notifications sauvegardées');
           // Pas de message visible, sauvegarde silencieuse
         },
       );
     } catch (e) {
-      print('❌ [ProfilePage] Exception sauvegarde notifications: $e');
       // Restaurer l'état précédent en cas d'erreur
       _loadUserProfile();
     }
@@ -845,7 +838,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final dataSource = ref.read(userSettingsRemoteDataSourceProvider);
       await dataSource.deleteUserSettings(currentUser.id);
 
-      print('✅ [ProfilePage] Données de localisation supprimées');
+      if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -863,7 +857,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       // Recharger le profil pour refléter les changements
       _loadUserProfile();
     } catch (e) {
-      print('❌ [ProfilePage] Exception suppression données: $e');
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur inattendue: $e'),
@@ -1005,7 +999,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withOpacity(0.1),
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: const Icon(
@@ -1046,7 +1040,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withOpacity(0.1),
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: const Icon(
@@ -1117,13 +1111,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 _uploadAndSaveAvatar(File(pickedFile.path));
       }
     } catch (e) {
-      print('❌ [ProfilePage] Erreur sélection image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la sélection de l\'image: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la sélection de l\'image: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
       setState(() {
         _isUploadingImage = false;
       });
@@ -1153,7 +1148,6 @@ _uploadAndSaveAvatar(File(pickedFile.path));
         imageFile: imageFile,
       );
 
-      print('📸 [ProfilePage] Image uploadée: $imageUrl');
 
       // Sauvegarder l'URL dans les paramètres utilisateur
       final userSettings = UserSettings(
@@ -1175,7 +1169,6 @@ _uploadAndSaveAvatar(File(pickedFile.path));
 
       result.fold(
         (failure) {
-          print('❌ [ProfilePage] Erreur sauvegarde avatar: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur de sauvegarde: ${failure.message}'),
@@ -1184,7 +1177,6 @@ _uploadAndSaveAvatar(File(pickedFile.path));
           );
         },
         (savedSettings) {
-          print('✅ [ProfilePage] Avatar sauvegardé: ${savedSettings.avatarUrl}');
           setState(() {
             _avatarUrl = savedSettings.avatarUrl;
           });
@@ -1205,13 +1197,14 @@ _uploadAndSaveAvatar(File(pickedFile.path));
         },
       );
     } catch (e) {
-      print('❌ [ProfilePage] Erreur upload avatar: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de l\'upload: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'upload: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isUploadingImage = false;
@@ -1254,7 +1247,6 @@ _uploadAndSaveAvatar(File(pickedFile.path));
 
       result.fold(
         (failure) {
-          print('❌ [ProfilePage] Erreur suppression avatar: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erreur: ${failure.message}'),
@@ -1263,7 +1255,6 @@ _uploadAndSaveAvatar(File(pickedFile.path));
           );
         },
         (savedSettings) {
-          print('✅ [ProfilePage] Avatar supprimé');
           setState(() {
             _avatarUrl = null;
           });
@@ -1284,13 +1275,14 @@ _uploadAndSaveAvatar(File(pickedFile.path));
         },
       );
     } catch (e) {
-      print('❌ [ProfilePage] Erreur suppression avatar: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isUploadingImage = false;

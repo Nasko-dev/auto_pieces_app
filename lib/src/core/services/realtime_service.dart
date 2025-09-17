@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/parts/domain/entities/message.dart';
-import '../../features/parts/domain/entities/conversation_enums.dart';
 
 class RealtimeService {
   static final RealtimeService _instance = RealtimeService._internal();
@@ -67,11 +66,9 @@ class RealtimeService {
       }
       
       if (conversationId == null) {
-        print('⚠️ [Realtime] Pas de conversationId fourni, pas d\'abonnement');
         return;
       }
       
-      print('🔔 [Realtime] Abonnement aux messages pour conversation: $conversationId');
       
       _messagesChannel = _supabase
           .channel('messages_channel_$conversationId')
@@ -81,27 +78,21 @@ class RealtimeService {
             table: 'messages',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre conversation
-              if (payload.newRecord?['conversation_id'] != conversationId) {
+              if (payload.newRecord['conversation_id'] != conversationId) {
                 return;
               }
-              print('🎉 [Realtime] *** NOUVEAU MESSAGE REÇU *** ');
-              print('🔍 [Realtime] Conversation: $conversationId');
-              print('🔍 [Realtime] Message ID: ${payload.newRecord?['id']}');
-              print('🔍 [Realtime] Contenu: ${payload.newRecord?['content']}');
-              
+
               // Mapper et envoyer le message au stream spécifique
               try {
-                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                final message = _mapSupabaseToMessage(payload.newRecord);
                 
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
                   _messageStreamControllers[conversationId]!.add(message);
-                  print('📨 [Realtime] Message envoyé au stream conversation $conversationId');
                 } else {
-                  print('⚠️ [Realtime] Aucun listener pour conversation $conversationId');
                 }
               } catch (e) {
-                print('❌ [Realtime] Erreur mapping message: $e');
+      // Ignorer l'erreur silencieusement
               }
             },
           )
@@ -111,32 +102,28 @@ class RealtimeService {
             table: 'messages',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre conversation
-              if (payload.newRecord?['conversation_id'] != conversationId) {
+              if (payload.newRecord['conversation_id'] != conversationId) {
                 return;
               }
-              print('📝 [Realtime] Message mis à jour: ${payload.newRecord}');
               // Pour les updates, envoyer aussi au stream spécifique
               try {
-                final message = _mapSupabaseToMessage(payload.newRecord as Map<String, dynamic>);
+                final message = _mapSupabaseToMessage(payload.newRecord);
                 
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
                   _messageStreamControllers[conversationId]!.add(message);
-                  print('🔄 [Realtime] Message update envoyé au stream conversation $conversationId');
                 }
               } catch (e) {
-                print('❌ [Realtime] Erreur mapping message update: $e');
+      // Ignorer l'erreur silencieusement
               }
             },
           );
 
-      await _messagesChannel!.subscribe();
-      print('✅ [Realtime] Abonné aux messages');
+      _messagesChannel!.subscribe();
       
       // Test de diagnostic Realtime
-      print('🔍 [Realtime] Channel messages créé et abonné');
     } catch (e) {
-      print('❌ [Realtime] Erreur abonnement messages: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -150,11 +137,9 @@ class RealtimeService {
       }
       
       if (userId == null) {
-        print('⚠️ [Realtime] Pas de userId fourni, pas d\'abonnement');
         return;
       }
       
-      print('🔔 [Realtime] Abonnement aux conversations pour user: $userId');
       
       _conversationsChannel = _supabase
           .channel('conversations_channel_$userId')
@@ -164,10 +149,9 @@ class RealtimeService {
             table: 'conversations',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre utilisateur
-              if (payload.newRecord?['user_id'] != userId) {
+              if (payload.newRecord['user_id'] != userId) {
                 return;
               }
-              print('💬 [Realtime] Nouvelle conversation pour user $userId');
               _conversationStreamController.add({
                 'type': 'insert',
                 'table': 'conversations',
@@ -181,10 +165,9 @@ class RealtimeService {
             table: 'conversations',
             callback: (payload) {
               // Vérifier manuellement que c'est pour notre utilisateur
-              if (payload.newRecord?['user_id'] != userId) {
+              if (payload.newRecord['user_id'] != userId) {
                 return;
               }
-              print('🔄 [Realtime] Conversation mise à jour: ${payload.newRecord}');
               _conversationStreamController.add({
                 'type': 'update',
                 'table': 'conversations',
@@ -193,19 +176,16 @@ class RealtimeService {
             },
           );
 
-      await _conversationsChannel!.subscribe();
-      print('✅ [Realtime] Abonné aux conversations');
+      _conversationsChannel!.subscribe();
       
       // Test de diagnostic Realtime
-      print('🔍 [Realtime] Channel conversations créé et abonné');
     } catch (e) {
-      print('❌ [Realtime] Erreur abonnement conversations: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
 
   /// Démarrer tous les abonnements Realtime (méthode générique)
   Future<void> startRealtimeSubscriptions() async {
-    print('🚀 [Realtime] Service Realtime prêt (abonnements à configurer par utilisateur/conversation)');
     // Les abonnements seront configurés dynamiquement selon le contexte
   }
   
@@ -226,7 +206,6 @@ class RealtimeService {
 
   /// Arrêter tous les abonnements
   Future<void> stopRealtimeSubscriptions() async {
-    print('🛑 [Realtime] Arrêt des abonnements');
     
     if (_messagesChannel != null) {
       await _messagesChannel!.unsubscribe();
@@ -256,7 +235,6 @@ class RealtimeService {
     if (_messageStreamControllers.containsKey(conversationId)) {
       _messageStreamControllers[conversationId]!.close();
       _messageStreamControllers.remove(conversationId);
-      print('🧹 [Realtime] Stream conversation $conversationId fermé');
     }
   }
 }

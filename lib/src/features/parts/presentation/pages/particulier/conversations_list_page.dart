@@ -55,11 +55,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           .map((p) => p['id'] as String)
           .toList();
           
-      print('🆔 [UI-Particulier] IDs particulier trouvés: $allUserIds');
       
       // Initialiser le realtime pour chaque ID particulier
       for (final userId in allUserIds) {
-        print('📡 [UI-Particulier] Initialisation realtime pour ID: $userId');
         controller.initializeRealtime(userId);
       }
       
@@ -67,12 +65,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       if (allUserIds.isEmpty) {
         final authUserId = Supabase.instance.client.auth.currentUser?.id;
         if (authUserId != null) {
-          print('⚠️ [UI-Particulier] Fallback auth ID: $authUserId');
           controller.initializeRealtime(authUserId);
         }
       }
     } catch (e) {
-      print('❌ [UI-Particulier] Erreur init realtime: $e');
       // Fallback vers auth ID
       final authUserId = Supabase.instance.client.auth.currentUser?.id;
       if (authUserId != null) {
@@ -88,8 +84,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     final isLoading = state.isLoading;
     final error = state.error;
 
-    print('🎨 [UI-PARTICULIER] ConversationsListPage - ${conversations.length} conversations');
-    print('📊 [UI-PARTICULIER] isLoading: $isLoading, error: $error');
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +92,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              print('🔄 [UI] Refresh manuel demandé');
               ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
             },
           ),
@@ -106,7 +99,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          print('⬇️ [UI-Particulier] Pull to refresh');
           await ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
         },
         child: _buildBody(conversations, isLoading, error),
@@ -198,12 +190,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       itemCount: conversations.length,
       itemBuilder: (context, index) {
         final conversation = conversations[index];
-        print('📋 [UI] Affichage conversation: ${conversation.id} - UnreadCount: ${conversation.unreadCount}');
         
         return ConversationItemWidget(
           conversation: conversation,
           onTap: () {
-            print('👆 [UI] Conversation sélectionnée: ${conversation.id}');
             context.push('/conversations/${conversation.id}');
           },
           onDelete: () => _showDeleteDialog(conversation.id),
@@ -230,7 +220,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              print('🗑️ [UI] Suppression conversation confirmée: $conversationId');
               ref.read(particulierConversationsControllerProvider.notifier)
                   .deleteConversation(conversationId);
               
@@ -266,7 +255,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              print('🚫 [UI] Blocage vendeur confirmé: $conversationId');
               ref.read(particulierConversationsControllerProvider.notifier)
                   .blockConversation(conversationId);
               

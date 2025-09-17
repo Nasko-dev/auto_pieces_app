@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
-import '../../../../../shared/presentation/widgets/french_license_plate.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../../domain/entities/conversation_enums.dart';
 
@@ -46,11 +45,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     ref.read(particulierConversationsControllerProvider.notifier).loadConversationDetails(widget.conversationId);
   }
 
-  void _markAsRead() {
-    print('👀 [UI-ParticulierDetail] Marquage conversation comme lue: ${widget.conversationId}');
-    ref.read(particulierConversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
-  }
-
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -88,7 +82,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     elevation: 1,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     title: _buildInstagramAppBarTitle(conversation),
                     leading: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -270,7 +264,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       itemCount: sortedMessages.length,
       itemBuilder: (context, index) {
         final message = sortedMessages[index];
-        final isFromMe = message.isFromParticulier;
         final showTimestamp = index == 0 ||
             _shouldShowTimestamp(
               sortedMessages[index - 1].createdAt,
@@ -305,7 +298,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   Future<void> _takePhoto() async {
-    print('📷 [UI-Particulier] Prise de photo');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -317,18 +309,15 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (photo != null) {
-        print('✅ [UI-Particulier] Photo prise: ${photo.path}');
         // TODO: Envoyer la photo en tant que message
         _showSuccessSnackBar('Photo prise ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
-      print('❌ [UI-Particulier] Erreur prise photo: $e');
       _showErrorSnackBar('Erreur lors de la prise de photo');
     }
   }
 
   Future<void> _pickFromGallery() async {
-    print('🖼️ [UI-Particulier] Sélection galerie');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -340,12 +329,10 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       );
 
       if (image != null) {
-        print('✅ [UI-Particulier] Image sélectionnée: ${image.path}');
         // TODO: Envoyer l'image en tant que message
         _showSuccessSnackBar('Image sélectionnée ! Envoi des images bientôt disponible.');
       }
     } catch (e) {
-      print('❌ [UI-Particulier] Erreur galerie: $e');
       _showErrorSnackBar('Erreur lors de la sélection d\'image');
     }
   }
@@ -549,11 +536,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     }
   }
 
-  String _formatMessageTime(DateTime dateTime) {
-    final localDateTime = dateTime.toLocal(); // Conversion UTC vers heure locale
-    return '${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
-  }
-
   Widget _buildMessageBubbleWithAvatar(dynamic message, dynamic conversation) {
     return MessageBubbleWidget(
       message: message,
@@ -616,7 +598,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -641,25 +623,11 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     }
   }
 
-  String _getSellerSubtitle(dynamic conversation) {
-    // Si on affiche l'entreprise en haut, mettre le nom du vendeur en bas
-    if (conversation.sellerCompany != null &&
-        conversation.sellerCompany!.isNotEmpty &&
-        conversation.sellerName != null &&
-        conversation.sellerName!.isNotEmpty) {
-      return conversation.sellerName!;
-    } else {
-      // Sinon afficher le type de pièce
-      return conversation.partType ?? 'Pièce auto';
-    }
-  }
-
   Future<void> _makePhoneCall(dynamic conversation) async {
     // Récupérer le numéro de téléphone du vendeur
     final phoneNumber = conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📞 [UI-Particulier] Tentative d\'appel vers: $phoneNumber');
 
       // Nettoyer le numéro (enlever espaces, tirets, etc.)
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -668,17 +636,13 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       try {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri);
-          print('✅ [UI-Particulier] Appel lancé avec succès');
         } else {
-          print('⚠️ [UI-Particulier] Impossible de lancer l\'appel');
           _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
         }
       } catch (e) {
-        print('❌ [UI-Particulier] Erreur lors du lancement de l\'appel: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel');
       }
     } else {
-      print('⚠️ [UI-Particulier] Numéro de téléphone vendeur non disponible');
       _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
     }
   }
@@ -688,7 +652,6 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     final phoneNumber = conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📹 [UI-Particulier] Tentative d\'appel vidéo vers: $phoneNumber');
 
       // Pour l'appel vidéo, essayer WhatsApp d'abord
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -697,19 +660,16 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       try {
         if (await canLaunchUrl(whatsappUri)) {
           await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-          print('✅ [UI-Particulier] WhatsApp ouvert avec succès');
         } else {
           // Fallback vers l'application de téléphone
           final telUri = Uri(scheme: 'tel', path: cleanPhone);
           if (await canLaunchUrl(telUri)) {
             await launchUrl(telUri);
-            print('✅ [UI-Particulier] Application téléphone lancée');
           } else {
             _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
           }
         }
       } catch (e) {
-        print('❌ [UI-Particulier] Erreur lors du lancement de l\'appel vidéo: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
       }
     } else {

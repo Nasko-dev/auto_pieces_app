@@ -40,7 +40,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
     super.initState();
-    print('💬 [UI] ChatPage initialisée pour: ${widget.conversationId}');
     
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -62,7 +61,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
   
   void _subscribeToRealtimeMessages() {
-    print('🔔 [ChatPage] Abonnement realtime pour conversation: ${widget.conversationId}');
     
     final realtimeService = ref.read(realtimeServiceProvider);
     
@@ -72,11 +70,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Écouter les nouveaux messages via le stream spécifique à cette conversation
     _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
       (message) {
-        print('🔍 [ChatPage] Message stream reçu - ID: ${message.id}, Conv: ${message.conversationId}');
         
         // Vérifier que c'est bien pour notre conversation
         if (message.conversationId == widget.conversationId) {
-          print('🎆 [ChatPage] Message pour notre conversation - Traitement!');
           
           // Envoyer au controller via la méthode unifiée
           ref.read(conversationsControllerProvider.notifier)
@@ -85,14 +81,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           // Faire défiler vers le bas
           _scrollToBottom();
         } else {
-          print('⚠️ [ChatPage] Message pour autre conversation (${message.conversationId} != ${widget.conversationId})');
         }
       },
       onError: (error) {
-        print('❌ [ChatPage] Erreur stream messages: $error');
       },
       onDone: () {
-        print('🏁 [ChatPage] Stream messages terminé');
       },
     );
   }
@@ -120,12 +113,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
 
     try {
-      print('📋 [ChatPage] Chargement infos vendeur: ${conversation!.sellerId}');
+      // Vérifier que le sellerId n'est pas null
+      final sellerId = conversation?.sellerId;
+      if (sellerId == null) return;
 
       final response = await Supabase.instance.client
           .from('sellers')
           .select('id, first_name, last_name, company_name, phone, avatar_url')
-          .eq('id', conversation.sellerId)
+          .eq('id', sellerId)
           .limit(1);
 
       if (response.isNotEmpty && mounted) {
@@ -133,10 +128,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _sellerInfo = response.first;
           _isLoadingSellerInfo = false;
         });
-        print('✅ [ChatPage] Infos vendeur récupérées: ${_sellerInfo!['company_name']}');
       }
     } catch (e) {
-      print('❌ [ChatPage] Erreur chargement vendeur: $e');
       if (mounted) {
         setState(() {
           _isLoadingSellerInfo = false;
@@ -182,10 +175,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     
     // Si pas de conversation trouvée, afficher un titre par défaut
     if (conversation == null) {
-      print('⚠️ [ChatPage] Conversation ${widget.conversationId} non trouvée dans la liste');
     }
 
-    print('💬 [UI] ChatPage rendu - ${messages.length} messages');
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -193,7 +184,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -445,7 +436,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _sendMessage(String content) {
     if (content.trim().isEmpty) return;
 
-    print('📤 [UI] Envoi message: $content');
     
     ref.read(conversationsControllerProvider.notifier).sendMessage(
       conversationId: widget.conversationId,
@@ -655,7 +645,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -691,7 +681,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📞 [UI-ChatPage] Tentative d\'appel vers: $phoneNumber');
 
       // Nettoyer le numéro (enlever espaces, tirets, etc.)
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -700,17 +689,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       try {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri);
-          print('✅ [UI-ChatPage] Appel lancé avec succès');
         } else {
-          print('⚠️ [UI-ChatPage] Impossible de lancer l\'appel');
           _showErrorSnackBar('Impossible de lancer l\'appel téléphonique');
         }
       } catch (e) {
-        print('❌ [UI-ChatPage] Erreur lors du lancement de l\'appel: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel');
       }
     } else {
-      print('⚠️ [UI-ChatPage] Numéro de téléphone vendeur non disponible');
       _showInfoSnackBar('Numéro de téléphone du vendeur non disponible');
     }
   }
@@ -720,7 +705,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      print('📹 [UI-ChatPage] Tentative d\'appel vidéo vers: $phoneNumber');
 
       // Pour l'appel vidéo, essayer WhatsApp d'abord
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
@@ -729,19 +713,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       try {
         if (await canLaunchUrl(whatsappUri)) {
           await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-          print('✅ [UI-ChatPage] WhatsApp ouvert avec succès');
         } else {
           // Fallback vers l'application de téléphone
           final telUri = Uri(scheme: 'tel', path: cleanPhone);
           if (await canLaunchUrl(telUri)) {
             await launchUrl(telUri);
-            print('✅ [UI-ChatPage] Application téléphone lancée');
           } else {
             _showErrorSnackBar('Impossible de lancer l\'appel vidéo');
           }
         }
       } catch (e) {
-        print('❌ [UI-ChatPage] Erreur lors du lancement de l\'appel vidéo: $e');
         _showErrorSnackBar('Erreur lors du lancement de l\'appel vidéo');
       }
     } else {
@@ -750,7 +731,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Future<void> _takePhoto() async {
-    print('📷 [UI-ChatPage] Prise de photo');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -762,17 +742,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
 
       if (photo != null) {
-        print('✅ [UI-ChatPage] Photo prise: ${photo.path}');
         await _sendImageMessage(File(photo.path));
       }
     } catch (e) {
-      print('❌ [UI-ChatPage] Erreur prise photo: $e');
       _showErrorSnackBar('Erreur lors de la prise de photo');
     }
   }
 
   Future<void> _pickFromGallery() async {
-    print('🖼️ [UI-ChatPage] Sélection galerie');
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -784,17 +761,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
 
       if (image != null) {
-        print('✅ [UI-ChatPage] Image sélectionnée: ${image.path}');
         await _sendImageMessage(File(image.path));
       }
     } catch (e) {
-      print('❌ [UI-ChatPage] Erreur galerie: $e');
       _showErrorSnackBar('Erreur lors de la sélection d\'image');
     }
   }
 
   Future<void> _sendImageMessage(File imageFile) async {
-    print('🚀 [UI-ChatPage] Début envoi image message');
 
     try {
       final conversationId = widget.conversationId;
@@ -815,7 +789,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         imageFile: imageFile,
       );
 
-      print('✅ [UI-ChatPage] Image uploadée: $imageUrl');
 
       // Envoyer le message via le provider
       await ref.read(conversationsControllerProvider.notifier).sendMessage(
@@ -829,11 +802,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         },
       );
 
-      print('✅ [UI-ChatPage] Message image envoyé avec succès');
       _showSuccessSnackBar('Image envoyée !');
 
     } catch (e) {
-      print('❌ [UI-ChatPage] Erreur envoi image: $e');
       _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
     }
   }

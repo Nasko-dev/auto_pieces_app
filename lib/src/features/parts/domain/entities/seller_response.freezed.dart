@@ -39,7 +39,9 @@ mixin _$SellerResponse {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SellerResponseCopyWith<SellerResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -78,6 +80,8 @@ class _$SellerResponseCopyWithImpl<$Res, $Val extends SellerResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SellerResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -196,6 +200,8 @@ class __$$SellerResponseImplCopyWithImpl<$Res>
       _$SellerResponseImpl _value, $Res Function(_$SellerResponseImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SellerResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -406,7 +412,9 @@ class _$SellerResponseImpl extends _SellerResponse {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SellerResponseImplCopyWith<_$SellerResponseImpl> get copyWith =>
@@ -438,34 +446,38 @@ abstract class _SellerResponse extends SellerResponse {
   @override
   String get requestId;
   @override
-  String get sellerId;
-  @override // Informations du vendeur (dénormalisées pour performance)
+  String
+      get sellerId; // Informations du vendeur (dénormalisées pour performance)
+  @override
   String? get sellerName;
   @override
   String? get sellerCompany;
   @override
   String? get sellerEmail;
   @override
-  String? get sellerPhone;
-  @override // Détails de la réponse
+  String? get sellerPhone; // Détails de la réponse
+  @override
   String get message;
   @override
   double? get price;
   @override
-  String? get availability;
-  @override // 'available', 'order_needed', 'unavailable'
-  int? get estimatedDeliveryDays;
-  @override // Pièces jointes
-  List<String> get attachments;
-  @override // Status de la réponse
-  String get status;
-  @override // 'pending', 'accepted', 'rejected'
+  String? get availability; // 'available', 'order_needed', 'unavailable'
+  @override
+  int? get estimatedDeliveryDays; // Pièces jointes
+  @override
+  List<String> get attachments; // Status de la réponse
+  @override
+  String get status; // 'pending', 'accepted', 'rejected'
 // Timestamps
+  @override
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
+
+  /// Create a copy of SellerResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerResponseImplCopyWith<_$SellerResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -35,7 +35,9 @@ mixin _$SellerSettings {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerSettings
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SellerSettingsCopyWith<SellerSettings> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -77,6 +79,8 @@ class _$SellerSettingsCopyWithImpl<$Res, $Val extends SellerSettings>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SellerSettings
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -213,6 +217,8 @@ class __$$SellerSettingsImplCopyWithImpl<$Res>
       _$SellerSettingsImpl _value, $Res Function(_$SellerSettingsImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SellerSettings
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -442,7 +448,9 @@ class _$SellerSettingsImpl implements _SellerSettings {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerSettings
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SellerSettingsImplCopyWith<_$SellerSettingsImpl> get copyWith =>
@@ -507,8 +515,11 @@ abstract class _SellerSettings implements SellerSettings {
   DateTime? get createdAt;
   @override
   DateTime? get updatedAt;
+
+  /// Create a copy of SellerSettings
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerSettingsImplCopyWith<_$SellerSettingsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

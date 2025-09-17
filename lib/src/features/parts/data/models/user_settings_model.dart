@@ -4,10 +4,24 @@ import '../../domain/entities/user_settings.dart';
 part 'user_settings_model.freezed.dart';
 part 'user_settings_model.g.dart';
 
+// Helper functions pour la conversion des dates
+DateTime? _dateTimeFromJson(dynamic json) {
+  if (json == null) return null;
+  if (json is String) {
+    return DateTime.tryParse(json);
+  }
+  if (json is DateTime) return json;
+  return null;
+}
+
+String? _dateTimeToJson(DateTime? dateTime) {
+  return dateTime?.toIso8601String();
+}
+
 @freezed
 class UserSettingsModel with _$UserSettingsModel {
   const UserSettingsModel._();
-  
+
   const factory UserSettingsModel({
     required String userId,
     String? displayName,
@@ -19,9 +33,7 @@ class UserSettingsModel with _$UserSettingsModel {
     String? avatarUrl,
     @Default(true) bool notificationsEnabled,
     @Default(true) bool emailNotificationsEnabled,
-    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     DateTime? createdAt,
-    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     DateTime? updatedAt,
   }) = _UserSettingsModel;
 
@@ -57,18 +69,4 @@ class UserSettingsModel with _$UserSettingsModel {
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
       );
-}
-
-// Helper functions pour la conversion des dates
-DateTime? _dateTimeFromJson(dynamic json) {
-  if (json == null) return null;
-  if (json is String) {
-    return DateTime.tryParse(json);
-  }
-  if (json is DateTime) return json;
-  return null;
-}
-
-String? _dateTimeToJson(DateTime? dateTime) {
-  return dateTime?.toIso8601String();
 }

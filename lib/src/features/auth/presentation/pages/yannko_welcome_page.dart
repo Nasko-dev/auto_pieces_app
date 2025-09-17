@@ -7,7 +7,6 @@ class YannkoWelcomePage extends StatelessWidget {
 
   // Couleurs (eyedrop approximatifs du visuel)
   static const _bg = Color(0xFF0C1F2F); // bleu nuit
-  static const _green = Color(0xFF2CC36B); // bouton "Pièce neuve"
   static const _orange = Color(0xFFFFB129); // bouton "Pièce occasion"
   static const _textPrimary = Colors.white;
 
@@ -24,108 +23,67 @@ class YannkoWelcomePage extends StatelessWidget {
       color: _textPrimary,
       letterSpacing: -0.5 * s,
     );
-    TextStyle h2(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w700,
-      color: _textPrimary,
-      letterSpacing: -0.2 * s,
-    );
-    TextStyle body(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w500,
-      height: 1.35,
-      color: _textPrimary.withOpacity(0.92),
-    );
 
     return Scaffold(
-      backgroundColor: _bg,
-      body: Stack(
-        children: [
-          // Contenu principal
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24 * s),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 32 * s),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: _bg,
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24 * s, vertical: 32 * s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Spacer(),
 
-                  // Logo tête guépard
-                  Center(
-                    child: Image.asset(
-                      'assets/images/cheetah_head.png',
-                      height: 112 * s,
-                      fit: BoxFit.contain,
-                      errorBuilder:
-                          (_, __, ___) => Icon(
-                            Icons.pets_rounded,
-                            color: Colors.amber.shade300,
-                            size: 96 * s,
-                          ),
+                    // Titre principal
+                    Text(
+                      'Pièces Auto',
+                      style: h1(48),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
 
-                  SizedBox(height: 16 * s),
+                    SizedBox(height: 12 * s),
 
-                  // "Yannko Pièce"
-                  Text('Yannko Pièce', style: h2(28)),
+                    // Bouton "Pièce occasion"
+                    _YButton(
+                      color: _orange,
+                      label: 'Pièce occasion',
+                      icon: Icons.settings,
+                      scale: s,
+                      onTap: () {
+                        // Naviguer vers la page de connexion pour les pièces d'occasion
+                        context.go('/welcome');
+                      },
+                    ),
 
-                  SizedBox(height: 10 * s),
-
-                  // "Bienvenue"
-                  Text('Bienvenue', style: h1(56)),
-
-                  SizedBox(height: 16 * s),
-
-                  SizedBox(height: 20 * s),
-
-                  // Bouton "Pièce neuve"
-                  _YButton(
-                    color: _green,
-                    label: 'Pièce neuve',
-                    icon: Icons.inventory_2_rounded,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page "En cours de développement"
-                      context.go('/under-development');
-                    },
-                  ),
-
-                  SizedBox(height: 12 * s),
-
-                  // Bouton "Pièce occasion"
-                  _YButton(
-                    color: _orange,
-                    label: 'Pièce occasion',
-                    icon: Icons.settings,
-                    scale: s,
-                    onTap: () {
-                      // Naviguer vers la page de connexion pour les pièces d'occasion
-                      context.go('/welcome');
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Illustration scooter, ancrée en bas
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 8 * s,
-            child: IgnorePointer(
-              child: Center(
-                child: Image.asset(
-                  'assets/images/cheetah_delivery.png',
-                  height: 270 * s,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    const Spacer(),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+
+            // Illustration scooter, ancrée en bas
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8 * s,
+              child: IgnorePointer(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/cheetah_delivery.png',
+                    height: 270 * s,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

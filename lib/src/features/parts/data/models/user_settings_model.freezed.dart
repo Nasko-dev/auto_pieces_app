@@ -35,8 +35,12 @@ mixin _$UserSettingsModel {
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
+  /// Serializes this UserSettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of UserSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserSettingsModelCopyWith<UserSettingsModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -74,6 +78,8 @@ class _$UserSettingsModelCopyWithImpl<$Res, $Val extends UserSettingsModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of UserSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -176,6 +182,8 @@ class __$$UserSettingsModelImplCopyWithImpl<$Res>
       $Res Function(_$UserSettingsModelImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of UserSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -330,7 +338,7 @@ class _$UserSettingsModelImpl extends _UserSettingsModel {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -347,7 +355,9 @@ class _$UserSettingsModelImpl extends _UserSettingsModel {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$UserSettingsModelImplCopyWith<_$UserSettingsModelImpl> get copyWith =>
@@ -409,8 +419,11 @@ abstract class _UserSettingsModel extends UserSettingsModel {
   @override
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt;
+
+  /// Create a copy of UserSettingsModel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserSettingsModelImplCopyWith<_$UserSettingsModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

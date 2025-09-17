@@ -18,11 +18,8 @@ class TecAllianceTestService {
       '/search',
     ];
     
-    print('🔍 Test de l\'API TecAlliance Vehicle Identification');
-    print('==================================================');
     
     for (final endpoint in endpoints) {
-      print('\n🧪 Test endpoint: $baseUrl$endpoint');
       
       // Test 1: Query parameters
       await _testMethod1(endpoint, testPlate);
@@ -41,7 +38,6 @@ class TecAllianceTestService {
   // Method 1: Query parameters
   static Future<void> _testMethod1(String endpoint, String plate) async {
     try {
-      print('   → Method 1: Query params');
       final url = Uri.parse('$baseUrl$endpoint')
           .replace(queryParameters: {
         'providerId': providerId,
@@ -54,21 +50,17 @@ class TecAllianceTestService {
         headers: {'Accept': 'application/json'},
       ).timeout(const Duration(seconds: 10));
       
-      print('     Status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        print('     ✅ SUCCESS! Response: ${response.body.substring(0, 200)}...');
       } else {
-        print('     Response: ${response.body}');
       }
     } catch (e) {
-      print('     ❌ Error: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
   
   // Method 2: Headers
   static Future<void> _testMethod2(String endpoint, String plate) async {
     try {
-      print('   → Method 2: Headers');
       final url = Uri.parse('$baseUrl$endpoint')
           .replace(queryParameters: {'vrm': plate});
       
@@ -81,21 +73,17 @@ class TecAllianceTestService {
         },
       ).timeout(const Duration(seconds: 10));
       
-      print('     Status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        print('     ✅ SUCCESS! Response: ${response.body.substring(0, 200)}...');
       } else {
-        print('     Response: ${response.body}');
       }
     } catch (e) {
-      print('     ❌ Error: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
   
   // Method 3: Bearer token
   static Future<void> _testMethod3(String endpoint, String plate) async {
     try {
-      print('   → Method 3: Bearer');
       final url = Uri.parse('$baseUrl$endpoint')
           .replace(queryParameters: {'vrm': plate});
       
@@ -107,21 +95,17 @@ class TecAllianceTestService {
         },
       ).timeout(const Duration(seconds: 10));
       
-      print('     Status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        print('     ✅ SUCCESS! Response: ${response.body.substring(0, 200)}...');
       } else {
-        print('     Response: ${response.body}');
       }
     } catch (e) {
-      print('     ❌ Error: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
   
   // Method 4: POST request
   static Future<void> _testMethod4(String endpoint, String plate) async {
     try {
-      print('   → Method 4: POST');
       final url = Uri.parse('$baseUrl$endpoint');
       
       final response = await http.post(
@@ -137,14 +121,11 @@ class TecAllianceTestService {
         }),
       ).timeout(const Duration(seconds: 10));
       
-      print('     Status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        print('     ✅ SUCCESS! Response: ${response.body.substring(0, 200)}...');
       } else {
-        print('     Response: ${response.body}');
       }
     } catch (e) {
-      print('     ❌ Error: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
 }

@@ -39,36 +39,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       final hasSupabaseSession = supabase.auth.currentSession != null;
       final cachedUserType = sessionService.getCachedUserType();
       
-      print('🚀 [Router] Initialisation - Session Supabase: $hasSupabaseSession, Type en cache: $cachedUserType');
       
       // Ne rediriger que si BOTH Supabase et le cache sont cohérents
       if (hasSupabaseSession && cachedUserType != null) {
         if (cachedUserType == 'vendeur') {
-          print('📍 [Router] Redirection vers page vendeur');
           return '/seller/home';
         } else {
-          print('📍 [Router] Redirection vers page particulier');
           return '/home';
         }
       } else if (!hasSupabaseSession && cachedUserType != null) {
         // Incohérence détectée - nettoyer le cache
-        print('⚠️ [Router] Cache incohérent - nettoyage');
         sessionService.clearCache();
       }
     } catch (e) {
-      print('⚠️ [Router] Erreur lors de la récupération du cache: $e');
+      // En cas d'erreur, retourner à la page d'accueil
+      return '/';
     }
-    
-    print('📍 [Router] Pas de session valide, page d\'accueil');
     return '/';
   }
 
   return GoRouter(
     initialLocation: getInitialLocation(),
     redirect: (context, state) {
-      final location = state.matchedLocation;
       
-      print('🔍 [Router] Navigation vers: $location');
       
       // Permettre la navigation normale sans re-direction forcée
       // Les pages géreront leur propre auth si nécessaire

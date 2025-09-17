@@ -5,7 +5,7 @@ import 'logger.dart';
 
 /// Classe utilitaire pour gérer les erreurs de manière centralisée
 class ErrorHandler {
-  /// Exécute une opération asynchrone et retourne Either<Failure, T>
+  /// Exécute une opération asynchrone et retourne Either
   static Future<Either<Failure, T>> handleAsync<T>(
     Future<T> Function() operation, {
     required bool checkNetwork,

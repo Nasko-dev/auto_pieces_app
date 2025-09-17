@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 
 abstract class AuthLocalDataSource {
@@ -23,7 +21,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> cacheUser(UserModel user) async {
     _cachedUser = user;
     if (kDebugMode) {
-      print('User cached: ${user.toJson()}');
     }
   }
 
@@ -31,7 +28,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> clearCache() async {
     _cachedUser = null;
     if (kDebugMode) {
-      print('User cache cleared');
     }
   }
 }

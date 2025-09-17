@@ -7,7 +7,7 @@
   <rect x="5" y="5" width="50" height="100" fill="#003399" rx="4"/>
   
   <!-- Étoiles européennes -->
-  <g fill="#FFCC00">
+  <g fill="#ff0000ff">
     <!-- Étoile du haut -->
     <path d="M30,15 L31.5,19 L36,19 L32.5,22 L34,26 L30,23 L26,26 L27.5,22 L24,19 L28.5,19 Z"/>
     <!-- Étoiles circulaires -->

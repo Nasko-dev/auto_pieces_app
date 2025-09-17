@@ -30,7 +30,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   int _currentStep = 0;
   String _selectedChoice = '';
   String _partName = '';
-  bool _hasMultipleParts = false;
+  bool hasMultipleParts = false;
   String _vehiclePlate = '';
   bool _isSubmitting = false;
 
@@ -40,7 +40,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     
     // Si c'est un vendeur, forcer la re-vérification des limitations
     if (widget.mode == SellerMode.vendeur) {
-      print('🔄 [BecomeSellerPage] Mode vendeur détecté - force refresh des limitations...');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final notifier = ref.read(vehicleSearchProvider.notifier);
         notifier.forceRefreshActiveRequestCheck();
@@ -58,7 +57,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onPartSubmitted(String partName, bool hasMultiple) {
     setState(() {
       _partName = partName;
-      _hasMultipleParts = hasMultiple;
+      hasMultipleParts = hasMultiple;
       _currentStep = 2;
     });
   }
@@ -98,10 +97,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
   Future<void> _createAdvertisement() async {
     try {
-      print('🚀 [BecomeSellerPage] Création annonce:');
-      print('   Type: $_selectedChoice');
-      print('   Pièce: $_partName');
-      print('   Plaque: $_vehiclePlate');
       
       // Récupérer les informations du véhicule depuis le provider
       final vehicleState = ref.read(vehicleSearchProvider);
@@ -166,14 +161,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
       final success = await controller.createPartAdvertisement(params);
       
       if (success) {
-        print('✅ [BecomeSellerPage] Annonce créée avec succès');
       } else {
         final state = ref.read(partAdvertisementControllerProvider);
-        print('❌ [BecomeSellerPage] Erreur création annonce: ${state.error}');
         throw Exception(state.error ?? 'Erreur inconnue');
       }
     } catch (e) {
-      print('❌ [BecomeSellerPage] Erreur création annonce: $e');
       rethrow; // Propager l'erreur pour la gestion dans l'UI
     }
   }
@@ -192,10 +184,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
   // Méthode de debug temporaire
   void _debugRefresh() async {
-    print('🔧 [DEBUG] Force refresh demandé manuellement...');
     final notifier = ref.read(vehicleSearchProvider.notifier);
     await notifier.forceRefreshActiveRequestCheck();
-    print('🔧 [DEBUG] Force refresh terminé');
   }
 
   @override

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_theme.dart';
 import 'become_seller/sell_part_step_page.dart';
 
 class SellOnePartCardScreen extends StatelessWidget {

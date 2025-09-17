@@ -27,7 +27,7 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
   bool _hasMultiple = false;
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  List<String> _selectedParts = [];
+  final List<String> _selectedParts = [];
 
   @override
   void initState() {
@@ -73,9 +73,6 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
         categoryFilter = null; // Toutes les catégories
       }
 
-      print('🔍 [DEBUG SellerPartStepPage] Query: "$query"');
-      print('🔍 [DEBUG SellerPartStepPage] selectedCategory: "${widget.selectedCategory}"');
-      print('🔍 [DEBUG SellerPartStepPage] categoryFilter: "$categoryFilter"');
 
       // Appeler la fonction sans filtre si on veut exclure moteur
       final actualCategoryFilter = categoryFilter == 'NOT_MOTEUR' ? null : categoryFilter;
@@ -87,7 +84,6 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
       });
 
       if (response != null && mounted) {
-        print('🔍 [DEBUG SellerPartStepPage] Response count: ${(response as List).length}');
         
         // Filtrer côté client si nécessaire
         List<Map<String, dynamic>> filteredData = (response as List).cast<Map<String, dynamic>>();
@@ -106,7 +102,6 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
             .toSet() // Éviter les doublons
             .toList();
             
-        print('🔍 [DEBUG SellerPartStepPage] Suggestions: $parts');
 
         setState(() {
           _suggestions = parts;
@@ -114,7 +109,6 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
         });
       }
     } catch (e) {
-      print('❌ [DEBUG SellerPartStepPage] Erreur recherche: $e');
       // En cas d'erreur, utiliser des suggestions statiques
       _showStaticSuggestions(query);
     }
@@ -168,10 +162,6 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
     final hasParts = _selectedParts.isNotEmpty || _partController.text.trim().isNotEmpty;
     final hasPrice = _priceController.text.trim().isNotEmpty;
     
-    print('🔍 [DEBUG SellerPartStepPage] _canContinue:');
-    print('  - hasParts: $hasParts (selectedParts: ${_selectedParts.length}, controller: "${_partController.text}")');
-    print('  - hasPrice: $hasPrice (price: "${_priceController.text}")');
-    print('  - result: ${hasParts && hasPrice}');
     
     return hasParts && hasPrice;
   }
@@ -248,7 +238,7 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
                         border: Border.all(color: const Color(0xFFE6E9EF)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -304,7 +294,7 @@ class _SellerPartStepPageState extends ConsumerState<SellerPartStepPage> {
                       children: _selectedParts.map((part) => Chip(
                         label: Text(part),
                         onDeleted: () => _removePart(part),
-                        backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+                        backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
                         labelStyle: const TextStyle(color: AppTheme.primaryBlue),
                         deleteIconColor: AppTheme.primaryBlue,
                       )).toList(),

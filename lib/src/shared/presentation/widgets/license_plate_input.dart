@@ -24,7 +24,6 @@ class LicensePlateInput extends ConsumerStatefulWidget {
 }
 
 class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
-  static const Color _blue = Color(0xFF1976D2);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const Color _textGray = Color(0xFF6B7280);
   static const Color _border = Color(0xFFE5E7EB);
@@ -49,7 +48,6 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
     final plate = _plateController.text.trim();
     if (plate.isEmpty) return;
 
-    print('🔎 [LicensePlateInput] Recherche déclenchée pour: $plate');
 
     setState(() {
       _hasSearched = true;
@@ -58,16 +56,10 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
     await ref.read(vehicleSearchProvider.notifier).searchVehicle(plate);
 
     final state = ref.read(vehicleSearchProvider);
-    print('📊 [LicensePlateInput] État après recherche:');
-    print('   - Loading: ${state.isLoading}');
-    print('   - Error: ${state.error}');
-    print('   - VehicleInfo: ${state.vehicleInfo != null}');
 
     if (state.vehicleInfo != null) {
-      print('✅ [LicensePlateInput] Véhicule trouvé, appel du callback');
       widget.onPlateValidated?.call(plate);
     } else if (state.error != null) {
-      print('❌ [LicensePlateInput] Erreur: ${state.error}');
     }
   }
 
@@ -77,12 +69,6 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
     final vehicleState = ref.watch(vehicleSearchProvider);
     
     // Debug prints pour diagnostiquer l'état
-    print('🔍 [LicensePlateInput] État du widget :');
-    print('   - hasActiveRequest: ${vehicleState.hasActiveRequest}');
-    print('   - isLoading: ${vehicleState.isLoading}');
-    print('   - isCheckingActiveRequest: ${vehicleState.isCheckingActiveRequest}');
-    print('   - isRateLimited: ${vehicleState.isRateLimited}');
-    print('   - remainingAttempts: ${vehicleState.remainingAttempts}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +169,6 @@ class _RateLimitWarning extends StatelessWidget {
   final int remainingAttempts;
   final int timeUntilReset;
 
-  static const Color _warning = Color(0xFFFF9500);
   static const Color _error = Color(0xFFFF3B30);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const double _radius = 12;
@@ -199,9 +184,9 @@ class _RateLimitWarning extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _error.withOpacity(0.1),
+        color: _error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _error.withOpacity(0.3)),
+        border: Border.all(color: _error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -244,9 +229,9 @@ class _RemainingAttemptsInfo extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _warning.withOpacity(0.1),
+        color: _warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _warning.withOpacity(0.3)),
+        border: Border.all(color: _warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -285,9 +270,9 @@ class _ActiveRequestWarning extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _info.withOpacity(0.1),
+        color: _info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _info.withOpacity(0.3)),
+        border: Border.all(color: _info.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,7 +302,7 @@ class _ActiveRequestWarning extends StatelessWidget {
             'Vous ne pouvez pas créer une nouvelle demande tant qu\'une demande est active. Consultez vos demandes dans l\'onglet "Mes demandes".',
             style: TextStyle(
               fontSize: 13,
-              color: _textDark.withOpacity(0.8),
+              color: _textDark.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -342,9 +327,9 @@ class _ActiveRequestWarning extends StatelessWidget {
 //       width: double.infinity,
 //       padding: const EdgeInsets.all(20),
 //       decoration: BoxDecoration(
-//         color: Colors.green.withOpacity(0.1),
+//         color: Colors.green.withValues(alpha: 0.1),
 //         borderRadius: BorderRadius.circular(_radius),
-//         border: Border.all(color: Colors.green.withOpacity(0.3)),
+//         border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
 //       ),
 //       child: Column(
 //         crossAxisAlignment: CrossAxisAlignment.start,

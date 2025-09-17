@@ -38,7 +38,9 @@ mixin _$ParticulierConversation {
   String? get sellerAvatarUrl => throw _privateConstructorUsedError;
   String? get sellerPhone => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ParticulierConversationCopyWith<ParticulierConversation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -85,6 +87,8 @@ class _$ParticulierConversationCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -193,6 +197,8 @@ class _$ParticulierConversationCopyWithImpl<$Res,
     ) as $Val);
   }
 
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PartRequestCopyWith<$Res> get partRequest {
@@ -247,6 +253,8 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
       $Res Function(_$ParticulierConversationImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -516,7 +524,9 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
         sellerPhone
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ParticulierConversationImplCopyWith<_$ParticulierConversationImpl>
@@ -580,15 +590,18 @@ abstract class _ParticulierConversation implements ParticulierConversation {
   @override
   List<String>? get partNames;
   @override
-  bool? get hasNewMessages;
-  @override // Nouvelles données vendeur pour l'AppBar Instagram
+  bool? get hasNewMessages; // Nouvelles données vendeur pour l'AppBar Instagram
+  @override
   String? get sellerCompany;
   @override
   String? get sellerAvatarUrl;
   @override
   String? get sellerPhone;
+
+  /// Create a copy of ParticulierConversation
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ParticulierConversationImplCopyWith<_$ParticulierConversationImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
