@@ -113,25 +113,38 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Row(
                   children: [
                     // Avatar utilisateur
-                    Container(
-                      width: 45,
-                      height: 45,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _blue.withValues(alpha: 0.8),
-                            _blue,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(22.5),
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final authState = ref.watch(particulierAuthControllerProvider);
+
+                        return authState.when(
+                          initial: () => _buildDefaultAvatar(),
+                          loading: () => _buildDefaultAvatar(),
+                          anonymousAuthenticated: (particulier) {
+                            if (particulier.avatar_url != null && particulier.avatar_url!.isNotEmpty) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(22.5),
+                                child: Image.network(
+                                  particulier.avatar_url!,
+                                  width: 45,
+                                  height: 45,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildDefaultAvatar();
+                                  },
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return _buildDefaultAvatar();
+                                  },
+                                ),
+                              );
+                            } else {
+                              return _buildDefaultAvatar();
+                            }
+                          },
+                          error: (message) => _buildDefaultAvatar(),
+                        );
+                      },
                     ),
 
                     const SizedBox(width: 16),
@@ -318,6 +331,29 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDefaultAvatar() {
+    return Container(
+      width: 45,
+      height: 45,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _blue.withValues(alpha: 0.8),
+            _blue,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22.5),
+      ),
+      child: const Icon(
+        Icons.person,
+        color: Colors.white,
+        size: 24,
+      ),
     );
   }
 
