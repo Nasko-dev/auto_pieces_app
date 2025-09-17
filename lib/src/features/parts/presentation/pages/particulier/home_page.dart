@@ -80,69 +80,70 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // Header statique fixe
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(70 + media.padding.top),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade100,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                // Badge "Accueil" avec style moderne
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: _blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: _blue.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    'Accueil',
-                    style: TextStyle(
-                      color: _blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Menu stylé
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const AppMenu(),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      // CONTENU
       body: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // HEADER INTÉGRÉ À LA PAGE
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.grey.shade100,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    // Badge "Accueil" avec style moderne
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color: _blue.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        'Accueil',
+                        style: TextStyle(
+                          color: _blue,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // Menu stylé
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const AppMenu(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // CONTENU
+            Padding(
+              padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
                   // Titre
                   const Text(
                     'Quel type de pièce\nrecherchez-vous ?',
@@ -244,8 +245,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ],
 
-            // Espace bas pour resp. safe area
-            SizedBox(height: media.padding.bottom + 8),
+                  // Espace bas pour resp. safe area
+                  SizedBox(height: media.padding.bottom + 8),
+                ],
+              ),
+            ),
           ],
         ),
       ),
