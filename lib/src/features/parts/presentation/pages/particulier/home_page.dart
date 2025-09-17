@@ -5,8 +5,10 @@ import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
+import '../../../../../core/providers/user_settings_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../domain/entities/user_settings.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -31,6 +33,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   String _selectedType = 'engine';
   bool _isManualMode = false;
   bool _showDescription = false;
+  UserSettings? _userSettings;
 
   final _plate = TextEditingController();
   final _partController = TextEditingController();
@@ -51,6 +54,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
 
+    // Charger les paramètres utilisateur pour récupérer l'avatar
+    _loadUserSettings();
+
     // Vérifier l'état d'authentification au démarrage et connecter si nécessaire
     Future.delayed(const Duration(milliseconds: 100), () async {
       if (mounted) {
@@ -62,7 +68,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         currentState.when(
           initial: () async => await authController.signInAnonymously(),
           loading: () {},
-          anonymousAuthenticated: (particulier) {},
+          anonymousAuthenticated: (particulier) {
+            // Recharger les paramètres après authentification
+            _loadUserSettings();
+          },
           error: (message) async => await authController.signInAnonymously(),
         );
       }
@@ -75,6 +84,25 @@ class _HomePageState extends ConsumerState<HomePage> {
         ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
       }
     });
+  }
+
+  void _loadUserSettings() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
+
+    final getUserSettings = ref.read(getUserSettingsProvider);
+    final result = await getUserSettings(currentUser.id);
+
+    result.fold(
+      (failure) => null,
+      (settings) {
+        if (settings != null && mounted) {
+          setState(() {
+            _userSettings = settings;
+          });
+        }
+      },
+    );
   }
 
   @override
@@ -117,21 +145,31 @@ class _HomePageState extends ConsumerState<HomePage> {
                       width: 45,
                       height: 45,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _blue.withValues(alpha: 0.8),
-                            _blue,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        gradient: _userSettings?.avatarUrl == null
+                            ? LinearGradient(
+                                colors: [
+                                  _blue.withValues(alpha: 0.8),
+                                  _blue,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
                         borderRadius: BorderRadius.circular(22.5),
+                        image: _userSettings?.avatarUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(_userSettings!.avatarUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                      child: _userSettings?.avatarUrl == null
+                          ? const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 24,
+                            )
+                          : null,
                     ),
 
                     const SizedBox(width: 16),
