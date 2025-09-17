@@ -155,20 +155,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             Padding(
               padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Titre aligné à droite
-                  const Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'Quel type de pièce\nrecherchez-vous ?',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
-                        color: _textDark,
-                      ),
+                  // Titre aligné à gauche qui s'étend sur toute la largeur
+                  const Text(
+                    'Quel type de pièce\nrecherchez-vous ?',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                      color: _textDark,
                     ),
                   ),
                   const SizedBox(height: 20),
