@@ -39,6 +39,9 @@ class Particulier extends Equatable {
     if (firstName != null && lastName != null) {
       return '$firstName $lastName';
     }
+    if (firstName != null) {
+      return firstName!;
+    }
     if (email != null) {
       return email!.split('@').first;
     }

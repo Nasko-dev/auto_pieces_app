@@ -51,10 +51,20 @@ class _HomePageState extends ConsumerState<HomePage> {
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
 
-    // Vérifier l'état d'authentification au démarrage
-    Future.delayed(const Duration(milliseconds: 100), () {
+    // Vérifier l'état d'authentification au démarrage et connecter si nécessaire
+    Future.delayed(const Duration(milliseconds: 100), () async {
       if (mounted) {
-        ref.read(particulierAuthControllerProvider.notifier).checkAuthStatus();
+        final authController = ref.read(particulierAuthControllerProvider.notifier);
+        await authController.checkAuthStatus();
+
+        // Si pas connecté, faire une connexion anonyme
+        final currentState = ref.read(particulierAuthControllerProvider);
+        currentState.when(
+          initial: () async => await authController.signInAnonymously(),
+          loading: () {},
+          anonymousAuthenticated: (particulier) {},
+          error: (message) async => await authController.signInAnonymously(),
+        );
       }
     });
 
@@ -133,13 +143,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                           final authState = ref.watch(particulierAuthControllerProvider);
 
                           return authState.when(
-                            initial: () => _buildUserInfo('Bienvenue', 'Chargement...'),
-                            loading: () => _buildUserInfo('Bienvenue', 'Chargement...'),
-                            anonymousAuthenticated: (particulier) => _buildUserInfo(
-                              'Bienvenue',
-                              particulier.displayName,
-                            ),
-                            error: (message) => _buildUserInfo('Bienvenue', 'Particulier'),
+                            initial: () => _buildUserInfo('Bienvenue', 'Connexion...'),
+                            loading: () => _buildUserInfo('Bienvenue', 'Connexion...'),
+                            anonymousAuthenticated: (particulier) {
+                              print('DEBUG: Particulier connecté: ${particulier.displayName}');
+                              return _buildUserInfo('Bienvenue', particulier.displayName);
+                            },
+                            error: (message) {
+                              print('DEBUG: Erreur auth: $message');
+                              return _buildUserInfo('Bienvenue', 'Utilisateur');
+                            },
                           );
                         },
                       ),
