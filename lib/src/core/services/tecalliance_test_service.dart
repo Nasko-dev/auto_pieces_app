@@ -54,6 +54,7 @@ class TecAllianceTestService {
       } else {
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
   
@@ -76,6 +77,7 @@ class TecAllianceTestService {
       } else {
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
   
@@ -97,6 +99,7 @@ class TecAllianceTestService {
       } else {
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
   
@@ -122,6 +125,7 @@ class TecAllianceTestService {
       } else {
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 }

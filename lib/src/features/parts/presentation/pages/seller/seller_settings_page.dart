@@ -670,6 +670,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       final result = await saveSellerSettings(sellerSettings);
 
       // Masquer l'indicateur de chargement
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(

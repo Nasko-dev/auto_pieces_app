@@ -22,7 +22,9 @@ mixin _$ParticulierConversationsState {
   String? get error => throw _privateConstructorUsedError;
   String? get activeConversationId => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ParticulierConversationsStateCopyWith<ParticulierConversationsState>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -53,6 +55,8 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -108,6 +112,8 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
       $Res Function(_$ParticulierConversationsStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -204,7 +210,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       error,
       activeConversationId);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ParticulierConversationsStateImplCopyWith<
@@ -231,8 +239,11 @@ abstract class _ParticulierConversationsState
   String? get error;
   @override
   String? get activeConversationId;
+
+  /// Create a copy of ParticulierConversationsState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ParticulierConversationsStateImplCopyWith<
           _$ParticulierConversationsStateImpl>
       get copyWith => throw _privateConstructorUsedError;

@@ -129,6 +129,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         }
         
       } catch (particulierError) {
+      // Ignorer l'erreur silencieusement
       }
       
       

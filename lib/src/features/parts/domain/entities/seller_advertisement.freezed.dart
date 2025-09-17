@@ -33,7 +33,9 @@ mixin _$SellerAdvertisement {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get soldAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerAdvertisement
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SellerAdvertisementCopyWith<SellerAdvertisement> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -73,6 +75,8 @@ class _$SellerAdvertisementCopyWithImpl<$Res, $Val extends SellerAdvertisement>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SellerAdvertisement
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -197,6 +201,8 @@ class __$$SellerAdvertisementImplCopyWithImpl<$Res>
       $Res Function(_$SellerAdvertisementImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SellerAdvertisement
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -408,7 +414,9 @@ class _$SellerAdvertisementImpl implements _SellerAdvertisement {
       updatedAt,
       soldAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SellerAdvertisement
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SellerAdvertisementImplCopyWith<_$SellerAdvertisementImpl> get copyWith =>
@@ -467,8 +475,11 @@ abstract class _SellerAdvertisement implements SellerAdvertisement {
   DateTime get updatedAt;
   @override
   DateTime? get soldAt;
+
+  /// Create a copy of SellerAdvertisement
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerAdvertisementImplCopyWith<_$SellerAdvertisementImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

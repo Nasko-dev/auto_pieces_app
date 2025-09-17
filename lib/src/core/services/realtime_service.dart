@@ -92,6 +92,7 @@ class RealtimeService {
                 } else {
                 }
               } catch (e) {
+      // Ignorer l'erreur silencieusement
               }
             },
           )
@@ -113,6 +114,7 @@ class RealtimeService {
                   _messageStreamControllers[conversationId]!.add(message);
                 }
               } catch (e) {
+      // Ignorer l'erreur silencieusement
               }
             },
           );
@@ -121,6 +123,7 @@ class RealtimeService {
       
       // Test de diagnostic Realtime
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -177,6 +180,7 @@ class RealtimeService {
       
       // Test de diagnostic Realtime
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 

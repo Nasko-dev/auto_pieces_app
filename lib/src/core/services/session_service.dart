@@ -128,6 +128,7 @@ class SessionService {
       await _prefs.setString(_keyUserRole, userType);
       
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
   
@@ -181,4 +182,3 @@ class SessionService {
     }
   }
 }
-

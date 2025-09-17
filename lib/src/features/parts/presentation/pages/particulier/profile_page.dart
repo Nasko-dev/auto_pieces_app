@@ -657,6 +657,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final result = await saveUserSettings(userSettings);
 
       // Masquer l'indicateur de chargement
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
@@ -834,6 +835,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final dataSource = ref.read(userSettingsRemoteDataSourceProvider);
       await dataSource.deleteUserSettings(currentUser.id);
 
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(

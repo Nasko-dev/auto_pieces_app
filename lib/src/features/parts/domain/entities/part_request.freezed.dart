@@ -40,7 +40,9 @@ mixin _$PartRequest {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of PartRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $PartRequestCopyWith<PartRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -81,6 +83,8 @@ class _$PartRequestCopyWithImpl<$Res, $Val extends PartRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of PartRequest
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -211,6 +215,8 @@ class __$$PartRequestImplCopyWithImpl<$Res>
       _$PartRequestImpl _value, $Res Function(_$PartRequestImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of PartRequest
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -445,7 +451,9 @@ class _$PartRequestImpl extends _PartRequest {
       updatedAt,
       expiresAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of PartRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$PartRequestImplCopyWith<_$PartRequestImpl> get copyWith =>
@@ -476,8 +484,8 @@ abstract class _PartRequest extends PartRequest {
   @override
   String get id;
   @override
-  String? get userId;
-  @override // Informations du véhicule
+  String? get userId; // Informations du véhicule
+  @override
   String? get vehiclePlate;
   @override
   String? get vehicleBrand;
@@ -486,29 +494,32 @@ abstract class _PartRequest extends PartRequest {
   @override
   int? get vehicleYear;
   @override
-  String? get vehicleEngine;
-  @override // Type de pièce recherchée
-  String get partType;
-  @override // 'engine' ou 'body'
+  String? get vehicleEngine; // Type de pièce recherchée
+  @override
+  String get partType; // 'engine' ou 'body'
+  @override
   List<String> get partNames;
   @override
-  String? get additionalInfo;
-  @override // Métadonnées
-  String get status;
-  @override // 'active', 'closed', 'fulfilled'
+  String? get additionalInfo; // Métadonnées
+  @override
+  String get status; // 'active', 'closed', 'fulfilled'
+  @override
   bool get isAnonymous;
   @override
   int get responseCount;
   @override
-  int get pendingResponseCount;
-  @override // Timestamps
+  int get pendingResponseCount; // Timestamps
+  @override
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
   @override
   DateTime? get expiresAt;
+
+  /// Create a copy of PartRequest
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PartRequestImplCopyWith<_$PartRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -528,7 +539,9 @@ mixin _$CreatePartRequestParams {
       throw _privateConstructorUsedError; // Métadonnées
   bool get isAnonymous => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CreatePartRequestParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CreatePartRequestParamsCopyWith<CreatePartRequestParams> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -562,6 +575,8 @@ class _$CreatePartRequestParamsCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of CreatePartRequestParams
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -647,6 +662,8 @@ class __$$CreatePartRequestParamsImplCopyWithImpl<$Res>
       $Res Function(_$CreatePartRequestParamsImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of CreatePartRequestParams
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -788,7 +805,9 @@ class _$CreatePartRequestParamsImpl implements _CreatePartRequestParams {
       additionalInfo,
       isAnonymous);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of CreatePartRequestParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CreatePartRequestParamsImplCopyWith<_$CreatePartRequestParamsImpl>
@@ -808,7 +827,8 @@ abstract class _CreatePartRequestParams implements CreatePartRequestParams {
       final String? additionalInfo,
       final bool isAnonymous}) = _$CreatePartRequestParamsImpl;
 
-  @override // Informations du véhicule
+// Informations du véhicule
+  @override
   String? get vehiclePlate;
   @override
   String? get vehicleBrand;
@@ -817,17 +837,20 @@ abstract class _CreatePartRequestParams implements CreatePartRequestParams {
   @override
   int? get vehicleYear;
   @override
-  String? get vehicleEngine;
-  @override // Type de pièce recherchée
+  String? get vehicleEngine; // Type de pièce recherchée
+  @override
   String get partType;
   @override
   List<String> get partNames;
   @override
-  String? get additionalInfo;
-  @override // Métadonnées
-  bool get isAnonymous;
+  String? get additionalInfo; // Métadonnées
   @override
-  @JsonKey(ignore: true)
+  bool get isAnonymous;
+
+  /// Create a copy of CreatePartRequestParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CreatePartRequestParamsImplCopyWith<_$CreatePartRequestParamsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

@@ -41,8 +41,12 @@ mixin _$VehicleInfo {
   String? get description => throw _privateConstructorUsedError;
   Map<String, dynamic>? get rawData => throw _privateConstructorUsedError;
 
+  /// Serializes this VehicleInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of VehicleInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $VehicleInfoCopyWith<VehicleInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -86,6 +90,8 @@ class _$VehicleInfoCopyWithImpl<$Res, $Val extends VehicleInfo>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of VehicleInfo
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -234,6 +240,8 @@ class __$$VehicleInfoImplCopyWithImpl<$Res>
       _$VehicleInfoImpl _value, $Res Function(_$VehicleInfoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of VehicleInfo
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -465,7 +473,7 @@ class _$VehicleInfoImpl implements _VehicleInfo {
             const DeepCollectionEquality().equals(other._rawData, _rawData));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -491,7 +499,9 @@ class _$VehicleInfoImpl implements _VehicleInfo {
         const DeepCollectionEquality().hash(_rawData)
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of VehicleInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$VehicleInfoImplCopyWith<_$VehicleInfoImpl> get copyWith =>
@@ -571,8 +581,11 @@ abstract class _VehicleInfo implements VehicleInfo {
   String? get description;
   @override
   Map<String, dynamic>? get rawData;
+
+  /// Create a copy of VehicleInfo
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$VehicleInfoImplCopyWith<_$VehicleInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

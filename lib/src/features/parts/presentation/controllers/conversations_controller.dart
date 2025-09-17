@@ -490,6 +490,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
       _updateLocalUnreadCount(conversationId, 1);
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -507,6 +508,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
       _updateLocalUnreadCount(conversationId, -999); // Reset à 0
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 

@@ -568,6 +568,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       final saveSellerSettings = ref.read(saveSellerSettingsProvider);
       final result = await saveSellerSettings(sellerSettings);
 
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(

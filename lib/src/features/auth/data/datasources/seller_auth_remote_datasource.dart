@@ -106,7 +106,7 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         lastName: lastName,
         companyName: companyName,
         phone: phone,
-        createdAt: DateTime.parse(user.createdAt!),
+        createdAt: DateTime.parse(user.createdAt),
         emailVerifiedAt: user.emailConfirmedAt != null 
             ? DateTime.parse(user.emailConfirmedAt!) 
             : null,

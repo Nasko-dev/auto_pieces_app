@@ -244,6 +244,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         }
         
       } catch (particulierError) {
+      // Ignorer l'erreur silencieusement
       }
       
       
@@ -382,6 +383,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('id', conversationId);
 
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -629,6 +631,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return response.first;
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
     return null;
   }
@@ -647,6 +650,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         return sellerData;
       }
     } catch (e) {
+      // Ignorer l'erreur silencieusement
     }
     return null;
   }

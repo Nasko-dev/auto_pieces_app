@@ -29,7 +29,9 @@ mixin _$UserSettings {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserSettings
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserSettingsCopyWith<UserSettings> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -65,6 +67,8 @@ class _$UserSettingsCopyWithImpl<$Res, $Val extends UserSettings>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of UserSettings
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -165,6 +169,8 @@ class __$$UserSettingsImplCopyWithImpl<$Res>
       _$UserSettingsImpl _value, $Res Function(_$UserSettingsImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of UserSettings
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -327,7 +333,9 @@ class _$UserSettingsImpl implements _UserSettings {
       createdAt,
       updatedAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of UserSettings
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$UserSettingsImplCopyWith<_$UserSettingsImpl> get copyWith =>
@@ -373,8 +381,11 @@ abstract class _UserSettings implements UserSettings {
   DateTime? get createdAt;
   @override
   DateTime? get updatedAt;
+
+  /// Create a copy of UserSettings
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserSettingsImplCopyWith<_$UserSettingsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

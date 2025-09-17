@@ -40,10 +40,13 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
             .select()
             .eq('device_id', deviceId);
             
-        for (int i = 0; i < allUsersWithDeviceId.length; i++) {
-          final user = allUsersWithDeviceId[i];
-        }
+        // Traitement des utilisateurs avec ce device_id si nécessaire
+        // for (int i = 0; i < allUsersWithDeviceId.length; i++) {
+        //   final user = allUsersWithDeviceId[i];
+        //   // Traitement à implémenter
+        // }
       } catch (e) {
+      // Ignorer l'erreur silencieusement
       }
       
       // Maintenant, recherche spécifique pour utilisateur anonyme
@@ -70,6 +73,7 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
             } else {
             }
           } catch (authError) {
+      // Ignorer l'erreur silencieusement
           }
         } else {
           
@@ -100,9 +104,11 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
               }
             }
           } catch (conversionError) {
+      // Ignorer l'erreur silencieusement
           }
         }
       } catch (e) {
+      // Ignorer l'erreur silencieusement
       }
 
       // 3. Créer un nouveau compte anonyme
