@@ -116,6 +116,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               .from('part_requests_with_responses')
               .select()
               .inFilter('user_id', allUserIds)
+              .neq('status', 'deleted') // Exclure les demandes supprimées
               .order('created_at', ascending: false);
               
 
@@ -138,6 +139,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .from('part_requests_with_responses')
           .select()
           .eq('user_id', currentAuthUserId)
+          .neq('status', 'deleted') // Exclure les demandes supprimées
           .order('created_at', ascending: false);
 
 
@@ -186,6 +188,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw const UnauthorizedException('User not authenticated');
       }
 
+
       final response = await _supabase
           .from('part_requests')
           .insert(data)
@@ -233,10 +236,45 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<void> deletePartRequest(String id) async {
     try {
-      await _supabase
+      final currentAuthUser = _supabase.auth.currentUser;
+      if (currentAuthUser == null) {
+        throw const UnauthorizedException('User not authenticated');
+      }
+
+      // Récupérer l'ID persistant du particulier pour ce device (même logique que création)
+      String? persistantUserId;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        // Rechercher le particulier persistant avec ce device_id
+        final particulierPersistant = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId)
+            .limit(1)
+            .single();
+
+        persistantUserId = particulierPersistant['id'] as String;
+
+      } catch (e) {
+        // Fallback vers l'ID auth en cas d'erreur
+        persistantUserId = currentAuthUser.id;
+      }
+
+      // Au lieu de DELETE, marquer comme 'deleted' (soft delete)
+      final response = await _supabase
           .from('part_requests')
-          .delete()
-          .eq('id', id);
+          .update({'status': 'deleted'})
+          .eq('id', id)
+          .eq('user_id', persistantUserId)
+          .select();
+
+      if (response.isEmpty) {
+        throw ServerException('Impossible de supprimer cette demande');
+      }
+
     } catch (e) {
       throw ServerException(e.toString());
     }

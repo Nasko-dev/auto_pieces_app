@@ -14,51 +14,29 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-PartRequestModel _$PartRequestModelFromJson(Map<String, dynamic> json) {
-  return _PartRequestModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$PartRequestModel {
   String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'user_id')
   String? get userId =>
       throw _privateConstructorUsedError; // Informations du véhicule
-  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine =>
       throw _privateConstructorUsedError; // Type de pièce recherchée
-  @JsonKey(name: 'part_type')
   String get partType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'part_names')
   List<String> get partNames => throw _privateConstructorUsedError;
-  @JsonKey(name: 'additional_info')
   String? get additionalInfo =>
       throw _privateConstructorUsedError; // Métadonnées
   String get status => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_anonymous')
   bool get isAnonymous => throw _privateConstructorUsedError;
-  @JsonKey(name: 'response_count')
   int get responseCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'pending_response_count')
   int get pendingResponseCount =>
       throw _privateConstructorUsedError; // Timestamps
-  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'updated_at')
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt => throw _privateConstructorUsedError;
-
-  /// Serializes this PartRequestModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of PartRequestModel
   /// with the given fields replaced by the non-null parameter values.
@@ -75,22 +53,22 @@ abstract class $PartRequestModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      @JsonKey(name: 'user_id') String? userId,
-      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
-      @JsonKey(name: 'vehicle_model') String? vehicleModel,
-      @JsonKey(name: 'vehicle_year') int? vehicleYear,
-      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
-      @JsonKey(name: 'part_type') String partType,
-      @JsonKey(name: 'part_names') List<String> partNames,
-      @JsonKey(name: 'additional_info') String? additionalInfo,
+      String? userId,
+      String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
+      String partType,
+      List<String> partNames,
+      String? additionalInfo,
       String status,
-      @JsonKey(name: 'is_anonymous') bool isAnonymous,
-      @JsonKey(name: 'response_count') int responseCount,
-      @JsonKey(name: 'pending_response_count') int pendingResponseCount,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      @JsonKey(name: 'updated_at') DateTime updatedAt,
-      @JsonKey(name: 'expires_at') DateTime? expiresAt});
+      bool isAnonymous,
+      int responseCount,
+      int pendingResponseCount,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -209,22 +187,22 @@ abstract class _$$PartRequestModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      @JsonKey(name: 'user_id') String? userId,
-      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
-      @JsonKey(name: 'vehicle_model') String? vehicleModel,
-      @JsonKey(name: 'vehicle_year') int? vehicleYear,
-      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
-      @JsonKey(name: 'part_type') String partType,
-      @JsonKey(name: 'part_names') List<String> partNames,
-      @JsonKey(name: 'additional_info') String? additionalInfo,
+      String? userId,
+      String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
+      String partType,
+      List<String> partNames,
+      String? additionalInfo,
       String status,
-      @JsonKey(name: 'is_anonymous') bool isAnonymous,
-      @JsonKey(name: 'response_count') int responseCount,
-      @JsonKey(name: 'pending_response_count') int pendingResponseCount,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      @JsonKey(name: 'updated_at') DateTime updatedAt,
-      @JsonKey(name: 'expires_at') DateTime? expiresAt});
+      bool isAnonymous,
+      int responseCount,
+      int pendingResponseCount,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -332,60 +310,49 @@ class __$$PartRequestModelImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$PartRequestModelImpl extends _PartRequestModel {
   const _$PartRequestModelImpl(
       {required this.id,
-      @JsonKey(name: 'user_id') this.userId,
-      @JsonKey(name: 'vehicle_plate') this.vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') this.vehicleBrand,
-      @JsonKey(name: 'vehicle_model') this.vehicleModel,
-      @JsonKey(name: 'vehicle_year') this.vehicleYear,
-      @JsonKey(name: 'vehicle_engine') this.vehicleEngine,
-      @JsonKey(name: 'part_type') required this.partType,
-      @JsonKey(name: 'part_names') required final List<String> partNames,
-      @JsonKey(name: 'additional_info') this.additionalInfo,
+      this.userId,
+      this.vehiclePlate,
+      this.vehicleBrand,
+      this.vehicleModel,
+      this.vehicleYear,
+      this.vehicleEngine,
+      required this.partType,
+      required final List<String> partNames,
+      this.additionalInfo,
       this.status = 'active',
-      @JsonKey(name: 'is_anonymous') this.isAnonymous = false,
-      @JsonKey(name: 'response_count') this.responseCount = 0,
-      @JsonKey(name: 'pending_response_count') this.pendingResponseCount = 0,
-      @JsonKey(name: 'created_at') required this.createdAt,
-      @JsonKey(name: 'updated_at') required this.updatedAt,
-      @JsonKey(name: 'expires_at') this.expiresAt})
+      this.isAnonymous = false,
+      this.responseCount = 0,
+      this.pendingResponseCount = 0,
+      required this.createdAt,
+      required this.updatedAt,
+      this.expiresAt})
       : _partNames = partNames,
         super._();
-
-  factory _$PartRequestModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PartRequestModelImplFromJson(json);
 
   @override
   final String id;
   @override
-  @JsonKey(name: 'user_id')
   final String? userId;
 // Informations du véhicule
   @override
-  @JsonKey(name: 'vehicle_plate')
   final String? vehiclePlate;
   @override
-  @JsonKey(name: 'vehicle_brand')
   final String? vehicleBrand;
   @override
-  @JsonKey(name: 'vehicle_model')
   final String? vehicleModel;
   @override
-  @JsonKey(name: 'vehicle_year')
   final int? vehicleYear;
   @override
-  @JsonKey(name: 'vehicle_engine')
   final String? vehicleEngine;
 // Type de pièce recherchée
   @override
-  @JsonKey(name: 'part_type')
   final String partType;
   final List<String> _partNames;
   @override
-  @JsonKey(name: 'part_names')
   List<String> get partNames {
     if (_partNames is EqualUnmodifiableListView) return _partNames;
     // ignore: implicit_dynamic_type
@@ -393,30 +360,26 @@ class _$PartRequestModelImpl extends _PartRequestModel {
   }
 
   @override
-  @JsonKey(name: 'additional_info')
   final String? additionalInfo;
 // Métadonnées
   @override
   @JsonKey()
   final String status;
   @override
-  @JsonKey(name: 'is_anonymous')
+  @JsonKey()
   final bool isAnonymous;
   @override
-  @JsonKey(name: 'response_count')
+  @JsonKey()
   final int responseCount;
   @override
-  @JsonKey(name: 'pending_response_count')
+  @JsonKey()
   final int pendingResponseCount;
 // Timestamps
   @override
-  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
-  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
   @override
-  @JsonKey(name: 'expires_at')
   final DateTime? expiresAt;
 
   @override
@@ -462,7 +425,6 @@ class _$PartRequestModelImpl extends _PartRequestModel {
                 other.expiresAt == expiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -492,88 +454,62 @@ class _$PartRequestModelImpl extends _PartRequestModel {
   _$$PartRequestModelImplCopyWith<_$PartRequestModelImpl> get copyWith =>
       __$$PartRequestModelImplCopyWithImpl<_$PartRequestModelImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PartRequestModelImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _PartRequestModel extends PartRequestModel {
   const factory _PartRequestModel(
       {required final String id,
-      @JsonKey(name: 'user_id') final String? userId,
-      @JsonKey(name: 'vehicle_plate') final String? vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') final String? vehicleBrand,
-      @JsonKey(name: 'vehicle_model') final String? vehicleModel,
-      @JsonKey(name: 'vehicle_year') final int? vehicleYear,
-      @JsonKey(name: 'vehicle_engine') final String? vehicleEngine,
-      @JsonKey(name: 'part_type') required final String partType,
-      @JsonKey(name: 'part_names') required final List<String> partNames,
-      @JsonKey(name: 'additional_info') final String? additionalInfo,
+      final String? userId,
+      final String? vehiclePlate,
+      final String? vehicleBrand,
+      final String? vehicleModel,
+      final int? vehicleYear,
+      final String? vehicleEngine,
+      required final String partType,
+      required final List<String> partNames,
+      final String? additionalInfo,
       final String status,
-      @JsonKey(name: 'is_anonymous') final bool isAnonymous,
-      @JsonKey(name: 'response_count') final int responseCount,
-      @JsonKey(name: 'pending_response_count') final int pendingResponseCount,
-      @JsonKey(name: 'created_at') required final DateTime createdAt,
-      @JsonKey(name: 'updated_at') required final DateTime updatedAt,
-      @JsonKey(name: 'expires_at')
+      final bool isAnonymous,
+      final int responseCount,
+      final int pendingResponseCount,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
       final DateTime? expiresAt}) = _$PartRequestModelImpl;
   const _PartRequestModel._() : super._();
-
-  factory _PartRequestModel.fromJson(Map<String, dynamic> json) =
-      _$PartRequestModelImpl.fromJson;
 
   @override
   String get id;
   @override
-  @JsonKey(name: 'user_id')
   String? get userId; // Informations du véhicule
   @override
-  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate;
   @override
-  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand;
   @override
-  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel;
   @override
-  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear;
   @override
-  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine; // Type de pièce recherchée
   @override
-  @JsonKey(name: 'part_type')
   String get partType;
   @override
-  @JsonKey(name: 'part_names')
   List<String> get partNames;
   @override
-  @JsonKey(name: 'additional_info')
   String? get additionalInfo; // Métadonnées
   @override
   String get status;
   @override
-  @JsonKey(name: 'is_anonymous')
   bool get isAnonymous;
   @override
-  @JsonKey(name: 'response_count')
   int get responseCount;
   @override
-  @JsonKey(name: 'pending_response_count')
   int get pendingResponseCount; // Timestamps
   @override
-  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
-  @JsonKey(name: 'updated_at')
   DateTime get updatedAt;
   @override
-  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt;
 
   /// Create a copy of PartRequestModel
