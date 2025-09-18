@@ -241,14 +241,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw const UnauthorizedException('User not authenticated');
       }
 
-
       // Récupérer l'ID persistant du particulier pour ce device (même logique que création)
       String? persistantUserId;
       try {
         final prefs = await SharedPreferences.getInstance();
         final deviceService = DeviceService(prefs);
         final deviceId = await deviceService.getDeviceId();
-
 
         // Rechercher le particulier persistant avec ce device_id
         final particulierPersistant = await _supabase
@@ -265,14 +263,13 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         persistantUserId = currentAuthUser.id;
       }
 
-      // Au lieu de DELETE, marquer comme 'deleted' (contourne les policies RLS)
+      // Au lieu de DELETE, marquer comme 'deleted' (soft delete)
       final response = await _supabase
           .from('part_requests')
           .update({'status': 'deleted'})
           .eq('id', id)
           .eq('user_id', persistantUserId)
           .select();
-
 
       if (response.isEmpty) {
         throw ServerException('Impossible de supprimer cette demande');

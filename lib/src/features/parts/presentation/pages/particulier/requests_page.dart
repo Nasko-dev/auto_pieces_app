@@ -354,12 +354,15 @@ class _RequestCard extends ConsumerWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
 
+      final state = ref.read(partRequestControllerProvider);
+      final errorMessage = state.error ?? 'Erreur lors de la suppression';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             success
               ? 'Demande supprimée avec succès'
-              : 'Erreur lors de la suppression'
+              : errorMessage
           ),
           backgroundColor: success ? Colors.green : Colors.red,
           duration: const Duration(seconds: 2),
