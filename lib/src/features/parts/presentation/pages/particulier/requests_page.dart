@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class RequestsPage extends ConsumerStatefulWidget {
   const RequestsPage({super.key});
@@ -298,76 +300,56 @@ class _RequestCard extends ConsumerWidget {
     }
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la demande'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.'
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteRequest(context, ref);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+  void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer la demande',
+      message: 'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _deleteRequest(context, ref);
+    }
   }
 
   void _deleteRequest(BuildContext context, WidgetRef ref) async {
-    // Afficher l'indicateur de chargement
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              ),
-              SizedBox(width: 16),
-              Text('Suppression en cours...'),
-            ],
-          ),
-          duration: Duration(seconds: 2),
-        ),
+    try {
+      // Afficher l'indicateur de suppression
+      notificationService.info(
+        context,
+        'Suppression en cours...',
+        subtitle: 'Veuillez patienter',
       );
-    }
 
-    // Appeler la fonction de suppression du controller
-    final success = await ref
-        .read(partRequestControllerProvider.notifier)
-        .deletePartRequest(request.id);
+      // Appeler la fonction de suppression du controller
+      final success = await ref
+          .read(partRequestControllerProvider.notifier)
+          .deletePartRequest(request.id);
 
-    // Masquer le snackbar précédent et afficher le résultat
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-
-      final state = ref.read(partRequestControllerProvider);
-      final errorMessage = state.error ?? 'Erreur lors de la suppression';
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-              ? 'Demande supprimée avec succès'
-              : errorMessage
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      // Afficher le résultat
+      if (context.mounted) {
+        if (success) {
+          notificationService.showPartRequestDeleted(context);
+        } else {
+          final state = ref.read(partRequestControllerProvider);
+          final errorMessage = state.error ?? 'Erreur lors de la suppression';
+          notificationService.error(
+            context,
+            'Échec de la suppression',
+            subtitle: errorMessage,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        notificationService.error(
+          context,
+          'Erreur inattendue',
+          subtitle: e.toString(),
+        );
+      }
     }
   }
 }

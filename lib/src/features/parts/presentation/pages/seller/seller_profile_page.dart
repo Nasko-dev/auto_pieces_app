@@ -8,6 +8,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/seller_settings_providers.dart';
 import '../../../../../core/services/image_upload_service.dart';
 import '../../../domain/entities/seller_settings.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class SellerProfilePage extends ConsumerStatefulWidget {
   const SellerProfilePage({super.key});
@@ -524,35 +526,11 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
   void _saveCompanyName() async {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: utilisateur non connecté'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      notificationService.error(context, 'Erreur: utilisateur non connecté');
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              ),
-            ),
-            SizedBox(width: 16),
-            Text('Sauvegarde en cours...'),
-          ],
-        ),
-        backgroundColor: AppTheme.primaryBlue,
-        duration: Duration(seconds: 10),
-      ),
-    );
+    notificationService.showLoading(context, 'Sauvegarde en cours...');
 
     try {
       final sellerSettings = SellerSettings(
@@ -569,50 +547,24 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       final result = await saveSellerSettings(sellerSettings);
 
       if (!context.mounted) return;
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // L'indicateur de chargement se masque automatiquement
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur de sauvegarde: ${failure.message}'),
-              backgroundColor: AppTheme.error,
-              duration: const Duration(seconds: 4),
-            ),
-          );
+          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
             _isEditingName = false;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Nom de l\'entreprise mis à jour'),
-                ],
-              ),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          notificationService.success(context, 'Nom de l\'entreprise mis à jour');
         },
       );
     } catch (e) {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur inattendue: $e'),
-          backgroundColor: AppTheme.error,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      if (mounted) {
+        notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+      }
     }
   }
 
@@ -811,12 +763,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la sélection de l\'image: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors de la sélection de l\'image', subtitle: e.toString());
       }
       setState(() {
         _isUploadingImage = false;
@@ -827,12 +774,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
   void _uploadAndSaveAvatar(File imageFile) async {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: utilisateur non connecté'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      notificationService.error(context, 'Erreur: utilisateur non connecté');
       setState(() {
         _isUploadingImage = false;
       });
@@ -862,41 +804,19 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur de sauvegarde: ${failure.message}'),
-              backgroundColor: AppTheme.error,
-            ),
-          );
+          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
             _avatarUrl = savedSettings.avatarUrl;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Photo de profil mise à jour'),
-                ],
-              ),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          notificationService.success(context, 'Photo de profil mise à jour');
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de l\'upload: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors de l\'upload', subtitle: e.toString());
       }
     } finally {
       setState(() {
@@ -934,41 +854,19 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: ${failure.message}'),
-              backgroundColor: AppTheme.error,
-            ),
-          );
+          notificationService.error(context, 'Erreur', subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
             _avatarUrl = null;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Photo de profil supprimée'),
-                ],
-              ),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          notificationService.success(context, 'Photo de profil supprimée');
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur', subtitle: e.toString());
       }
     } finally {
       setState(() {
@@ -977,66 +875,17 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
     }
   }
 
-  void _logout() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.logout, color: AppTheme.primaryBlue, size: 24),
-            SizedBox(width: 12),
-            Text(
-              'Déconnexion',
-              style: TextStyle(
-                color: AppTheme.darkBlue,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir vous déconnecter ?',
-          style: TextStyle(
-            color: AppTheme.darkGray,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(
-                color: AppTheme.gray,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _performLogout();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryBlue,
-              foregroundColor: AppTheme.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Se déconnecter',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+  void _logout() async {
+    final result = await context.showConfirmationDialog(
+      title: 'Déconnexion',
+      message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+      confirmText: 'Se déconnecter',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _performLogout();
+    }
   }
 
   void _performLogout() {
@@ -1045,79 +894,23 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       context.go('/welcome');
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Déconnexion réussie'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
+    notificationService.success(context, 'Déconnexion réussie');
   }
 
-  void _deleteAccount() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.warning, color: AppTheme.error, size: 24),
-            SizedBox(width: 12),
-            Text(
-              'Supprimer le compte',
-              style: TextStyle(
-                color: AppTheme.error,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Cette action est irréversible. Toutes vos annonces et données seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
-          style: TextStyle(
-            color: AppTheme.darkGray,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(
-                color: AppTheme.gray,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implémenter suppression de compte vendeur
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Suppression de compte - Fonctionnalité à venir'),
-                  backgroundColor: AppTheme.error,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: AppTheme.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Supprimer définitivement',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+  void _deleteAccount() async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer le compte',
+      message: 'Cette action est irréversible. Toutes vos annonces et données seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
+      type: DialogType.error,
+      confirmText: 'Supprimer définitivement',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      // TODO: Implémenter suppression de compte vendeur
+      if (mounted) {
+        notificationService.error(context, 'Suppression de compte - Fonctionnalité à venir');
+      }
+    }
   }
 }

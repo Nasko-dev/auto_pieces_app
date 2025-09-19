@@ -14,6 +14,8 @@ import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -445,112 +447,61 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _messageController.clear();
   }
 
-  void _showCloseDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Fermer la conversation'),
-        content: const Text(
-          'Voulez-vous fermer cette conversation ? '
-          'Vous pourrez toujours la rouvrir plus tard.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .closeConversation(widget.conversationId);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation fermée'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
+  void _showCloseDialog() async {
+    final result = await context.showConfirmationDialog(
+      title: 'Fermer la conversation',
+      message: 'Voulez-vous fermer cette conversation ? Vous pourrez toujours la rouvrir plus tard.',
+      confirmText: 'Fermer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      ref.read(conversationsControllerProvider.notifier)
+          .closeConversation(widget.conversationId);
+
+      if (mounted) {
+        notificationService.showConversationClosed(context);
+      }
+    }
   }
 
-  void _showDeleteDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? '
-          'Cette action ne peut pas être annulée.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .deleteConversation(widget.conversationId);
-              
-              Navigator.of(context).pop(); // Retourner à la liste
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation supprimée'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+  void _showDeleteDialog() async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer la conversation',
+      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      ref.read(conversationsControllerProvider.notifier)
+          .deleteConversation(widget.conversationId);
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Retourner à la liste
+        notificationService.showConversationDeleted(context);
+      }
+    }
   }
 
-  void _showBlockDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bloquer le vendeur'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir bloquer ce vendeur ? '
-          'Vous ne recevrez plus de messages de sa part.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .blockConversation(widget.conversationId);
-              
-              Navigator.of(context).pop(); // Retourner à la liste
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Vendeur bloqué'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Bloquer'),
-          ),
-        ],
-      ),
+  void _showBlockDialog() async {
+    final result = await context.showWarningDialog(
+      title: 'Bloquer le vendeur',
+      message: 'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
+      confirmText: 'Bloquer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      ref.read(conversationsControllerProvider.notifier)
+          .blockConversation(widget.conversationId);
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Retourner à la liste
+        notificationService.showSellerBlocked(context);
+      }
+    }
   }
 
   Widget _buildInstagramAppBarTitle(dynamic conversation) {
@@ -811,37 +762,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   void _showSuccessSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.success(context, message);
     }
   }
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.error(context, message);
     }
   }
 
   void _showInfoSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      notificationService.info(context, message);
     }
   }
 }
