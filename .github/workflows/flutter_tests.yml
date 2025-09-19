@@ -41,25 +41,37 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y lcov
 
-        # Generate coverage report
+        # Generate HTML coverage report
         genhtml coverage/lcov.info -o coverage/html
+
+        # Convert lcov to cobertura XML format
+        pip3 install lcov_cobertura
+        lcov_cobertura coverage/lcov.info --output coverage/cobertura.xml
 
         # Display coverage summary
         lcov --summary coverage/lcov.info
+
+        # Extract coverage percentage for badge
+        COVERAGE=$(lcov --summary coverage/lcov.info | grep "lines" | grep -oP '\d+\.\d+%' | head -1)
+        echo "Coverage: $COVERAGE"
+        echo "COVERAGE_PERCENTAGE=$COVERAGE" >> $GITHUB_ENV
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         file: coverage/lcov.info
         fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+      continue-on-error: true  # Ne pas faire échouer le CI si Codecov échoue
 
     - name: Comment coverage on PR
       if: github.event_name == 'pull_request'
       uses: 5monkeys/cobertura-action@master
       with:
-        path: coverage/lcov.info
+        path: coverage/cobertura.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         minimum_coverage: 70
+      continue-on-error: true  # Ne pas faire échouer le CI si le commentaire échoue
 
   # Job séparé pour les tests d'intégration (optionnel)
   integration_tests:
