@@ -4,6 +4,7 @@ import '../entities/part_request.dart';
 import '../entities/seller_response.dart';
 import '../entities/seller_rejection.dart';
 import '../entities/particulier_conversation.dart';
+import '../usecases/create_seller_response.dart';
 
 abstract class PartRequestRepository {
   // Demandes de pièces
@@ -18,6 +19,7 @@ abstract class PartRequestRepository {
   
   // Réponses des vendeurs
   Future<Either<Failure, List<SellerResponse>>> getPartRequestResponses(String requestId);
+  Future<Either<Failure, SellerResponse>> createSellerResponse(CreateSellerResponseParams params);
   Future<Either<Failure, SellerResponse>> acceptSellerResponse(String responseId);
   Future<Either<Failure, SellerResponse>> rejectSellerResponse(String responseId);
   

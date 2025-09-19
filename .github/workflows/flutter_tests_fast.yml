@@ -1,0 +1,195 @@
+name: Flutter Tests (Optimized)
+
+on:
+  push:
+    branches: [ main, dev, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, dev, develop ]
+
+jobs:
+  # Job rapide pour l'analyse statique seulement
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache Flutter
+      uses: actions/cache@v4
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.pub-cache
+        key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-flutter-
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .dart_tool
+          .packages
+          .flutter-plugins
+          .flutter-plugins-dependencies
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
+    - run: flutter pub get
+
+    - name: Cache build runner
+      uses: actions/cache@v4
+      with:
+        path: |
+          .dart_tool/build
+          **/*.g.dart
+          **/*.freezed.dart
+          **/*.mocks.dart
+        key: ${{ runner.os }}-build-${{ hashFiles('lib/**/*.dart', 'test/**/*.dart') }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+
+    - name: Generate code if needed
+      run: |
+        if [ ! -d ".dart_tool/build" ]; then
+          dart run build_runner build --delete-conflicting-outputs
+        fi
+
+    - run: flutter analyze
+
+  # Tests unitaires en parallèle
+  test-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: analyze  # Attend que l'analyse soit OK
+
+    strategy:
+      matrix:
+        shard: [1, 2, 3]  # Divise les tests en 3 parties
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache Flutter & Dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.pub-cache
+          .dart_tool
+          .packages
+        key: ${{ runner.os }}-test-${{ hashFiles('**/pubspec.lock') }}
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        cache: true
+
+    - run: flutter pub get
+
+    - name: Restore generated files
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.g.dart
+          **/*.freezed.dart
+          **/*.mocks.dart
+        key: ${{ runner.os }}-build-${{ hashFiles('lib/**/*.dart', 'test/**/*.dart') }}
+
+    - name: Generate if cache miss
+      run: |
+        if [ ! -f "test/unit/core/services/device_service_test.mocks.dart" ]; then
+          dart run build_runner build --delete-conflicting-outputs
+        fi
+
+    - name: Run unit tests (shard ${{ matrix.shard }}/3)
+      run: |
+        # Divise les tests en 3 groupes pour exécution parallèle
+        if [ "${{ matrix.shard }}" == "1" ]; then
+          flutter test test/unit/core/ --no-coverage
+        elif [ "${{ matrix.shard }}" == "2" ]; then
+          flutter test test/unit/features/auth/ test/unit/features/parts/ --no-coverage
+        else
+          flutter test test/widget/ --no-coverage
+        fi
+
+  # Coverage séparé (optionnel, seulement sur main/dev)
+  coverage:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [analyze, test-unit]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Restore all caches
+      uses: actions/cache@v4
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.pub-cache
+          .dart_tool
+          **/*.g.dart
+          **/*.freezed.dart
+          **/*.mocks.dart
+        key: ${{ runner.os }}-coverage-${{ hashFiles('**/pubspec.lock') }}
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        cache: true
+
+    - run: flutter pub get
+
+    - name: Generate if needed
+      run: |
+        if [ ! -f "test/unit/core/services/device_service_test.mocks.dart" ]; then
+          dart run build_runner build
+        fi
+
+    - name: Run tests with coverage
+      run: flutter test --coverage
+
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+      continue-on-error: true
+
+  # Check rapide que le build fonctionne
+  build-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: analyze
+    if: github.event_name == 'pull_request'  # Seulement sur PR
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/cache@v4
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-build-check-${{ hashFiles('**/pubspec.lock') }}
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        cache: true
+
+    - run: flutter pub get
+
+    - name: Quick build check (Android)
+      run: flutter build apk --debug --no-tree-shake-icons
