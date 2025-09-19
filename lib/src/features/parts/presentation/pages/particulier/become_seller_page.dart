@@ -96,21 +96,20 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
   Future<void> _createAdvertisement() async {
     try {
-      
       // Récupérer les informations du véhicule depuis le provider
       final vehicleState = ref.read(vehicleSearchProvider);
       String description = 'Pièce mise en vente par un particulier';
-      
+
       // Enrichir la description avec les infos du véhicule si disponibles
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final vehicleDetails = <String>[];
-        
+
         if (info.make != null) vehicleDetails.add(info.make!);
         if (info.model != null) vehicleDetails.add(info.model!);
         if (info.engineSize != null) vehicleDetails.add(info.engineSize!);
         if (info.fuelType != null) vehicleDetails.add(info.fuelType!);
-        
+
         if (vehicleDetails.isNotEmpty) {
           description += ' - Véhicule: ${vehicleDetails.join(' ')}';
         }
@@ -130,11 +129,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           dbPartType = 'body'; // Par défaut, tout ce qui n'est pas moteur est carrosserie
           break;
       }
-      
+
       // Extraire les informations du véhicule
       String? vehicleBrand, vehicleModel, vehicleEngine;
       int? vehicleYear;
-      
+
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         vehicleBrand = info.make;
@@ -142,7 +141,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         vehicleYear = info.year;
         vehicleEngine = info.engineSize ?? info.fuelType;
       }
-      
+
       // Créer les paramètres pour l'annonce
       final params = CreatePartAdvertisementParams(
         partType: dbPartType, // Valeur mappée pour la base de données
@@ -154,11 +153,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         vehicleEngine: vehicleEngine,
         description: description,
       );
-      
+
       // Appeler le controller pour créer l'annonce
       final controller = ref.read(partAdvertisementControllerProvider.notifier);
       final success = await controller.createPartAdvertisement(params);
-      
+
       if (success) {
       } else {
         final state = ref.read(partAdvertisementControllerProvider);
