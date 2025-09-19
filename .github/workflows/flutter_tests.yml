@@ -2,7 +2,7 @@ name: Flutter Tests
 
 on:
   push:
-    branches: [ main, dev, develop ]
+    branches: [ main, dev, develop, 'feature/**' ]
   pull_request:
     branches: [ main, dev, develop ]
 
@@ -17,7 +17,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.5'
+        flutter-version: '3.27.1'
         channel: 'stable'
 
     - name: Install dependencies
@@ -74,7 +74,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.5'
+        flutter-version: '3.27.1'
         channel: 'stable'
 
     - name: Install dependencies
@@ -103,7 +103,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.5'
+        flutter-version: '3.27.1'
         channel: 'stable'
 
     - name: Install dependencies
@@ -132,7 +132,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.5'
+        flutter-version: '3.27.1'
         channel: 'stable'
 
     - name: Install dependencies
