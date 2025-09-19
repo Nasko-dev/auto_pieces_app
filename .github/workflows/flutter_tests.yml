@@ -1,0 +1,168 @@
+name: Flutter Tests
+
+on:
+  push:
+    branches: [ main, dev, develop ]
+  pull_request:
+    branches: [ main, dev, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate code (mocks, etc.)
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    - name: Analyze code
+      run: flutter analyze
+
+    - name: Run unit tests
+      run: flutter test test/unit/ --coverage
+
+    - name: Run widget tests
+      run: flutter test test/widget/ --coverage
+
+    - name: Generate coverage report
+      run: |
+        # Install lcov if not present
+        sudo apt-get update
+        sudo apt-get install -y lcov
+
+        # Generate coverage report
+        genhtml coverage/lcov.info -o coverage/html
+
+        # Display coverage summary
+        lcov --summary coverage/lcov.info
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        fail_ci_if_error: false
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: 5monkeys/cobertura-action@master
+      with:
+        path: coverage/lcov.info
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        minimum_coverage: 70
+
+  # Job séparé pour les tests d'intégration (optionnel)
+  integration_tests:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    - name: Run integration tests
+      run: flutter test test/integration/
+      continue-on-error: true  # Les tests d'intégration peuvent échouer sans bloquer
+
+  # Job pour vérifier la compilation des différentes plateformes
+  build_check:
+    runs-on: ubuntu-latest
+    needs: test
+
+    strategy:
+      matrix:
+        platform: [android, web]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    - name: Build for Android
+      if: matrix.platform == 'android'
+      run: flutter build apk --debug
+
+    - name: Build for Web
+      if: matrix.platform == 'web'
+      run: flutter build web
+
+  # Job pour les métriques de qualité
+  quality_metrics:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Check code metrics
+      run: |
+        # Compter les lignes de code
+        echo "📊 MÉTRIQUES DU PROJET"
+        echo "===================="
+        echo "📁 Lignes de code source:"
+        find lib/ -name "*.dart" | xargs wc -l | tail -1
+
+        echo "🧪 Lignes de tests:"
+        find test/ -name "*.dart" | xargs wc -l | tail -1
+
+        echo "📈 Nombre de fichiers de test:"
+        find test/ -name "*_test.dart" | wc -l
+
+        echo "🔧 Services testés:"
+        find test/unit/core/services/ -name "*_test.dart" | wc -l
+
+        echo "🎨 Widgets testés:"
+        find test/widget/ -name "*_test.dart" | wc -l
+
+    - name: Performance metrics
+      run: |
+        echo "⚡ MÉTRIQUES DE PERFORMANCE"
+        echo "========================="
+
+        # Temps d'exécution des tests
+        echo "🕐 Temps d'exécution des tests:"
+        time flutter test test/unit/core/services/device_service_test.dart test/widget/shared/widgets/french_license_plate_test.dart --reporter json | grep -E '"time":|"success":'

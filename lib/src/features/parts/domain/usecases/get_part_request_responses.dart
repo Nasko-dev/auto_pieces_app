@@ -11,7 +11,7 @@ class GetPartRequestResponses implements UseCase<List<SellerResponse>, String> {
 
   @override
   Future<Either<Failure, List<SellerResponse>>> call(String requestId) async {
-    if (requestId.isEmpty) {
+    if (requestId.trim().isEmpty) {
       return const Left(ValidationFailure('L\'ID de la demande est requis'));
     }
 

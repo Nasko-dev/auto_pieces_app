@@ -10,13 +10,13 @@ class DeviceService {
   /// Récupère ou génère l'identifiant unique de l'appareil
   Future<String> getDeviceId() async {
     String? deviceId = _prefs.getString(_deviceIdKey);
-    
-    if (deviceId == null || deviceId.isEmpty) {
+
+    if (deviceId == null || deviceId.trim().isEmpty) {
       deviceId = _generateDeviceId();
       await _prefs.setString(_deviceIdKey, deviceId);
     } else {
     }
-    
+
     return deviceId;
   }
 
