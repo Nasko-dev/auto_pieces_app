@@ -6,6 +6,8 @@ import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../../domain/entities/conversation_enums.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class ConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -342,25 +344,13 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _showSuccessSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.success(context, message);
     }
   }
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.error(context, message);
     }
   }
 
@@ -440,12 +430,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
       _scrollToBottom();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de l\'envoi: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors de l\'envoi', subtitle: e.toString());
       }
     } finally {
       if (mounted) {
@@ -468,56 +453,33 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
   }
 
   void _deleteConversation() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? '
-          'Cette action est irréversible.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+    final confirmed = await context.showIOSDialog(
+      title: 'Supprimer la conversation',
+      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action est irréversible.',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && context.mounted) {
       try {
         await ref
             .read(particulierConversationsControllerProvider.notifier)
             .deleteConversation(widget.conversationId);
-        
+
         if (mounted) {
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur lors de la suppression: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          notificationService.error(context, 'Erreur lors de la suppression', subtitle: e.toString());
         }
       }
     }
   }
 
   void _blockConversation() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité à venir'),
-      ),
-    );
+    notificationService.info(context, 'Fonctionnalité à venir');
   }
 
   bool _shouldShowTimestamp(DateTime previous, DateTime current) {
@@ -682,13 +644,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
 
   void _showInfoSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      notificationService.info(context, message);
     }
   }
 }

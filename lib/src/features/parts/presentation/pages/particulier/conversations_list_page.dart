@@ -7,6 +7,8 @@ import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/conversation_item_widget.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -203,73 +205,36 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
-  void _showDeleteDialog(String conversationId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? '
-          'Cette action ne peut pas être annulée.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(particulierConversationsControllerProvider.notifier)
-                  .deleteConversation(conversationId);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation supprimée'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+  void _showDeleteDialog(String conversationId) async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer la conversation',
+      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      ref.read(particulierConversationsControllerProvider.notifier)
+          .deleteConversation(conversationId);
+
+      notificationService.success(context, 'Conversation supprimée');
+    }
   }
 
-  void _showBlockDialog(String conversationId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bloquer le vendeur'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir bloquer ce vendeur ? '
-          'Vous ne recevrez plus de messages de sa part.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(particulierConversationsControllerProvider.notifier)
-                  .blockConversation(conversationId);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Vendeur bloqué'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Bloquer'),
-          ),
-        ],
-      ),
+  void _showBlockDialog(String conversationId) async {
+    final result = await context.showWarningDialog(
+      title: 'Bloquer le vendeur',
+      message: 'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
+      confirmText: 'Bloquer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      ref.read(particulierConversationsControllerProvider.notifier)
+          .blockConversation(conversationId);
+
+      notificationService.warning(context, 'Vendeur bloqué');
+    }
   }
 }
