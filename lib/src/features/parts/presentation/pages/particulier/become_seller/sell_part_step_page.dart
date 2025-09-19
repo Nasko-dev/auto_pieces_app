@@ -25,6 +25,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   final FocusNode _focusNode = FocusNode();
   bool _hasMultiple = false;
   bool _isCompleteVehicle = false;
+  bool _isCompleteMotor = false; // Nouvelle option pour moteur complet
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   final List<String> _selectedParts = [];
@@ -46,10 +47,10 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
 
   void _onTextChanged() async {
     final query = _partController.text;
-    
+
     // Toujours appeler setState pour mettre à jour la validation du bouton
     setState(() {});
-    
+
     if (query.isEmpty) {
       setState(() {
         _suggestions = [];
@@ -59,9 +60,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     }
 
     try {
-      // Déterminer la catégorie selon le type sélectionné  
+      // Déterminer la catégorie selon le type sélectionné
       String? categoryFilter;
-      
+
       // Mapping pour la compatibilité avec l'ancien système
       if (widget.selectedCategory == 'engine' || widget.selectedCategory == 'moteur') {
         // Filtrer seulement les pièces moteur
@@ -78,7 +79,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
 
       // Appeler la fonction sans filtre si on veut exclure moteur
       final actualCategoryFilter = categoryFilter == 'NOT_MOTEUR' ? null : categoryFilter;
-      
+
       final response = await ref.read(supabaseClientProvider).rpc('search_parts', params: {
         'search_query': query,
         'filter_category': actualCategoryFilter,
@@ -86,19 +87,21 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
       });
 
       if (response != null && mounted) {
-        
+
         // Filtrer côté client si nécessaire
         List<Map<String, dynamic>> filteredData = (response as List).cast<Map<String, dynamic>>();
-        
+
         if (categoryFilter == 'NOT_MOTEUR') {
           // Excluer les pièces moteur
           filteredData = filteredData.where((data) => data['category'] != 'moteur').toList();
         }
-        
+
         final parts = filteredData
             .map((data) {
-              return data['name'] as String;
+              final name = data['name'] as String?;
+              return name ?? '';
             })
+            .where((name) => name.isNotEmpty)
             .take(8)
             .toList();
 
@@ -154,8 +157,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     setState(() {
       _hasMultiple = value ?? false;
       if (_hasMultiple) {
-        // Si on active plusieurs pièces, désactiver véhicule complet
+        // Si on active plusieurs pièces, désactiver véhicule complet et moteur complet
         _isCompleteVehicle = false;
+        _isCompleteMotor = false;
       }
       if (!_hasMultiple) {
         // Si on désactive le mode multiple, vider les tags
@@ -174,8 +178,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     setState(() {
       _isCompleteVehicle = value ?? false;
       if (_isCompleteVehicle) {
-        // Si on coche véhicule complet, désactiver plusieurs pièces et vider les champs
+        // Si on coche véhicule complet, désactiver plusieurs pièces et moteur complet
         _hasMultiple = false;
+        _isCompleteMotor = false;
         _selectedParts.clear();
         _partController.text = 'Véhicule complet';
       } else {
@@ -187,13 +192,30 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     });
   }
 
+  void _onCompleteMotorChanged(bool? value) {
+    setState(() {
+      _isCompleteMotor = value ?? false;
+      if (_isCompleteMotor) {
+        // Si on coche moteur complet, désactiver plusieurs pièces et véhicule complet
+        _hasMultiple = false;
+        _isCompleteVehicle = false;
+        _selectedParts.clear();
+        _partController.text = 'Moteur complet';
+      } else {
+        // Si on décoche moteur complet, vider le champ
+        if (_partController.text == 'Moteur complet') {
+          _partController.clear();
+        }
+      }
+    });
+  }
+
   bool _isFormValid() {
     final hasText = _partController.text.trim().isNotEmpty;
     final hasParts = _selectedParts.isNotEmpty;
-    
-    
-    if (_isCompleteVehicle) {
-      // Mode véhicule complet : toujours valide
+
+    if (_isCompleteVehicle || _isCompleteMotor) {
+      // Mode véhicule complet ou moteur complet : toujours valide
       return true;
     } else if (_hasMultiple) {
       // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
@@ -209,13 +231,17 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     if (_isCompleteVehicle) {
       // Mode véhicule complet
       widget.onPartSubmitted('Véhicule complet', false);
+    } else if (_isCompleteMotor) {
+      // Mode moteur complet
+      widget.onPartSubmitted('Moteur complet', false);
     } else if (_hasMultiple) {
       // En mode multiple, envoyer la liste des parts comme une chaîne séparée par des virgules
       final allParts = _selectedParts.toList();
       if (_partController.text.isNotEmpty && !allParts.contains(_partController.text)) {
         allParts.add(_partController.text);
       }
-      widget.onPartSubmitted(allParts.join(', '), _hasMultiple);
+      final partsString = allParts.join(', ');
+      widget.onPartSubmitted(partsString, _hasMultiple);
     } else {
       widget.onPartSubmitted(_partController.text, _hasMultiple);
     }
@@ -313,7 +339,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           child: TextField(
             controller: _partController,
             focusNode: _focusNode,
-            enabled: !_isCompleteVehicle,
+            enabled: !_isCompleteVehicle && !_isCompleteMotor,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
@@ -436,15 +462,15 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   Widget _buildMultipleCheckbox() {
     return Column(
       children: [
-        // Case "Plusieurs pièces"
+        // Case "Moteur complet"
         Row(
           children: [
             SizedBox(
               width: 22,
               height: 22,
               child: Checkbox(
-                value: _hasMultiple,
-                onChanged: _onMultipleChanged,
+                value: _isCompleteMotor,
+                onChanged: _onCompleteMotorChanged,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -456,7 +482,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Ou cochez si vous avez\nplusieurs pièces',
+                'Moteur complet',
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.3,

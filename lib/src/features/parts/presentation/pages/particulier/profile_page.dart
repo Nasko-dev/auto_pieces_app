@@ -611,8 +611,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return;
     }
 
-    // Afficher un indicateur de chargement
-    notificationService.showLoading(context, 'Sauvegarde en cours...');
+    // Pas besoin d'indicateur de chargement, l'opération est rapide
 
     try {
       // Créer l'objet UserSettings avec le nom mis à jour
@@ -627,14 +626,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         avatarUrl: _avatarUrl, // Conserver l'URL de l'avatar existant
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
-        updatedAt: DateTime.now(),
+        updatedAt: null, // Laisser la base de données gérer ce champ
       );
 
       // Sauvegarder via le use case
       final saveUserSettings = ref.read(saveUserSettingsProvider);
       final result = await saveUserSettings(userSettings);
 
-      // L'indicateur de chargement se masque automatiquement
       if (!context.mounted) return;
 
       result.fold(
@@ -696,7 +694,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         avatarUrl: _avatarUrl, // Conserver l'URL de l'avatar existant
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
-        updatedAt: DateTime.now(),
+        updatedAt: null, // Laisser la base de données gérer ce champ
       );
 
       // Sauvegarder via le use case
@@ -985,7 +983,7 @@ _uploadAndSaveAvatar(File(pickedFile.path));
         avatarUrl: imageUrl, // Nouvelle URL de l'avatar
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
-        updatedAt: DateTime.now(),
+        updatedAt: null, // Laisser la base de données gérer ce champ
       );
 
       final saveUserSettings = ref.read(saveUserSettingsProvider);
@@ -1041,7 +1039,7 @@ _uploadAndSaveAvatar(File(pickedFile.path));
         avatarUrl: null, // Supprimer l'URL de l'avatar
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
-        updatedAt: DateTime.now(),
+        updatedAt: null, // Laisser la base de données gérer ce champ
       );
 
       final saveUserSettings = ref.read(saveUserSettingsProvider);
