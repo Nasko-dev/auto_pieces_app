@@ -400,7 +400,7 @@ void main() {
       test('doit marquer comme vendu avec succès', () async {
         // arrange
         when(mockRepository.markAsSold('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
         when(mockRepository.getMyPartAdvertisements())
             .thenAnswer((_) async => Right(tPartAdvertisementsList));
 
@@ -431,7 +431,7 @@ void main() {
       test('doit passer par l\'état updating pendant le marquage', () async {
         // arrange
         when(mockRepository.markAsSold('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
         when(mockRepository.getMyPartAdvertisements())
             .thenAnswer((_) async => Right(tPartAdvertisementsList));
 
@@ -466,7 +466,7 @@ void main() {
       test('doit supprimer une annonce avec succès', () async {
         // arrange
         when(mockRepository.deletePartAdvertisement('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
         when(mockRepository.getMyPartAdvertisements())
             .thenAnswer((_) async => const Right([]));
 
@@ -497,7 +497,7 @@ void main() {
       test('doit passer par l\'état deleting pendant la suppression', () async {
         // arrange
         when(mockRepository.deletePartAdvertisement('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
         when(mockRepository.getMyPartAdvertisements())
             .thenAnswer((_) async => const Right([]));
 
@@ -532,7 +532,7 @@ void main() {
       test('doit incrémenter le compteur de vues', () async {
         // arrange
         when(mockRepository.incrementViewCount('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
 
         // act
         await controller.incrementViewCount('1');
@@ -562,7 +562,7 @@ void main() {
       test('doit incrémenter le compteur de contacts', () async {
         // arrange
         when(mockRepository.incrementContactCount('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
 
         // act
         await controller.incrementContactCount('1');

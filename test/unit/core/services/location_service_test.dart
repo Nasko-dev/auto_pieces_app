@@ -8,7 +8,10 @@ import 'package:geocoding/geocoding.dart';
 // Note: Ces tests utilisent les méthodes statiques donc les mocks ne fonctionneront
 // pas directement. Les tests vérifieront plutôt la logique et les formats.
 
-@GenerateMocks([Position, Placemark])
+@GenerateNiceMocks([
+  MockSpec<Position>(),
+  MockSpec<Placemark>(),
+])
 void main() {
   group('LocationService', () {
     group('LocationResult', () {

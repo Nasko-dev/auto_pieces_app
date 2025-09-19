@@ -35,20 +35,18 @@ class _FakeDateTime_0 extends _i1.SmartFake implements DateTime {
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
 class MockPosition extends _i1.Mock implements _i2.Position {
-  MockPosition() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   double get latitude => (super.noSuchMethod(
         Invocation.getter(#latitude),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get longitude => (super.noSuchMethod(
         Invocation.getter(#longitude),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
@@ -58,54 +56,66 @@ class MockPosition extends _i1.Mock implements _i2.Position {
           this,
           Invocation.getter(#timestamp),
         ),
+        returnValueForMissingStub: _FakeDateTime_0(
+          this,
+          Invocation.getter(#timestamp),
+        ),
       ) as DateTime);
 
   @override
   double get altitude => (super.noSuchMethod(
         Invocation.getter(#altitude),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get altitudeAccuracy => (super.noSuchMethod(
         Invocation.getter(#altitudeAccuracy),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get accuracy => (super.noSuchMethod(
         Invocation.getter(#accuracy),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get heading => (super.noSuchMethod(
         Invocation.getter(#heading),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get headingAccuracy => (super.noSuchMethod(
         Invocation.getter(#headingAccuracy),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get speed => (super.noSuchMethod(
         Invocation.getter(#speed),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   double get speedAccuracy => (super.noSuchMethod(
         Invocation.getter(#speedAccuracy),
         returnValue: 0.0,
+        returnValueForMissingStub: 0.0,
       ) as double);
 
   @override
   bool get isMocked => (super.noSuchMethod(
         Invocation.getter(#isMocked),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -115,18 +125,15 @@ class MockPosition extends _i1.Mock implements _i2.Position {
           [],
         ),
         returnValue: <String, dynamic>{},
+        returnValueForMissingStub: <String, dynamic>{},
       ) as Map<String, dynamic>);
 }
 
 /// A class which mocks [Placemark].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable
+// ignore: must_be_immutable, invalid_implementation_override
 class MockPlacemark extends _i1.Mock implements _i3.Placemark {
-  MockPlacemark() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   Map<String, dynamic> toJson() => (super.noSuchMethod(
         Invocation.method(
@@ -134,5 +141,6 @@ class MockPlacemark extends _i1.Mock implements _i3.Placemark {
           [],
         ),
         returnValue: <String, dynamic>{},
+        returnValueForMissingStub: <String, dynamic>{},
       ) as Map<String, dynamic>);
 }

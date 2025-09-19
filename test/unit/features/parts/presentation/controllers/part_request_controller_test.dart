@@ -22,6 +22,7 @@ class TestPartRequestController extends PartRequestController {
   final CreatePartRequest _createPartRequestUsecase;
   final DeletePartRequest _deletePartRequestUsecase;
 
+  // ignore: use_super_parameters
   TestPartRequestController({
     required CreatePartRequest createPartRequest,
     required GetUserPartRequests getUserPartRequests,
@@ -548,7 +549,7 @@ void main() {
         // arrange
         controller.state = controller.state.copyWith(requests: tPartRequestsList);
         when(mockDeletePartRequest('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
 
         // act
         final result = await controller.deletePartRequest('1');
@@ -581,7 +582,7 @@ void main() {
         // arrange
         controller.state = controller.state.copyWith(requests: tPartRequestsList);
         when(mockDeletePartRequest('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
 
         // act
         final future = controller.deletePartRequest('1');
@@ -601,7 +602,7 @@ void main() {
         final request2 = tPartRequest.copyWith(id: '2');
         controller.state = controller.state.copyWith(requests: [request1, request2]);
         when(mockDeletePartRequest('1'))
-            .thenAnswer((_) async => const Right(unit));
+            .thenAnswer((_) async => const Right(null));
 
         // act
         await controller.deletePartRequest('1');
