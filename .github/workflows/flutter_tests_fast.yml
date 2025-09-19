@@ -114,11 +114,11 @@ jobs:
       run: |
         # Divise les tests en 3 groupes pour exécution parallèle
         if [ "${{ matrix.shard }}" == "1" ]; then
-          flutter test test/unit/core/ --no-coverage
+          flutter test test/unit/core/
         elif [ "${{ matrix.shard }}" == "2" ]; then
-          flutter test test/unit/features/auth/ test/unit/features/parts/ --no-coverage
+          flutter test test/unit/features/auth/ test/unit/features/parts/
         else
-          flutter test test/widget/ --no-coverage
+          flutter test test/widget/
         fi
 
   # Coverage séparé (optionnel, seulement sur main/dev)

@@ -58,7 +58,7 @@ jobs:
         # Test seulement les fichiers modifiés
         CHANGED_TEST_FILES=$(git diff --name-only HEAD~1 HEAD | grep '_test\.dart$' || true)
         if [ ! -z "$CHANGED_TEST_FILES" ]; then
-          flutter test --no-coverage $CHANGED_TEST_FILES
+          flutter test $CHANGED_TEST_FILES
         else
           echo "✅ Pas de tests modifiés"
         fi
