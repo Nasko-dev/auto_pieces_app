@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/presentation/controllers/seller_auth_controller.dart';
+import '../../../core/services/notification_service.dart';
+import 'ios_dialog.dart';
 
 class SellerMenu extends ConsumerWidget {
   const SellerMenu({super.key});
@@ -117,67 +119,19 @@ class SellerMenu extends ConsumerWidget {
     context.go('/seller/help');
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.logout, color: AppTheme.error, size: 24),
-            SizedBox(width: 12),
-            Text(
-              'Déconnexion',
-              style: TextStyle(
-                color: AppTheme.darkBlue,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir vous déconnecter ?',
-          style: TextStyle(
-            color: AppTheme.darkGray,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(
-                color: AppTheme.gray,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _logout(context, ref);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: AppTheme.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Se déconnecter',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) async {
+    final result = await context.showWarningDialog(
+      title: 'Déconnexion',
+      message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+      confirmText: 'Se déconnecter',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _logout(context, ref);
+    }
   }
+
 
   void _logout(BuildContext context, WidgetRef ref) {
     // Déconnexion via le contrôleur seller auth
@@ -189,11 +143,6 @@ class SellerMenu extends ConsumerWidget {
     }
     
     // Message de confirmation
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Déconnexion réussie'),
-        backgroundColor: AppTheme.success,
-      ),
-    );
+    notificationService.success(context, 'Déconnexion réussie');
   }
 }

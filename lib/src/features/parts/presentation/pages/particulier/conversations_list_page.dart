@@ -214,11 +214,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       ref.read(particulierConversationsControllerProvider.notifier)
           .deleteConversation(conversationId);
 
-      notificationService.success(context, 'Conversation supprimée');
+      if (mounted) {
+        notificationService.success(context, 'Conversation supprimée');
+      }
     }
   }
 
@@ -230,11 +232,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       ref.read(particulierConversationsControllerProvider.notifier)
           .blockConversation(conversationId);
 
-      notificationService.warning(context, 'Vendeur bloqué');
+      if (mounted) {
+        notificationService.warning(context, 'Vendeur bloqué');
+      }
     }
   }
 }

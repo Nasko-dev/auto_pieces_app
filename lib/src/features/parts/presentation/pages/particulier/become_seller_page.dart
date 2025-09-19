@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
+import '../../../../../core/services/notification_service.dart';
 import 'become_seller/choice_step_page.dart';
 import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
@@ -84,12 +85,10 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
       });
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la création de l\'annonce: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
+        notificationService.error(
+          context,
+          'Erreur lors de la création de l\'annonce',
+          subtitle: e.toString(),
         );
       }
     }

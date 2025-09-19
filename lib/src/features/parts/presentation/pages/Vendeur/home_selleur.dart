@@ -13,6 +13,8 @@ import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
 import '../../../data/datasources/conversations_remote_datasource.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class HomeSellerPage extends ConsumerStatefulWidget {
   const HomeSellerPage({super.key});
@@ -626,11 +628,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   void _navigateToConversationDetail(PartRequest partRequest) {
     HapticFeedback.lightImpact();
     // TODO: Implémenter navigation vers conversation
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonction conversation en cours de développement'),
-      ),
-    );
+    notificationService.info(context, 'Fonction conversation en cours de développement');
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
@@ -638,12 +636,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       // Récupérer l'ID du vendeur connecté
       final sellerId = Supabase.instance.client.auth.currentUser?.id;
       if (sellerId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur : Vendeur non connecté'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur : Vendeur non connecté');
         return;
       }
 
@@ -701,46 +694,26 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
     } catch (e) {
       if (mounted) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur : ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (context.mounted) {
+          notificationService.error(context, 'Erreur', subtitle: e.toString());
+        }
       }
     }
   }
 
-  void _rejectRequest(BuildContext context, PartRequest partRequest) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Refuser la demande'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir refuser cette demande ?\n'
-              'Cette action ne peut pas être annulée.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5252),
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _performReject(partRequest);
-                },
-                child: const Text('Refuser'),
-              ),
-            ],
-          ),
+  void _rejectRequest(BuildContext context, PartRequest partRequest) async {
+    final result = await context.showIOSDialog(
+      title: 'Refuser la demande',
+      message: 'Êtes-vous sûr de vouloir refuser cette demande ?\n'
+          'Cette action ne peut pas être annulée.',
+      type: DialogType.warning,
+      confirmText: 'Refuser',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _performReject(partRequest);
+    }
   }
 
   void _performReject(PartRequest partRequest) async {
@@ -760,32 +733,16 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: ${failure.toString()}'),
-              backgroundColor: AppTheme.error,
-            ),
-          );
+          notificationService.error(context, 'Erreur', subtitle: failure.toString());
         },
         (rejection) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Demande "${partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule"}" refusée avec succès',
-              ),
-              backgroundColor: AppTheme.success,
-            ),
-          );
+          final vehicleText = partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule";
+          notificationService.success(context, 'Demande refusée avec succès', subtitle: vehicleText);
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du refus: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors du refus', subtitle: e.toString());
       }
     }
 

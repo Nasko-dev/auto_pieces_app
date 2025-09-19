@@ -1079,9 +1079,11 @@ _uploadAndSaveAvatar(File(pickedFile.path));
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       // TODO: Implémenter suppression de compte
-      notificationService.error(context, 'Suppression de compte - Fonctionnalité à venir');
+      if (mounted) {
+        notificationService.error(context, 'Suppression de compte - Fonctionnalité à venir');
+      }
     }
   }
 }

@@ -455,11 +455,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       ref.read(conversationsControllerProvider.notifier)
           .closeConversation(widget.conversationId);
 
-      notificationService.showConversationClosed(context);
+      if (mounted) {
+        notificationService.showConversationClosed(context);
+      }
     }
   }
 
@@ -472,13 +474,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       ref.read(conversationsControllerProvider.notifier)
           .deleteConversation(widget.conversationId);
 
-      Navigator.of(context).pop(); // Retourner à la liste
-
-      notificationService.showConversationDeleted(context);
+      if (mounted) {
+        Navigator.of(context).pop(); // Retourner à la liste
+        notificationService.showConversationDeleted(context);
+      }
     }
   }
 
@@ -490,13 +493,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       cancelText: 'Annuler',
     );
 
-    if (result == true && context.mounted) {
+    if (result == true && mounted) {
       ref.read(conversationsControllerProvider.notifier)
           .blockConversation(widget.conversationId);
 
-      Navigator.of(context).pop(); // Retourner à la liste
-
-      notificationService.showSellerBlocked(context);
+      if (mounted) {
+        Navigator.of(context).pop(); // Retourner à la liste
+        notificationService.showSellerBlocked(context);
+      }
     }
   }
 
