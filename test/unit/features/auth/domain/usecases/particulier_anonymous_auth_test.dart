@@ -179,7 +179,8 @@ void main() {
       );
 
       // Second call should create different anonymous user
-      final _secondParticulier = Particulier(
+      // ignore: unused_local_variable
+      final secondParticulier = Particulier(
         id: 'anonymous_2',
         email: 'anonymous2@example.com',
         firstName: 'Anonyme',

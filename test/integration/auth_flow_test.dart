@@ -17,8 +17,11 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Flux d\'authentification vendeur - Intégration', () {
+    // ignore: unused_local_variable
     late SellerLogin sellerLogin;
+    // ignore: unused_local_variable
     late SellerLogout sellerLogout;
+    // ignore: unused_local_variable
     late GetCurrentSeller getCurrentSeller;
 
     // Données de test
@@ -52,6 +55,7 @@ void main() {
       testWidgets('Inscription → Connexion → Vérification → Déconnexion', (WidgetTester tester) async {
         // 🔶 ÉTAPE 1: Inscription d'un nouveau vendeur
 
+        // ignore: unused_local_variable
         final registerParams = SellerRegisterParams(
           email: testEmail,
           password: testPassword,
@@ -74,6 +78,7 @@ void main() {
 
         // 🔶 ÉTAPE 2: Connexion avec les identifiants
 
+        // ignore: unused_local_variable
         final loginParams = SellerLoginParams(
           email: testEmail,
           password: testPassword,
@@ -116,6 +121,7 @@ void main() {
       });
 
       testWidgets('Tentative de connexion avec identifiants invalides', (WidgetTester tester) async {
+        // ignore: unused_local_variable
         final invalidLoginParams = SellerLoginParams(
           email: 'inexistant@example.com',
           password: 'motdepasseincorrect',
@@ -150,6 +156,7 @@ void main() {
         // Test avec un email qui existe déjà en base
         const existingEmail = 'admin@cente-pice.com'; // Email supposé existant
 
+        // ignore: unused_local_variable
         final params = SellerRegisterParams(
           email: existingEmail,
           password: testPassword,
@@ -167,6 +174,7 @@ void main() {
       });
 
       testWidgets('Format d\'email invalide', (WidgetTester tester) async {
+        // ignore: unused_local_variable
         final params = SellerRegisterParams(
           email: 'email-invalide',
           password: testPassword,
@@ -188,6 +196,7 @@ void main() {
       testWidgets('Connexion doit se faire en moins de 5 secondes', (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
+        // ignore: unused_local_variable
         final params = SellerLoginParams(
           email: testEmail,
           password: testPassword,
