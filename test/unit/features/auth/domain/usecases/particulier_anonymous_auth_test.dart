@@ -178,7 +178,8 @@ void main() {
         isActive: true,
       );
 
-      final particulier2 = Particulier(
+      // Second call should create different anonymous user
+      final _secondParticulier = Particulier(
         id: 'anonymous_2',
         email: 'anonymous2@example.com',
         firstName: 'Anonyme',

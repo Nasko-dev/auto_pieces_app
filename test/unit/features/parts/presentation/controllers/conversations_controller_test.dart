@@ -71,6 +71,8 @@ void main() {
     controller.dispose();
   });
 
+  // Test conversation data - kept for potential future use
+  // ignore: unused_local_variable
   final tConversation = Conversation(
     id: 'conv1',
     userId: 'user1',

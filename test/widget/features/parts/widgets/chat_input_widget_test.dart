@@ -16,6 +16,7 @@ void main() {
 
     testWidgets('doit afficher le widget avec les paramètres par défaut', (tester) async {
       // arrange
+      // ignore: unused_local_variable
       String? sentMessage;
 
       // act
@@ -109,6 +110,7 @@ void main() {
 
     testWidgets('doit appeler onSend quand on appuie sur le bouton send', (tester) async {
       // arrange
+      // ignore: unused_local_variable
       String? sentMessage;
       await tester.pumpWidget(
         MaterialApp(
@@ -132,6 +134,7 @@ void main() {
 
     testWidgets('doit appeler onSend quand on soumet le TextField', (tester) async {
       // arrange
+      // ignore: unused_local_variable
       String? sentMessage;
       await tester.pumpWidget(
         MaterialApp(
@@ -154,6 +157,7 @@ void main() {
 
     testWidgets('ne doit pas envoyer de message vide', (tester) async {
       // arrange
+      // ignore: unused_local_variable
       String? sentMessage;
       await tester.pumpWidget(
         MaterialApp(
@@ -307,6 +311,7 @@ void main() {
 
     testWidgets('ne doit pas envoyer de message pendant le loading', (tester) async {
       // arrange
+      // ignore: unused_local_variable
       String? sentMessage;
       controller.text = 'Test message';
 
