@@ -1,0 +1,119 @@
+name: 🐛 Bug Report
+description: Signaler un bug dans l'application
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de signaler ce bug ! Remplissez le formulaire ci-dessous pour nous aider à le reproduire et le corriger.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 📱 Plateforme
+      description: Sur quelle plateforme le bug se produit-il ?
+      options:
+        - Android
+        - iOS
+        - Web
+        - Toutes les plateformes
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 Sévérité
+      description: Quelle est la sévérité du bug ?
+      options:
+        - Critique (app crash/inutilisable)
+        - Haute (fonctionnalité majeure cassée)
+        - Moyenne (fonctionnalité mineure cassée)
+        - Basse (problème cosmétique)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Description du bug
+      description: Décrivez clairement le problème
+      placeholder: "Quand je fais X, il se passe Y au lieu de Z..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 🔄 Étapes pour reproduire
+      description: Listez les étapes exactes pour reproduire le bug
+      placeholder: |
+        1. Aller sur la page...
+        2. Cliquer sur...
+        3. Faire défiler jusqu'à...
+        4. Voir l'erreur
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ Comportement attendu
+      description: Que devrait-il se passer normalement ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: ❌ Comportement actuel
+      description: Que se passe-t-il réellement ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 Captures d'écran
+      description: Ajoutez des captures d'écran si applicable
+
+  - type: input
+    id: version
+    attributes:
+      label: 📱 Version de l'app
+      description: Quelle version de l'app utilisez-vous ?
+      placeholder: "1.0.0"
+
+  - type: input
+    id: device
+    attributes:
+      label: 📱 Appareil
+      description: Quel appareil utilisez-vous ?
+      placeholder: "iPhone 14 Pro, Samsung Galaxy S23, etc."
+
+  - type: input
+    id: os_version
+    attributes:
+      label: 🔧 Version OS
+      description: Quelle version d'OS ?
+      placeholder: "iOS 17.0, Android 13, etc."
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 📋 Informations supplémentaires
+      description: Autres informations utiles
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: ✅ Checklist
+      description: Vérifiez les éléments suivants
+      options:
+        - label: J'ai cherché si ce bug a déjà été signalé
+          required: true
+        - label: J'ai testé avec la dernière version de l'app
+          required: true
+        - label: J'ai fourni toutes les informations nécessaires
+          required: true
