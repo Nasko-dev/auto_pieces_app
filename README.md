@@ -1,16 +1,19 @@
-# cente_pice
+# Pièces d'Occasion
 
-A new Flutter project.
+Application mobile Flutter pour la vente de pièces automobiles d'occasion.
 
-## Getting Started
+## Installation
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Build Production
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter build apk --release
+flutter build ios --release
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+© 2024 - Tous droits réservés
