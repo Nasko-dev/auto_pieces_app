@@ -116,6 +116,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               .from('part_requests_with_responses')
               .select()
               .inFilter('user_id', allUserIds)
+              .neq('status', 'deleted') // Exclure les demandes supprimées
               .order('created_at', ascending: false);
               
 
@@ -138,6 +139,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .from('part_requests_with_responses')
           .select()
           .eq('user_id', currentAuthUserId)
+          .neq('status', 'deleted') // Exclure les demandes supprimées
           .order('created_at', ascending: false);
 
 
@@ -186,6 +188,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw const UnauthorizedException('User not authenticated');
       }
 
+
       final response = await _supabase
           .from('part_requests')
           .insert(data)
@@ -233,10 +236,45 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<void> deletePartRequest(String id) async {
     try {
-      await _supabase
+      final currentAuthUser = _supabase.auth.currentUser;
+      if (currentAuthUser == null) {
+        throw const UnauthorizedException('User not authenticated');
+      }
+
+      // Récupérer l'ID persistant du particulier pour ce device (même logique que création)
+      String? persistantUserId;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        // Rechercher le particulier persistant avec ce device_id
+        final particulierPersistant = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId)
+            .limit(1)
+            .single();
+
+        persistantUserId = particulierPersistant['id'] as String;
+
+      } catch (e) {
+        // Fallback vers l'ID auth en cas d'erreur
+        persistantUserId = currentAuthUser.id;
+      }
+
+      // Au lieu de DELETE, marquer comme 'deleted' (soft delete)
+      final response = await _supabase
           .from('part_requests')
-          .delete()
-          .eq('id', id);
+          .update({'status': 'deleted'})
+          .eq('id', id)
+          .eq('user_id', persistantUserId)
+          .select();
+
+      if (response.isEmpty) {
+        throw ServerException('Impossible de supprimer cette demande');
+      }
+
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -775,7 +813,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         allUserIds = [currentUser.id];
       }
 
-      // Récupérer les conversations pour tous les IDs de particulier
       final conversations = await _supabase
           .from('conversations')
           .select('''
@@ -795,7 +832,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               id,
               first_name,
               last_name,
-              company_name
+              company_name,
+              avatar_url
             )
           ''')
           .inFilter('user_id', allUserIds)
@@ -836,10 +874,13 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
           // Récupérer les infos du vendeur
           final sellerData = convData['sellers'];
+
           final sellerName = sellerData != null
               ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
               : 'Vendeur inconnu';
           final sellerCompanyName = sellerData?['company_name'];
+          final sellerAvatarUrl = sellerData?['avatar_url'];
+
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
@@ -883,6 +924,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             createdAt: DateTime.parse(convData['created_at']),
             updatedAt: DateTime.parse(convData['updated_at']),
             sellerCompany: sellerCompanyName,
+            sellerAvatarUrl: sellerAvatarUrl,
           );
 
           result.add(conversation);
@@ -983,14 +1025,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<void> markParticulierConversationAsRead(String conversationId) async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Marquer tous les messages de cette conversation comme lus
-      // Pour le particulier, on marque comme lus les messages envoyés par le vendeur (seller)
+
+      // Remettre le compteur unread_count_for_user à 0 pour cette conversation
+      await _supabase
+          .from('conversations')
+          .update({'unread_count_for_user': 0})
+          .eq('id', conversationId);
+
 
     } catch (e) {
       throw ServerException(e.toString());

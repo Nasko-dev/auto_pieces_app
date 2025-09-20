@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class RequestsPage extends ConsumerStatefulWidget {
   const RequestsPage({super.key});
@@ -46,7 +48,8 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
       body: Consumer(
         builder: (context, ref, child) {
           final state = ref.watch(partRequestControllerProvider);
-          
+
+
           if (state.isLoading) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -155,7 +158,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   }
 }
 
-class _RequestCard extends StatelessWidget {
+class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({
@@ -163,7 +166,7 @@ class _RequestCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.white,
@@ -226,12 +229,41 @@ class _RequestCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    _getTimeAgo(request.createdAt),
-                    style: const TextStyle(
-                      color: AppTheme.gray,
-                      fontSize: 12,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        _getTimeAgo(request.createdAt),
+                        style: const TextStyle(
+                          color: AppTheme.gray,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: AppTheme.gray,
+                          size: 18,
+                        ),
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            _showDeleteDialog(context, ref);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                                SizedBox(width: 12),
+                                Text('Supprimer', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -254,7 +286,7 @@ class _RequestCard extends StatelessWidget {
   String _getTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inMinutes < 1) {
       return 'À l\'instant';
     } else if (difference.inHours < 1) {
@@ -265,6 +297,59 @@ class _RequestCard extends StatelessWidget {
       return '${difference.inDays}j';
     } else {
       return '${(difference.inDays / 7).floor()}sem';
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer la demande',
+      message: 'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+    );
+
+    if (result == true && context.mounted) {
+      _deleteRequest(context, ref);
+    }
+  }
+
+  void _deleteRequest(BuildContext context, WidgetRef ref) async {
+    try {
+      // Afficher l'indicateur de suppression
+      notificationService.info(
+        context,
+        'Suppression en cours...',
+        subtitle: 'Veuillez patienter',
+      );
+
+      // Appeler la fonction de suppression du controller
+      final success = await ref
+          .read(partRequestControllerProvider.notifier)
+          .deletePartRequest(request.id);
+
+      // Afficher le résultat
+      if (context.mounted) {
+        if (success) {
+          notificationService.showPartRequestDeleted(context);
+        } else {
+          final state = ref.read(partRequestControllerProvider);
+          final errorMessage = state.error ?? 'Erreur lors de la suppression';
+          notificationService.error(
+            context,
+            'Échec de la suppression',
+            subtitle: errorMessage,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        notificationService.error(
+          context,
+          'Erreur inattendue',
+          subtitle: e.toString(),
+        );
+      }
     }
   }
 }

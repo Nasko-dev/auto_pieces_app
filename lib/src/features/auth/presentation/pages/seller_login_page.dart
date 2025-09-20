@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
+import '../../../../core/services/notification_service.dart';
 
 class SellerLoginPage extends ConsumerStatefulWidget {
   const SellerLoginPage({super.key});
@@ -57,12 +58,7 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
         error: (message) {
           // Affichage de l'erreur
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            notificationService.error(context, message);
           }
         },
       );

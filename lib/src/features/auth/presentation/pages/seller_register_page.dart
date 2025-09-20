@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
+import '../../../../core/services/notification_service.dart';
 
 class SellerRegisterPage extends ConsumerStatefulWidget {
   const SellerRegisterPage({super.key});
@@ -60,11 +61,10 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
         authenticated: (seller) {
           // Navigation vers l'accueil vendeur après inscription
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Compte créé avec succès ! Bienvenue ${seller.displayName}'),
-                backgroundColor: Colors.green,
-              ),
+            notificationService.success(
+              context,
+              'Compte créé avec succès !',
+              subtitle: 'Bienvenue ${seller.displayName}',
             );
           }
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -76,12 +76,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
         unauthenticated: () {},
         error: (message) {
           // Affichage de l'erreur
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (context.mounted) {
+            notificationService.error(context, message);
+          }
         },
       );
     });

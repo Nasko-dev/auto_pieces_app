@@ -39,7 +39,7 @@ class _SellerChoiceStepPageState extends State<SellerChoiceStepPage> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Vendez-vous des pièces concernant le\nmoteur seulement, ou avez-vous aussi\ndes pièces concernant la carrosserie\nou l\'intérieur du véhicule ?',
+                    'Vendez-vous un moteur complet,\ndes pièces de carrosserie/intérieur,\nou les deux ?',
                     style: TextStyle(
                       fontSize: 16,
                       height: 1.35,
@@ -48,7 +48,7 @@ class _SellerChoiceStepPageState extends State<SellerChoiceStepPage> {
                   ),
                   const SizedBox(height: 24),
                   SellerSharedWidgets.buildOptionCard(
-                    label: 'Pièces moteur',
+                    label: 'Moteur complet',
                     selected: _choice == 'moteur',
                     icon: SellerSharedWidgets.buildIcon(Icons.settings),
                     onTap: () => setState(() => _choice = 'moteur'),

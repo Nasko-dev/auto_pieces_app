@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class MyAdsPage extends ConsumerStatefulWidget {
   const MyAdsPage({super.key});
@@ -272,28 +274,18 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
         .updateAdvertisement(advertisement.id, {'status': 'sold'});
   }
 
-  void _showDeleteConfirmation(PartAdvertisement advertisement) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer l\'annonce'),
-        content: Text('Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteAdvertisement(advertisement);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+  void _showDeleteConfirmation(PartAdvertisement advertisement) async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer l\'annonce',
+      message: 'Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ?',
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _deleteAdvertisement(advertisement);
+    }
   }
 
   void _deleteAdvertisement(PartAdvertisement advertisement) async {
@@ -302,29 +294,14 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       final success = await controller.deleteAdvertisement(advertisement.id);
       
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Annonce supprimée avec succès'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        notificationService.success(context, 'Annonce supprimée avec succès');
         // Le controller rafraîchit déjà automatiquement la liste
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la suppression'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors de la suppression');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur', subtitle: e.toString());
       }
     }
   }

@@ -6,7 +6,7 @@ import '../errors/failures.dart';
 import '../constants/app_constants.dart';
 
 class ImmatriculationService {
-  static const String _baseUrl = 'https://vehicle-identification.tecalliance.services';
+  static String get _baseUrl => AppConstants.tecAllianceBaseUrl;
   static const int _requestTimeoutSeconds = 10;
   
   final String apiUsername; // Gardé pour compatibilité mais non utilisé
