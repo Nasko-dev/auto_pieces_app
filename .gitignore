@@ -43,3 +43,44 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 🔐 CONFIGURATION PRODUCTION - SÉCURITÉ
+# Variables d'environnement (JAMAIS committer)
+.env
+.env.local
+.env.production
+.env.staging
+
+# Certificats et clés (SENSIBLE)
+keys/
+*.keystore
+*.p12
+*.mobileprovision
+android/key.properties
+android/app/release.keystore
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+
+# Configuration Firebase locale
+firebase-debug.log
+.firebase/
+
+# Configuration Supabase locale
+supabase/.env
+
+# Secrets et tokens
+secrets/
+*.pem
+*.key
+*.crt
+
+# Logs de production
+logs/
+*.log
+
+# Coverage reports locaux
+coverage/
+lcov.info
+
+# Cache local
+.cache/

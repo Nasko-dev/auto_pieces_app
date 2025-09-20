@@ -132,7 +132,7 @@ class MockPosition extends _i1.Mock implements _i2.Position {
 /// A class which mocks [Placemark].
 ///
 /// See the documentation for Mockito's code generation for more information.
-// ignore: must_be_immutable, invalid_implementation_override
+// ignore: must_be_immutable
 class MockPlacemark extends _i1.Mock implements _i3.Placemark {
   @override
   Map<String, dynamic> toJson() => (super.noSuchMethod(

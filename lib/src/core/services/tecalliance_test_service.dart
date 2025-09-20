@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../constants/app_constants.dart';
 
 class TecAllianceTestService {
-  static const String baseUrl = 'https://vehicle-identification.tecalliance.services';
-  static const String providerId = '25200';
-  static const String apiKey = '2BeBXg6RC5myrQufHsxH8BsjG4BuhvU2Z1zn9fBukD4argoKAzJC';
+  static String get baseUrl => AppConstants.tecAllianceBaseUrl;
+  static String get providerId => AppConstants.tecAllianceProviderId;
+  static String get apiKey => AppConstants.tecAllianceApiKey;
   
   static Future<void> testAllEndpoints() async {
     final testPlate = 'AB123CD';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'src/core/theme/app_theme.dart';
 import 'src/core/navigation/app_router.dart';
 import 'src/core/constants/app_constants.dart';
@@ -14,8 +15,23 @@ import 'src/core/services/device_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  
+
+  // Charger le fichier .env (ou .env.example en fallback)
+  try {
+    await dotenv.load(fileName: ".env");
+    debugPrint('✅ Fichier .env chargé avec succès');
+    debugPrint('🔧 Supabase URL: ${dotenv.env['SUPABASE_URL_DEV']}');
+  } catch (e) {
+    try {
+      await dotenv.load(fileName: ".env.example");
+      debugPrint('⚠️ Fichier .env.example chargé (fallback)');
+      debugPrint('L\'application utilise les valeurs template');
+    } catch (e2) {
+      debugPrint('❌ Erreur lors du chargement des fichiers .env: $e2');
+      debugPrint('L\'application continuera avec les valeurs par défaut');
+    }
+  }
+
   try {
     // Initialiser Supabase
     await Supabase.initialize(

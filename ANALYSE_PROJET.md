@@ -156,7 +156,7 @@
 1. **Clés API exposées** dans `app_constants.dart` :
    ```dart
    static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIs...'
-   static const String tecAllianceApiKey = '2BeBXg6RC5myrQufHsxH8BsjG4BuhvU2Z1zn9fBukD4argoKAzJC'
+   static const String tecAllianceApiKey = 'MASQUÉE_POUR_SÉCURITÉ'
    ```
    - ❌ Clés en dur dans le code source
    - ❌ Pas de variables d'environnement

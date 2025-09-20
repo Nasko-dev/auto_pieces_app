@@ -169,7 +169,7 @@ class PerformanceMonitor {
     final threshold = _thresholds[type];
     if (threshold != null && value > threshold) {
       if (kDebugMode) {
-        print('⚠️ Performance Alert: $type (${value.toStringAsFixed(2)}ms) '
+        debugPrint('⚠️ Performance Alert: $type (${value.toStringAsFixed(2)}ms) '
               'exceeded threshold (${threshold.toStringAsFixed(2)}ms)');
       }
     }
