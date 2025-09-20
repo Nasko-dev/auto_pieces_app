@@ -16,14 +16,20 @@ import 'src/core/services/device_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Charger le fichier .env
+  // Charger le fichier .env (ou .env.example en fallback)
   try {
     await dotenv.load(fileName: ".env");
     debugPrint('✅ Fichier .env chargé avec succès');
     debugPrint('🔧 Supabase URL: ${dotenv.env['SUPABASE_URL_DEV']}');
   } catch (e) {
-    debugPrint('❌ Erreur lors du chargement du fichier .env: $e');
-    debugPrint('L\'application continuera avec les valeurs par défaut');
+    try {
+      await dotenv.load(fileName: ".env.example");
+      debugPrint('⚠️ Fichier .env.example chargé (fallback)');
+      debugPrint('L\'application utilise les valeurs template');
+    } catch (e2) {
+      debugPrint('❌ Erreur lors du chargement des fichiers .env: $e2');
+      debugPrint('L\'application continuera avec les valeurs par défaut');
+    }
   }
 
   try {
