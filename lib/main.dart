@@ -19,16 +19,11 @@ void main() async {
   // Charger le fichier .env (ou .env.example en fallback)
   try {
     await dotenv.load(fileName: ".env");
-    debugPrint('✅ Fichier .env chargé avec succès');
-    debugPrint('🔧 Supabase URL: ${dotenv.env['SUPABASE_URL_DEV']}');
   } catch (e) {
     try {
       await dotenv.load(fileName: ".env.example");
-      debugPrint('⚠️ Fichier .env.example chargé (fallback)');
-      debugPrint('L\'application utilise les valeurs template');
     } catch (e2) {
-      debugPrint('❌ Erreur lors du chargement des fichiers .env: $e2');
-      debugPrint('L\'application continuera avec les valeurs par défaut');
+      // Continuer avec les valeurs par défaut
     }
   }
 
