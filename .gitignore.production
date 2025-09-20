@@ -1,0 +1,76 @@
+# Fichiers de développement à exclure en production
+/test/
+/docs/
+/scripts/
+/.github/
+/.vscode/
+/.idea/
+
+# Fichiers de configuration locale
+.env
+.env.local
+.env.*.local
+*.env
+
+# Fichiers de documentation
+*.md
+!README.md
+LICENSE
+
+# Fichiers de développement
+*.log
+*.lock
+analysis_options.yaml
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Build artifacts non nécessaires
+/build/
+/android/build/
+/ios/build/
+/web/build/
+
+# Fichiers de débogage
+*.map
+*.symbols
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Coverage et tests
+/coverage/
+*.lcov
+.coverage
+
+# CI/CD fichiers
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Exemples et démos
+/examples/
+/samples/
+/demo/
+
+# Documentation API
+/api-docs/
+/swagger/
+
+# Fichiers de développement Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+
+# IDE
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
