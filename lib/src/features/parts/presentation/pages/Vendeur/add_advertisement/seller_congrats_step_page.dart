@@ -3,14 +3,16 @@ import '../../../../../../core/theme/app_theme.dart';
 import 'seller_shared_widgets.dart';
 
 class SellerCongratsStepPage extends StatelessWidget {
-  final String partName;
-  final double price;
+  final String? partName;
+  final double? price;
+  final bool isRequest;
   final VoidCallback onFinish;
 
   const SellerCongratsStepPage({
     super.key,
-    required this.partName,
-    required this.price,
+    this.partName,
+    this.price,
+    this.isRequest = false,
     required this.onFinish,
   });
 
@@ -54,12 +56,14 @@ class SellerCongratsStepPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
-                  const Text(
-                    'Votre annonce a été publiée\navec succès !',
-                    style: TextStyle(
+
+                  Text(
+                    isRequest
+                      ? 'Votre demande a été enregistrée\navec succès !'
+                      : 'Votre annonce a été publiée\navec succès !',
+                    style: const TextStyle(
                       fontSize: 18,
                       height: 1.35,
                       color: AppTheme.darkGray,
@@ -70,82 +74,84 @@ class SellerCongratsStepPage extends StatelessWidget {
                   
                   const SizedBox(height: 32),
                   
-                  // Détails de l'annonce
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.success.withValues(alpha: 0.1),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.success.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.build,
-                                color: AppTheme.success,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                partName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.darkBlue,
+                  // Détails de l'annonce ou de la demande
+                  if (partName != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.success.withValues(alpha: 0.1),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.success.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  isRequest ? Icons.search : Icons.build,
+                                  color: AppTheme.success,
+                                  size: 20,
                                 ),
                               ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  partName!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.darkBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          if (price != null && !isRequest) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.success.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.euro,
+                                    color: AppTheme.success,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${price!.toStringAsFixed(0)} €',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.success,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.success.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.euro,
-                                color: AppTheme.success,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${price.toStringAsFixed(0)} €',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.success,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                   
                   const SizedBox(height: 32),
                   
@@ -168,7 +174,7 @@ class SellerCongratsStepPage extends StatelessWidget {
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Prochaines étapes :',
                               style: TextStyle(
                                 fontSize: 16,
@@ -179,14 +185,24 @@ class SellerCongratsStepPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        
-                        _buildStep('Votre annonce est maintenant visible'),
-                        const SizedBox(height: 8),
-                        _buildStep('Les acheteurs pourront vous contacter'),
-                        const SizedBox(height: 8),
-                        _buildStep('Vous recevrez des notifications pour les messages'),
-                        const SizedBox(height: 8),
-                        _buildStep('Gérez vos annonces dans "Mes annonces"'),
+
+                        if (isRequest) ...[
+                          _buildStep('Votre demande est maintenant visible'),
+                          const SizedBox(height: 8),
+                          _buildStep('Les vendeurs pourront vous contacter'),
+                          const SizedBox(height: 8),
+                          _buildStep('Vous recevrez des notifications pour les réponses'),
+                          const SizedBox(height: 8),
+                          _buildStep('Gérez vos demandes dans "Mes demandes"'),
+                        ] else ...[
+                          _buildStep('Votre annonce est maintenant visible'),
+                          const SizedBox(height: 8),
+                          _buildStep('Les acheteurs pourront vous contacter'),
+                          const SizedBox(height: 8),
+                          _buildStep('Vous recevrez des notifications pour les messages'),
+                          const SizedBox(height: 8),
+                          _buildStep('Gérez vos annonces dans "Mes annonces"'),
+                        ],
                       ],
                     ),
                   ),
@@ -201,9 +217,9 @@ class SellerCongratsStepPage extends StatelessWidget {
           Column(
             children: [
               SellerSharedWidgets.buildPrimaryButton(
-                label: 'Voir mes annonces',
+                label: isRequest ? 'Voir mes demandes' : 'Voir mes annonces',
                 onPressed: () {
-                  // TODO: Navigation vers mes annonces
+                  // TODO: Navigation vers mes annonces ou demandes
                   onFinish();
                 },
               ),
