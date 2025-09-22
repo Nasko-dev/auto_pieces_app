@@ -278,7 +278,12 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: (!isLoading && _canSubmit()) ? _submitRequest : null,
+                onPressed: (!isLoading) ? () {
+                  if (_canSubmit()) {
+                    _submitRequest();
+                  } else {
+                  }
+                } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryBlue,
                   foregroundColor: Colors.white,
@@ -674,14 +679,33 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
 
     final hasParts = _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
 
+    // Debug: loguer les conditions
+    print('  - _isManualMode: $_isManualMode');
+    print('  - _selectedType: $_selectedType');
+    print('  - hasVehicleInfo: $hasVehicleInfo');
+    print('  - hasParts: $hasParts');
+    print('  - _selectedParts: $_selectedParts');
+    print('  - _partController.text: "${_partController.text}"');
+    if (_isManualMode && _selectedType == 'body') {
+      print('  - _marqueController.text: "${_marqueController.text}"');
+      print('  - _modeleController.text: "${_modeleController.text}"');
+      print('  - _anneeController.text: "${_anneeController.text}"');
+    }
+    if (_isManualMode && _selectedType == 'engine') {
+      print('  - _motorisationController.text: "${_motorisationController.text}"');
+    }
+    print('  - Result: ${hasVehicleInfo && hasParts}');
+
     return hasVehicleInfo && hasParts;
   }
 
   Future<void> _submitRequest() async {
+
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty && !allParts.contains(_partController.text)) {
       allParts.add(_partController.text);
     }
+
 
     if (allParts.isEmpty) {
       notificationService.error(
@@ -733,7 +757,9 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
       additionalInfo: 'Demande professionnelle',
     );
 
+
     final success = await ref.read(partRequestControllerProvider.notifier).createPartRequest(params);
+
 
     if (success && mounted) {
       notificationService.success(
@@ -742,6 +768,26 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
         subtitle: 'Les vendeurs pourront vous contacter',
       );
       context.go('/seller/home');
+    } else {
+      if (!success) {
+        // Afficher l'erreur du controller si disponible
+        final controllerState = ref.read(partRequestControllerProvider);
+        final errorMessage = controllerState.error;
+
+        if (errorMessage != null && mounted) {
+          notificationService.error(
+            context,
+            'Erreur lors de la création de la demande',
+            subtitle: errorMessage,
+          );
+        } else if (mounted) {
+          notificationService.error(
+            context,
+            'Erreur lors de la création de la demande',
+            subtitle: 'Veuillez réessayer',
+          );
+        }
+      }
     }
   }
 }
