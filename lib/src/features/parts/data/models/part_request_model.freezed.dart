@@ -31,6 +31,7 @@ mixin _$PartRequestModel {
       throw _privateConstructorUsedError; // Métadonnées
   String get status => throw _privateConstructorUsedError;
   bool get isAnonymous => throw _privateConstructorUsedError;
+  bool get isSellerRequest => throw _privateConstructorUsedError;
   int get responseCount => throw _privateConstructorUsedError;
   int get pendingResponseCount =>
       throw _privateConstructorUsedError; // Timestamps
@@ -64,6 +65,7 @@ abstract class $PartRequestModelCopyWith<$Res> {
       String? additionalInfo,
       String status,
       bool isAnonymous,
+      bool isSellerRequest,
       int responseCount,
       int pendingResponseCount,
       DateTime createdAt,
@@ -98,6 +100,7 @@ class _$PartRequestModelCopyWithImpl<$Res, $Val extends PartRequestModel>
     Object? additionalInfo = freezed,
     Object? status = null,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
     Object? responseCount = null,
     Object? pendingResponseCount = null,
     Object? createdAt = null,
@@ -153,6 +156,10 @@ class _$PartRequestModelCopyWithImpl<$Res, $Val extends PartRequestModel>
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
       responseCount: null == responseCount
           ? _value.responseCount
           : responseCount // ignore: cast_nullable_to_non_nullable
@@ -198,6 +205,7 @@ abstract class _$$PartRequestModelImplCopyWith<$Res>
       String? additionalInfo,
       String status,
       bool isAnonymous,
+      bool isSellerRequest,
       int responseCount,
       int pendingResponseCount,
       DateTime createdAt,
@@ -230,6 +238,7 @@ class __$$PartRequestModelImplCopyWithImpl<$Res>
     Object? additionalInfo = freezed,
     Object? status = null,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
     Object? responseCount = null,
     Object? pendingResponseCount = null,
     Object? createdAt = null,
@@ -285,6 +294,10 @@ class __$$PartRequestModelImplCopyWithImpl<$Res>
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
       responseCount: null == responseCount
           ? _value.responseCount
           : responseCount // ignore: cast_nullable_to_non_nullable
@@ -325,6 +338,7 @@ class _$PartRequestModelImpl extends _PartRequestModel {
       this.additionalInfo,
       this.status = 'active',
       this.isAnonymous = false,
+      this.isSellerRequest = false,
       this.responseCount = 0,
       this.pendingResponseCount = 0,
       required this.createdAt,
@@ -370,6 +384,9 @@ class _$PartRequestModelImpl extends _PartRequestModel {
   final bool isAnonymous;
   @override
   @JsonKey()
+  final bool isSellerRequest;
+  @override
+  @JsonKey()
   final int responseCount;
   @override
   @JsonKey()
@@ -384,7 +401,7 @@ class _$PartRequestModelImpl extends _PartRequestModel {
 
   @override
   String toString() {
-    return 'PartRequestModel(id: $id, userId: $userId, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, status: $status, isAnonymous: $isAnonymous, responseCount: $responseCount, pendingResponseCount: $pendingResponseCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
+    return 'PartRequestModel(id: $id, userId: $userId, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, status: $status, isAnonymous: $isAnonymous, isSellerRequest: $isSellerRequest, responseCount: $responseCount, pendingResponseCount: $pendingResponseCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
   }
 
   @override
@@ -413,6 +430,8 @@ class _$PartRequestModelImpl extends _PartRequestModel {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.isAnonymous, isAnonymous) ||
                 other.isAnonymous == isAnonymous) &&
+            (identical(other.isSellerRequest, isSellerRequest) ||
+                other.isSellerRequest == isSellerRequest) &&
             (identical(other.responseCount, responseCount) ||
                 other.responseCount == responseCount) &&
             (identical(other.pendingResponseCount, pendingResponseCount) ||
@@ -440,6 +459,7 @@ class _$PartRequestModelImpl extends _PartRequestModel {
       additionalInfo,
       status,
       isAnonymous,
+      isSellerRequest,
       responseCount,
       pendingResponseCount,
       createdAt,
@@ -470,6 +490,7 @@ abstract class _PartRequestModel extends PartRequestModel {
       final String? additionalInfo,
       final String status,
       final bool isAnonymous,
+      final bool isSellerRequest,
       final int responseCount,
       final int pendingResponseCount,
       required final DateTime createdAt,
@@ -501,6 +522,8 @@ abstract class _PartRequestModel extends PartRequestModel {
   String get status;
   @override
   bool get isAnonymous;
+  @override
+  bool get isSellerRequest;
   @override
   int get responseCount;
   @override

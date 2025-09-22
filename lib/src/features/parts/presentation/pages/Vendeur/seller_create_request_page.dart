@@ -679,22 +679,6 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
 
     final hasParts = _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
 
-    // Debug: loguer les conditions
-    print('  - _isManualMode: $_isManualMode');
-    print('  - _selectedType: $_selectedType');
-    print('  - hasVehicleInfo: $hasVehicleInfo');
-    print('  - hasParts: $hasParts');
-    print('  - _selectedParts: $_selectedParts');
-    print('  - _partController.text: "${_partController.text}"');
-    if (_isManualMode && _selectedType == 'body') {
-      print('  - _marqueController.text: "${_marqueController.text}"');
-      print('  - _modeleController.text: "${_modeleController.text}"');
-      print('  - _anneeController.text: "${_anneeController.text}"');
-    }
-    if (_isManualMode && _selectedType == 'engine') {
-      print('  - _motorisationController.text: "${_motorisationController.text}"');
-    }
-    print('  - Result: ${hasVehicleInfo && hasParts}');
 
     return hasVehicleInfo && hasParts;
   }
