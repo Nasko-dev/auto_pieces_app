@@ -12,19 +12,31 @@ class SellerInitialChoicePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: AppTheme.white,
+        backgroundColor: AppTheme.primaryBlue,
         elevation: 0,
         title: const Text(
-          'Que souhaitez-vous faire ?',
+          'Espace Professionnel',
           style: TextStyle(
-            color: AppTheme.darkBlue,
+            color: AppTheme.white,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.2,
           ),
         ),
         centerTitle: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.primaryBlue,
+                AppTheme.primaryBlue.withValues(alpha: 0.8),
+              ],
+            ),
+          ),
+        ),
         actions: const [
-          SellerMenu(),
+          Padding(padding: EdgeInsets.only(right: 8), child: SellerMenu()),
         ],
       ),
       body: SafeArea(
@@ -33,9 +45,33 @@ class SellerInitialChoicePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              // Badge professionnel
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.business, size: 16, color: AppTheme.primaryBlue),
+                    SizedBox(width: 6),
+                    Text(
+                      'Compte Professionnel',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
               const Text(
-                'Choisissez une option',
+                'Que souhaitez-vous faire ?',
                 style: TextStyle(
                   fontSize: 28,
                   height: 1.15,
@@ -46,10 +82,10 @@ class SellerInitialChoicePage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Vous pouvez poster une annonce pour vendre\nune pièce ou faire une demande pour\nrechercher une pièce spécifique.',
+                'En tant que professionnel, vous pouvez :\n• Vendre vos pièces avec une annonce\n• Rechercher des pièces spécifiques',
                 style: TextStyle(
                   fontSize: 16,
-                  height: 1.35,
+                  height: 1.5,
                   color: AppTheme.darkGray,
                 ),
               ),
@@ -59,9 +95,10 @@ class SellerInitialChoicePage extends ConsumerWidget {
               _buildChoiceCard(
                 context: context,
                 icon: Icons.sell_outlined,
-                title: 'Poster une annonce',
-                subtitle: 'Je veux vendre une pièce',
+                title: 'Poster une annonce PRO',
+                subtitle: 'Vendre une pièce • Gestion professionnelle',
                 color: AppTheme.primaryBlue,
+                badge: 'VENTE',
                 onTap: () {
                   // Aller vers le flow d'annonce vendeur existant
                   context.go('/seller/create-ad');
@@ -74,11 +111,12 @@ class SellerInitialChoicePage extends ConsumerWidget {
               _buildChoiceCard(
                 context: context,
                 icon: Icons.search,
-                title: 'Faire une demande',
-                subtitle: 'Je recherche une pièce',
+                title: 'Recherche professionnelle',
+                subtitle: 'Trouver une pièce • Demande prioritaire',
                 color: AppTheme.success,
+                badge: 'RECHERCHE',
                 onTap: () {
-                  // Aller vers le flow de demande (même que particulier)
+                  // Aller vers le flow de demande vendeur
                   context.go('/seller/create-request');
                 },
               ),
@@ -120,6 +158,7 @@ class SellerInitialChoicePage extends ConsumerWidget {
     required String title,
     required String subtitle,
     required Color color,
+    required String badge,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -162,13 +201,33 @@ class SellerInitialChoicePage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.darkBlue,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.darkBlue,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          badge,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
