@@ -118,7 +118,7 @@ class PartRequestModel with _$PartRequestModel {
       'part_names': params.partNames,
       'additional_info': params.additionalInfo,
       'is_anonymous': params.isAnonymous,
-      // 'is_seller_request': params.isSellerRequest, // Temporairement commenté pour test
+      'is_seller_request': params.isSellerRequest,
       'status': 'active',
     };
   }
