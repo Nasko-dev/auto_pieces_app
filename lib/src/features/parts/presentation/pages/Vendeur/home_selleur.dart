@@ -400,9 +400,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 child: _ModernNotificationCard(
                   partRequest: notification.partRequest,
                   onTap:
-                      () => _navigateToConversationDetail(
-                        notification.partRequest,
-                      ),
+                      () => _navigateToConversationDetail(notification.partRequest),
                   onAccept:
                       () =>
                           _acceptAndRespond(context, notification.partRequest),
