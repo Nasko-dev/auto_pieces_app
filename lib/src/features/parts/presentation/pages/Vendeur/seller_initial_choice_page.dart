@@ -95,10 +95,10 @@ class SellerInitialChoicePage extends ConsumerWidget {
               _buildChoiceCard(
                 context: context,
                 icon: Icons.sell_outlined,
-                title: 'Poster une annonce PRO',
+                title: 'Poster une annonce',
                 subtitle: 'Vendre une pièce • Gestion professionnelle',
                 color: AppTheme.primaryBlue,
-                badge: 'VENTE',
+                badge: 'PRO',
                 onTap: () {
                   // Aller vers le flow d'annonce vendeur existant
                   context.go('/seller/create-ad');
@@ -111,10 +111,10 @@ class SellerInitialChoicePage extends ConsumerWidget {
               _buildChoiceCard(
                 context: context,
                 icon: Icons.search,
-                title: 'Recherche professionnelle',
+                title: 'Rechercher une pièce',
                 subtitle: 'Trouver une pièce • Demande prioritaire',
                 color: AppTheme.success,
-                badge: 'RECHERCHE',
+                badge: 'PRO',
                 onTap: () {
                   // Aller vers le flow de demande vendeur
                   context.go('/seller/create-request');
@@ -203,12 +203,16 @@ class SellerInitialChoicePage extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.darkBlue,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.darkBlue,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -216,12 +220,12 @@ class SellerInitialChoicePage extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           badge,
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: 9,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
@@ -233,9 +237,11 @@ class SellerInitialChoicePage extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppTheme.gray,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
