@@ -162,27 +162,35 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       
       final data = PartRequestModel.fromCreateParams(params);
       
-      // Récupérer l'ID persistant du particulier pour ce device
+      // Pour les vendeurs, utiliser directement leur ID
+      // Pour les particuliers, utiliser l'ID persistant du device
       if (userId != null) {
-        try {
-          // Obtenir le device_id pour ce user
-          final prefs = await SharedPreferences.getInstance();
-          final deviceService = DeviceService(prefs);
-          final deviceId = await deviceService.getDeviceId();
-          
-          // Rechercher le particulier persistant avec ce device_id
-          final particulierPersistant = await _supabase
-              .from('particuliers')
-              .select('id')
-              .eq('device_id', deviceId)
-              .limit(1)
-              .single();
-              
-          final persistantUserId = particulierPersistant['id'] as String;
-          data['user_id'] = persistantUserId;
-          
-        } catch (e) {
+        // Vérifier si c'est une demande vendeur
+        final isSellerRequest = data['is_seller_request'] as bool? ?? false;
+
+        if (isSellerRequest) {
+          // Pour les vendeurs, utiliser directement leur ID
           data['user_id'] = userId;
+        } else {
+          // Pour les particuliers, chercher l'ID persistant
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final deviceService = DeviceService(prefs);
+            final deviceId = await deviceService.getDeviceId();
+
+            final particulierPersistant = await _supabase
+                .from('particuliers')
+                .select('id')
+                .eq('device_id', deviceId)
+                .limit(1)
+                .single();
+
+            final persistantUserId = particulierPersistant['id'] as String;
+            data['user_id'] = persistantUserId;
+
+          } catch (e) {
+            data['user_id'] = userId;
+          }
         }
       } else {
         throw const UnauthorizedException('User not authenticated');
