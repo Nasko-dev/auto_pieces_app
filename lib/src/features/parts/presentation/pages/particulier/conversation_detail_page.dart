@@ -504,6 +504,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     return MessageBubbleWidget(
       message: message,
       currentUserType: MessageSenderType.user, // Côté particulier
+      currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
       isLastMessage: false, // Géré différemment dans cette page
       otherUserName: _getSellerDisplayName(conversation),
       otherUserAvatarUrl: conversation.sellerAvatarUrl,

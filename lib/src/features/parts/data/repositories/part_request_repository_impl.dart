@@ -8,20 +8,25 @@ import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
+import '../../domain/entities/conversation.dart';
 import '../../domain/repositories/part_request_repository.dart';
 import '../../domain/usecases/create_seller_response.dart';
 import '../datasources/part_request_remote_datasource.dart';
+import '../datasources/conversations_remote_datasource.dart';
 
 final supabaseClient = Supabase.instance.client;
 
 class PartRequestRepositoryImpl implements PartRequestRepository {
   final PartRequestRemoteDataSource _remoteDataSource;
+  final ConversationsRemoteDataSource _conversationsRemoteDataSource;
   final NetworkInfo _networkInfo;
 
   PartRequestRepositoryImpl({
     required PartRequestRemoteDataSource remoteDataSource,
+    required ConversationsRemoteDataSource conversationsRemoteDataSource,
     required NetworkInfo networkInfo,
   })  : _remoteDataSource = remoteDataSource,
+        _conversationsRemoteDataSource = conversationsRemoteDataSource,
         _networkInfo = networkInfo;
 
   @override
@@ -405,6 +410,7 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     }
 
     try {
+      // RETOUR AU SYSTÈME ORIGINAL : Utiliser l'ancien système particulier
       final conversations = await _remoteDataSource.getParticulierConversations();
       return Right(conversations);
     } on UnauthorizedException {
@@ -499,6 +505,22 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
       checkNetwork: true,
       networkCheck: () => _networkInfo.isConnected,
       context: 'incrementUnreadCountForUser',
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    return ErrorHandler.handleVoidAsync(
+      () => _conversationsRemoteDataSource.incrementUnreadCountForRecipient(
+        conversationId: conversationId,
+        recipientId: recipientId,
+      ),
+      checkNetwork: true,
+      networkCheck: () => _networkInfo.isConnected,
+      context: 'incrementUnreadCountForRecipient',
     );
   }
 

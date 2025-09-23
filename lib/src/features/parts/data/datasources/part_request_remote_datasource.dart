@@ -1125,17 +1125,87 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<void> markParticulierMessagesAsRead({required String conversationId}) async {
     try {
-
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Reset du compteur côté particulier
+      final userId = currentUser.id;
+      print('DEBUG: markParticulierMessagesAsRead - conversationId: $conversationId, userId: $userId');
 
-      // Aussi marquer les messages comme lus (logique existante)
+      // Récupérer les infos de la conversation et de la demande pour déterminer le rôle
+      final conversation = await _supabase
+          .from('conversations')
+          .select('client_id, seller_id, user_id, request_id')
+          .eq('id', conversationId)
+          .single();
+
+      final clientId = conversation['client_id'] ?? conversation['user_id'];
+      final sellerId = conversation['seller_id'];
+      final requestId = conversation['request_id'];
+
+      print('DEBUG: markParticulierMessagesAsRead - clientId: $clientId, sellerId: $sellerId, requestId: $requestId');
+
+      // Déterminer qui est le "particulier" (demandeur) et qui est le "vendeur" (répondeur)
+      String particulierId = clientId;
+      String vendeurId = sellerId;
+
+      // Pour les conversations vendeur-vendeur, le "particulier" est celui qui a fait la demande
+      if (requestId != null) {
+        try {
+          // Récupérer l'auteur de la demande depuis part_requests
+          final partRequest = await _supabase
+              .from('part_requests')
+              .select('user_id')
+              .eq('id', requestId)
+              .single();
+
+          final requestAuthorId = partRequest['user_id'];
+          print('DEBUG: markParticulierMessagesAsRead - Auteur de la demande: $requestAuthorId');
+
+          // L'auteur de la demande agit comme "particulier", l'autre comme "vendeur"
+          particulierId = requestAuthorId;
+          vendeurId = (requestAuthorId == clientId) ? sellerId : clientId;
+
+          print('DEBUG: markParticulierMessagesAsRead - Rôles déterminés: particulier=$particulierId, vendeur=$vendeurId');
+        } catch (e) {
+          print('DEBUG: markParticulierMessagesAsRead - Erreur récupération demande, utilisation des rôles par défaut: $e');
+        }
+      }
+
+      bool isUserTheParticulier = (particulierId == userId);
+      bool isUserTheVendeur = (vendeurId == userId);
+
+      if (isUserTheParticulier) {
+        print('DEBUG: markParticulierMessagesAsRead - Utilisateur est le PARTICULIER (demandeur), marque les messages du vendeur comme lus');
+        // L'utilisateur est le particulier → marquer les messages du vendeur comme lus
+        await _supabase
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', userId)  // Messages des autres (pas de lui)
+            .eq('is_read', false);
+      } else if (isUserTheVendeur) {
+        print('DEBUG: markParticulierMessagesAsRead - Utilisateur est le VENDEUR (répondeur), marque les messages du particulier comme lus');
+        // L'utilisateur est le vendeur → marquer les messages du particulier comme lus
+        await _supabase
+            .from('messages')
+            .update({
+              'is_read': true,
+              'read_at': 'now()',
+            })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', userId)  // Messages des autres (pas de lui)
+            .eq('is_read', false);
+      }
+
+      // Reset du compteur côté particulier (garde la logique existante)
       await markParticulierConversationAsRead(conversationId);
 
+      print('DEBUG: markParticulierMessagesAsRead - Messages marqués comme lus avec succès');
 
     } catch (e) {
       throw ServerException(e.toString());

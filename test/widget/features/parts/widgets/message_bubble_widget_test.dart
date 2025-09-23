@@ -30,6 +30,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -48,6 +49,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -66,6 +68,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
             ),
           ),
         ),
@@ -83,7 +86,8 @@ void main() {
           home: Scaffold(
             body: MessageBubbleWidget(
               message: testMessage,
-              currentUserType: MessageSenderType.seller, // Différent du message
+              currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
             ),
           ),
         ),
@@ -101,6 +105,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -122,6 +127,7 @@ void main() {
             body: MessageBubbleWidget(
               message: readMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               isLastMessage: true,
             ),
           ),
@@ -140,6 +146,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               isLastMessage: true,
             ),
           ),
@@ -163,6 +170,7 @@ void main() {
             body: MessageBubbleWidget(
               message: messageWithTime,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -193,6 +201,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -211,6 +220,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -236,6 +246,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: singleDayOffer,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -260,6 +271,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: partialOffer,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -291,6 +303,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -312,6 +325,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: noAttachmentMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -330,6 +344,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -352,6 +367,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -375,6 +391,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
                 otherUserAvatarUrl: 'https://example.com/avatar.jpg',
               ),
             ),
@@ -395,6 +412,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
                 otherUserAvatarUrl: '',
               ),
             ),
@@ -415,7 +433,8 @@ void main() {
             home: Scaffold(
               body: MessageBubbleWidget(
                 message: sellerMessage,
-                currentUserType: MessageSenderType.user, // User voit un vendeur
+                currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123', // User voit un vendeur
               ),
             ),
           ),
@@ -435,6 +454,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -459,6 +479,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
               ),
             ),
           ),
@@ -487,6 +508,7 @@ void main() {
                 child: MessageBubbleWidget(
                   message: testMessage,
                   currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
                 ),
               ),
             ),
@@ -516,6 +538,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -546,6 +569,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: emptyMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -568,6 +592,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: longMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -590,6 +615,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: futureMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),

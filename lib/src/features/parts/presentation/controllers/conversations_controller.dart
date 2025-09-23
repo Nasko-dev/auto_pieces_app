@@ -139,15 +139,19 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       return;  // SORTIR IMMÉDIATEMENT
     }
 
-    // ✅ DB-BASED: Si c'est un message du particulier, incrémenter en DB sauf si conversation active
-    if (senderType == 'user') {
+    // ✅ DB-BASED: Déterminer si ce message nous est destiné en utilisant notre logique intelligente
+    try {
+      // Utiliser notre méthode intelligente pour déterminer qui reçoit le message
       if (state.activeConversationId == conversationId) {
         // Marquer le message comme lu immédiatement si la conversation est ouverte
         _markConversationAsReadInDB(conversationId);
       } else {
+        // Incrémenter le bon compteur selon notre rôle dans cette conversation
         _incrementUnreadCountInDB(conversationId);
       }
-    } else {
+    } catch (e) {
+      // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
+      print('DEBUG: _handleGlobalNewMessage - Erreur lors du traitement: $e');
     }
 
     // ✅ OPTIMISATION: Plus de refresh automatique, juste mise à jour locale
@@ -485,11 +489,17 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   }
 
-  // ✅ DB-BASED: Incrémenter compteur vendeur en DB - SANS REFRESH AUTO
+  // ✅ DB-BASED: Incrémenter compteur intelligent selon le rôle - SANS REFRESH AUTO
   void _incrementUnreadCountInDB(String conversationId) async {
     try {
-      // Utiliser le compteur spécifique vendeur
-      await _dataSource.incrementUnreadCountForSeller(conversationId: conversationId);
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
+      await _dataSource.incrementUnreadCountForRecipient(
+        conversationId: conversationId,
+        recipientId: userId,
+      );
 
       // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
       _updateLocalUnreadCount(conversationId, 1);

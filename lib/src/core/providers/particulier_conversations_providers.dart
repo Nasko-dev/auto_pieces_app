@@ -91,15 +91,20 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       return;
     }
 
-    // ✅ DB-BASED: Si c'est un message du vendeur, incrémenter compteur DB sauf si conversation active
-    if (senderType == 'seller') {
+    // ✅ DB-BASED: Déterminer si ce message nous est destiné selon notre rôle dans la conversation
+    try {
+      // Utiliser la logique intelligente - tous les messages non-propres peuvent nous être destinés
       if (state.activeConversationId == conversationId) {
         // Marquer le message comme lu immédiatement si la conversation est ouverte
         _markConversationAsReadInDB(conversationId);
       } else {
+        // Incrémenter le compteur "particulier" - la méthode déterminera automatiquement
+        // si nous sommes le destinataire selon notre rôle dans cette conversation
         _incrementUnreadCountInDB(conversationId);
       }
-    } else {
+    } catch (e) {
+      // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
+      debugPrint('DEBUG: _handleGlobalNewMessage - Erreur lors du traitement: $e');
     }
   }
 
@@ -215,14 +220,21 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   }
 
-  // ✅ DB-BASED: Incrémenter compteur particulier en DB
+  // ✅ DB-BASED: Incrémenter compteur intelligent selon le rôle en DB
   void _incrementUnreadCountInDB(String conversationId) async {
     try {
-      await _repository.incrementUnreadCountForUser(conversationId: conversationId);
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
+      await _repository.incrementUnreadCountForRecipient(
+        conversationId: conversationId,
+        recipientId: userId,
+      );
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
-      debugPrint('Erreur lors de l\'incrémentation du compteur: $e');
+      debugPrint('Erreur lors de l\'incrémentation intelligente du compteur: $e');
     }
   }
 
