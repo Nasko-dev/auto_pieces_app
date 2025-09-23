@@ -221,11 +221,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       if (sellerId == demandeurId) {
         // L'utilisateur actuel (sellerId) est le demandeur → utiliser le compteur "particulier"
         unreadCount = (json['unread_count_for_user'] as int?) ?? 0;
-        print('DEBUG: _getSellerConversations - Utilisateur $sellerId est demandeur, utilise unread_count_for_user: $unreadCount');
+        print('DEBUG: _getSellerConversations - Conversation ${json['id']}: Utilisateur $sellerId est demandeur, utilise unread_count_for_user: $unreadCount, hasUnreadMessages: ${unreadCount > 0}');
       } else {
         // L'utilisateur actuel (sellerId) est le répondeur → utiliser le compteur "vendeur"
         unreadCount = (json['unread_count_for_seller'] as int?) ?? 0;
-        print('DEBUG: _getSellerConversations - Utilisateur $sellerId est répondeur, utilise unread_count_for_seller: $unreadCount');
+        print('DEBUG: _getSellerConversations - Conversation ${json['id']}: Utilisateur $sellerId est répondeur, utilise unread_count_for_seller: $unreadCount, hasUnreadMessages: ${unreadCount > 0}');
       }
       
       // Récupérer les informations du particulier

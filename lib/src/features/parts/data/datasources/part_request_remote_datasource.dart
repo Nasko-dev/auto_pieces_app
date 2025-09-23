@@ -974,6 +974,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             ),
             hasUnreadMessages: () {
               final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
+              print('DEBUG: getParticulierConversations - Conversation ${convData['id']}: unread_count_for_user = $dbUnreadCount, hasUnreadMessages = ${dbUnreadCount > 0}');
               return dbUnreadCount > 0;
             }(),
             unreadCount: () {
@@ -1068,6 +1069,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       
       // Mettre à jour la conversation avec le dernier message et incrémenter le compteur pour le vendeur
+      print('DEBUG: sendParticulierMessage - Incrémentation du compteur unread_count_for_seller pour conversation $conversationId');
       await _supabase
           .from('conversations')
           .update({
@@ -1078,6 +1080,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             'unread_count_for_seller': 'unread_count_for_seller + 1',
           })
           .eq('id', conversationId);
+      print('DEBUG: sendParticulierMessage - Compteur unread_count_for_seller incrémenté avec succès');
 
       
     } catch (e) {
@@ -1093,23 +1096,30 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      print('DEBUG: markParticulierConversationAsRead - Utilisateur ${currentUser.id} lit la conversation $conversationId');
+
       // Vérifier si l'utilisateur actuel est un vendeur
       final isSeller = await _checkIfUserIsSeller(currentUser.id);
+      print('DEBUG: markParticulierConversationAsRead - Utilisateur ${currentUser.id} est vendeur: $isSeller');
 
       Map<String, dynamic> updateData = {};
 
       if (isSeller) {
         // Si c'est un vendeur qui lit, reset unread_count_for_seller
         updateData['unread_count_for_seller'] = 0;
+        print('DEBUG: markParticulierConversationAsRead - Reset unread_count_for_seller pour vendeur');
       } else {
         // Si c'est un particulier qui lit, reset unread_count_for_user
         updateData['unread_count_for_user'] = 0;
+        print('DEBUG: markParticulierConversationAsRead - Reset unread_count_for_user pour particulier');
       }
 
       await _supabase
           .from('conversations')
           .update(updateData)
           .eq('id', conversationId);
+
+      print('DEBUG: markParticulierConversationAsRead - Compteur réinitialisé avec succès: $updateData');
 
     } catch (e) {
       throw ServerException(e.toString());
@@ -1225,6 +1235,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
   Future<bool> _checkIfUserIsSeller(String userId) async {
     try {
+      print('DEBUG: _checkIfUserIsSeller - Vérification du statut vendeur pour utilisateur $userId');
       final sellerResponse = await _supabase
           .from('sellers')
           .select('id')
@@ -1232,8 +1243,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .limit(1);
 
       final isSeller = sellerResponse.isNotEmpty;
+      print('DEBUG: _checkIfUserIsSeller - Utilisateur $userId est vendeur: $isSeller (réponse: ${sellerResponse.length} résultats)');
       return isSeller;
     } catch (e) {
+      print('DEBUG: _checkIfUserIsSeller - Erreur lors de la vérification: $e');
       return false;
     }
   }
