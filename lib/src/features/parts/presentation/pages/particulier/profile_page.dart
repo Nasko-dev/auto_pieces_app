@@ -360,7 +360,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   });
                   _saveNotificationPreferences();
                 },
-                activeThumbColor: AppTheme.primaryBlue,
+                thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
           ),
@@ -401,7 +401,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   });
                   _saveNotificationPreferences();
                 } : null,
-                activeThumbColor: AppTheme.primaryBlue,
+                thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
           ),

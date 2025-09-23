@@ -524,7 +524,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                       _notificationsEnabled = value;
                     });
                   },
-                  activeThumbColor: AppTheme.primaryBlue,
+                  thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
                 ),
               ],
             ),
@@ -571,7 +571,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                       _emailNotificationsEnabled = value;
                     });
                   },
-                  activeThumbColor: AppTheme.primaryBlue,
+                  thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
                 ),
               ],
             ),

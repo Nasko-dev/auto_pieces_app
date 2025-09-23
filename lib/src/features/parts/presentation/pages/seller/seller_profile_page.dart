@@ -401,7 +401,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                   });
                   _saveNotificationPreferences();
                 },
-                activeThumbColor: AppTheme.primaryBlue,
+                thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
           ),
@@ -442,7 +442,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                   });
                   _saveNotificationPreferences();
                 } : null,
-                activeThumbColor: AppTheme.primaryBlue,
+                thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
           ),
