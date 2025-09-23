@@ -62,14 +62,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   @override
   Future<List<Conversation>> getConversations({required String userId}) async {
-    
+    print('DEBUG: getConversations - userId: $userId');
+
     try {
       // Détecter si c'est un vendeur ou un particulier
       final isSellerResult = await _checkIfUserIsSeller(userId);
-      
+
       if (isSellerResult) {
+        print('DEBUG: getConversations - Utilisateur détecté comme vendeur');
         return _getSellerConversations(userId);
       } else {
+        print('DEBUG: getConversations - Utilisateur détecté comme particulier');
         return _getParticulierConversations(userId);
       }
       
@@ -80,22 +83,27 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<bool> _checkIfUserIsSeller(String userId) async {
     try {
+      print('DEBUG: _checkIfUserIsSeller - userId: $userId');
       final sellerResponse = await _supabaseClient
           .from('sellers')
           .select('id')
           .eq('id', userId)
           .limit(1);
-      
+
       final isSeller = sellerResponse.isNotEmpty;
+      print('DEBUG: _checkIfUserIsSeller - isSeller: $isSeller');
       return isSeller;
     } catch (e) {
+      print('DEBUG: _checkIfUserIsSeller - ERREUR: $e');
       return false;
     }
   }
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
+    print('DEBUG: _getSellerConversations - sellerId: $sellerId');
 
-    final response = await _supabaseClient
+    try {
+      final response = await _supabaseClient
         .from('conversations')
         .select('''
           id,
@@ -117,7 +125,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           unread_count_for_seller,
           total_messages,
           sellers!inner(avatar_url),
-          part_requests (
+          part_requests_with_responses (
             vehicle_brand,
             vehicle_model,
             vehicle_year,
@@ -125,9 +133,16 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             part_type
           )
         ''')
-        .eq('seller_id', sellerId)
+        .or('seller_id.eq.$sellerId,user_id.eq.$sellerId')
         .eq('status', 'active')
         .order('last_message_at', ascending: false);
+
+    print('DEBUG: _getSellerConversations - Requête: SELECT avec (seller_id=$sellerId OR user_id=$sellerId) et status=active');
+    print('DEBUG: _getSellerConversations - Nombre de conversations trouvées: ${response.length}');
+
+    if (response.isNotEmpty) {
+      print('DEBUG: _getSellerConversations - Première conversation: ${response.first}');
+    }
 
 
     final conversations = <Conversation>[];
@@ -173,6 +188,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
 
     return conversations;
+
+    } catch (e) {
+      print('DEBUG: _getSellerConversations - ERREUR: $e');
+      throw ServerException('Erreur _getSellerConversations: $e');
+    }
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -650,15 +670,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
-    // Extraire les données du véhicule depuis part_requests
+    // Extraire les données du véhicule depuis part_requests_with_responses
     String? vehicleBrand;
     String? vehicleModel;
     int? vehicleYear;
     String? vehicleEngine;
     String? partType;
 
-    if (json['part_requests'] != null) {
-      final partRequest = json['part_requests'] as Map<String, dynamic>;
+    if (json['part_requests_with_responses'] != null) {
+      final partRequest = json['part_requests_with_responses'] as Map<String, dynamic>;
       vehicleBrand = partRequest['vehicle_brand'];
       vehicleModel = partRequest['vehicle_model'];
       vehicleYear = partRequest['vehicle_year'];

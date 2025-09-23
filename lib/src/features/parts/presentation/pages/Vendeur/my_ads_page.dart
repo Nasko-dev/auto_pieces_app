@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';

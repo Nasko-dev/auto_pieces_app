@@ -83,7 +83,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
   @override
   Future<List<PartRequestModel>> getUserPartRequests() async {
-    print('DEBUG: DATASOURCE - Début getUserPartRequests()');
     try {
       final currentAuthUserId = _supabase.auth.currentUser?.id;
       
@@ -94,7 +93,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       
       // Pour les vendeurs, utiliser directement l'ID auth (stratégie 2)
       // Pour les particuliers, utiliser le device_id (stratégie 1)
-      print('DEBUG: DATASOURCE - Tentative stratégie 1 (device_id) - SEULEMENT pour particuliers');
 
       try {
         // Obtenir le device_id depuis le service device (plus fiable que l'auth ID)
@@ -108,17 +106,14 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             .select('id')
             .eq('device_id', deviceId);
 
-        print('DEBUG: DATASOURCE - Particuliers trouvés: ${allParticuliersWithDevice.length}');
 
         final allUserIds = allParticuliersWithDevice
             .map((p) => p['id'] as String)
             .toList();
 
-        print('DEBUG: DATASOURCE - User IDs extraits: ${allUserIds.length}');
             
         
         if (allUserIds.isNotEmpty) {
-          print('DEBUG: DATASOURCE - Recherche des demandes pour user_ids: $allUserIds');
 
           // Récupérer les demandes pour TOUS ces user_id (SEULEMENT les demandes particuliers)
           final response = await _supabase
@@ -129,30 +124,24 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               .eq('is_seller_request', false) // SEULEMENT les demandes particuliers
               .order('created_at', ascending: false);
 
-          print('DEBUG: DATASOURCE - Stratégie 1 - Demandes trouvées: ${(response as List).length}');
 
           final models = (response as List)
               .map((json) => PartRequestModel.fromJson(json))
               .toList();
 
-          print('DEBUG: DATASOURCE - Stratégie 1 - Modèles créés: ${models.length}');
 
           // Si on a trouvé des demandes particuliers, les retourner
           // Sinon, laisser continuer vers la stratégie 2 pour les demandes vendeur
           if (models.isNotEmpty) {
-            print('DEBUG: DATASOURCE - Retour des demandes particuliers');
             return models;
           } else {
-            print('DEBUG: DATASOURCE - Aucune demande particulier, passage à la stratégie 2 pour vendeur');
             // Ne pas retourner, laisser continuer
           }
         } else {
-          print('DEBUG: Aucun particulier trouvé avec device_id, passage à la stratégie 2');
           // NE PAS retourner ici, laisser continuer vers la stratégie 2
         }
 
       } catch (particulierError) {
-        print('DEBUG: Erreur stratégie 1 (particulier): $particulierError, passage à la stratégie 2');
         // Passer à la stratégie 2
       }
 
@@ -164,7 +153,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw ServerException('Utilisateur non connecté');
       }
 
-      print('DEBUG: Récupération des demandes pour user_id: $currentUserId');
 
       // Récupérer les demandes de l'utilisateur connecté
       final response = await _supabase
@@ -174,7 +162,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .neq('status', 'deleted') // Exclure les demandes supprimées
           .order('created_at', ascending: false);
 
-      print('DEBUG: Nombre de demandes trouvées: ${(response as List).length}');
 
       final models = (response as List)
           .map((json) => PartRequestModel.fromJson(json))
@@ -200,12 +187,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       if (userId != null) {
         // Vérifier si c'est une demande vendeur
         final isSellerRequest = data['is_seller_request'] as bool? ?? false;
-        print('DEBUG: Création demande - isSellerRequest: $isSellerRequest, userId: $userId');
 
         if (isSellerRequest) {
           // Pour les vendeurs, utiliser directement leur ID
           data['user_id'] = userId;
-          print('DEBUG: Demande vendeur créée avec user_id: $userId');
         } else {
           // Pour les particuliers, chercher l'ID persistant
           try {
@@ -564,7 +549,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .from('conversations')
           .select('''
             *,
-            part_requests!inner (
+            part_requests_with_responses!inner (
               id,
               vehicle_brand,
               vehicle_model,
@@ -590,7 +575,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .from('conversations')
           .select('''
             *,
-            part_requests!inner (
+            part_requests_with_responses!inner (
               id,
               vehicle_brand,
               vehicle_model,
@@ -683,9 +668,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   // Helper method to create or get conversation
   Future<String> _createOrGetConversation(String requestId, String sellerId) async {
     try {
-      // Récupérer le client_id depuis la part_request
+
+      // Récupérer le client_id depuis la part_request (utiliser la vue pour avoir toutes les demandes)
       final partRequest = await _supabase
-          .from('part_requests')
+          .from('part_requests_with_responses')
           .select('user_id')
           .eq('id', requestId)
           .single();
@@ -710,6 +696,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         'client_id': clientId,
         'status': 'active',
       };
+
 
       final conversation = await _supabase
           .from('conversations')
