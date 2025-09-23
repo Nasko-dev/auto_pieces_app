@@ -173,6 +173,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               .single();
           demandeurId = partRequest['user_id'];
         } catch (e) {
+          // Garder demandeurId par défaut si erreur récupération part_request
         }
       }
 
@@ -465,6 +466,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 .single();
             demandeurId = partRequest['user_id'];
           } catch (e) {
+            // Garder demandeurId par défaut si erreur récupération part_request
           }
         }
 
@@ -887,6 +889,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               .single();
           particulierId = partRequest['user_id'];
         } catch (e) {
+          // Garder particulierId par défaut si erreur récupération part_request
         }
       }
 

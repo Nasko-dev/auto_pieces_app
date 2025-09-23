@@ -1178,6 +1178,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           vendeurId = (requestAuthorId == clientId) ? sellerId : clientId;
 
         } catch (e) {
+          // Garder les rôles par défaut si erreur récupération part_request
         }
       }
 

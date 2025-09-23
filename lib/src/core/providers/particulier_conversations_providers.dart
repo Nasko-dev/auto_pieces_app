@@ -233,6 +233,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
+      // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
     }
   }
 
@@ -245,6 +246,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
+      // Ignorer les erreurs de lecture pour éviter de bloquer l'UI
     }
   }
 
