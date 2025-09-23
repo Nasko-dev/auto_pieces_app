@@ -482,6 +482,24 @@ class MockConversationsRemoteDataSource extends _i1.Mock
       ) as _i7.Future<void>);
 
   @override
+  _i7.Future<void> incrementUnreadCountForRecipient({
+    required String? conversationId,
+    required String? recipientId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #incrementUnreadCountForRecipient,
+          [],
+          {
+            #conversationId: conversationId,
+            #recipientId: recipientId,
+          },
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
   _i7.Future<void> updateConversationStatus({
     required String? conversationId,
     required _i13.ConversationStatus? status,

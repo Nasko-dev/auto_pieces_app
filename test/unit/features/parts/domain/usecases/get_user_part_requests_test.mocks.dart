@@ -484,6 +484,34 @@ class MockPartRequestRepository extends _i1.Mock
       ) as _i4.Future<_i2.Either<_i5.Failure, void>>);
 
   @override
+  _i4.Future<_i2.Either<_i5.Failure, void>> incrementUnreadCountForRecipient({
+    required String? conversationId,
+    required String? recipientId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #incrementUnreadCountForRecipient,
+          [],
+          {
+            #conversationId: conversationId,
+            #recipientId: recipientId,
+          },
+        ),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, void>>.value(
+            _FakeEither_0<_i5.Failure, void>(
+          this,
+          Invocation.method(
+            #incrementUnreadCountForRecipient,
+            [],
+            {
+              #conversationId: conversationId,
+              #recipientId: recipientId,
+            },
+          ),
+        )),
+      ) as _i4.Future<_i2.Either<_i5.Failure, void>>);
+
+  @override
   _i4.Future<_i2.Either<_i5.Failure, void>> markParticulierMessagesAsRead(
           {required String? conversationId}) =>
       (super.noSuchMethod(
