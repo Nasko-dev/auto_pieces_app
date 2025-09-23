@@ -923,11 +923,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Récupérer les infos de la conversation et de la demande
       final conversation = await _supabaseClient
           .from('conversations')
-          .select('client_id, seller_id, user_id, request_id')
+          .select('user_id, seller_id, request_id')
           .eq('id', conversationId)
           .single();
 
-      final clientId = conversation['client_id'] ?? conversation['user_id'];
+      final clientId = conversation['user_id'];
       final sellerId = conversation['seller_id'];
       final requestId = conversation['request_id'];
 
@@ -946,14 +946,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         }
       }
 
-      // Déterminer le sender_type selon le rôle dans cette conversation
-      if (senderId == particulierId) {
-        // L'expéditeur est le demandeur → sender_type = 'user'
-        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est demandeur, sender_type = user');
+      // Vérifier si l'expéditeur est vraiment un vendeur
+      final isExpeditorSeller = await _checkIfUserIsSeller(senderId);
+      print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur: $isExpeditorSeller');
+
+      // Déterminer le sender_type selon le rôle ET le statut réel
+      if (!isExpeditorSeller) {
+        // L'expéditeur est un particulier → toujours sender_type = 'user'
+        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est particulier, sender_type = user');
+        return 'user';
+      } else if (senderId == particulierId) {
+        // L'expéditeur est un vendeur-demandeur → sender_type = 'user' (agit comme particulier)
+        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur-demandeur, sender_type = user');
         return 'user';
       } else {
-        // L'expéditeur est le répondeur → sender_type = 'seller'
-        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est répondeur, sender_type = seller');
+        // L'expéditeur est un vendeur-répondeur → sender_type = 'seller'
+        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur-répondeur, sender_type = seller');
         return 'seller';
       }
 
