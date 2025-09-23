@@ -8,7 +8,6 @@ import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
-import '../../domain/entities/conversation.dart';
 import '../../domain/repositories/part_request_repository.dart';
 import '../../domain/usecases/create_seller_response.dart';
 import '../datasources/part_request_remote_datasource.dart';

@@ -163,42 +163,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('conversation_id', json['id'])
           .order('created_at', ascending: true);
       
-      final messages = messagesResponse.map((msgData) {
-        return Message(
-          id: msgData['id'],
-          conversationId: msgData['conversation_id'],
-          senderId: msgData['sender_id'],
-          senderType: msgData['sender_type'] == 'user' 
-              ? MessageSenderType.user 
-              : MessageSenderType.seller,
-          content: msgData['content'],
-          isRead: msgData['is_read'] ?? false,
-          createdAt: DateTime.parse(msgData['created_at']),
-          updatedAt: DateTime.parse(msgData['updated_at']),
-        );
-      }).toList();
+      // Messages récupérés pour le calcul de compteur (pas utilisés directement)
+      final _ = messagesResponse;
       
       // Calculer unreadCount selon le rôle dans cette conversation
       // Le vendeur qui a fait la demande compte comme "particulier"
-      String particulierId = json['user_id'];  // Par défaut
-      String vendeurId = sellerId;  // Par défaut
-
-      // Déterminer qui est le vrai "particulier" (demandeur) en se basant sur la demande
-      if (json['request_id'] != null) {
-        try {
-          final partRequest = await _supabaseClient
-              .from('part_requests')
-              .select('user_id')
-              .eq('id', json['request_id'])
-              .single();
-
-          final requestAuthorId = partRequest['user_id'];
-          particulierId = requestAuthorId;
-          vendeurId = (requestAuthorId == json['user_id']) ? sellerId : json['user_id'];
-        } catch (e) {
-          // En cas d'erreur, garder les rôles par défaut
-        }
-      }
 
       // AMÉLIORATION : Utiliser le bon compteur selon le rôle dans cette conversation
       int unreadCount = 0;
@@ -613,6 +582,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   // Méthode simple pour vendeur-vendeur : toujours incrémenter compteur particulier
+  @override
   Future<void> incrementUnreadCountForRecipient({
     required String conversationId,
     required String recipientId,
@@ -928,7 +898,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .single();
 
       final clientId = conversation['user_id'];
-      final sellerId = conversation['seller_id'];
       final requestId = conversation['request_id'];
 
       // Déterminer qui est le "particulier" (demandeur)
