@@ -1155,13 +1155,15 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       print('DEBUG: markParticulierMessagesAsRead - conversationId: $conversationId, userId: $userId');
 
       // Récupérer les infos de la conversation et de la demande pour déterminer le rôle
+      print('DEBUG: markParticulierMessagesAsRead - Récupération des infos de conversation...');
       final conversation = await _supabase
           .from('conversations')
-          .select('client_id, seller_id, user_id, request_id')
+          .select('user_id, seller_id, request_id')
           .eq('id', conversationId)
           .single();
+      print('DEBUG: markParticulierMessagesAsRead - Conversation récupérée avec succès');
 
-      final clientId = conversation['client_id'] ?? conversation['user_id'];
+      final clientId = conversation['user_id'];
       final sellerId = conversation['seller_id'];
       final requestId = conversation['request_id'];
 
@@ -1224,11 +1226,19 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
 
       // Reset du compteur côté particulier (garde la logique existante)
-      await markParticulierConversationAsRead(conversationId);
+      print('DEBUG: markParticulierMessagesAsRead - Appel à markParticulierConversationAsRead');
+      try {
+        await markParticulierConversationAsRead(conversationId);
+        print('DEBUG: markParticulierMessagesAsRead - markParticulierConversationAsRead terminé avec succès');
+      } catch (e) {
+        print('DEBUG: markParticulierMessagesAsRead - ERREUR dans markParticulierConversationAsRead: $e');
+        rethrow;
+      }
 
       print('DEBUG: markParticulierMessagesAsRead - Messages marqués comme lus avec succès');
 
     } catch (e) {
+      print('DEBUG: markParticulierMessagesAsRead - ERREUR GLOBALE: $e');
       throw ServerException(e.toString());
     }
   }
