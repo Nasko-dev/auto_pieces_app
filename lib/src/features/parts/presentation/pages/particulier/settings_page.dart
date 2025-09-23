@@ -204,7 +204,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedCountry,
+                initialValue: _selectedCountry,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

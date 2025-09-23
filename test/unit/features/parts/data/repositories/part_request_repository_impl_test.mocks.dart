@@ -233,6 +233,17 @@ class MockPartRequestRemoteDataSource extends _i1.Mock
           ) as _i6.Future<List<_i2.PartRequestModel>>);
 
   @override
+  _i6.Future<List<_i2.PartRequestModel>> getSellerOwnRequests() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSellerOwnRequests,
+          [],
+        ),
+        returnValue: _i6.Future<List<_i2.PartRequestModel>>.value(
+            <_i2.PartRequestModel>[]),
+      ) as _i6.Future<List<_i2.PartRequestModel>>);
+
+  @override
   _i6.Future<Map<String, dynamic>> createSellerResponse({
     required String? requestId,
     required String? sellerId,

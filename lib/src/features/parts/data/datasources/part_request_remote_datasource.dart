@@ -28,6 +28,7 @@ abstract class PartRequestRemoteDataSource {
   Future<Map<String, int>> getPartRequestStats();
   Future<List<PartRequestModel>> getActivePartRequestsForSeller();
   Future<List<PartRequestModel>> getActivePartRequestsForSellerWithRejections();
+  Future<List<PartRequestModel>> getSellerOwnRequests();
   
   // Seller Response methods
   Future<Map<String, dynamic>> createSellerResponse({
@@ -82,6 +83,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
   @override
   Future<List<PartRequestModel>> getUserPartRequests() async {
+    print('DEBUG: DATASOURCE - Début getUserPartRequests()');
     try {
       final currentAuthUserId = _supabase.auth.currentUser?.id;
       
@@ -90,8 +92,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
       
       
-      // D'abord, récupérer le device_id depuis le cache local ou service
-      
+      // Pour les vendeurs, utiliser directement l'ID auth (stratégie 2)
+      // Pour les particuliers, utiliser le device_id (stratégie 1)
+      print('DEBUG: DATASOURCE - Tentative stratégie 1 (device_id) - SEULEMENT pour particuliers');
+
       try {
         // Obtenir le device_id depuis le service device (plus fiable que l'auth ID)
         final prefs = await SharedPreferences.getInstance();
@@ -103,45 +107,74 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             .from('particuliers')
             .select('id')
             .eq('device_id', deviceId);
-            
+
+        print('DEBUG: DATASOURCE - Particuliers trouvés: ${allParticuliersWithDevice.length}');
+
         final allUserIds = allParticuliersWithDevice
             .map((p) => p['id'] as String)
             .toList();
+
+        print('DEBUG: DATASOURCE - User IDs extraits: ${allUserIds.length}');
             
         
         if (allUserIds.isNotEmpty) {
-          // Récupérer les demandes pour TOUS ces user_id
-          
+          print('DEBUG: DATASOURCE - Recherche des demandes pour user_ids: $allUserIds');
+
+          // Récupérer les demandes pour TOUS ces user_id (SEULEMENT les demandes particuliers)
           final response = await _supabase
               .from('part_requests_with_responses')
               .select()
               .inFilter('user_id', allUserIds)
               .neq('status', 'deleted') // Exclure les demandes supprimées
+              .eq('is_seller_request', false) // SEULEMENT les demandes particuliers
               .order('created_at', ascending: false);
-              
+
+          print('DEBUG: DATASOURCE - Stratégie 1 - Demandes trouvées: ${(response as List).length}');
 
           final models = (response as List)
               .map((json) => PartRequestModel.fromJson(json))
               .toList();
-              
-          
-          return models;
+
+          print('DEBUG: DATASOURCE - Stratégie 1 - Modèles créés: ${models.length}');
+
+          // Si on a trouvé des demandes particuliers, les retourner
+          // Sinon, laisser continuer vers la stratégie 2 pour les demandes vendeur
+          if (models.isNotEmpty) {
+            print('DEBUG: DATASOURCE - Retour des demandes particuliers');
+            return models;
+          } else {
+            print('DEBUG: DATASOURCE - Aucune demande particulier, passage à la stratégie 2 pour vendeur');
+            // Ne pas retourner, laisser continuer
+          }
         } else {
+          print('DEBUG: Aucun particulier trouvé avec device_id, passage à la stratégie 2');
+          // NE PAS retourner ici, laisser continuer vers la stratégie 2
         }
-        
+
       } catch (particulierError) {
-      // Ignorer l'erreur silencieusement
+        print('DEBUG: Erreur stratégie 1 (particulier): $particulierError, passage à la stratégie 2');
+        // Passer à la stratégie 2
       }
-      
-      
-      // Fallback : recherche directe par l'auth ID actuel
+
+
+      // Utiliser l'ID de l'utilisateur actuellement connecté
+      final currentUserId = _supabase.auth.currentUser?.id;
+
+      if (currentUserId == null) {
+        throw ServerException('Utilisateur non connecté');
+      }
+
+      print('DEBUG: Récupération des demandes pour user_id: $currentUserId');
+
+      // Récupérer les demandes de l'utilisateur connecté
       final response = await _supabase
           .from('part_requests_with_responses')
           .select()
-          .eq('user_id', currentAuthUserId)
+          .eq('user_id', currentUserId)
           .neq('status', 'deleted') // Exclure les demandes supprimées
           .order('created_at', ascending: false);
 
+      print('DEBUG: Nombre de demandes trouvées: ${(response as List).length}');
 
       final models = (response as List)
           .map((json) => PartRequestModel.fromJson(json))
@@ -167,10 +200,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       if (userId != null) {
         // Vérifier si c'est une demande vendeur
         final isSellerRequest = data['is_seller_request'] as bool? ?? false;
+        print('DEBUG: Création demande - isSellerRequest: $isSellerRequest, userId: $userId');
 
         if (isSellerRequest) {
           // Pour les vendeurs, utiliser directement leur ID
           data['user_id'] = userId;
+          print('DEBUG: Demande vendeur créée avec user_id: $userId');
         } else {
           // Pour les particuliers, chercher l'ID persistant
           try {
@@ -781,6 +816,33 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }).toList();
 
       final models = filteredResult.map((json) {
+        return PartRequestModel.fromJson(json);
+      }).toList();
+
+      return models;
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<PartRequestModel>> getSellerOwnRequests() async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // Récupérer les demandes du vendeur actuel (ses propres demandes)
+      final result = await _supabase
+          .from('part_requests_with_responses')
+          .select()
+          .eq('user_id', currentUser.id)
+          .eq('is_seller_request', true)
+          .eq('status', 'active')
+          .order('created_at', ascending: false);
+
+      final models = result.map((json) {
         return PartRequestModel.fromJson(json);
       }).toList();
 

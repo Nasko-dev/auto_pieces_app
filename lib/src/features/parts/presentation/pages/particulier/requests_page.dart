@@ -49,6 +49,9 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
         builder: (context, ref, child) {
           final state = ref.watch(partRequestControllerProvider);
 
+          // Filtrer pour ne montrer que les demandes particulier (non-vendeur)
+          final filteredRequests = state.requests.where((request) => !request.isSellerRequest).toList();
+
 
           if (state.isLoading) {
             return const Center(
@@ -95,7 +98,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
             );
           }
           
-          if (state.requests.isEmpty) {
+          if (filteredRequests.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -144,10 +147,10 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
             },
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              itemCount: state.requests.length,
+              itemCount: filteredRequests.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final request = state.requests[index];
+                final request = filteredRequests[index];
                 return _RequestCard(request: request);
               },
             ),

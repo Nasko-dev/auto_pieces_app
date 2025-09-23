@@ -26,19 +26,28 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
 
   @override
   Future<Either<Failure, List<PartRequest>>> getUserPartRequests() async {
+    print('DEBUG: Repository - Début getUserPartRequests');
+
     if (!await _networkInfo.isConnected) {
+      print('DEBUG: Repository - Pas de connexion internet');
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
+      print('DEBUG: Repository - Appel du datasource');
       final models = await _remoteDataSource.getUserPartRequests();
+      print('DEBUG: Repository - Received ${models.length} models from datasource');
       final entities = models.map((model) => model.toEntity()).toList();
+      print('DEBUG: Repository - Converted to ${entities.length} entities');
       return Right(entities);
     } on UnauthorizedException {
+      print('DEBUG: Repository - Erreur UnauthorizedException');
       return const Left(AuthFailure('User not authenticated'));
     } on ServerException catch (e) {
+      print('DEBUG: Repository - Erreur ServerException: ${e.message}');
       return Left(ServerFailure(e.message));
     } catch (e) {
+      print('DEBUG: Repository - Erreur générique: $e');
       return Left(ServerFailure(e.toString()));
     }
   }
