@@ -104,7 +104,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       }
     } catch (e) {
       // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
-      debugPrint('DEBUG: _handleGlobalNewMessage - Erreur lors du traitement: $e');
     }
   }
 
@@ -152,7 +151,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     final result = await _repository.getParticulierConversations();
     
     result.fold(
-      (failure) => debugPrint('⚠️ [ParticulierConversations] Erreur polling: ${failure.message}'),
+      (failure) => null,
       (conversations) {
         if (mounted) {
           state = state.copyWith(
@@ -211,7 +210,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
-    print('DEBUG: ParticulierConversationsNotifier.markConversationAsRead appelé pour conversation $conversationId');
 
     // Marquer en DB
     _markConversationAsReadInDB(conversationId);
@@ -235,23 +233,18 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
-      debugPrint('Erreur lors de l\'incrémentation intelligente du compteur: $e');
     }
   }
 
   // ✅ DB-BASED: Marquer conversation comme lue en DB
   void _markConversationAsReadInDB(String conversationId) async {
     try {
-      print('DEBUG: ParticulierConversationsNotifier - Marquage de la conversation $conversationId comme lue');
       await _repository.markParticulierMessagesAsRead(
         conversationId: conversationId,
       );
-      print('DEBUG: ParticulierConversationsNotifier - Conversation $conversationId marquée comme lue, rechargement des conversations');
       // Refresh pour récupérer le nouveau compteur
       loadConversations();
     } catch (e) {
-      print('DEBUG: ParticulierConversationsNotifier - Erreur lors du marquage comme lu: $e');
-      debugPrint('Erreur lors du marquage comme lu: $e');
     }
   }
 

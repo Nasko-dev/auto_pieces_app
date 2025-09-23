@@ -66,17 +66,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   @override
   Future<List<Conversation>> getConversations({required String userId}) async {
-    print('DEBUG: getConversations - userId: $userId');
 
     try {
       // RETOUR AU SYSTÈME ORIGINAL : Déterminer si c'est un vendeur ou un particulier
       final isSellerResult = await _checkIfUserIsSeller(userId);
 
       if (isSellerResult) {
-        print('DEBUG: getConversations - Utilisateur détecté comme vendeur');
         return _getSellerConversations(userId);
       } else {
-        print('DEBUG: getConversations - Utilisateur détecté comme particulier');
         return _getParticulierConversations(userId);
       }
 
@@ -88,7 +85,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<bool> _checkIfUserIsSeller(String userId) async {
     try {
-      print('DEBUG: _checkIfUserIsSeller - userId: $userId');
 
       // SIMPLE : Vérifier si c'est un vendeur dans la table sellers
       final sellerResponse = await _supabaseClient
@@ -98,16 +94,13 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .limit(1);
 
       final isSeller = sellerResponse.isNotEmpty;
-      print('DEBUG: _checkIfUserIsSeller - isSeller: $isSeller');
       return isSeller;
     } catch (e) {
-      print('DEBUG: _checkIfUserIsSeller - ERREUR: $e');
       return false;
     }
   }
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
-    print('DEBUG: _getSellerConversations - sellerId: $sellerId');
 
     try {
       final response = await _supabaseClient
@@ -144,11 +137,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         .eq('status', 'active')
         .order('last_message_at', ascending: false);
 
-    print('DEBUG: _getSellerConversations - Requête: SELECT avec (seller_id=$sellerId OR user_id=$sellerId) et status=active');
-    print('DEBUG: _getSellerConversations - Nombre de conversations trouvées: ${response.length}');
 
     if (response.isNotEmpty) {
-      print('DEBUG: _getSellerConversations - Première conversation: ${response.first}');
     }
 
 
@@ -183,18 +173,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               .single();
           demandeurId = partRequest['user_id'];
         } catch (e) {
-          print('DEBUG: _getSellerConversations - Erreur récupération demande: $e');
         }
       }
 
       if (sellerId == demandeurId) {
         // L'utilisateur actuel (sellerId) est le demandeur → utiliser le compteur "particulier"
         unreadCount = (json['unread_count_for_user'] as int?) ?? 0;
-        print('DEBUG: _getSellerConversations - Conversation ${json['id']}: Utilisateur $sellerId est demandeur, utilise unread_count_for_user: $unreadCount, hasUnreadMessages: ${unreadCount > 0}');
       } else {
         // L'utilisateur actuel (sellerId) est le répondeur → utiliser le compteur "vendeur"
         unreadCount = (json['unread_count_for_seller'] as int?) ?? 0;
-        print('DEBUG: _getSellerConversations - Conversation ${json['id']}: Utilisateur $sellerId est répondeur, utilise unread_count_for_seller: $unreadCount, hasUnreadMessages: ${unreadCount > 0}');
       }
       
       // Récupérer les informations du particulier
@@ -211,7 +198,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     return conversations;
 
     } catch (e) {
-      print('DEBUG: _getSellerConversations - ERREUR: $e');
       throw ServerException('Erreur _getSellerConversations: $e');
     }
   }
@@ -441,7 +427,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String conversationId,
     required String userId,
   }) async {
-    print('DEBUG: markMessagesAsRead - conversationId: $conversationId, userId: $userId');
 
     try {
       // RETOUR AU SYSTÈME ORIGINAL SIMPLE
@@ -480,27 +465,23 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 .single();
             demandeurId = partRequest['user_id'];
           } catch (e) {
-            print('DEBUG: markMessagesAsRead - Erreur récupération demande: $e');
           }
         }
 
         if (userId == demandeurId) {
           // Le vendeur est le demandeur → reset compteur particulier
-          print('DEBUG: markMessagesAsRead - Vendeur $userId est demandeur, reset unread_count_for_user');
           await _supabaseClient
               .from('conversations')
               .update({'unread_count_for_user': 0})
               .eq('id', conversationId);
         } else {
           // Le vendeur est le répondeur → reset compteur vendeur
-          print('DEBUG: markMessagesAsRead - Vendeur $userId est répondeur, reset unread_count_for_seller');
           await _supabaseClient
               .from('conversations')
               .update({'unread_count_for_seller': 0})
               .eq('id', conversationId);
         }
       } else {
-        print('DEBUG: markMessagesAsRead - Utilisateur détecté comme particulier, reset unread_count_for_user');
         // Particulier → remettre le compteur particulier à 0
         await _supabaseClient
             .from('conversations')
@@ -508,7 +489,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             .eq('id', conversationId);
       }
 
-      print('DEBUG: markMessagesAsRead - Messages marqués comme lus avec succès');
 
     } catch (e) {
       throw ServerException('Erreur lors du marquage des messages comme lus: $e');
@@ -588,16 +568,13 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     required String recipientId,
   }) async {
     try {
-      print('DEBUG: incrementUnreadCountForRecipient - conversationId: $conversationId, recipientId: $recipientId');
 
       // Vérifier si le destinataire est traité comme particulier
       final isRecipientTreatedAsParticulier = await _checkIfUserIsSeller(recipientId) == false;
 
       if (isRecipientTreatedAsParticulier) {
-        print('DEBUG: incrementUnreadCountForRecipient - Destinataire $recipientId traité comme particulier, incrémente unread_count_for_user');
         await incrementUnreadCountForUser(conversationId: conversationId);
       } else {
-        print('DEBUG: incrementUnreadCountForRecipient - Destinataire $recipientId est vendeur répondeur, incrémente unread_count_for_seller');
         await incrementUnreadCountForSeller(conversationId: conversationId);
       }
 
@@ -888,7 +865,6 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   // Nouvelle méthode qui détermine le sender_type selon le rôle dans la conversation
   Future<String> _determineSenderTypeInConversation(String senderId, String conversationId) async {
     try {
-      print('DEBUG: _determineSenderTypeInConversation - senderId: $senderId, conversationId: $conversationId');
 
       // Récupérer les infos de la conversation et de la demande
       final conversation = await _supabaseClient
@@ -911,31 +887,25 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               .single();
           particulierId = partRequest['user_id'];
         } catch (e) {
-          print('DEBUG: _determineSenderTypeInConversation - Erreur récupération demande: $e');
         }
       }
 
       // Vérifier si l'expéditeur est vraiment un vendeur
       final isExpeditorSeller = await _checkIfUserIsSeller(senderId);
-      print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur: $isExpeditorSeller');
 
       // Déterminer le sender_type selon le rôle ET le statut réel
       if (!isExpeditorSeller) {
         // L'expéditeur est un particulier → toujours sender_type = 'user'
-        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est particulier, sender_type = user');
         return 'user';
       } else if (senderId == particulierId) {
         // L'expéditeur est un vendeur-demandeur → sender_type = 'user' (agit comme particulier)
-        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur-demandeur, sender_type = user');
         return 'user';
       } else {
         // L'expéditeur est un vendeur-répondeur → sender_type = 'seller'
-        print('DEBUG: _determineSenderTypeInConversation - Expéditeur $senderId est vendeur-répondeur, sender_type = seller');
         return 'seller';
       }
 
     } catch (e) {
-      print('DEBUG: _determineSenderTypeInConversation - ERREUR: $e');
       // Fallback vers l'ancienne méthode
       return await _determineSenderType(senderId);
     }

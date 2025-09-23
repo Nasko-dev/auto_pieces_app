@@ -151,7 +151,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       }
     } catch (e) {
       // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
-      print('DEBUG: _handleGlobalNewMessage - Erreur lors du traitement: $e');
     }
 
     // ✅ OPTIMISATION: Plus de refresh automatique, juste mise à jour locale
@@ -356,7 +355,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
-    print('DEBUG: ConversationsController.markAsRead appelé pour conversation $conversationId et utilisateur $userId');
 
     final result = await _markMessagesAsRead(MarkMessagesAsReadParams(
       conversationId: conversationId,
