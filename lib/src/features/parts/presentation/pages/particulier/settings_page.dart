@@ -203,7 +203,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              // DropdownButton avec Container pour compatibilité Flutter toutes versions
+              // DropdownButton avec Container - CORRECTION DEFINITIVE pour GitHub Actions
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: AppTheme.gray),
