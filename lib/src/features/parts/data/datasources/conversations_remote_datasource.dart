@@ -36,6 +36,10 @@ abstract class ConversationsRemoteDataSource {
   Future<void> incrementUnreadCountForSeller({
     required String conversationId,
   });
+  Future<void> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  });
   Future<void> updateConversationStatus({
     required String conversationId,
     required ConversationStatus status,
@@ -62,30 +66,33 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   @override
   Future<List<Conversation>> getConversations({required String userId}) async {
-    
+
     try {
-      // Détecter si c'est un vendeur ou un particulier
+      // RETOUR AU SYSTÈME ORIGINAL : Déterminer si c'est un vendeur ou un particulier
       final isSellerResult = await _checkIfUserIsSeller(userId);
-      
+
       if (isSellerResult) {
         return _getSellerConversations(userId);
       } else {
         return _getParticulierConversations(userId);
       }
-      
+
     } catch (e) {
       throw ServerException('Erreur lors de la récupération des conversations: $e');
     }
   }
 
+
   Future<bool> _checkIfUserIsSeller(String userId) async {
     try {
+
+      // SIMPLE : Vérifier si c'est un vendeur dans la table sellers
       final sellerResponse = await _supabaseClient
           .from('sellers')
           .select('id')
           .eq('id', userId)
           .limit(1);
-      
+
       final isSeller = sellerResponse.isNotEmpty;
       return isSeller;
     } catch (e) {
@@ -95,7 +102,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
   Future<List<Conversation>> _getSellerConversations(String sellerId) async {
 
-    final response = await _supabaseClient
+    try {
+      final response = await _supabaseClient
         .from('conversations')
         .select('''
           id,
@@ -117,7 +125,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           unread_count_for_seller,
           total_messages,
           sellers!inner(avatar_url),
-          part_requests (
+          part_requests_with_responses (
             vehicle_brand,
             vehicle_model,
             vehicle_year,
@@ -125,9 +133,13 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             part_type
           )
         ''')
-        .eq('seller_id', sellerId)
+        .or('seller_id.eq.$sellerId,user_id.eq.$sellerId')
         .eq('status', 'active')
         .order('last_message_at', ascending: false);
+
+
+    if (response.isNotEmpty) {
+    }
 
 
     final conversations = <Conversation>[];
@@ -141,25 +153,37 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('conversation_id', json['id'])
           .order('created_at', ascending: true);
       
-      final messages = messagesResponse.map((msgData) {
-        return Message(
-          id: msgData['id'],
-          conversationId: msgData['conversation_id'],
-          senderId: msgData['sender_id'],
-          senderType: msgData['sender_type'] == 'user' 
-              ? MessageSenderType.user 
-              : MessageSenderType.seller,
-          content: msgData['content'],
-          isRead: msgData['is_read'] ?? false,
-          createdAt: DateTime.parse(msgData['created_at']),
-          updatedAt: DateTime.parse(msgData['updated_at']),
-        );
-      }).toList();
+      // Messages récupérés pour le calcul de compteur (pas utilisés directement)
+      final _ = messagesResponse;
       
-      // Calculer unreadCount : messages des autres utilisateurs non lus
-      
-      final unreadMessages = messages.where((msg) => !msg.isRead && msg.senderId != sellerId).toList();
-      final unreadCount = unreadMessages.length;
+      // Calculer unreadCount selon le rôle dans cette conversation
+      // Le vendeur qui a fait la demande compte comme "particulier"
+
+      // AMÉLIORATION : Utiliser le bon compteur selon le rôle dans cette conversation
+      int unreadCount = 0;
+
+      // Déterminer qui est le demandeur (celui qui a fait la part_request)
+      String demandeurId = json['user_id'];  // Par défaut
+      if (json['request_id'] != null) {
+        try {
+          final partRequest = await _supabaseClient
+              .from('part_requests')
+              .select('user_id')
+              .eq('id', json['request_id'])
+              .single();
+          demandeurId = partRequest['user_id'];
+        } catch (e) {
+          // Garder demandeurId par défaut si erreur récupération part_request
+        }
+      }
+
+      if (sellerId == demandeurId) {
+        // L'utilisateur actuel (sellerId) est le demandeur → utiliser le compteur "particulier"
+        unreadCount = (json['unread_count_for_user'] as int?) ?? 0;
+      } else {
+        // L'utilisateur actuel (sellerId) est le répondeur → utiliser le compteur "vendeur"
+        unreadCount = (json['unread_count_for_seller'] as int?) ?? 0;
+      }
       
       // Récupérer les informations du particulier
       final userInfo = await _getUserInfo(json['user_id']);
@@ -173,6 +197,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     }
 
     return conversations;
+
+    } catch (e) {
+      throw ServerException('Erreur _getSellerConversations: $e');
+    }
   }
 
   Future<List<Conversation>> _getParticulierConversations(String userId) async {
@@ -195,11 +223,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         final allUserIds = allParticuliersWithDevice
             .map((p) => p['id'] as String)
             .toList();
-            
-        
+
+        // NOUVEAU : Ajouter l'utilisateur actuel à la liste (cas du vendeur traité comme particulier)
+        if (!allUserIds.contains(userId)) {
+          allUserIds.add(userId);
+        }
+
+
         if (allUserIds.isNotEmpty) {
-          // Récupérer les conversations pour TOUS ces user_id
-          
+          // SIMPLE : Récupérer toutes les conversations où l'utilisateur participe (user_id OU seller_id)
           final response = await _supabaseClient
               .from('conversations')
               .select('''
@@ -217,20 +249,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 last_message_content,
                 last_message_sender_type,
                 last_message_created_at,
-                unread_count,
+                unread_count_for_user,
+                unread_count_for_seller,
                 total_messages,
                 sellers!inner(avatar_url)
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
 
-
           final conversations = <Conversation>[];
           for (final json in response) {
-            // Récupérer les informations du vendeur
+            // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
             final sellerInfo = await _getSellerInfo(json['seller_id']);
             final modifiedJson = Map<String, dynamic>.from(json);
             modifiedJson['seller_info'] = sellerInfo;
+            // Un particulier utilise unread_count_for_user
+            modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
             conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
           }
           return conversations;
@@ -260,20 +294,22 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             last_message_content,
             last_message_sender_type,
             last_message_created_at,
-            unread_count,
+            unread_count_for_user,
+            unread_count_for_seller,
             total_messages,
             sellers!inner(avatar_url)
           ''')
           .eq('user_id', userId)
           .order('last_message_at', ascending: false);
 
-
       final conversations = <Conversation>[];
       for (final json in response) {
-        // Récupérer les informations du vendeur
+        // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
         final sellerInfo = await _getSellerInfo(json['seller_id']);
         final modifiedJson = Map<String, dynamic>.from(json);
         modifiedJson['seller_info'] = sellerInfo;
+        // Un particulier utilise unread_count_for_user
+        modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
         conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
       }
       return conversations;
@@ -323,8 +359,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       if (senderType != null) {
         senderTypeString = senderType == MessageSenderType.user ? 'user' : 'seller';
       } else {
-        // Auto-détection : vérifier si l'expéditeur est dans la table sellers
-        senderTypeString = await _determineSenderType(senderId);
+        // Auto-détection intelligente : vérifier le rôle dans cette conversation spécifique
+        senderTypeString = await _determineSenderTypeInConversation(senderId, conversationId);
       }
       
       
@@ -353,8 +389,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
-      // ✅ NOUVEAU: Avec trigger intelligent, plus besoin de reset manuel
-      // Le trigger DB gère automatiquement les bons compteurs selon sender_type
+      // SIMPLE : Incrémenter selon le sender_type
+      if (senderTypeString == 'user') {
+        // Message d'un particulier → incrémenter compteur vendeur
+        await incrementUnreadCountForSeller(conversationId: conversationId);
+      } else {
+        // Message d'un vendeur → incrémenter compteur particulier
+        await incrementUnreadCountForUser(conversationId: conversationId);
+      }
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
@@ -388,42 +430,61 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }) async {
 
     try {
-      // Déterminer le type d'utilisateur pour savoir quels messages marquer
-      final isSellerResult = await _checkIfUserIsSeller(userId);
+      // RETOUR AU SYSTÈME ORIGINAL SIMPLE
+      // Maintenant que _checkIfUserIsSeller traite les vendeurs demandeurs comme "particuliers",
+      // le système particulier/vendeur existant fonctionne correctement
 
-      if (isSellerResult) {
-        // Vendeur : marquer les messages des particuliers comme lus
-        await _supabaseClient
-            .from('messages')
-            .update({
-              'is_read': true,
-              'read_at': 'now()',
-            })
-            .eq('conversation_id', conversationId)
-            .eq('sender_type', 'user')
-            .eq('is_read', false);
-      } else {
-        // Particulier : marquer les messages des vendeurs comme lus
-        await _supabaseClient
-            .from('messages')
-            .update({
-              'is_read': true,
-              'read_at': 'now()',
-            })
-            .eq('conversation_id', conversationId)
-            .eq('sender_type', 'seller')
-            .eq('is_read', false);
-      }
+      final isUserSeller = await _checkIfUserIsSeller(userId);
 
-      // Remettre les compteurs à 0 selon le type d'utilisateur
-      if (isSellerResult) {
-        // Vendeur lit → reset son compteur
-        await _supabaseClient
+      // Marquer tous les messages de l'autre personne comme lus
+      await _supabaseClient
+          .from('messages')
+          .update({
+            'is_read': true,
+            'read_at': 'now()',
+          })
+          .eq('conversation_id', conversationId)
+          .neq('sender_id', userId)  // Messages des autres (pas de lui)
+          .eq('is_read', false);
+
+      if (isUserSeller) {
+        // Pour un vendeur, déterminer quel compteur utiliser selon son rôle dans cette conversation
+        final conversation = await _supabaseClient
             .from('conversations')
-            .update({'unread_count_for_seller': 0})
-            .eq('id', conversationId);
+            .select('user_id, seller_id, request_id')
+            .eq('id', conversationId)
+            .single();
+
+        // Déterminer qui est le demandeur (même logique que _getSellerConversations)
+        String demandeurId = conversation['user_id'];
+        if (conversation['request_id'] != null) {
+          try {
+            final partRequest = await _supabaseClient
+                .from('part_requests')
+                .select('user_id')
+                .eq('id', conversation['request_id'])
+                .single();
+            demandeurId = partRequest['user_id'];
+          } catch (e) {
+            // Garder demandeurId par défaut si erreur récupération part_request
+          }
+        }
+
+        if (userId == demandeurId) {
+          // Le vendeur est le demandeur → reset compteur particulier
+          await _supabaseClient
+              .from('conversations')
+              .update({'unread_count_for_user': 0})
+              .eq('id', conversationId);
+        } else {
+          // Le vendeur est le répondeur → reset compteur vendeur
+          await _supabaseClient
+              .from('conversations')
+              .update({'unread_count_for_seller': 0})
+              .eq('id', conversationId);
+        }
       } else {
-        // Particulier lit → reset son compteur
+        // Particulier → remettre le compteur particulier à 0
         await _supabaseClient
             .from('conversations')
             .update({'unread_count_for_user': 0})
@@ -499,6 +560,28 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
     } catch (e) {
       throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $e');
+    }
+  }
+
+  // Méthode simple pour vendeur-vendeur : toujours incrémenter compteur particulier
+  @override
+  Future<void> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    try {
+
+      // Vérifier si le destinataire est traité comme particulier
+      final isRecipientTreatedAsParticulier = await _checkIfUserIsSeller(recipientId) == false;
+
+      if (isRecipientTreatedAsParticulier) {
+        await incrementUnreadCountForUser(conversationId: conversationId);
+      } else {
+        await incrementUnreadCountForSeller(conversationId: conversationId);
+      }
+
+    } catch (e) {
+      throw ServerException('Erreur lors de l\'incrémentation du compteur: $e');
     }
   }
 
@@ -650,15 +733,15 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }
 
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
-    // Extraire les données du véhicule depuis part_requests
+    // Extraire les données du véhicule depuis part_requests_with_responses
     String? vehicleBrand;
     String? vehicleModel;
     int? vehicleYear;
     String? vehicleEngine;
     String? partType;
 
-    if (json['part_requests'] != null) {
-      final partRequest = json['part_requests'] as Map<String, dynamic>;
+    if (json['part_requests_with_responses'] != null) {
+      final partRequest = json['part_requests_with_responses'] as Map<String, dynamic>;
       vehicleBrand = partRequest['vehicle_brand'];
       vehicleModel = partRequest['vehicle_model'];
       vehicleYear = partRequest['vehicle_year'];
@@ -781,6 +864,56 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
 
 
+  // Nouvelle méthode qui détermine le sender_type selon le rôle dans la conversation
+  Future<String> _determineSenderTypeInConversation(String senderId, String conversationId) async {
+    try {
+
+      // Récupérer les infos de la conversation et de la demande
+      final conversation = await _supabaseClient
+          .from('conversations')
+          .select('user_id, seller_id, request_id')
+          .eq('id', conversationId)
+          .single();
+
+      final clientId = conversation['user_id'];
+      final requestId = conversation['request_id'];
+
+      // Déterminer qui est le "particulier" (demandeur)
+      String particulierId = clientId;
+      if (requestId != null) {
+        try {
+          final partRequest = await _supabaseClient
+              .from('part_requests')
+              .select('user_id')
+              .eq('id', requestId)
+              .single();
+          particulierId = partRequest['user_id'];
+        } catch (e) {
+          // Garder particulierId par défaut si erreur récupération part_request
+        }
+      }
+
+      // Vérifier si l'expéditeur est vraiment un vendeur
+      final isExpeditorSeller = await _checkIfUserIsSeller(senderId);
+
+      // Déterminer le sender_type selon le rôle ET le statut réel
+      if (!isExpeditorSeller) {
+        // L'expéditeur est un particulier → toujours sender_type = 'user'
+        return 'user';
+      } else if (senderId == particulierId) {
+        // L'expéditeur est un vendeur-demandeur → sender_type = 'user' (agit comme particulier)
+        return 'user';
+      } else {
+        // L'expéditeur est un vendeur-répondeur → sender_type = 'seller'
+        return 'seller';
+      }
+
+    } catch (e) {
+      // Fallback vers l'ancienne méthode
+      return await _determineSenderType(senderId);
+    }
+  }
+
   Future<String> _determineSenderType(String senderId) async {
     try {
       // Vérifier si l'ID est dans la table sellers
@@ -789,7 +922,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .select('id')
           .eq('id', senderId)
           .limit(1);
-      
+
       if (sellerCheck.isNotEmpty) {
         return 'seller';
       } else {

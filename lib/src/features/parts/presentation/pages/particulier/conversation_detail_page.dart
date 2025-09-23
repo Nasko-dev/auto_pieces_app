@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../widgets/message_bubble_widget.dart';
@@ -504,6 +505,7 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     return MessageBubbleWidget(
       message: message,
       currentUserType: MessageSenderType.user, // Côté particulier
+      currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
       isLastMessage: false, // Géré différemment dans cette page
       otherUserName: _getSellerDisplayName(conversation),
       otherUserAvatarUrl: conversation.sellerAvatarUrl,

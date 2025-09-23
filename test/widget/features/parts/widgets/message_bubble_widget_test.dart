@@ -30,6 +30,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -46,8 +47,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MessageBubbleWidget(
-              message: testMessage,
+              message: testMessage, // senderId: 'user1'
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user1', // Même ID que le senderId du message
             ),
           ),
         ),
@@ -66,6 +68,7 @@ void main() {
             body: MessageBubbleWidget(
               message: testMessage,
               currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
             ),
           ),
         ),
@@ -83,7 +86,8 @@ void main() {
           home: Scaffold(
             body: MessageBubbleWidget(
               message: testMessage,
-              currentUserType: MessageSenderType.seller, // Différent du message
+              currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
             ),
           ),
         ),
@@ -99,8 +103,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MessageBubbleWidget(
-              message: testMessage,
+              message: testMessage, // senderId: 'user1'
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user1', // Même ID que le senderId du message
             ),
           ),
         ),
@@ -120,8 +125,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MessageBubbleWidget(
-              message: readMessage,
+              message: readMessage, // senderId: 'user1'
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user1', // Même ID que le senderId du message
               isLastMessage: true,
             ),
           ),
@@ -138,8 +144,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MessageBubbleWidget(
-              message: testMessage,
+              message: testMessage, // senderId: 'user1', isRead: false
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user1', // Même ID que le senderId du message
               isLastMessage: true,
             ),
           ),
@@ -163,6 +170,7 @@ void main() {
             body: MessageBubbleWidget(
               message: messageWithTime,
               currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
             ),
           ),
         ),
@@ -193,6 +201,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -211,6 +220,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -236,6 +246,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: singleDayOffer,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -260,6 +271,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: partialOffer,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -291,6 +303,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -312,6 +325,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: noAttachmentMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -330,6 +344,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -352,6 +367,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -375,6 +391,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
                 otherUserAvatarUrl: 'https://example.com/avatar.jpg',
               ),
             ),
@@ -395,6 +412,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
+              currentUserId: 'seller-123',
                 otherUserAvatarUrl: '',
               ),
             ),
@@ -415,7 +433,8 @@ void main() {
             home: Scaffold(
               body: MessageBubbleWidget(
                 message: sellerMessage,
-                currentUserType: MessageSenderType.user, // User voit un vendeur
+                currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123', // User voit un vendeur
               ),
             ),
           ),
@@ -433,22 +452,21 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: MessageBubbleWidget(
-                message: testMessage,
+                message: testMessage, // senderId: 'user1'
                 currentUserType: MessageSenderType.user,
+                currentUserId: 'user1', // Même ID que le senderId du message
               ),
             ),
           ),
         );
 
         // assert
-        final container = tester.widget<Container>(
-          find.byWidgetPredicate((widget) =>
-            widget is Container &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == const Color(0xFF3B82F6)
-          ),
+        final containers = find.byWidgetPredicate((widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration as BoxDecoration).color == const Color(0xFF3B82F6)
         );
-        expect(container, isNotNull);
+        expect(containers, findsAtLeastNWidgets(1));
       });
 
       testWidgets('doit utiliser les bonnes couleurs pour les autres utilisateurs', (tester) async {
@@ -457,22 +475,21 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: MessageBubbleWidget(
-                message: testMessage,
+                message: testMessage, // senderId: 'user1'
                 currentUserType: MessageSenderType.seller,
+                currentUserId: 'seller-123', // ID différent du senderId du message
               ),
             ),
           ),
         );
 
         // assert
-        final container = tester.widget<Container>(
-          find.byWidgetPredicate((widget) =>
-            widget is Container &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == const Color(0xFFF3F4F6)
-          ),
+        final containers = find.byWidgetPredicate((widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration as BoxDecoration).color == const Color(0xFFF3F4F6)
         );
-        expect(container, isNotNull);
+        expect(containers, findsAtLeastNWidgets(1));
       });
     });
 
@@ -487,6 +504,7 @@ void main() {
                 child: MessageBubbleWidget(
                   message: testMessage,
                   currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
                 ),
               ),
             ),
@@ -514,8 +532,9 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: MessageBubbleWidget(
-                message: testMessage,
+                message: testMessage, // senderId: 'user1'
                 currentUserType: MessageSenderType.user,
+                currentUserId: 'user1', // Même ID que le senderId du message
               ),
             ),
           ),
@@ -546,6 +565,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: emptyMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -568,6 +588,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: longMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),
@@ -590,6 +611,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: futureMessage,
                 currentUserType: MessageSenderType.user,
+              currentUserId: 'user-123',
               ),
             ),
           ),

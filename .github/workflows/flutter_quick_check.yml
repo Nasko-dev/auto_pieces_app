@@ -43,6 +43,9 @@ jobs:
       run: |
         flutter pub get --offline 2>/dev/null || flutter pub get
 
+    - name: Generate code (build_runner)
+      run: dart run build_runner build --delete-conflicting-outputs
+
     - name: Quick analyze
       run: |
         # Analyse seulement les fichiers modifiés

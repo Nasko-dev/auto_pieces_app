@@ -57,11 +57,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-build-
 
-    - name: Generate code if needed
-      run: |
-        if [ ! -d ".dart_tool/build" ]; then
-          dart run build_runner build --delete-conflicting-outputs
-        fi
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
 
     - run: flutter analyze
 
@@ -104,11 +101,8 @@ jobs:
           **/*.mocks.dart
         key: ${{ runner.os }}-build-${{ hashFiles('lib/**/*.dart', 'test/**/*.dart') }}
 
-    - name: Generate if cache miss
-      run: |
-        if [ ! -f "test/unit/core/services/device_service_test.mocks.dart" ]; then
-          dart run build_runner build --delete-conflicting-outputs
-        fi
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
 
     - name: Run unit tests (shard ${{ matrix.shard }}/3)
       run: |
@@ -150,11 +144,8 @@ jobs:
 
     - run: flutter pub get
 
-    - name: Generate if needed
-      run: |
-        if [ ! -f "test/unit/core/services/device_service_test.mocks.dart" ]; then
-          dart run build_runner build
-        fi
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
 
     - name: Run tests with coverage
       run: flutter test --coverage

@@ -103,18 +103,21 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
   // Charger les demandes de l'utilisateur
   Future<void> loadUserPartRequests() async {
+    
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _getUserPartRequests(NoParams());
 
     result.fold(
       (failure) {
+        
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (requests) {
+        
         state = state.copyWith(
           isLoading: false,
           requests: requests,

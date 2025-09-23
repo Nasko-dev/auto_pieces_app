@@ -2,6 +2,7 @@ import 'package:cente_pice/src/core/errors/failures.dart';
 import 'package:cente_pice/src/core/errors/exceptions.dart';
 import 'package:cente_pice/src/core/network/network_info.dart';
 import 'package:cente_pice/src/features/parts/data/datasources/part_request_remote_datasource.dart';
+import 'package:cente_pice/src/features/parts/data/datasources/conversations_remote_datasource.dart';
 import 'package:cente_pice/src/features/parts/data/repositories/part_request_repository_impl.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/part_request.dart';
 import 'package:cente_pice/src/features/parts/data/models/part_request_model.dart';
@@ -12,17 +13,20 @@ import 'package:mockito/mockito.dart';
 
 import 'part_request_repository_impl_test.mocks.dart';
 
-@GenerateMocks([PartRequestRemoteDataSource, NetworkInfo])
+@GenerateMocks([PartRequestRemoteDataSource, ConversationsRemoteDataSource, NetworkInfo])
 void main() {
   late PartRequestRepositoryImpl repository;
   late MockPartRequestRemoteDataSource mockRemoteDataSource;
+  late MockConversationsRemoteDataSource mockConversationsRemoteDataSource;
   late MockNetworkInfo mockNetworkInfo;
 
   setUp(() {
     mockRemoteDataSource = MockPartRequestRemoteDataSource();
+    mockConversationsRemoteDataSource = MockConversationsRemoteDataSource();
     mockNetworkInfo = MockNetworkInfo();
     repository = PartRequestRepositoryImpl(
       remoteDataSource: mockRemoteDataSource,
+      conversationsRemoteDataSource: mockConversationsRemoteDataSource,
       networkInfo: mockNetworkInfo,
     );
   });

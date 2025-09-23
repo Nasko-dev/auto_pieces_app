@@ -121,6 +121,7 @@ void main() {
           vehicleBrand: 'Renault',
           vehicleModel: 'Clio',
           vehicleYear: 2018,
+          vehicleEngine: '1.2 TCe', // Ajout de la motorisation pour pièces moteur
           isAnonymous: false,
           );
 
@@ -139,7 +140,7 @@ void main() {
         final params = CreatePartRequestParams(
           partNames: const ['moteur'],
           partType: 'engine',
-          vehicleBrand: 'Renault', // Manque model et year
+          vehicleBrand: 'Renault', // Manque model, year et engine
           isAnonymous: false,
           );
 
@@ -148,7 +149,7 @@ void main() {
 
         // assert
         expect(result, const Left(ValidationFailure(
-          'La plaque d\'immatriculation ou les informations complètes du véhicule sont requises'
+          'La plaque d\'immatriculation ou la motorisation est requise pour les pièces moteur'
         )));
         verifyZeroInteractions(mockRepository);
       });
@@ -160,7 +161,7 @@ void main() {
           partType: 'engine',
           vehicleBrand: 'Renault',
           vehicleModel: 'Clio',
-          // Manque vehicleYear
+          // Manque vehicleYear et vehicleEngine
           isAnonymous: false,
           );
 
@@ -169,7 +170,7 @@ void main() {
 
         // assert
         expect(result, const Left(ValidationFailure(
-          'La plaque d\'immatriculation ou les informations complètes du véhicule sont requises'
+          'La plaque d\'immatriculation ou la motorisation est requise pour les pièces moteur'
         )));
         verifyZeroInteractions(mockRepository);
       });

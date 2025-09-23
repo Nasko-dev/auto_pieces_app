@@ -371,6 +371,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             MessageBubbleWidget(
               message: message,
               currentUserType: MessageSenderType.user, // Côté particulier
+              currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
               isLastMessage: isLastMessage,
               otherUserName: _getSellerDisplayName(conversation),
               otherUserAvatarUrl: _sellerInfo?['avatar_url'],

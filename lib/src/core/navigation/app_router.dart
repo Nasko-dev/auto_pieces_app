@@ -10,6 +10,8 @@ import '../../features/auth/presentation/pages/seller_forgot_password_page.dart'
 import '../../features/parts/presentation/pages/particulier/home_page.dart';
 import '../../features/parts/presentation/pages/particulier/requests_page.dart';
 import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
+import '../../features/parts/presentation/pages/Vendeur/seller_initial_choice_page.dart';
+import '../../features/parts/presentation/pages/Vendeur/seller_create_request_page.dart';
 import '../../features/parts/presentation/pages/particulier/conversations_list_page.dart';
 import '../../features/parts/presentation/pages/particulier/chat_page.dart';
 import '../../features/parts/presentation/pages/particulier/help_page.dart';
@@ -168,7 +170,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/add',
             name: 'seller-add',
+            builder: (context, state) => const SellerInitialChoicePage(),
+          ),
+          GoRoute(
+            path: '/seller/create-ad',
+            name: 'seller-create-ad',
             builder: (context, state) => const BecomeSellerPage(mode: SellerMode.vendeur),
+          ),
+          GoRoute(
+            path: '/seller/create-request',
+            name: 'seller-create-request',
+            builder: (context, state) => const SellerCreateRequestPage(),
           ),
           GoRoute(
             path: '/seller/ads',

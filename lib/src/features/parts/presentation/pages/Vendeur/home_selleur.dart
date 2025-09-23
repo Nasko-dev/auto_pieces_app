@@ -400,9 +400,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 child: _ModernNotificationCard(
                   partRequest: notification.partRequest,
                   onTap:
-                      () => _navigateToConversationDetail(
-                        notification.partRequest,
-                      ),
+                      () => _navigateToConversationDetail(notification.partRequest),
                   onAccept:
                       () =>
                           _acceptAndRespond(context, notification.partRequest),
@@ -987,23 +985,48 @@ class _ModernNotificationCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Nouveau',
-                      style: TextStyle(
-                        color: AppTheme.success,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      if (partRequest.isSellerRequest) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryBlue,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'PRO',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Nouveau',
+                          style: TextStyle(
+                            color: AppTheme.success,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
