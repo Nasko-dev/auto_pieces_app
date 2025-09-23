@@ -1067,7 +1067,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .single();
 
       
-      // Mettre à jour la conversation avec le dernier message
+      // Mettre à jour la conversation avec le dernier message et incrémenter le compteur pour le vendeur
       await _supabase
           .from('conversations')
           .update({
@@ -1075,6 +1075,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             'last_message_sender_type': 'user',
             'last_message_created_at': response['created_at'],
             'updated_at': 'now()',
+            'unread_count_for_seller': 'unread_count_for_seller + 1',
           })
           .eq('id', conversationId);
 
@@ -1092,13 +1093,23 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      // Vérifier si l'utilisateur actuel est un vendeur
+      final isSeller = await _checkIfUserIsSeller(currentUser.id);
 
-      // Remettre le compteur unread_count_for_user à 0 pour cette conversation
+      Map<String, dynamic> updateData = {};
+
+      if (isSeller) {
+        // Si c'est un vendeur qui lit, reset unread_count_for_seller
+        updateData['unread_count_for_seller'] = 0;
+      } else {
+        // Si c'est un particulier qui lit, reset unread_count_for_user
+        updateData['unread_count_for_user'] = 0;
+      }
+
       await _supabase
           .from('conversations')
-          .update({'unread_count_for_user': 0})
+          .update(updateData)
           .eq('id', conversationId);
-
 
     } catch (e) {
       throw ServerException(e.toString());
@@ -1209,6 +1220,21 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
     } catch (e) {
       throw ServerException(e.toString());
+    }
+  }
+
+  Future<bool> _checkIfUserIsSeller(String userId) async {
+    try {
+      final sellerResponse = await _supabase
+          .from('sellers')
+          .select('id')
+          .eq('id', userId)
+          .limit(1);
+
+      final isSeller = sellerResponse.isNotEmpty;
+      return isSeller;
+    } catch (e) {
+      return false;
     }
   }
 }

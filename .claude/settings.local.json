@@ -30,7 +30,8 @@
       "Bash(dart run:*)",
       "Bash(git log:*)",
       "Bash(dart analyze:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": [],

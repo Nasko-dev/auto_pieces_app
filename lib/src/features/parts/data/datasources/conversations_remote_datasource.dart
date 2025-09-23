@@ -90,56 +90,16 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     try {
       print('DEBUG: _checkIfUserIsSeller - userId: $userId');
 
-      // D'abord vérifier si c'est un vendeur dans la table sellers
+      // SIMPLE : Vérifier si c'est un vendeur dans la table sellers
       final sellerResponse = await _supabaseClient
           .from('sellers')
           .select('id')
           .eq('id', userId)
           .limit(1);
 
-      if (sellerResponse.isEmpty) {
-        print('DEBUG: _checkIfUserIsSeller - Utilisateur pas dans sellers, c\'est un particulier');
-        return false;
-      }
-
-      // C'est un vendeur, mais vérifier s'il participe à des conversations vendeur-vendeur
-      // Si oui, le traiter comme un "particulier" pour utiliser le système unifié
-
-      // 1. Vérifier s'il a fait des demandes (user_id dans conversations)
-      final hasRequestConversations = await _supabaseClient
-          .from('conversations')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1);
-
-      // 2. Vérifier s'il a des conversations avec d'autres vendeurs (seller_id dans conversations avec user qui est vendeur)
-      final hasVendorToVendorConversations = await _supabaseClient
-          .from('conversations')
-          .select('id, user_id')
-          .eq('seller_id', userId)
-          .limit(10); // Prendre quelques conversations pour vérifier
-
-      bool hasConversationsWithVendors = false;
-      for (final conv in hasVendorToVendorConversations) {
-        final otherUserId = conv['user_id'];
-        final isOtherUserVendor = await _supabaseClient
-            .from('sellers')
-            .select('id')
-            .eq('id', otherUserId)
-            .limit(1);
-        if (isOtherUserVendor.isNotEmpty) {
-          hasConversationsWithVendors = true;
-          break;
-        }
-      }
-
-      if (hasRequestConversations.isNotEmpty || hasConversationsWithVendors) {
-        print('DEBUG: _checkIfUserIsSeller - Vendeur $userId participe à des conversations vendeur-vendeur, traité comme particulier');
-        return false; // Traiter comme particulier pour utiliser le système unifié
-      }
-
-      print('DEBUG: _checkIfUserIsSeller - Vendeur $userId sans demandes, traité comme vendeur');
-      return true;
+      final isSeller = sellerResponse.isNotEmpty;
+      print('DEBUG: _checkIfUserIsSeller - isSeller: $isSeller');
+      return isSeller;
     } catch (e) {
       print('DEBUG: _checkIfUserIsSeller - ERREUR: $e');
       return false;
@@ -338,46 +298,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
                 total_messages,
                 sellers!inner(avatar_url)
               ''')
-              .or('user_id.in.(${allUserIds.join(',')}),seller_id.eq.$userId')
+              .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
 
           final conversations = <Conversation>[];
           for (final json in response) {
+            // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
+            final sellerInfo = await _getSellerInfo(json['seller_id']);
             final modifiedJson = Map<String, dynamic>.from(json);
-
-            if (json['user_id'] == userId) {
-              // L'utilisateur est user_id (vraie position particulier)
-              final sellerInfo = await _getSellerInfo(json['seller_id']);
-              modifiedJson['seller_info'] = sellerInfo;
-              modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
-            } else {
-              // L'utilisateur est seller_id (vendeur demandeur traité comme particulier)
-              final userInfo = await _getUserInfo(json['user_id']);
-              modifiedJson['user_info'] = userInfo;
-
-              // CORRECTION : Vérifier qui a envoyé le dernier message
-              final lastMessageSenderType = json['last_message_sender_type'] ?? 'user';
-
-              // Si le vendeur demandeur (nous) a le sender_type 'user', alors on utilise notre compteur
-              // MAIS on ne veut voir le widget QUE si le dernier message vient de l'AUTRE
-              int unreadCount = 0;
-
-              // Déterminer notre sender_type en tant que vendeur demandeur
-              final ourSenderType = await _determineSenderTypeInConversation(userId, json['id']);
-
-              if (lastMessageSenderType != ourSenderType) {
-                // Le dernier message ne vient PAS de nous → utiliser notre compteur
-                unreadCount = (json['unread_count_for_user'] as int?) ?? 0;
-                print('DEBUG: _getParticulierConversations - Dernier message de l\'autre ($lastMessageSenderType ≠ $ourSenderType), unread_count: $unreadCount');
-              } else {
-                // Le dernier message vient de nous → pas de notification
-                unreadCount = 0;
-                print('DEBUG: _getParticulierConversations - Dernier message de nous ($lastMessageSenderType = $ourSenderType), unread_count: 0');
-              }
-
-              modifiedJson['unread_count'] = unreadCount;
-            }
-
+            modifiedJson['seller_info'] = sellerInfo;
+            // Un particulier utilise unread_count_for_user
+            modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
             conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
           }
           return conversations;
@@ -412,44 +343,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
             total_messages,
             sellers!inner(avatar_url)
           ''')
-          .or('user_id.eq.$userId,seller_id.eq.$userId')
+          .eq('user_id', userId)
           .order('last_message_at', ascending: false);
 
       final conversations = <Conversation>[];
       for (final json in response) {
+        // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
+        final sellerInfo = await _getSellerInfo(json['seller_id']);
         final modifiedJson = Map<String, dynamic>.from(json);
-
-        if (json['user_id'] == userId) {
-          // L'utilisateur est user_id (vraie position particulier)
-          final sellerInfo = await _getSellerInfo(json['seller_id']);
-          modifiedJson['seller_info'] = sellerInfo;
-          modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
-        } else {
-          // L'utilisateur est seller_id (vendeur demandeur traité comme particulier)
-          final userInfo = await _getUserInfo(json['user_id']);
-          modifiedJson['user_info'] = userInfo;
-
-          // CORRECTION : Vérifier qui a envoyé le dernier message
-          final lastMessageSenderType = json['last_message_sender_type'] ?? 'user';
-
-          int unreadCount = 0;
-
-          // Déterminer notre sender_type en tant que vendeur demandeur
-          final ourSenderType = await _determineSenderTypeInConversation(userId, json['id']);
-
-          if (lastMessageSenderType != ourSenderType) {
-            // Le dernier message ne vient PAS de nous → utiliser notre compteur
-            unreadCount = (json['unread_count_for_user'] as int?) ?? 0;
-            print('DEBUG: _getParticulierConversations FALLBACK - Dernier message de l\'autre ($lastMessageSenderType ≠ $ourSenderType), unread_count: $unreadCount');
-          } else {
-            // Le dernier message vient de nous → pas de notification
-            unreadCount = 0;
-            print('DEBUG: _getParticulierConversations FALLBACK - Dernier message de nous ($lastMessageSenderType = $ourSenderType), unread_count: 0');
-          }
-
-          modifiedJson['unread_count'] = unreadCount;
-        }
-
+        modifiedJson['seller_info'] = sellerInfo;
+        // Un particulier utilise unread_count_for_user
+        modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
         conversations.add(Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
       }
       return conversations;
@@ -529,32 +433,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
-      // Incrémenter intelligemment le compteur pour le destinataire
-      // Déterminer qui est le destinataire (l'autre personne dans la conversation)
-      final conversation = await _supabaseClient
-          .from('conversations')
-          .select('user_id, seller_id')
-          .eq('id', conversationId)
-          .single();
-
-      final clientId = conversation['user_id'];
-      final sellerId = conversation['seller_id'];
-
-      // Le destinataire est l'autre personne (pas l'expéditeur)
-      String recipientId;
-      if (senderId == clientId) {
-        recipientId = sellerId;
+      // SIMPLE : Incrémenter selon le sender_type
+      if (senderTypeString == 'user') {
+        // Message d'un particulier → incrémenter compteur vendeur
+        await incrementUnreadCountForSeller(conversationId: conversationId);
       } else {
-        recipientId = clientId;
+        // Message d'un vendeur → incrémenter compteur particulier
+        await incrementUnreadCountForUser(conversationId: conversationId);
       }
-
-      print('DEBUG: sendMessage - senderId: $senderId, recipientId: $recipientId');
-
-      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
-      await incrementUnreadCountForRecipient(
-        conversationId: conversationId,
-        recipientId: recipientId,
-      );
 
       return Message.fromJson(_mapSupabaseToMessage(response));
       
@@ -607,15 +493,46 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .eq('is_read', false);
 
       if (isUserSeller) {
-        print('DEBUG: markMessagesAsRead - Utilisateur détecté comme vendeur (répondeur), reset unread_count_for_seller');
-        // L'utilisateur est un vendeur (qui répond) → remettre le compteur vendeur à 0
-        await _supabaseClient
+        // Pour un vendeur, déterminer quel compteur utiliser selon son rôle dans cette conversation
+        final conversation = await _supabaseClient
             .from('conversations')
-            .update({'unread_count_for_seller': 0})
-            .eq('id', conversationId);
+            .select('user_id, seller_id, request_id')
+            .eq('id', conversationId)
+            .single();
+
+        // Déterminer qui est le demandeur (même logique que _getSellerConversations)
+        String demandeurId = conversation['user_id'];
+        if (conversation['request_id'] != null) {
+          try {
+            final partRequest = await _supabaseClient
+                .from('part_requests')
+                .select('user_id')
+                .eq('id', conversation['request_id'])
+                .single();
+            demandeurId = partRequest['user_id'];
+          } catch (e) {
+            print('DEBUG: markMessagesAsRead - Erreur récupération demande: $e');
+          }
+        }
+
+        if (userId == demandeurId) {
+          // Le vendeur est le demandeur → reset compteur particulier
+          print('DEBUG: markMessagesAsRead - Vendeur $userId est demandeur, reset unread_count_for_user');
+          await _supabaseClient
+              .from('conversations')
+              .update({'unread_count_for_user': 0})
+              .eq('id', conversationId);
+        } else {
+          // Le vendeur est le répondeur → reset compteur vendeur
+          print('DEBUG: markMessagesAsRead - Vendeur $userId est répondeur, reset unread_count_for_seller');
+          await _supabaseClient
+              .from('conversations')
+              .update({'unread_count_for_seller': 0})
+              .eq('id', conversationId);
+        }
       } else {
-        print('DEBUG: markMessagesAsRead - Utilisateur détecté comme particulier (demandeur), reset unread_count_for_user');
-        // L'utilisateur est un "particulier" (peut être un vrai particulier ou un vendeur demandeur) → remettre le compteur particulier à 0
+        print('DEBUG: markMessagesAsRead - Utilisateur détecté comme particulier, reset unread_count_for_user');
+        // Particulier → remettre le compteur particulier à 0
         await _supabaseClient
             .from('conversations')
             .update({'unread_count_for_user': 0})
