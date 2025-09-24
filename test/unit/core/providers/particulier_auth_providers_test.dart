@@ -6,6 +6,7 @@ import 'package:cente_pice/src/core/providers/particulier_auth_providers.dart';
 import 'package:cente_pice/src/features/auth/data/datasources/particulier_auth_local_datasource.dart';
 import 'package:cente_pice/src/features/auth/data/datasources/particulier_auth_remote_datasource.dart';
 import 'package:cente_pice/src/features/auth/domain/repositories/particulier_auth_repository.dart';
+import 'package:cente_pice/src/features/auth/data/repositories/particulier_auth_repository_impl.dart';
 import 'package:cente_pice/src/features/auth/domain/usecases/particulier_anonymous_auth.dart';
 import 'package:cente_pice/src/features/auth/domain/usecases/particulier_logout.dart';
 import 'package:cente_pice/src/features/auth/domain/usecases/get_current_particulier.dart';
