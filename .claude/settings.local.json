@@ -30,7 +30,8 @@
       "Bash(dart run:*)",
       "Bash(git log:*)",
       "Bash(dart analyze:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npx supabase functions deploy:*)"
     ],
     "deny": [],
     "ask": [],

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/conversation.dart';
@@ -319,10 +320,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }) async {
 
     try {
-      print('🔍 DEBUG SEND MESSAGE - Début');
-      print('💬 conversationId: $conversationId');
-      print('👤 senderId: $senderId');
-      print('📝 content: $content');
+      debugPrint('🔍 DEBUG SEND MESSAGE - Début');
+      debugPrint('💬 conversationId: $conversationId');
+      debugPrint('👤 senderId: $senderId');
+      debugPrint('📝 content: $content');
 
       // Déterminer automatiquement le sender_type si pas fourni
       String senderTypeString;
@@ -333,7 +334,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         senderTypeString = await _determineSenderType(senderId);
       }
 
-      print('🏷️ senderTypeString: $senderTypeString');
+      debugPrint('🏷️ senderTypeString: $senderTypeString');
 
       final messageData = {
         'conversation_id': conversationId,
@@ -350,7 +351,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         // 'created_at' et 'updated_at' seront générés automatiquement par Supabase
       };
 
-      print('📦 messageData: $messageData');
+      debugPrint('📦 messageData: $messageData');
 
       final response = await _supabaseClient
           .from('messages')
@@ -358,8 +359,8 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
           .select()
           .single();
 
-      print('✅ Message inséré avec succès: ${response['id']}');
-      print('🕒 created_at: ${response['created_at']}');
+      debugPrint('✅ Message inséré avec succès: ${response['id']}');
+      debugPrint('🕒 created_at: ${response['created_at']}');
 
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
@@ -370,11 +371,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       // Envoyer une notification au destinataire
       await _sendMessageNotification(conversationId, senderId, content, senderTypeString);
 
-      print('🚀 DEBUG SEND MESSAGE - Fin avec succès');
+      debugPrint('🚀 DEBUG SEND MESSAGE - Fin avec succès');
       return Message.fromJson(_mapSupabaseToMessage(response));
 
     } catch (e) {
-      print('❌ DEBUG SEND MESSAGE - Erreur: $e');
+      debugPrint('❌ DEBUG SEND MESSAGE - Erreur: $e');
       throw ServerException('Erreur lors de l\'envoi du message: $e');
     }
   }
@@ -929,7 +930,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     String senderType,
   ) async {
     try {
-      print('📤 Envoi notification de message...');
+      debugPrint('📤 Envoi notification de message...');
 
       // Récupérer les infos de la conversation pour connaître les participants
       final conversationResponse = await _supabaseClient
@@ -1006,10 +1007,10 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         messagePreview = '${messagePreview.substring(0, 50)}...';
       }
 
-      print('📤 Notification: $senderName → $recipientId');
-      print('📝 Message: $messagePreview');
-      print('🎯 Sender: $senderId ($senderType)');
-      print('🎯 Recipient User ID: $recipientId');
+      debugPrint('📤 Notification: $senderName → $recipientId');
+      debugPrint('📝 Message: $messagePreview');
+      debugPrint('🎯 Sender: $senderId ($senderType)');
+      debugPrint('🎯 Recipient User ID: $recipientId');
 
       // Envoyer la notification - Utiliser device_id pour TOUS les particuliers
       final notificationService = SendNotificationService.instance;
@@ -1024,7 +1025,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
       if (sellerCheck != null) {
         // C'est un seller - envoyer par user_id classique
-        print('📤 Seller détecté, envoi par user_id');
+        debugPrint('📤 Seller détecté, envoi par user_id');
         await notificationService.sendMessageNotification(
           toUserId: recipientId,
           fromUserName: senderName,
@@ -1033,11 +1034,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         );
       } else {
         // C'est un particulier - TOUJOURS envoyer par device_id
-        print('👤 Particulier détecté, recherche device_id...');
+        debugPrint('👤 Particulier détecté, recherche device_id...');
 
         // Récupérer le device_id du destinataire particulier
         // Pour cela, on recherche dans la table particuliers par user_id
-        print('🔍 Recherche device_id du destinataire $recipientId...');
+        debugPrint('🔍 Recherche device_id du destinataire $recipientId...');
 
         try {
           // Récupérer le device_id du destinataire depuis particuliers
@@ -1049,7 +1050,7 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
 
           if (particulierInfo != null && particulierInfo['device_id'] != null) {
             final deviceId = particulierInfo['device_id'] as String;
-            print('✅ Device_id trouvé: $deviceId');
+            debugPrint('✅ Device_id trouvé: $deviceId');
 
             await notificationService.sendMessageNotificationByDeviceId(
               deviceId: deviceId,
@@ -1058,11 +1059,11 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
               conversationId: conversationId,
             );
           } else {
-            print('⚠️ Aucun device_id trouvé pour ce particulier');
+            debugPrint('⚠️ Aucun device_id trouvé pour ce particulier');
             throw Exception('Device ID non trouvé');
           }
         } catch (e) {
-          print('❌ Erreur récupération device_id: $e');
+          debugPrint('❌ Erreur récupération device_id: $e');
           // Fallback vers user_id si problème avec device_id
           await notificationService.sendMessageNotification(
             toUserId: recipientId,
@@ -1073,9 +1074,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         }
       }
 
-      print('✅ Notification envoyée avec succès');
+      debugPrint('✅ Notification envoyée avec succès');
     } catch (e) {
-      print('⚠️ Erreur envoi notification: $e');
+      debugPrint('⚠️ Erreur envoi notification: $e');
       // Ne pas faire échouer l'envoi du message si la notification échoue
     }
   }

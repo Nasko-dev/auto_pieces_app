@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'send_notification_service.dart';
 import 'device_service.dart';
 
 /// Service principal pour gérer TOUTES les notifications
@@ -129,7 +128,7 @@ class NotificationManager {
 
       debugPrint('   📦 Données à insérer: $insertData');
 
-      final result = await _supabase.from('push_tokens').upsert(insertData, onConflict: 'onesignal_player_id');
+      await _supabase.from('push_tokens').upsert(insertData, onConflict: 'onesignal_player_id');
 
       debugPrint('   ✅ Sauvegardé dans push_tokens - Résultat: OK');
 
