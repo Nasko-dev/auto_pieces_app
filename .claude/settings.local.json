@@ -38,7 +38,11 @@
       "Bash(grep:*)",
       "Bash(genhtml:*)",
       "Bash(powershell:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(while read file)",
+      "Bash(do basename \"$file\" .dart)",
+      "Bash(done)",
+      "Bash(do basename \"$file\" _test.dart)"
     ],
     "deny": [],
     "ask": [],
