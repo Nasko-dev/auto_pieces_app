@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
+import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../widgets/conversation_item_widget.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
@@ -88,22 +89,28 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Conversations'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
-            },
+      body: Column(
+        children: [
+          AppHeader(
+            title: 'Mes Conversations',
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+                },
+              ),
+            ],
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+              },
+              child: _buildBody(conversations, isLoading, error),
+            ),
           ),
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
-        },
-        child: _buildBody(conversations, isLoading, error),
       ),
     );
   }

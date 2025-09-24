@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
@@ -94,57 +94,32 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF1976D2);
-    
     return Scaffold(
       backgroundColor: AppTheme.lightGray,
-      appBar: AppBar(
-        backgroundColor: blue,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Mes annonces',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [blue, blue.withValues(alpha: 0.8)],
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-              ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
-            },
-            tooltip: 'Actualiser',
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              // Navigation vers déposer une annonce
-            },
-            tooltip: 'Nouvelle annonce',
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 8),
-            child: SellerMenu(),
-          ),
-        ],
-      ),
       body: Column(
         children: [
+          SellerHeader(
+            title: 'Mes annonces',
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
+                  ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+                },
+                tooltip: 'Actualiser',
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline, color: AppTheme.darkGray),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  // Navigation vers déposer une annonce
+                },
+                tooltip: 'Nouvelle annonce',
+              ),
+            ],
+          ),
           // Filtres
           Container(
             color: Colors.white,

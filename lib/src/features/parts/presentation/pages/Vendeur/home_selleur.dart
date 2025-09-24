@@ -3,12 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
-import '../../../../../core/providers/seller_auth_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../auth/domain/entities/seller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
@@ -40,223 +38,111 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(sellerDashboardControllerProvider);
-    final currentSellerAsync = ref.watch(currentSellerProviderAlt);
-
-    // Debug: Vérifier l'état du provider (désactivé en production)
-    currentSellerAsync.when(
-      data: (seller) => null, // print('🔍 [DEBUG Build] Provider data: $seller'),
-      loading: () => null, // print('🔍 [DEBUG Build] Provider loading'),
-      error: (error, stack) => null, // print('🔍 [DEBUG Build] Provider error: $error'),
-    );
 
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryBlue,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Mes Notifications',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.white,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-        actions: const [
-          Padding(padding: EdgeInsets.only(right: 8), child: SellerMenu()),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _onRefresh,
-          color: AppTheme.primaryBlue,
-          backgroundColor: AppTheme.white,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-            children: [
-              // En-tête personnalisé
-              _buildPersonalizedHeader(currentSellerAsync),
-              const SizedBox(height: 6),
-              _buildWelcomeText(dashboardState),
-              const SizedBox(height: 20),
-
-              // Contenu basé sur l'état
-              _buildDashboardContent(dashboardState),
-
-              const SizedBox(height: 24),
-
-              // Ligne de séparation
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      AppTheme.gray.withValues(alpha: 0.3),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              // Texte d'aide
-              const Center(
-                child: Text(
-                  'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.darkBlue,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // CTA Déposer
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.mediumImpact();
-                    context.go('/seller/add');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_circle_outline, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Déposer une annonce',
+      body: Column(
+        children: [
+          const SellerHeader(),
+          Expanded(
+            child: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: AppTheme.primaryBlue,
+                backgroundColor: AppTheme.white,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  children: [
+                    // Titre de la section
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        'Mes Notifications',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
+                          color: AppTheme.darkBlue,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 5),
+
+                    // Contenu basé sur l'état
+                    _buildDashboardContent(dashboardState),
+
+                    const SizedBox(height: 24),
+
+                    // Ligne de séparation
+                    Container(
+               margin: const EdgeInsets.symmetric(horizontal: 20),
+               height: 1,
+               decoration: BoxDecoration(
+                 gradient: LinearGradient(
+                   colors: [
+                     Colors.transparent,
+                     AppTheme.gray.withValues(alpha: 0.3),
+                     Colors.transparent,
+                   ],
+                 ),
+               ),
+             ),
+
+             const SizedBox(height: 24),
+             // Texte d'aide
+             const Center(
+               child: Text(
+                 'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
+                 textAlign: TextAlign.center,
+                 style: TextStyle(
+                   fontSize: 16,
+                   fontWeight: FontWeight.w600,
+                   color: AppTheme.darkBlue,
+                 ),
+               ),
+             ),
+             const SizedBox(height: 12),
+
+             // CTA Déposer
+             SizedBox(
+               width: double.infinity,
+               child: ElevatedButton(
+                 onPressed: () {
+                   HapticFeedback.mediumImpact();
+                   context.go('/seller/add');
+                 },
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: AppTheme.primaryBlue,
+                   foregroundColor: AppTheme.white,
+                   padding: const EdgeInsets.symmetric(vertical: 16),
+                   shape: RoundedRectangleBorder(
+                     borderRadius: BorderRadius.circular(12),
+                   ),
+                   elevation: 4,
+                   shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                 ),
+                 child: const Row(
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   children: [
+                     Icon(Icons.add_circle_outline, size: 20),
+                     SizedBox(width: 8),
+                     Text(
+                       'Déposer une annonce',
+                       style: TextStyle(
+                         fontSize: 18,
+                         fontWeight: FontWeight.w700,
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildPersonalizedHeader(AsyncValue<Seller?> currentSellerAsync) {
-    return currentSellerAsync.when(
-      data: (seller) {
-        // Debug: Afficher les informations du vendeur
-
-        String headerText;
-        if (seller?.companyName != null && seller!.companyName!.isNotEmpty) {
-          headerText = 'Bonjour ${seller.companyName}';
-        } else if (seller?.firstName != null && seller!.firstName!.isNotEmpty) {
-          final name =
-              seller.lastName != null
-                  ? '${seller.firstName} ${seller.lastName}'
-                  : seller.firstName!;
-          headerText = 'Bonjour $name';
-        } else {
-          headerText = 'Bonjour Vendeur';
-        }
-
-        return Text(
-          headerText,
-          style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.darkBlue,
-          ),
-        );
-      },
-      loading:
-          () => const Text(
-            'Bonjour Vendeur',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.darkBlue,
-            ),
-          ),
-      error:
-          (error, stack) => const Text(
-            'Bonjour Vendeur',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.darkBlue,
-            ),
-          ),
-    );
-  }
-
-  Widget _buildWelcomeText(SellerDashboardState dashboardState) {
-    return dashboardState.when(
-      initial:
-          () => const Text(
-            'Bienvenue dans votre espace vendeur',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.gray,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-      loading:
-          () => const Text(
-            '',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.gray,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-      loaded:
-          (notifications, unreadCount) => Text(
-            unreadCount > 0
-                ? 'Vous avez $unreadCount nouvelle${unreadCount > 1 ? 's' : ''} demande${unreadCount > 1 ? 's' : ''}'
-                : 'Tout est à jour ! Aucune nouvelle demande.',
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppTheme.gray,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-      error:
-          (message) => const Text(
-            'Bienvenue dans votre espace vendeur',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.gray,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
     );
   }
 
@@ -400,7 +286,9 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 child: _ModernNotificationCard(
                   partRequest: notification.partRequest,
                   onTap:
-                      () => _navigateToConversationDetail(notification.partRequest),
+                      () => _navigateToConversationDetail(
+                        notification.partRequest,
+                      ),
                   onAccept:
                       () =>
                           _acceptAndRespond(context, notification.partRequest),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../../shared/presentation/widgets/app_menu.dart';
+import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
+import '../../../../../core/providers/particulier_auth_providers.dart';
+import '../../../../../core/providers/user_settings_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
@@ -50,7 +52,30 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
-    
+
+    // Charger les paramètres utilisateur pour récupérer l'avatar
+    _loadUserSettings();
+
+    // Vérifier l'état d'authentification au démarrage et connecter si nécessaire
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      if (mounted) {
+        final authController = ref.read(particulierAuthControllerProvider.notifier);
+        await authController.checkAuthStatus();
+
+        // Si pas connecté, faire une connexion anonyme
+        final currentState = ref.read(particulierAuthControllerProvider);
+        currentState.when(
+          initial: () async => await authController.signInAnonymously(),
+          loading: () {},
+          anonymousAuthenticated: (particulier) {
+            // Recharger les paramètres après authentification
+            _loadUserSettings();
+          },
+          error: (message) async => await authController.signInAnonymously(),
+        );
+      }
+    });
+
     // Vérifier les demandes actives de manière asynchrone sans bloquer
     // Délai pour laisser l'UI se charger d'abord
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -58,6 +83,23 @@ class _HomePageState extends ConsumerState<HomePage> {
         ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
       }
     });
+  }
+
+  void _loadUserSettings() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
+
+    final getUserSettings = ref.read(getUserSettingsProvider);
+    final result = await getUserSettings(currentUser.id);
+
+    result.fold(
+      (failure) => null,
+      (settings) {
+        if (settings != null && mounted) {
+          // UserSettings loaded successfully
+        }
+      },
+    );
   }
 
   @override
@@ -81,55 +123,39 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // Pas d'AppBar : on crée un header bleu custom comme sur le screen
-      body: Column(
-        children: [
-          // HEADER BLEU
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(top: media.padding.top + 14, bottom: 18),
-            color: _blue,
-            child: Row(
-              children: [
-                const Spacer(),
-                const Text(
-                  'Auto Pièces',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 26,
-                    height: 1.1,
-                  ),
-                ),
-                const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: AppMenu(),
-                ),
-              ],
-            ),
-          ),
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        child: Column(
+          children: [
+            // HEADER AVEC COMPOSANT RÉUTILISABLE
+            const AppHeader(),
 
-          // CONTENU
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: EdgeInsets.fromLTRB(hPadding, 24, hPadding, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Titre
-                  const Text(
-                    'Quel type de pièce\nrecherchez-vous ?',
-                    textAlign: TextAlign.center,
+            // CONTENU
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Titre qui prend toute la largeur de l'écran
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: const Text(
+                    'Quel type de pièce recherchez-vous ?',
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
                       color: _textDark,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 20),
+
+                // Reste du contenu avec padding
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
 
                   // 2 CARTES (sélection)
                   Row(
@@ -219,18 +245,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ],
 
-                  // Espace bas pour resp. safe area
-                  SizedBox(height: media.padding.bottom + 8),
-                ],
-              ),
+                      // Espace bas pour resp. safe area
+                      SizedBox(height: media.padding.bottom + 8),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   // Méthodes pour la logique de l'application
+
 
   List<Widget> _buildManualFields() {
     return [

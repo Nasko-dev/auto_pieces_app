@@ -8,8 +8,8 @@ import 'become_seller/choice_step_page.dart';
 import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
-import '../../../../../shared/presentation/widgets/app_menu.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/app_header.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../data/models/part_advertisement_model.dart';
 
@@ -190,33 +190,47 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.white,
-        elevation: 0,
-        foregroundColor: AppTheme.black,
-        centerTitle: false,
-        leading: _currentStep > 0
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _goToPreviousStep,
-              )
-            : null,
-        actions: [
-          // Bouton debug temporaire pour vendeurs
-          if (widget.mode == SellerMode.vendeur)
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.blue),
-              onPressed: _debugRefresh,
-              tooltip: 'Debug: Refresh limitations',
-            ),
-          widget.mode == SellerMode.particulier 
-              ? const AppMenu() 
-              : const SellerMenu(),
+      body: Column(
+        children: [
+          widget.mode == SellerMode.particulier
+              ? AppHeader(
+                  title: 'Devenir vendeur',
+                  actions: [
+                    if (_currentStep > 0)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
+                        onPressed: _goToPreviousStep,
+                        tooltip: 'Retour',
+                      ),
+                  ],
+                )
+              : SellerHeader(
+                  title: 'Déposer une annonce',
+                  actions: [
+                    if (_currentStep > 0)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
+                        onPressed: _goToPreviousStep,
+                        tooltip: 'Retour',
+                      ),
+                    // Bouton debug temporaire pour vendeurs
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
+                      onPressed: _debugRefresh,
+                      tooltip: 'Debug: Refresh limitations',
+                    ),
+                  ],
+                ),
+          Expanded(child: _buildBody()),
         ],
       ),
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  Widget _buildBody() {
+    return SafeArea(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
           child: Container(
             key: ValueKey(_currentStep),
             child: switch (_currentStep) {
@@ -237,7 +251,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
             },
           ),
         ),
-      ),
     );
   }
 }

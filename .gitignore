@@ -44,6 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+<<<<<<< HEAD
+# Environment variables
+.env
+.env.local
+.env.*.local
+=======
 # 🔐 CONFIGURATION PRODUCTION - SÉCURITÉ
 # Variables d'environnement (JAMAIS committer)
 .env
@@ -84,3 +90,4 @@ lcov.info
 
 # Cache local
 .cache/
+>>>>>>> dev

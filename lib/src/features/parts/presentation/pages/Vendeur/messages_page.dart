@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../providers/conversations_providers.dart';
 import '../../widgets/conversation_group_card.dart';
 import '../../../domain/entities/conversation_group.dart';
@@ -40,8 +41,14 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
-      appBar: _buildAppBar(),
-      body: _buildBody(conversationGroups, isLoading, error),
+      body: Column(
+        children: [
+          const SellerHeader(title: 'Messages'),
+          Expanded(
+            child: _buildBody(conversationGroups, isLoading, error),
+          ),
+        ],
+      ),
     );
   }
 
@@ -96,56 +103,5 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    final totalUnreadCount = ref.watch(totalUnreadCountProvider);
-    
-    return AppBar(
-      centerTitle: true,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Messages clients',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-              letterSpacing: 0.2,
-            ),
-          ),
-          if (totalUnreadCount > 0) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                totalUnreadCount > 99 ? '99+' : '$totalUnreadCount',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-      backgroundColor: const Color(0xFF1E66F5),
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: () {
-            ref.read(conversationsControllerProvider.notifier).loadConversations();
-          },
-        ),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../shared/presentation/widgets/app_menu.dart';
+import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
@@ -29,23 +29,17 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.lightGray,
-      appBar: AppBar(
-        backgroundColor: AppTheme.white,
-        elevation: 0,
-        title: const Text(
-          'Mes Demandes',
-          style: TextStyle(
-            color: AppTheme.darkBlue,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          const AppMenu(),
+      body: Column(
+        children: [
+          const AppHeader(title: 'Mes Demandes'),
+          Expanded(child: _buildBody()),
         ],
       ),
-      body: Consumer(
+    );
+  }
+
+  Widget _buildBody() {
+    return Consumer(
         builder: (context, ref, child) {
           final state = ref.watch(partRequestControllerProvider);
 
@@ -156,8 +150,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
 
