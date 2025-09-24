@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 // Mock version of DioClient for testing
@@ -21,7 +22,7 @@ class TestDioClient {
     _dio.interceptors.add(LogInterceptor(
       requestBody: true,
       responseBody: true,
-      logPrint: (obj) => print(obj.toString()),
+      logPrint: (obj) => debugPrint(obj.toString()),
     ));
   }
 
