@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
 import '../../../../../core/providers/seller_auth_providers.dart';
@@ -49,55 +49,31 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryBlue,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Mes Notifications',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.white,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-        actions: const [
-          Padding(padding: EdgeInsets.only(right: 8), child: SellerMenu()),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _onRefresh,
-          color: AppTheme.primaryBlue,
-          backgroundColor: AppTheme.white,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-            children: [
-              // En-tête personnalisé
-              _buildPersonalizedHeader(currentSellerAsync),
-              const SizedBox(height: 6),
-              _buildWelcomeText(dashboardState),
-              const SizedBox(height: 20),
+      body: Column(
+        children: [
+          const SellerHeader(title: 'Mes Notifications', centerTitle: true),
+          Expanded(
+            child: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: AppTheme.primaryBlue,
+                backgroundColor: AppTheme.white,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  children: [
+                    // En-tête personnalisé
+                    _buildPersonalizedHeader(currentSellerAsync),
+                    const SizedBox(height: 6),
+                    _buildWelcomeText(dashboardState),
+                    const SizedBox(height: 20),
 
-              // Contenu basé sur l'état
-              _buildDashboardContent(dashboardState),
+                    // Contenu basé sur l'état
+                    _buildDashboardContent(dashboardState),
 
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              // Ligne de séparation
-              Container(
+                    // Ligne de séparation
+                    Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 height: 1,
                 decoration: BoxDecoration(

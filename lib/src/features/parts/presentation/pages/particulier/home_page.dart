@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../../shared/presentation/widgets/app_menu.dart';
+import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
@@ -130,84 +130,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         controller: _scrollController,
         child: Column(
           children: [
-            // HEADER INTÉGRÉ À LA PAGE
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 30),
-              margin: const EdgeInsets.only(bottom: 16),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    // Avatar utilisateur
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final authState = ref.watch(particulierAuthControllerProvider);
-
-                        return authState.when(
-                          initial: () => _buildDefaultAvatar(),
-                          loading: () => _buildDefaultAvatar(),
-                          anonymousAuthenticated: (particulier) {
-                            // Utiliser avatar_url de l'entité Particulier ou avatarUrl de UserSettings
-                            final avatarUrl = particulier.avatar_url ?? _userSettings?.avatarUrl;
-
-                            if (avatarUrl != null && avatarUrl.isNotEmpty) {
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(22.5),
-                                child: Image.network(
-                                  avatarUrl,
-                                  width: 45,
-                                  height: 45,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildDefaultAvatar();
-                                  },
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return _buildDefaultAvatar();
-                                  },
-                                ),
-                              );
-                            } else {
-                              return _buildDefaultAvatar();
-                            }
-                          },
-                          error: (message) => _buildDefaultAvatar(),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    // Section texte avec données utilisateur
-                    Expanded(
-                      child: Consumer(
-                        builder: (context, ref, child) {
-                          final authState = ref.watch(particulierAuthControllerProvider);
-
-                          return authState.when(
-                            initial: () => _buildUserInfo('Bienvenue', 'Connexion...'),
-                            loading: () => _buildUserInfo('Bienvenue', 'Connexion...'),
-                            anonymousAuthenticated: (particulier) {
-                              print('DEBUG: Particulier connecté: ${particulier.displayName}');
-                              return _buildUserInfo('Bienvenue', particulier.displayName);
-                            },
-                            error: (message) {
-                              print('DEBUG: Erreur auth: $message');
-                              return _buildUserInfo('Bienvenue', 'Utilisateur');
-                            },
-                          );
-                        },
-                      ),
-                    ),
-
-                    // Menu sans background
-                    const AppMenu(),
-                  ],
-                ),
-              ),
-            ),
+            // HEADER AVEC COMPOSANT RÉUTILISABLE
+            const AppHeader(),
 
             // CONTENU
             Column(
@@ -339,54 +263,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   // Méthodes pour la logique de l'application
 
-  Widget _buildUserInfo(String greeting, String displayName) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          greeting,
-          style: TextStyle(
-            color: _textGray,
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          displayName,
-          style: const TextStyle(
-            color: _textDark,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            height: 1.1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDefaultAvatar() {
-    return Container(
-      width: 45,
-      height: 45,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _blue.withValues(alpha: 0.8),
-            _blue,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22.5),
-      ),
-      child: const Icon(
-        Icons.person,
-        color: Colors.white,
-        size: 24,
-      ),
-    );
-  }
 
   List<Widget> _buildManualFields() {
     return [

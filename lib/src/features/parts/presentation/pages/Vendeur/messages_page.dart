@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../providers/conversations_providers.dart';
 import '../../widgets/conversation_group_card.dart';
 import '../../../domain/entities/conversation_group.dart';
@@ -40,8 +41,14 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
-      appBar: _buildAppBar(),
-      body: _buildBody(conversationGroups, isLoading, error),
+      body: Column(
+        children: [
+          const SellerHeader(title: 'Messages'),
+          Expanded(
+            child: _buildBody(conversationGroups, isLoading, error),
+          ),
+        ],
+      ),
     );
   }
 
