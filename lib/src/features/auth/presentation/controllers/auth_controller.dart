@@ -5,6 +5,7 @@ import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/login_as_particulier.dart';
+import '../../../../core/services/notification_manager.dart';
 
 // Providers for data sources
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
@@ -51,7 +52,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     final result = await loginAsParticulier();
     result.fold(
       (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (user) => state = AsyncValue.data(user),
+      (user) async {
+        state = AsyncValue.data(user);
+
+        // Synchroniser le Player ID après une connexion réussie
+        await NotificationManager.instance.forceSyncPlayerId();
+      },
     );
   }
 

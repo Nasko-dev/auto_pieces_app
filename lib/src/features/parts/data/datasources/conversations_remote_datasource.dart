@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/conversation.dart';
@@ -7,6 +8,7 @@ import '../../domain/entities/message.dart';
 import '../../domain/entities/conversation_enums.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/device_service.dart';
+import '../../../../core/services/send_notification_service.dart';
 
 abstract class ConversationsRemoteDataSource {
   Future<List<Conversation>> getConversations({required String userId});
@@ -352,8 +354,13 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
     int? offerDeliveryDays,
     MessageSenderType? senderType,
   }) async {
-    
+
     try {
+      debugPrint('🔍 DEBUG SEND MESSAGE - Début');
+      debugPrint('💬 conversationId: $conversationId');
+      debugPrint('👤 senderId: $senderId');
+      debugPrint('📝 content: $content');
+
       // Déterminer automatiquement le sender_type si pas fourni
       String senderTypeString;
       if (senderType != null) {
@@ -362,8 +369,9 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         // Auto-détection intelligente : vérifier le rôle dans cette conversation spécifique
         senderTypeString = await _determineSenderTypeInConversation(senderId, conversationId);
       }
-      
-      
+
+      debugPrint('🏷️ senderTypeString: $senderTypeString');
+
       final messageData = {
         'conversation_id': conversationId,
         'sender_id': senderId,
@@ -379,13 +387,17 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         // 'created_at' et 'updated_at' seront générés automatiquement par Supabase
       };
 
+      debugPrint('📦 messageData: $messageData');
+
       final response = await _supabaseClient
           .from('messages')
           .insert(messageData)
           .select()
           .single();
 
-      
+      debugPrint('✅ Message inséré avec succès: ${response['id']}');
+      debugPrint('🕒 created_at: ${response['created_at']}');
+
       // Mettre à jour la conversation avec le bon sender type
       await _updateConversationLastMessage(conversationId, content, senderTypeString);
 
@@ -398,9 +410,14 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
         await incrementUnreadCountForUser(conversationId: conversationId);
       }
 
+      // Envoyer une notification au destinataire
+      await _sendMessageNotification(conversationId, senderId, content, senderTypeString);
+
+      debugPrint('🚀 DEBUG SEND MESSAGE - Fin avec succès');
       return Message.fromJson(_mapSupabaseToMessage(response));
-      
+
     } catch (e) {
+      debugPrint('❌ DEBUG SEND MESSAGE - Erreur: $e');
       throw ServerException('Erreur lors de l\'envoi du message: $e');
     }
   }
@@ -537,13 +554,30 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }) async {
 
     try {
-      await _supabaseClient
-          .from('conversations')
-          .update({'unread_count_for_user': 'unread_count_for_user + 1'})
-          .eq('id', conversationId);
+      // Utiliser rpc pour les incrémentations atomiques
+      await _supabaseClient.rpc('increment_unread_count_for_user', params: {
+        'conversation_id_param': conversationId,
+      });
 
     } catch (e) {
-      throw ServerException('Erreur lors de l\'incrémentation du compteur particulier: $e');
+      // Fallback : récupérer et incrémenter manuellement
+      try {
+        final response = await _supabaseClient
+            .from('conversations')
+            .select('unread_count_for_user')
+            .eq('id', conversationId)
+            .single();
+
+        final currentCount = (response['unread_count_for_user'] as int?) ?? 0;
+
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_user': currentCount + 1})
+            .eq('id', conversationId);
+
+      } catch (fallbackError) {
+        throw ServerException('Erreur lors de l\'incrémentation du compteur particulier: $fallbackError');
+      }
     }
   }
 
@@ -553,13 +587,30 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
   }) async {
 
     try {
-      await _supabaseClient
-          .from('conversations')
-          .update({'unread_count_for_seller': 'unread_count_for_seller + 1'})
-          .eq('id', conversationId);
+      // Utiliser rpc pour les incrémentations atomiques
+      await _supabaseClient.rpc('increment_unread_count_for_seller', params: {
+        'conversation_id_param': conversationId,
+      });
 
     } catch (e) {
-      throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $e');
+      // Fallback : récupérer et incrémenter manuellement
+      try {
+        final response = await _supabaseClient
+            .from('conversations')
+            .select('unread_count_for_seller')
+            .eq('id', conversationId)
+            .single();
+
+        final currentCount = (response['unread_count_for_seller'] as int?) ?? 0;
+
+        await _supabaseClient
+            .from('conversations')
+            .update({'unread_count_for_seller': currentCount + 1})
+            .eq('id', conversationId);
+
+      } catch (fallbackError) {
+        throw ServerException('Erreur lors de l\'incrémentation du compteur vendeur: $fallbackError');
+      }
     }
   }
 
@@ -1001,6 +1052,165 @@ class ConversationsRemoteDataSourceImpl implements ConversationsRemoteDataSource
       
     } catch (e) {
       throw ServerException('Erreur lors de la création de la conversation: $e');
+    }
+  }
+
+  /// Envoie une notification de nouveau message
+  Future<void> _sendMessageNotification(
+    String conversationId,
+    String senderId,
+    String content,
+    String senderType,
+  ) async {
+    try {
+      debugPrint('📤 Envoi notification de message...');
+
+      // Récupérer les infos de la conversation pour connaître les participants
+      final conversationResponse = await _supabaseClient
+        .from('conversations')
+        .select('user_id, seller_id')
+        .eq('id', conversationId)
+        .single();
+
+      final userId = conversationResponse['user_id'] as String;
+      final sellerId = conversationResponse['seller_id'] as String;
+
+      // Déterminer qui est le destinataire (pas l'expéditeur)
+      // IMPORTANT: Pour les particuliers, leur User ID peut changer à cause de l'auth anonyme
+      // On doit vérifier par le senderType plutôt que par l'User ID exact
+      String recipientId;
+      if (senderType == 'user') {
+        // L'expéditeur est un particulier → destinataire = seller
+        recipientId = sellerId;
+      } else {
+        // L'expéditeur est un seller → destinataire = user (particulier)
+        recipientId = userId;
+      }
+
+      // Récupérer le nom de l'expéditeur
+      String senderName = 'Un utilisateur';
+      if (senderType == 'seller') {
+        // L'expéditeur est un vendeur
+        final sellerInfo = await _getSellerInfo(senderId);
+        if (sellerInfo != null) {
+          final firstName = sellerInfo['first_name'] ?? '';
+          final lastName = sellerInfo['last_name'] ?? '';
+          final companyName = sellerInfo['company_name'] ?? '';
+
+          if (companyName.isNotEmpty) {
+            senderName = companyName;
+          } else if (firstName.isNotEmpty || lastName.isNotEmpty) {
+            senderName = '$firstName $lastName'.trim();
+          }
+        }
+      } else {
+        // L'expéditeur est un particulier - utiliser device_id pour récupérer les infos
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final deviceService = DeviceService(prefs);
+          final currentDeviceId = await deviceService.getDeviceId();
+
+          // Récupérer les infos du particulier par device_id
+          final userInfo = await _supabaseClient
+            .from('particuliers')
+            .select('first_name, last_name')
+            .eq('device_id', currentDeviceId)
+            .maybeSingle();
+
+          if (userInfo != null) {
+            final firstName = userInfo['first_name'] ?? '';
+            final lastName = userInfo['last_name'] ?? '';
+
+            if (firstName.isNotEmpty || lastName.isNotEmpty) {
+              senderName = '$firstName $lastName'.trim();
+            } else {
+              senderName = 'Particulier';
+            }
+          } else {
+            senderName = 'Particulier';
+          }
+        } catch (e) {
+          senderName = 'Particulier';
+        }
+      }
+
+      // Tronquer le message si trop long
+      String messagePreview = content;
+      if (messagePreview.length > 50) {
+        messagePreview = '${messagePreview.substring(0, 50)}...';
+      }
+
+      debugPrint('📤 Notification: $senderName → $recipientId');
+      debugPrint('📝 Message: $messagePreview');
+      debugPrint('🎯 Sender: $senderId ($senderType)');
+      debugPrint('🎯 Recipient User ID: $recipientId');
+
+      // Envoyer la notification - Utiliser device_id pour TOUS les particuliers
+      final notificationService = SendNotificationService.instance;
+
+      // Déterminer si le destinataire est un particulier ou un seller
+      // Les sellers ont un User ID dans la table 'sellers'
+      final sellerCheck = await _supabaseClient
+        .from('sellers')
+        .select('id')
+        .eq('id', recipientId)
+        .maybeSingle();
+
+      if (sellerCheck != null) {
+        // C'est un seller - envoyer par user_id classique
+        debugPrint('📤 Seller détecté, envoi par user_id');
+        await notificationService.sendMessageNotification(
+          toUserId: recipientId,
+          fromUserName: senderName,
+          messagePreview: messagePreview,
+          conversationId: conversationId,
+        );
+      } else {
+        // C'est un particulier - TOUJOURS envoyer par device_id
+        debugPrint('👤 Particulier détecté, recherche device_id...');
+
+        // Récupérer le device_id du destinataire particulier
+        // Pour cela, on recherche dans la table particuliers par user_id
+        debugPrint('🔍 Recherche device_id du destinataire $recipientId...');
+
+        try {
+          // Récupérer le device_id du destinataire depuis particuliers
+          final particulierInfo = await _supabaseClient
+            .from('particuliers')
+            .select('device_id')
+            .eq('id', recipientId)
+            .maybeSingle();
+
+          if (particulierInfo != null && particulierInfo['device_id'] != null) {
+            final deviceId = particulierInfo['device_id'] as String;
+            debugPrint('✅ Device_id trouvé: $deviceId');
+
+            await notificationService.sendMessageNotificationByDeviceId(
+              deviceId: deviceId,
+              fromUserName: senderName,
+              messagePreview: messagePreview,
+              conversationId: conversationId,
+            );
+          } else {
+            debugPrint('⚠️ Aucun device_id trouvé pour ce particulier');
+            throw Exception('Device ID non trouvé');
+          }
+        } catch (e) {
+          debugPrint('❌ Erreur récupération device_id: $e');
+          // Fallback vers user_id si problème avec device_id
+          await notificationService.sendMessageNotification(
+            toUserId: recipientId,
+            fromUserName: senderName,
+            messagePreview: messagePreview,
+            conversationId: conversationId,
+          );
+        }
+      }
+
+      debugPrint('✅ Notification envoyée avec succès');
+    } catch (e) {
+      debugPrint('⚠️ Erreur envoi notification: $e');
+      // Ne pas faire échouer l'envoi du message si la notification échoue
     }
   }
 }

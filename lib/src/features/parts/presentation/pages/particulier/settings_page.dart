@@ -7,6 +7,8 @@ import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../../domain/entities/user_settings.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/services/notification_manager.dart';
+import '../../../../../core/services/send_notification_service.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -121,9 +123,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 
                 // Section Contact
                 _buildContactSection(),
-                
+
                 const SizedBox(height: 24),
-                
+
+                // Section Test des Notifications
+                _buildNotificationTestSection(),
+
+                const SizedBox(height: 24),
+
                 // Bouton Sauvegarder
                 _buildSaveButton(),
               ],
@@ -432,6 +439,215 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationTestSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.warning.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.bug_report_outlined,
+                  color: AppTheme.warning,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Test Notifications',
+                  style: TextStyle(
+                    color: AppTheme.darkBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            'Utilisez ces outils pour tester et diagnostiquer les notifications push.',
+            style: TextStyle(
+              color: AppTheme.gray,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Bouton pour vérifier les permissions
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final manager = NotificationManager.instance;
+                final hasPermissions = await manager.checkAndRequestPermissions();
+
+                if (!mounted) return;
+                if (!hasPermissions) {
+                  notificationService.error(
+                    context,
+                    'Notifications désactivées',
+                    subtitle: 'Activez-les dans Paramètres > Apps > Notifications'
+                  );
+                } else {
+                  notificationService.success(
+                    context,
+                    'Notifications activées ✅'
+                  );
+                }
+              },
+              icon: const Icon(Icons.settings, size: 20),
+              label: const Text('Vérifier les permissions'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.warning,
+                side: const BorderSide(color: AppTheme.warning, width: 1),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Bouton de diagnostic complet
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final manager = NotificationManager.instance;
+                await manager.runTest();
+                if (!mounted) return;
+                notificationService.info(context, 'Test terminé', subtitle: 'Vérifiez les logs');
+              },
+              icon: const Icon(Icons.health_and_safety, size: 20),
+              label: const Text('Lancer le diagnostic complet'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.warning,
+                foregroundColor: AppTheme.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Bouton de test de notification
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                if (!mounted) return;
+                notificationService.info(
+                  context,
+                  'Envoi en cours...',
+                  subtitle: 'Une notification va arriver'
+                );
+
+                final sendService = SendNotificationService.instance;
+                final success = await sendService.sendTestNotification();
+
+                if (!mounted) return;
+                if (success) {
+                  notificationService.success(
+                    context,
+                    'Notification envoyée !',
+                    subtitle: 'Vérifiez votre barre de notifications'
+                  );
+                } else {
+                  notificationService.error(
+                    context,
+                    'Échec de l\'envoi',
+                    subtitle: 'Vérifiez la configuration'
+                  );
+                }
+              },
+              icon: const Icon(Icons.notifications_active, size: 20),
+              label: const Text('Tester l\'envoi de notification'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryBlue,
+                side: const BorderSide(color: AppTheme.primaryBlue, width: 1),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Note d'information
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: AppTheme.primaryBlue,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Les résultats détaillés s\'affichent dans la console de debug. Assurez-vous d\'avoir activé les notifications dans les paramètres Android.',
+                    style: TextStyle(
+                      color: AppTheme.darkGray,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
