@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
@@ -106,39 +106,26 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
 
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryBlue,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text(
-          'Rechercher une pièce',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.white,
+      body: Column(
+        children: [
+          SellerHeader(
+            title: 'Rechercher une pièce',
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
+                onPressed: () => context.go('/seller/add'),
+                tooltip: 'Retour',
+              ),
+            ],
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.white),
-          onPressed: () => context.go('/seller/add'),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-        actions: const [
-          Padding(padding: EdgeInsets.only(right: 8), child: SellerMenu()),
+          Expanded(child: _buildBody(context, vehicleState, isSearching, requestState, isLoading)),
         ],
       ),
-      body: SingleChildScrollView(
+    );
+  }
+
+  Widget _buildBody(BuildContext context, VehicleSearchState vehicleState, bool isSearching, PartRequestState requestState, bool isLoading) {
+    return SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
@@ -319,7 +306,6 @@ class _SellerCreateRequestPageState extends ConsumerState<SellerCreateRequestPag
             ),
           ],
         ),
-      ),
     );
   }
 

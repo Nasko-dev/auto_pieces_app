@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/seller_header.dart';
 
 class SellerInitialChoicePage extends ConsumerWidget {
   const SellerInitialChoicePage({super.key});
@@ -11,37 +11,19 @@ class SellerInitialChoicePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryBlue,
-        elevation: 0,
-        title: const Text(
-          'Espace Professionnel',
-          style: TextStyle(
-            color: AppTheme.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
-          ),
-        ),
-        centerTitle: false,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryBlue,
-                AppTheme.primaryBlue.withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-        ),
-        actions: const [
-          Padding(padding: EdgeInsets.only(right: 8), child: SellerMenu()),
+      body: Column(
+        children: [
+          const SellerHeader(title: 'Espace Professionnel'),
+          Expanded(child: _buildBody(context)),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -148,7 +130,6 @@ class SellerInitialChoicePage extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
