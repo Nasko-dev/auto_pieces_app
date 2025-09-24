@@ -95,7 +95,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               initial: () => _buildDefaultAvatar(),
               loading: () => _buildDefaultAvatar(),
               anonymousAuthenticated: (particulier) {
-                final avatarUrl = particulier.avatar_url ?? _userSettings?.avatarUrl;
+                final avatarUrl = particulier.avatarUrl ?? _userSettings?.avatarUrl;
 
                 if (avatarUrl != null && avatarUrl.isNotEmpty) {
                   return ClipRRect(

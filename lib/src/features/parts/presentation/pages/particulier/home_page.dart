@@ -8,7 +8,6 @@ import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
-import '../../../domain/entities/user_settings.dart';
 import '../../../../../core/services/notification_service.dart';
 
 // Provider pour le client Supabase
@@ -34,7 +33,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   String _selectedType = 'engine';
   bool _isManualMode = false;
   bool _showDescription = false;
-  UserSettings? _userSettings;
 
   final _plate = TextEditingController();
   final _partController = TextEditingController();
@@ -98,9 +96,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       (failure) => null,
       (settings) {
         if (settings != null && mounted) {
-          setState(() {
-            _userSettings = settings;
-          });
+          // UserSettings loaded successfully
         }
       },
     );
