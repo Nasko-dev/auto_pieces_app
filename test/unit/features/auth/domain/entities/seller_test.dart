@@ -508,7 +508,7 @@ void main() {
         final longString = 'a' * 1000;
         final seller = Seller(
           id: longString,
-          email: '${longString}@example.com',
+          email: '$longString@example.com',
           firstName: longString,
           lastName: longString,
           companyName: longString,
