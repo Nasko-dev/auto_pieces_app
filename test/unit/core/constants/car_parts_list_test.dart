@@ -28,7 +28,7 @@ void main() {
         expect(parts, contains('Disques de frein'));
 
         // Vérifier quelques pièces carrosserie
-        expect(parts, contains('Pare-chocs'));
+        expect(parts, contains('Pare-chocs avant'));
         expect(parts, contains('Capot'));
       });
 
@@ -63,9 +63,9 @@ void main() {
         final bodyParts = CarPartsList.getPartsByCategory('carrosserie');
 
         expect(bodyParts, isNotEmpty);
-        expect(bodyParts, contains('Pare-chocs'));
+        expect(bodyParts, contains('Pare-chocs avant'));
         expect(bodyParts, contains('Capot'));
-        expect(bodyParts, contains('Aile'));
+        expect(bodyParts, contains('Aile avant droite'));
       });
 
       test('should return empty list for unknown category', () {
