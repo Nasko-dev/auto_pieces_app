@@ -93,15 +93,25 @@ void main() {
       });
 
       test('should return full name when no company but has first and last name', () {
-        final seller = testSeller.copyWith(companyName: null);
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          firstName: 'Jean',
+          lastName: 'Martin',
+          companyName: null,
+          createdAt: testCreatedAt,
+        );
         expect(seller.displayName, 'Jean Martin');
       });
 
       test('should return email username when no company or names', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'seller@example.com',
           companyName: null,
           firstName: null,
           lastName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.displayName, 'seller');
       });
@@ -125,37 +135,49 @@ void main() {
       });
 
       test('should handle only firstName available', () {
-        final seller = testSeller.copyWith(
-          companyName: null,
+        final seller = Seller(
+          id: 'test-id',
+          email: 'seller@example.com',
+          firstName: 'Jean',
           lastName: null,
+          companyName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.displayName, 'seller');
       });
 
       test('should handle only lastName available', () {
-        final seller = testSeller.copyWith(
-          companyName: null,
+        final seller = Seller(
+          id: 'test-id',
+          email: 'seller@example.com',
           firstName: null,
+          lastName: 'Martin',
+          companyName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.displayName, 'seller');
       });
 
       test('should handle email with special characters', () {
-        final seller = testSeller.copyWith(
-          companyName: null,
+        final seller = Seller(
+          id: 'test-id',
+          email: 'user+test@example-domain.co.uk',
           firstName: null,
           lastName: null,
-          email: 'user+test@example-domain.co.uk',
+          companyName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.displayName, 'user+test');
       });
 
       test('should handle email without @ symbol gracefully', () {
-        final seller = testSeller.copyWith(
-          companyName: null,
+        final seller = Seller(
+          id: 'test-id',
+          email: 'invalid-email',
           firstName: null,
           lastName: null,
-          email: 'invalid-email',
+          companyName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.displayName, 'invalid-email');
       });
@@ -167,30 +189,57 @@ void main() {
       });
 
       test('should return false when companyName is missing', () {
-        final seller = testSeller.copyWith(companyName: null);
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          companyName: null,
+          siret: '12345678901234',
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasCompanyInfo, false);
       });
 
       test('should return false when siret is missing', () {
-        final seller = testSeller.copyWith(siret: null);
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          companyName: 'Pièces Auto SARL',
+          siret: null,
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasCompanyInfo, false);
       });
 
       test('should return false when both companyName and siret are missing', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
           companyName: null,
           siret: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.hasCompanyInfo, false);
       });
 
       test('should return false when companyName is empty string', () {
-        final seller = testSeller.copyWith(companyName: '');
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          companyName: '',
+          siret: '12345678901234',
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasCompanyInfo, false);
       });
 
       test('should return false when siret is empty string', () {
-        final seller = testSeller.copyWith(siret: '');
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          companyName: 'Pièces Auto SARL',
+          siret: '',
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasCompanyInfo, false);
       });
     });
@@ -201,19 +250,34 @@ void main() {
       });
 
       test('should return false when firstName is missing', () {
-        final seller = testSeller.copyWith(firstName: null);
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          firstName: null,
+          lastName: 'Martin',
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasPersonalInfo, false);
       });
 
       test('should return false when lastName is missing', () {
-        final seller = testSeller.copyWith(lastName: null);
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
+          firstName: 'Jean',
+          lastName: null,
+          createdAt: testCreatedAt,
+        );
         expect(seller.hasPersonalInfo, false);
       });
 
       test('should return false when both firstName and lastName are missing', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
           firstName: null,
           lastName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.hasPersonalInfo, false);
       });
@@ -249,31 +313,40 @@ void main() {
       });
 
       test('should return false when has neither company nor personal info', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
           companyName: null,
           siret: null,
           firstName: null,
           lastName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.isCompleteProfile, false);
       });
 
       test('should return false when has incomplete company info only', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
           companyName: 'Company Name',
           siret: null,
           firstName: null,
           lastName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.isCompleteProfile, false);
       });
 
       test('should return false when has incomplete personal info only', () {
-        final seller = testSeller.copyWith(
+        final seller = Seller(
+          id: 'test-id',
+          email: 'test@example.com',
           companyName: null,
           siret: null,
           firstName: 'Jean',
           lastName: null,
+          createdAt: testCreatedAt,
         );
         expect(seller.isCompleteProfile, false);
       });
