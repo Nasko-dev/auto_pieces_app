@@ -10,10 +10,10 @@ class TestableImmatriculationService extends ImmatriculationService {
   final String testBaseUrl;
 
   TestableImmatriculationService({
-    required String apiUsername,
+    required super.apiUsername,
     required this.testBaseUrl,
-    http.Client? httpClient,
-  }) : super(apiUsername: apiUsername, httpClient: httpClient);
+    super.httpClient,
+  });
 
   @override
   Future<Either<Failure, VehicleInfo>> getVehicleInfoFromPlate(String plate) async {
