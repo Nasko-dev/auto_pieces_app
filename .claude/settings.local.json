@@ -35,7 +35,10 @@
       "Bash(git reset:*)",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(genhtml:*)",
+      "Bash(powershell:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": [],
