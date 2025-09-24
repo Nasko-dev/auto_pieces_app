@@ -54,31 +54,31 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
           ),
           child: SafeArea(
             child: Container(
-              height: 60,
+              height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavItem(
                     context: context,
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home,
+                    icon: Icons.home_rounded,
+                    selectedIcon: Icons.home_rounded,
                     label: 'Accueil',
                     route: '/home',
                     index: 0,
                   ),
                   _buildNavItem(
                     context: context,
-                    icon: Icons.description_outlined,
-                    selectedIcon: Icons.description,
+                    icon: Icons.assignment_outlined,
+                    selectedIcon: Icons.assignment_rounded,
                     label: 'Demandes',
                     route: '/requests',
                     index: 1,
                   ),
                   _buildNavItem(
                     context: context,
-                    icon: Icons.chat_bubble_outline,
-                    selectedIcon: Icons.chat_bubble,
+                    icon: Icons.forum_outlined,
+                    selectedIcon: Icons.forum_rounded,
                     label: 'Messages',
                     route: '/messages-clients',
                     index: 2,
@@ -86,8 +86,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                   ),
                   _buildNavItem(
                     context: context,
-                    icon: Icons.store_outlined,
-                    selectedIcon: Icons.store,
+                    icon: Icons.storefront_outlined,
+                    selectedIcon: Icons.storefront_rounded,
                     label: 'Vendeur',
                     route: '/become-seller',
                     index: 3,
@@ -119,45 +119,31 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
           onTap: () => context.go(route),
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Icon(
-                      isSelected ? selectedIcon : icon,
-                      size: 22,
-                      color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
-                    ),
-                    // Point rouge pour messages non lus
-                    if (hasUnread)
-                      Positioned(
-                        right: -2,
-                        top: -2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF3B30),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                Center(
+                  child: Icon(
+                    isSelected ? selectedIcon : icon,
+                    size: 26,
                     color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
+                // Point rouge pour messages non lus
+                if (hasUnread)
+                  Positioned(
+                    right: -4,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF3B30),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

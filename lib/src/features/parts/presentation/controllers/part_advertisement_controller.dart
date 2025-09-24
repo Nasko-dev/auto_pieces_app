@@ -91,29 +91,33 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
     try {
       // Vérifier si le controller n'a pas été dispose
       if (!mounted) return;
-      
+
       state = state.copyWith(isLoading: true, error: null);
 
       final result = await _repository.getMyPartAdvertisements();
 
       // Vérifier si le controller n'a pas été dispose après l'appel async
       if (!mounted) return;
-      
+
       result.fold(
-        (failure) => state = state.copyWith(
-          isLoading: false,
-          error: failure.message,
-        ),
-        (advertisements) => state = state.copyWith(
-          isLoading: false,
-          advertisements: advertisements,
-          error: null,
-        ),
+        (failure) {
+          state = state.copyWith(
+            isLoading: false,
+            error: failure.message,
+          );
+        },
+        (advertisements) {
+          state = state.copyWith(
+            isLoading: false,
+            advertisements: advertisements,
+            error: null,
+          );
+        },
       );
     } catch (e) {
       // Vérifier si le controller n'a pas été dispose
       if (!mounted) return;
-      
+
       state = state.copyWith(
         isLoading: false,
         error: 'Erreur inattendue: $e',

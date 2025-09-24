@@ -210,28 +210,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedCountry,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.gray),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // DropdownButton avec Container - CORRECTION DEFINITIVE pour GitHub Actions
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.gray),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                items: _countries.map((country) {
-                  return DropdownMenuItem(
-                    value: country,
-                    child: Text(country),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedCountry = value;
-                    });
-                  }
-                },
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: DropdownButton<String>(
+                  value: _selectedCountry,
+                  isExpanded: true,
+                  underline: const SizedBox.shrink(),
+                  items: _countries.map((country) {
+                    return DropdownMenuItem(
+                      value: country,
+                      child: Text(country),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedCountry = value;
+                      });
+                    }
+                  },
+                ),
               ),
             ],
           ),

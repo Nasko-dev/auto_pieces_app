@@ -31,7 +31,14 @@
       "Bash(git log:*)",
       "Bash(dart analyze:*)",
       "Bash(git checkout:*)",
-      "Bash(npx supabase functions deploy:*)"
+      "Bash(echo:*)",
+      "Bash(git reset:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(grep:*)",
+      "Bash(genhtml:*)",
+      "Bash(powershell:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": [],

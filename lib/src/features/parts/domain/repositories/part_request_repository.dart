@@ -52,5 +52,9 @@ abstract class PartRequestRepository {
   });
   Future<Either<Failure, void>> markParticulierConversationAsRead(String conversationId);
   Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId});
+  Future<Either<Failure, void>> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  });
   Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId});
 }

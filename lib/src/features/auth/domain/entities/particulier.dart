@@ -10,6 +10,7 @@ class Particulier extends Equatable {
   final String? address;
   final String? city;
   final String? zipCode;
+  final String? avatarUrl;
   final bool isVerified;
   final bool isActive;
   final bool isAnonymous;
@@ -27,6 +28,7 @@ class Particulier extends Equatable {
     this.address,
     this.city,
     this.zipCode,
+    this.avatarUrl,
     this.isVerified = false,
     this.isActive = true,
     this.isAnonymous = true,
@@ -38,6 +40,9 @@ class Particulier extends Equatable {
   String get displayName {
     if (firstName != null && lastName != null) {
       return '$firstName $lastName';
+    }
+    if (firstName != null) {
+      return firstName!;
     }
     if (email != null) {
       return email!.split('@').first;
@@ -58,6 +63,7 @@ class Particulier extends Equatable {
     String? address,
     String? city,
     String? zipCode,
+    String? avatarUrl,
     bool? isVerified,
     bool? isActive,
     bool? isAnonymous,
@@ -75,6 +81,7 @@ class Particulier extends Equatable {
       address: address ?? this.address,
       city: city ?? this.city,
       zipCode: zipCode ?? this.zipCode,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       isVerified: isVerified ?? this.isVerified,
       isActive: isActive ?? this.isActive,
       isAnonymous: isAnonymous ?? this.isAnonymous,
@@ -95,6 +102,7 @@ class Particulier extends Equatable {
         address,
         city,
         zipCode,
+        avatarUrl,
         isVerified,
         isActive,
         isAnonymous,
