@@ -221,7 +221,7 @@ void main() {
         expect(seller.hasCompanyInfo, false);
       });
 
-      test('should return false when companyName is empty string', () {
+      test('should return true even when companyName is empty string', () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',
@@ -229,10 +229,11 @@ void main() {
           siret: '12345678901234',
           createdAt: testCreatedAt,
         );
-        expect(seller.hasCompanyInfo, false);
+        // hasCompanyInfo vérifie seulement null, pas les chaînes vides
+        expect(seller.hasCompanyInfo, true);
       });
 
-      test('should return false when siret is empty string', () {
+      test('should return true even when siret is empty string', () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',
@@ -240,7 +241,8 @@ void main() {
           siret: '',
           createdAt: testCreatedAt,
         );
-        expect(seller.hasCompanyInfo, false);
+        // hasCompanyInfo vérifie seulement null, pas les chaînes vides
+        expect(seller.hasCompanyInfo, true);
       });
     });
 
@@ -558,7 +560,7 @@ void main() {
         expect(seller.siret, '');
         expect(seller.displayName, ' '); // firstName + ' ' + lastName
         expect(seller.hasPersonalInfo, true); // both are non-null
-        expect(seller.hasCompanyInfo, false); // empty strings are falsy
+        expect(seller.hasCompanyInfo, true); // both are non-null, même si vides
       });
 
       test('should handle special characters in names and company', () {
