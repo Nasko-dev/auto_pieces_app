@@ -12,7 +12,7 @@ class SellerMenu extends ConsumerWidget {
     return PopupMenuButton<String>(
       icon: const Icon(
         Icons.more_vert,
-        color: Colors.white,
+        color: AppTheme.darkGray,
       ),
       elevation: 8,
       shape: RoundedRectangleBorder(

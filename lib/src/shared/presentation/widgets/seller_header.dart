@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'app_menu.dart';
+import '../../../core/providers/seller_settings_providers.dart';
+import '../../../features/parts/domain/entities/seller_settings.dart';
+import 'seller_menu.dart';
 
-class SellerHeader extends ConsumerWidget {
+class SellerHeader extends ConsumerStatefulWidget {
   const SellerHeader({
     super.key,
     this.title,
@@ -21,45 +23,77 @@ class SellerHeader extends ConsumerWidget {
   final List<Widget>? actions;
   final bool centerTitle;
 
+  @override
+  ConsumerState<SellerHeader> createState() => _SellerHeaderState();
+}
+
+class _SellerHeaderState extends ConsumerState<SellerHeader> {
   static const Color _blue = Color(0xFF1976D2);
   static const Color _textDark = Color(0xFF1C1C1E);
   static const Color _textGray = Color(0xFF6B7280);
 
+  SellerSettings? _sellerSettings;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _loadSellerSettings();
+  }
+
+  void _loadSellerSettings() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
+
+    final getSellerSettings = ref.read(getSellerSettingsProvider);
+    final result = await getSellerSettings(currentUser.id);
+
+    result.fold(
+      (failure) => null,
+      (settings) {
+        if (settings != null && mounted) {
+          setState(() {
+            _sellerSettings = settings;
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 30),
-      margin: const EdgeInsets.only(bottom: 16),
-      color: backgroundColor ?? Colors.white,
+      padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 0),
+      margin: const EdgeInsets.only(bottom: 0),
+      color: widget.backgroundColor ?? Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: title != null
+        child: widget.title != null
             ? _buildTitleHeader(context)
-            : _buildProfileHeader(ref),
+            : _buildProfileHeader(),
       ),
     );
   }
 
-  Widget _buildProfileHeader(WidgetRef ref) {
+  Widget _buildProfileHeader() {
     return Row(
       children: [
         // Avatar vendeur
-        _buildSellerAvatar(ref),
+        _buildSellerAvatar(),
         const SizedBox(width: 16),
 
         // Section texte avec données vendeur
         Expanded(
-          child: _buildSellerInfo(ref),
+          child: _buildSellerInfo(),
         ),
 
         // Actions personnalisées ou menu
-        if (actions != null)
-          ...actions!
+        if (widget.actions != null)
+          ...widget.actions!
         else
-          const AppMenu(),
+          const SellerMenu(),
       ],
     );
   }
@@ -68,9 +102,9 @@ class SellerHeader extends ConsumerWidget {
     return Row(
       children: [
         // Bouton retour si demandé
-        if (showBackButton)
+        if (widget.showBackButton)
           GestureDetector(
-            onTap: onBackPressed ?? () => Navigator.of(context).pop(),
+            onTap: widget.onBackPressed ?? () => Navigator.of(context).pop(),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -85,14 +119,14 @@ class SellerHeader extends ConsumerWidget {
             ),
           ),
 
-        if (showBackButton) const SizedBox(width: 16),
+        if (widget.showBackButton) const SizedBox(width: 16),
 
         // Titre
-        if (centerTitle)
+        if (widget.centerTitle)
           Expanded(
             child: Center(
               child: Text(
-                title!,
+                widget.title!,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -104,7 +138,7 @@ class SellerHeader extends ConsumerWidget {
         else
           Expanded(
             child: Text(
-              title!,
+              widget.title!,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -114,19 +148,18 @@ class SellerHeader extends ConsumerWidget {
           ),
 
         // Actions personnalisées
-        if (actions != null)
-          Row(children: actions!)
-        else if (!centerTitle)
-          const AppMenu(),
+        if (widget.actions != null)
+          Row(children: widget.actions!)
+        else if (!widget.centerTitle)
+          const SellerMenu(),
       ],
     );
   }
 
-  Widget _buildSellerAvatar(WidgetRef ref) {
-    final user = Supabase.instance.client.auth.currentUser;
-
-    // Essayer d'utiliser l'avatar de l'utilisateur connecté
-    final avatarUrl = user?.userMetadata?['avatar_url'] as String?;
+  Widget _buildSellerAvatar() {
+    // Utiliser l'avatar des paramètres vendeur ou fallback utilisateur auth
+    final avatarUrl = _sellerSettings?.avatarUrl ??
+                     Supabase.instance.client.auth.currentUser?.userMetadata?['avatar_url'] as String?;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return ClipRRect(
@@ -150,27 +183,28 @@ class SellerHeader extends ConsumerWidget {
     }
   }
 
-  Widget _buildSellerInfo(WidgetRef ref) {
-    final user = Supabase.instance.client.auth.currentUser;
+  Widget _buildSellerInfo() {
+    // Utiliser le nom de l'entreprise des paramètres vendeur ou fallback
+    String displayName = _sellerSettings?.companyName ?? 'Entreprise';
 
-    // Récupérer le nom d'affichage depuis les métadonnées ou l'email
-    String displayName = 'Vendeur';
+    // Si pas de nom d'entreprise, utiliser les données auth
+    if (displayName == 'Entreprise' || displayName.isEmpty) {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final fullName = user.userMetadata?['full_name'] as String?;
+        final firstName = user.userMetadata?['first_name'] as String?;
+        final lastName = user.userMetadata?['last_name'] as String?;
 
-    if (user != null) {
-      final fullName = user.userMetadata?['full_name'] as String?;
-      final firstName = user.userMetadata?['first_name'] as String?;
-      final lastName = user.userMetadata?['last_name'] as String?;
-
-      if (fullName != null && fullName.isNotEmpty) {
-        displayName = fullName;
-      } else if (firstName != null && firstName.isNotEmpty) {
-        displayName = firstName;
-        if (lastName != null && lastName.isNotEmpty) {
-          displayName += ' $lastName';
+        if (fullName != null && fullName.isNotEmpty) {
+          displayName = fullName;
+        } else if (firstName != null && firstName.isNotEmpty) {
+          displayName = firstName;
+          if (lastName != null && lastName.isNotEmpty) {
+            displayName += ' $lastName';
+          }
+        } else if (user.email != null) {
+          displayName = user.email!.split('@').first;
         }
-      } else if (user.email != null) {
-        // Utiliser la première partie de l'email comme fallback
-        displayName = user.email!.split('@').first;
       }
     }
 
@@ -178,7 +212,7 @@ class SellerHeader extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Espace Vendeur',
+          'Bienvenue',
           style: TextStyle(
             color: _textGray,
             fontSize: 14,
