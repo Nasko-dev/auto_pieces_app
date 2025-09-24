@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
+import '../../../../core/services/notification_service.dart';
 
 class SellerForgotPasswordPage extends ConsumerStatefulWidget {
   const SellerForgotPasswordPage({super.key});
@@ -53,12 +54,9 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
         },
         error: (message) {
           // Affichage de l'erreur
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (context.mounted) {
+            notificationService.error(context, message);
+          }
         },
       );
     });

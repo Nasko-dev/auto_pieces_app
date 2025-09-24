@@ -20,6 +20,8 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
       case '/seller/home':
         return 0;
       case '/seller/add':
+      case '/seller/create-ad':
+      case '/seller/create-request':
         return 1;
       case '/seller/ads':
         return 2;

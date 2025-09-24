@@ -8,6 +8,7 @@ import '../../domain/entities/seller_response.dart';
 import '../../domain/usecases/create_part_request.dart';
 import '../../domain/usecases/get_user_part_requests.dart';
 import '../../domain/usecases/get_part_request_responses.dart';
+import '../../domain/usecases/delete_part_request.dart';
 
 part 'part_request_controller.freezed.dart';
 
@@ -19,6 +20,7 @@ class PartRequestState with _$PartRequestState {
     @Default(false) bool isLoading,
     @Default(false) bool isCreating,
     @Default(false) bool isLoadingResponses,
+    @Default(false) bool isDeleting,
     String? error,
     PartRequest? selectedRequest,
   }) = _PartRequestState;
@@ -28,22 +30,25 @@ class PartRequestController extends StateNotifier<PartRequestState> {
   final CreatePartRequest _createPartRequest;
   final GetUserPartRequests _getUserPartRequests;
   final GetPartRequestResponses _getPartRequestResponses;
+  final DeletePartRequest _deletePartRequest;
   final Ref _ref;
 
   PartRequestController({
     required CreatePartRequest createPartRequest,
     required GetUserPartRequests getUserPartRequests,
     required GetPartRequestResponses getPartRequestResponses,
+    required DeletePartRequest deletePartRequest,
     required Ref ref,
   })  : _createPartRequest = createPartRequest,
         _getUserPartRequests = getUserPartRequests,
         _getPartRequestResponses = getPartRequestResponses,
+        _deletePartRequest = deletePartRequest,
         _ref = ref,
         super(const PartRequestState());
 
   // Créer une nouvelle demande
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
-    
+
     // Vérifier d'abord s'il y a déjà une demande active
     final repository = _ref.read(partRequestRepositoryProvider);
     final hasActiveResult = await repository.hasActivePartRequest();
@@ -52,9 +57,11 @@ class PartRequestController extends StateNotifier<PartRequestState> {
       (failure) {
         return false; // En cas d'erreur, on laisse continuer
       },
-      (hasActive) => hasActive,
+      (hasActive) {
+        return hasActive;
+      },
     );
-    
+
     if (hasActive) {
       state = state.copyWith(
         isCreating: false,
@@ -96,18 +103,21 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
   // Charger les demandes de l'utilisateur
   Future<void> loadUserPartRequests() async {
+    
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _getUserPartRequests(NoParams());
 
     result.fold(
       (failure) {
+        
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (requests) {
+        
         state = state.copyWith(
           isLoading: false,
           requests: requests,
@@ -180,6 +190,40 @@ class PartRequestController extends StateNotifier<PartRequestState> {
       'fulfilled': requests.where((r) => r.status == 'fulfilled').length,
     };
   }
+
+  // Supprimer une demande
+  Future<bool> deletePartRequest(String requestId) async {
+    state = state.copyWith(isDeleting: true, error: null);
+
+    final result = await _deletePartRequest(requestId);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isDeleting: false,
+          error: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        // Supprimer la demande de la liste locale
+        final updatedRequests = state.requests
+            .where((request) => request.id != requestId)
+            .toList();
+
+        state = state.copyWith(
+          isDeleting: false,
+          requests: updatedRequests,
+          error: null,
+        );
+
+        // Mettre à jour le statut des demandes actives dans le provider de recherche
+        _ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
+
+        return true;
+      },
+    );
+  }
 }
 
 // Provider pour le controller
@@ -188,6 +232,7 @@ final partRequestControllerProvider = StateNotifierProvider<PartRequestControlle
     createPartRequest: ref.read(createPartRequestProvider),
     getUserPartRequests: ref.read(getUserPartRequestsProvider),
     getPartRequestResponses: ref.read(getPartRequestResponsesProvider),
+    deletePartRequest: ref.read(deletePartRequestProvider),
     ref: ref,
   );
 });

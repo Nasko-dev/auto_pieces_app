@@ -6,6 +6,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/seller_settings_providers.dart';
 import '../../../domain/entities/seller_settings.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_notification_fixed.dart';
 
 class SellerSettingsPage extends ConsumerStatefulWidget {
   const SellerSettingsPage({super.key});
@@ -522,7 +524,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                       _notificationsEnabled = value;
                     });
                   },
-                  activeColor: AppTheme.primaryBlue,
+                  thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
                 ),
               ],
             ),
@@ -569,7 +571,7 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                       _emailNotificationsEnabled = value;
                     });
                   },
-                  activeColor: AppTheme.primaryBlue,
+                  thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
                 ),
               ],
             ),
@@ -607,47 +609,18 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
   void _saveSettings() async {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: utilisateur non connecté'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      notificationService.error(context, 'Erreur: utilisateur non connecté');
       return;
     }
 
     // Validation basique
     if (_companyNameController.text.isEmpty && _phoneController.text.isEmpty && _addressController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune information à sauvegarder'),
-          backgroundColor: AppTheme.warning,
-        ),
-      );
+      notificationService.warning(context, 'Aucune information à sauvegarder');
       return;
     }
 
     // Afficher un indicateur de chargement
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              ),
-            ),
-            SizedBox(width: 16),
-            Text('Sauvegarde en cours...'),
-          ],
-        ),
-        backgroundColor: AppTheme.primaryBlue,
-        duration: Duration(seconds: 10),
-      ),
-    );
+    notificationService.showLoading(context, 'Sauvegarde en cours...');
 
     try {
       // Créer l'objet SellerSettings
@@ -668,48 +641,31 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       final saveSellerSettings = ref.read(saveSellerSettingsProvider);
       final result = await saveSellerSettings(sellerSettings);
 
-      // Masquer l'indicateur de chargement
+      // Vérifier que le contexte est toujours monté
       if (!context.mounted) return;
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur de sauvegarde: ${failure.message}'),
-              backgroundColor: AppTheme.error,
-              duration: const Duration(seconds: 4),
-            ),
+          notificationService.error(
+            context,
+            'Erreur de sauvegarde',
+            subtitle: failure.message,
           );
         },
         (savedSettings) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Paramètres sauvegardés avec succès'),
-                ],
-              ),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 2),
-            ),
+          notificationService.success(
+            context,
+            'Paramètres sauvegardés avec succès',
           );
         },
       );
     } catch (e) {
-      // Masquer l'indicateur de chargement
+      // Gérer l'erreur
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur inattendue: $e'),
-            backgroundColor: AppTheme.error,
-            duration: const Duration(seconds: 4),
-          ),
+        notificationService.error(
+          context,
+          'Erreur inattendue',
+          subtitle: e.toString(),
         );
       }
     }
@@ -736,28 +692,20 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
             _postalCodeController.text = result.postalCode ?? '';
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('📍 Localisation détectée avec succès'),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 3),
-            ),
+          notificationService.success(
+            context,
+            '📍 Localisation détectée avec succès',
           );
         } else {
           // Afficher l'erreur
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.error ?? 'Erreur de localisation'),
-              backgroundColor: AppTheme.error,
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'Paramètres',
-                textColor: AppTheme.white,
-                onPressed: () {
-                  // TODO: Ouvrir les paramètres de l'app
-                },
-              ),
-            ),
+          notificationService.showWithAction(
+            context: context,
+            message: result.error ?? 'Erreur de localisation',
+            actionLabel: 'Paramètres',
+            type: NotificationType.error,
+            onAction: () {
+              // TODO: Ouvrir les paramètres de l'app
+            },
           );
         }
       }
@@ -767,12 +715,10 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
           _isLoadingLocation = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur inattendue: $e'),
-            backgroundColor: AppTheme.error,
-            duration: const Duration(seconds: 3),
-          ),
+        notificationService.error(
+          context,
+          'Erreur inattendue',
+          subtitle: e.toString(),
         );
       }
     }

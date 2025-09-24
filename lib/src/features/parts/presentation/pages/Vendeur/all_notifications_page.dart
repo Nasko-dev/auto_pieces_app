@@ -10,6 +10,8 @@ import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
 import '../../../data/datasources/conversations_remote_datasource.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class AllNotificationsPage extends ConsumerStatefulWidget {
   const AllNotificationsPage({super.key});
@@ -299,21 +301,14 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
 
   void _navigateToConversationDetail(PartRequest partRequest) {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonction conversation en cours de développement')),
-    );
+    notificationService.info(context, 'Fonction conversation en cours de développement');
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
     try {
       final sellerId = Supabase.instance.client.auth.currentUser?.id;
       if (sellerId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur : Vendeur non connecté'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur : Vendeur non connecté');
         return;
       }
 
@@ -345,45 +340,26 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
       
     } catch (e) {
       if (mounted) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur : ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (context.mounted) {
+          notificationService.error(context, 'Erreur', subtitle: e.toString());
+        }
       }
     }
   }
 
-  void _rejectRequest(BuildContext context, PartRequest partRequest) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Refuser la demande'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir refuser cette demande ?\n'
+  void _rejectRequest(BuildContext context, PartRequest partRequest) async {
+    final result = await context.showIOSDialog(
+      title: 'Refuser la demande',
+      message: 'Êtes-vous sûr de vouloir refuser cette demande ?\n'
           'Cette action ne peut pas être annulée.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              _performReject(partRequest);
-            },
-            child: const Text('Refuser'),
-          ),
-        ],
-      ),
+      type: DialogType.warning,
+      confirmText: 'Refuser',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _performReject(partRequest);
+    }
   }
 
   void _performReject(PartRequest partRequest) async {
@@ -401,30 +377,15 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: ${failure.toString()}'),
-              backgroundColor: AppTheme.error,
-            ),
-          );
+          notificationService.error(context, 'Erreur', subtitle: failure.toString());
         },
         (rejection) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Demande refusée avec succès'),
-              backgroundColor: AppTheme.success,
-            ),
-          );
+          notificationService.success(context, 'Demande refusée avec succès');
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du refus: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors du refus', subtitle: e.toString());
       }
     }
 

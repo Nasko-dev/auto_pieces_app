@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../domain/entities/message.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart';
@@ -12,6 +13,8 @@ import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class SellerConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -269,6 +272,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           child: MessageBubbleWidget(
             message: message,
             currentUserType: MessageSenderType.seller, // Côté vendeur
+            currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
             isLastMessage: index == messages.length - 1,
             otherUserName: _getUserDisplayName(conversation),
             otherUserAvatarUrl: conversation?.userAvatarUrl,
@@ -352,75 +356,43 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     }
   }
 
-  void _showCloseDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Fermer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir fermer cette conversation ? '
+  void _showCloseDialog() async {
+    final result = await context.showConfirmationDialog(
+      title: 'Fermer la conversation',
+      message: 'Êtes-vous sûr de vouloir fermer cette conversation ? '
           'Le client ne pourra plus vous envoyer de messages.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .closeConversation(widget.conversationId);
-              Navigator.of(context).pop(); // Retour à la liste
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation fermée'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
+      confirmText: 'Fermer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      ref.read(conversationsControllerProvider.notifier)
+          .closeConversation(widget.conversationId);
+      if (mounted) {
+        Navigator.of(context).pop(); // Retour à la liste
+        notificationService.info(context, 'Conversation fermée');
+      }
+    }
   }
 
-  void _showDeleteDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer la conversation'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? '
+  void _showDeleteDialog() async {
+    final result = await context.showIOSDialog(
+      title: 'Supprimer la conversation',
+      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? '
           'Cette action ne peut pas être annulée.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(conversationsControllerProvider.notifier)
-                  .deleteConversation(widget.conversationId);
-              Navigator.of(context).pop(); // Retour à la liste
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation supprimée'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+      type: DialogType.error,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && mounted) {
+      ref.read(conversationsControllerProvider.notifier)
+          .deleteConversation(widget.conversationId);
+      if (mounted) {
+        Navigator.of(context).pop(); // Retour à la liste
+        notificationService.error(context, 'Conversation supprimée');
+      }
+    }
   }
 
   String _getUserDisplayName(dynamic conversation) {
@@ -557,13 +529,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.error(context, message);
     }
   }
 
@@ -835,16 +801,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
                             'delivery_days': delivery,
                           });
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Veuillez entrer un prix valide'),
-                              backgroundColor: Colors.orange,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          );
+                          notificationService.warning(context, 'Veuillez entrer un prix valide');
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -876,25 +833,13 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   void _showSuccessSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.success(context, message);
     }
   }
 
   void _showInfoSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      notificationService.info(context, message);
     }
   }
 }

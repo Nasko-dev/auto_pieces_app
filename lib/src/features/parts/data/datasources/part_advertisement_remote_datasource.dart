@@ -39,6 +39,8 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
     CreatePartAdvertisementParams params,
   ) async {
     try {
+      // ID utilisateur disponible mais utilisé temporairement avec ID fixe
+
       // Utiliser la fonction SQL create_part_advertisement
       final response = await client.rpc('create_part_advertisement', params: {
         'p_part_type': params.partType,
@@ -65,7 +67,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       if (responseList.isEmpty) {
         throw ServerException('Aucune annonce retournée après création');
       }
-      
+
       // Convertir le premier (et seul) élément en PartAdvertisementModel
       final adData = responseList.first as Map<String, dynamic>;
       return PartAdvertisementModel.fromJson(adData);
@@ -92,10 +94,18 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
   @override
   Future<List<PartAdvertisementModel>> getMyPartAdvertisements() async {
     try {
+      // Utiliser l'ID de l'utilisateur actuellement connecté
+      final currentUserId = client.auth.currentUser?.id;
+
+      if (currentUserId == null) {
+        throw ServerException('Utilisateur non connecté');
+      }
+
+      // Récupérer les annonces de l'utilisateur connecté
       final response = await client
           .from('part_advertisements')
           .select()
-          .eq('user_id', client.auth.currentUser!.id)
+          .eq('user_id', currentUserId)
           .order('created_at', ascending: false);
 
       return (response as List)

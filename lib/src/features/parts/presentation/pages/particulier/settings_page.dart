@@ -6,6 +6,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../../domain/entities/user_settings.dart';
+import '../../../../../core/services/notification_service.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -202,28 +203,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedCountry,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.gray),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // DropdownButton avec Container - CORRECTION DEFINITIVE pour GitHub Actions
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.gray),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                items: _countries.map((country) {
-                  return DropdownMenuItem(
-                    value: country,
-                    child: Text(country),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedCountry = value;
-                    });
-                  }
-                },
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: DropdownButton<String>(
+                  value: _selectedCountry,
+                  isExpanded: true,
+                  underline: const SizedBox.shrink(),
+                  items: _countries.map((country) {
+                    return DropdownMenuItem(
+                      value: country,
+                      child: Text(country),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedCountry = value;
+                      });
+                    }
+                  },
+                ),
               ),
             ],
           ),
@@ -481,29 +485,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _selectedCountry = result.country ?? 'France';
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('📍 Localisation détectée avec succès'),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 3),
-            ),
-          );
+          if (context.mounted) {
+            notificationService.success(context, 'Localisation détectée avec succès');
+          }
         } else {
           // Afficher l'erreur
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.error ?? 'Erreur de localisation'),
-              backgroundColor: AppTheme.error,
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'Paramètres',
-                textColor: AppTheme.white,
-                onPressed: () {
-                  // TODO: Ouvrir les paramètres de l'app
-                },
-              ),
-            ),
-          );
+          if (context.mounted) {
+            notificationService.error(context, 'Erreur de localisation', subtitle: result.error);
+          }
         }
       }
     } catch (e) {
@@ -512,13 +501,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _isLoadingLocation = false;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur inattendue: $e'),
-            backgroundColor: AppTheme.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        if (context.mounted) {
+          notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+        }
       }
     }
   }
@@ -526,47 +511,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   void _saveSettings() async {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: utilisateur non connecté'),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      notificationService.error(context, 'Erreur: utilisateur non connecté');
       return;
     }
 
     // Validation basique
     if (_addressController.text.isEmpty && _phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune information à sauvegarder'),
-          backgroundColor: AppTheme.warning,
-        ),
-      );
+      notificationService.warning(context, 'Aucune information à sauvegarder');
       return;
     }
 
     // Afficher un indicateur de chargement
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              ),
-            ),
-            SizedBox(width: 16),
-            Text('Sauvegarde en cours...'),
-          ],
-        ),
-        backgroundColor: AppTheme.primaryBlue,
-        duration: Duration(seconds: 10),
-      ),
-    );
+    notificationService.showLoading(context, 'Sauvegarde en cours...');
 
     try {
       // Créer l'objet UserSettings
@@ -586,20 +542,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final saveUserSettings = ref.read(saveUserSettingsProvider);
       final result = await saveUserSettings(userSettings);
       
-      // Masquer l'indicateur de chargement
+      // L'indicateur de chargement se masque automatiquement
       if (!context.mounted) return;
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur de sauvegarde: ${failure.message}'),
-              backgroundColor: AppTheme.error,
-              duration: const Duration(seconds: 4),
-            ),
-          );
+          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
         },
         (savedSettings) {
 
@@ -607,36 +555,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ref.invalidate(particulierSettingsStatusProvider);
           ref.invalidate(particulierMenuStatusProvider);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Paramètres sauvegardés avec succès'),
-                ],
-              ),
-              backgroundColor: AppTheme.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          notificationService.success(context, 'Paramètres sauvegardés avec succès');
 
           // Rester sur la page paramètres après sauvegarde
           // L'utilisateur peut retourner manuellement s'il le souhaite
         },
       );
     } catch (e) {
-      // Masquer l'indicateur de chargement
+      // Masquer l'indicateur de chargement et afficher l'erreur
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur inattendue: $e'),
-            backgroundColor: AppTheme.error,
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
       }
     }
   }

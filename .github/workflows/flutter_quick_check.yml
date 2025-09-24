@@ -1,0 +1,73 @@
+name: Quick Check (2min max)
+
+on:
+  push:
+    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**' ]
+    paths:
+      - '**.dart'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+
+jobs:
+  quick-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3  # Max 3 minutes !
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Shallow clone pour rapidité
+
+    - name: Cache everything
+      uses: actions/cache@v4
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.pub-cache
+          .dart_tool
+          .packages
+          **/*.g.dart
+          **/*.freezed.dart
+          **/*.mocks.dart
+        key: quick-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}-${{ github.sha }}
+        restore-keys: |
+          quick-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}-
+          quick-${{ runner.os }}-
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        cache: true
+
+    - name: Quick setup
+      run: |
+        flutter pub get --offline 2>/dev/null || flutter pub get
+
+    - name: Generate code (build_runner)
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    - name: Quick analyze
+      run: |
+        # Analyse seulement les fichiers modifiés
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.dart$' || true)
+        if [ ! -z "$CHANGED_FILES" ]; then
+          flutter analyze --no-fatal-infos --no-fatal-warnings $CHANGED_FILES
+        else
+          echo "Pas de fichiers Dart modifiés"
+        fi
+
+    - name: Run only affected tests
+      run: |
+        # Test seulement les fichiers modifiés
+        CHANGED_TEST_FILES=$(git diff --name-only HEAD~1 HEAD | grep '_test\.dart$' || true)
+        if [ ! -z "$CHANGED_TEST_FILES" ]; then
+          flutter test $CHANGED_TEST_FILES
+        else
+          echo "✅ Pas de tests modifiés"
+        fi
+
+    - name: Status
+      if: always()
+      run: |
+        echo "✅ Quick check terminé en moins de 3 minutes !"
+        echo "Pour tests complets, voir workflow principal sur PR/merge"

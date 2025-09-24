@@ -9,22 +9,28 @@ import '../../domain/entities/seller_response.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
 import '../../domain/repositories/part_request_repository.dart';
+import '../../domain/usecases/create_seller_response.dart';
 import '../datasources/part_request_remote_datasource.dart';
+import '../datasources/conversations_remote_datasource.dart';
 
 final supabaseClient = Supabase.instance.client;
 
 class PartRequestRepositoryImpl implements PartRequestRepository {
   final PartRequestRemoteDataSource _remoteDataSource;
+  final ConversationsRemoteDataSource _conversationsRemoteDataSource;
   final NetworkInfo _networkInfo;
 
   PartRequestRepositoryImpl({
     required PartRequestRemoteDataSource remoteDataSource,
+    required ConversationsRemoteDataSource conversationsRemoteDataSource,
     required NetworkInfo networkInfo,
   })  : _remoteDataSource = remoteDataSource,
+        _conversationsRemoteDataSource = conversationsRemoteDataSource,
         _networkInfo = networkInfo;
 
   @override
   Future<Either<Failure, List<PartRequest>>> getUserPartRequests() async {
+
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -220,6 +226,49 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
+  Future<Either<Failure, SellerResponse>> createSellerResponse(CreateSellerResponseParams params) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      final responseData = await _remoteDataSource.createSellerResponse(
+        requestId: params.requestId,
+        sellerId: supabaseClient.auth.currentUser!.id,
+        message: params.message,
+        price: params.price,
+        availability: params.availability,
+        estimatedDeliveryDays: params.estimatedDeliveryDays,
+        attachments: params.attachments,
+      );
+      final sellerResponse = SellerResponse(
+        id: responseData['id'],
+        requestId: responseData['request_id'],
+        sellerId: responseData['seller_id'],
+        sellerName: null,
+        sellerCompany: null,
+        sellerEmail: null,
+        sellerPhone: null,
+        message: responseData['message'],
+        price: responseData['price']?.toDouble(),
+        availability: responseData['availability'],
+        estimatedDeliveryDays: responseData['estimated_delivery_days'],
+        attachments: List<String>.from(responseData['attachments'] ?? []),
+        status: responseData['status'] ?? 'pending',
+        createdAt: DateTime.parse(responseData['created_at']),
+        updatedAt: DateTime.parse(responseData['updated_at']),
+      );
+      return Right(sellerResponse);
+    } on UnauthorizedException {
+      return const Left(AuthFailure('User not authenticated'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, SellerResponse>> acceptSellerResponse(String responseId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
@@ -360,6 +409,7 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     }
 
     try {
+      // RETOUR AU SYSTÈME ORIGINAL : Utiliser l'ancien système particulier
       final conversations = await _remoteDataSource.getParticulierConversations();
       return Right(conversations);
     } on UnauthorizedException {
@@ -454,6 +504,22 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
       checkNetwork: true,
       networkCheck: () => _networkInfo.isConnected,
       context: 'incrementUnreadCountForUser',
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    return ErrorHandler.handleVoidAsync(
+      () => _conversationsRemoteDataSource.incrementUnreadCountForRecipient(
+        conversationId: conversationId,
+        recipientId: recipientId,
+      ),
+      checkNetwork: true,
+      networkCheck: () => _networkInfo.isConnected,
+      context: 'incrementUnreadCountForRecipient',
     );
   }
 

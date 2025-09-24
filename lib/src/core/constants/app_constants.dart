@@ -1,24 +1,28 @@
+import '../config/environment_config.dart';
+
 class AppConstants {
   static const String appName = 'Pièces d\'Occasion';
-  static const String appVersion = '1.0.0';
 
-  // Supabase Configuration
-  static const String supabaseUrl = 'https://gekeygkohcchdckujfwa.supabase.co';
-  static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdla2V5Z2tvaGNjaGRja3VqZndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTgyMTEsImV4cCI6MjA3MTM3NDIxMX0.N2cd9uINT6iEQynOhTeWx2EZNqqF9j7W2-v4OZuVaC8'; // Remplacez par votre publishable key
+  // Configuration dynamique basée sur l'environnement
+  static String get appVersion => EnvironmentConfig.appVersion;
+
+  // Supabase Configuration (dynamique selon l'environnement)
+  static String get supabaseUrl => EnvironmentConfig.supabaseUrl;
+  static String get supabaseAnonKey => EnvironmentConfig.supabaseAnonKey;
 
   // API Endpoints
-  static const String baseUrl = 'https://api.example.com';
+  static String get baseUrl => EnvironmentConfig.baseUrl;
 
   // Immatriculation API Configuration - LEGACY (RegCheck)
   static const String immatriculationApiUsername =
       'Moïse134'; // À remplacer par votre username
   static const bool immatriculationApiEnabled =
       false; // Désactivé - remplacé par TecAlliance
-  
-  // TecAlliance API Configuration
-  static const String tecAllianceProviderId = '25200';
-  static const String tecAllianceApiKey = '2BeBXg6RC5myrQufHsxH8BsjG4BuhvU2Z1zn9fBukD4argoKAzJC';
+
+  // TecAlliance API Configuration (dynamique selon l'environnement)
+  static String get tecAllianceProviderId => EnvironmentConfig.tecallianceClientId;
+  static String get tecAllianceApiKey => EnvironmentConfig.tecallianceApiKey;
+  static String get tecAllianceBaseUrl => EnvironmentConfig.tecallianceBaseUrl;
   static const bool tecAllianceApiEnabled = true;
 
   // Storage Keys

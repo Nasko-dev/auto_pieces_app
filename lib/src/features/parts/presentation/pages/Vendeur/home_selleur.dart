@@ -11,6 +11,8 @@ import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
 import '../../../data/datasources/conversations_remote_datasource.dart';
+import '../../../../../core/services/notification_service.dart';
+import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class HomeSellerPage extends ConsumerStatefulWidget {
   const HomeSellerPage({super.key});
@@ -72,68 +74,68 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
                     // Ligne de séparation
                     Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      AppTheme.gray.withValues(alpha: 0.3),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
+               margin: const EdgeInsets.symmetric(horizontal: 20),
+               height: 1,
+               decoration: BoxDecoration(
+                 gradient: LinearGradient(
+                   colors: [
+                     Colors.transparent,
+                     AppTheme.gray.withValues(alpha: 0.3),
+                     Colors.transparent,
+                   ],
+                 ),
+               ),
+             ),
 
-              const SizedBox(height: 24),
-              // Texte d'aide
-              const Center(
-                child: Text(
-                  'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.darkBlue,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
+             const SizedBox(height: 24),
+             // Texte d'aide
+             const Center(
+               child: Text(
+                 'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
+                 textAlign: TextAlign.center,
+                 style: TextStyle(
+                   fontSize: 16,
+                   fontWeight: FontWeight.w600,
+                   color: AppTheme.darkBlue,
+                 ),
+               ),
+             ),
+             const SizedBox(height: 12),
 
-              // CTA Déposer
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.mediumImpact();
-                    context.go('/seller/add');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_circle_outline, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Déposer une annonce',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+             // CTA Déposer
+             SizedBox(
+               width: double.infinity,
+               child: ElevatedButton(
+                 onPressed: () {
+                   HapticFeedback.mediumImpact();
+                   context.go('/seller/add');
+                 },
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: AppTheme.primaryBlue,
+                   foregroundColor: AppTheme.white,
+                   padding: const EdgeInsets.symmetric(vertical: 16),
+                   shape: RoundedRectangleBorder(
+                     borderRadius: BorderRadius.circular(12),
+                   ),
+                   elevation: 4,
+                   shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                 ),
+                 child: const Row(
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   children: [
+                     Icon(Icons.add_circle_outline, size: 20),
+                     SizedBox(width: 8),
+                     Text(
+                       'Déposer une annonce',
+                       style: TextStyle(
+                         fontSize: 18,
+                         fontWeight: FontWeight.w700,
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
                   ],
                 ),
               ),
@@ -143,7 +145,6 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       ),
     );
   }
-
 
   Widget _buildDashboardContent(SellerDashboardState dashboardState) {
     return _buildNotificationsContent(dashboardState);
@@ -513,11 +514,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   void _navigateToConversationDetail(PartRequest partRequest) {
     HapticFeedback.lightImpact();
     // TODO: Implémenter navigation vers conversation
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonction conversation en cours de développement'),
-      ),
-    );
+    notificationService.info(context, 'Fonction conversation en cours de développement');
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
@@ -525,12 +522,7 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       // Récupérer l'ID du vendeur connecté
       final sellerId = Supabase.instance.client.auth.currentUser?.id;
       if (sellerId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur : Vendeur non connecté'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        notificationService.error(context, 'Erreur : Vendeur non connecté');
         return;
       }
 
@@ -588,46 +580,26 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
     } catch (e) {
       if (mounted) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur : ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (context.mounted) {
+          notificationService.error(context, 'Erreur', subtitle: e.toString());
+        }
       }
     }
   }
 
-  void _rejectRequest(BuildContext context, PartRequest partRequest) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Refuser la demande'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir refuser cette demande ?\n'
-              'Cette action ne peut pas être annulée.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5252),
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _performReject(partRequest);
-                },
-                child: const Text('Refuser'),
-              ),
-            ],
-          ),
+  void _rejectRequest(BuildContext context, PartRequest partRequest) async {
+    final result = await context.showIOSDialog(
+      title: 'Refuser la demande',
+      message: 'Êtes-vous sûr de vouloir refuser cette demande ?\n'
+          'Cette action ne peut pas être annulée.',
+      type: DialogType.warning,
+      confirmText: 'Refuser',
+      cancelText: 'Annuler',
     );
+
+    if (result == true && context.mounted) {
+      _performReject(partRequest);
+    }
   }
 
   void _performReject(PartRequest partRequest) async {
@@ -647,32 +619,16 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: ${failure.toString()}'),
-              backgroundColor: AppTheme.error,
-            ),
-          );
+          notificationService.error(context, 'Erreur', subtitle: failure.toString());
         },
         (rejection) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Demande "${partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule"}" refusée avec succès',
-              ),
-              backgroundColor: AppTheme.success,
-            ),
-          );
+          final vehicleText = partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule";
+          notificationService.success(context, 'Demande refusée avec succès', subtitle: vehicleText);
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du refus: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        notificationService.error(context, 'Erreur lors du refus', subtitle: e.toString());
       }
     }
 
@@ -917,23 +873,48 @@ class _ModernNotificationCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Nouveau',
-                      style: TextStyle(
-                        color: AppTheme.success,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      if (partRequest.isSellerRequest) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryBlue,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'PRO',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Nouveau',
+                          style: TextStyle(
+                            color: AppTheme.success,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

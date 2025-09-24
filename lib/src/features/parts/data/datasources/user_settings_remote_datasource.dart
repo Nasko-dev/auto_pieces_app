@@ -18,7 +18,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<UserSettingsModel?> getUserSettings(String userId) async {
     try {
-
       // Obtenir le device_id pour rechercher les paramètres persistants
       final deviceId = await _deviceService.getDeviceId();
 
@@ -34,11 +33,12 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         return null;
       }
 
-
       // Adapter les données de la table particuliers vers le modèle UserSettings
       final adaptedData = {
         'userId': response['id'],
-        'displayName': response['first_name'] ?? response['email'],
+        'displayName': response['first_name']?.isNotEmpty == true
+            ? response['first_name']
+            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
         'address': response['address'],
         'city': response['city'],
         'postalCode': response['zip_code'],
@@ -48,8 +48,10 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         'avatarUrl': response['avatar_url'],
         'notificationsEnabled': response['notifications_enabled'] ?? true,
         'emailNotificationsEnabled': response['email_notifications_enabled'] ?? true,
-        'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
-        'updatedAt': response['updated_at'] != null ? DateTime.parse(response['updated_at']) : null,
+        'createdAt': response['created_at'] != null ?
+            (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
+        'updatedAt': response['updated_at'] != null ?
+            (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
       };
 
       return UserSettingsModel.fromJson(adaptedData);
@@ -63,7 +65,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<UserSettingsModel> saveUserSettings(UserSettingsModel settings) async {
     try {
-
       // Obtenir le device_id pour la sauvegarde persistante
       final deviceId = await _deviceService.getDeviceId();
 
@@ -107,11 +108,12 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           return settings;
         }
 
-
         // Adapter la réponse
         final adaptedResponse = {
           'userId': response['id'],
-          'displayName': response['first_name'] ?? response['email'],
+          'displayName': response['first_name']?.isNotEmpty == true
+            ? response['first_name']
+            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
           'address': response['address'],
           'city': response['city'],
           'postalCode': response['zip_code'],
@@ -120,8 +122,10 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'avatarUrl': response['avatar_url'],
           'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
           'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
-          'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
-          'updatedAt': response['updated_at'] != null ? DateTime.parse(response['updated_at']) : null,
+          'createdAt': response['created_at'] != null ?
+              (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
+          'updatedAt': response['updated_at'] != null ?
+              (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
         };
 
         return UserSettingsModel.fromJson(adaptedResponse);
@@ -154,11 +158,12 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           return settings;
         }
 
-
         // Adapter la réponse
         final adaptedResponse = {
           'userId': response['id'],
-          'displayName': response['first_name'] ?? response['email'],
+          'displayName': response['first_name']?.isNotEmpty == true
+            ? response['first_name']
+            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
           'address': response['address'],
           'city': response['city'],
           'postalCode': response['zip_code'],
@@ -167,8 +172,10 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           'avatarUrl': response['avatar_url'],
           'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
           'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
-          'createdAt': response['created_at'] != null ? DateTime.parse(response['created_at']) : null,
-          'updatedAt': response['updated_at'] != null ? DateTime.parse(response['updated_at']) : null,
+          'createdAt': response['created_at'] != null ?
+              (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
+          'updatedAt': response['updated_at'] != null ?
+              (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
         };
 
         return UserSettingsModel.fromJson(adaptedResponse);
@@ -183,7 +190,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
   @override
   Future<void> deleteUserSettings(String userId) async {
     try {
-
       // Effacer seulement les colonnes de localisation dans la table particuliers
       final dataToUpdate = {
         'address': null,

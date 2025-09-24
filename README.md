@@ -1,6 +1,9 @@
-# cente_pice
+# Pièces d'Occasion
 
-A new Flutter project.
+[![codecov](https://codecov.io/gh/Nasko-dev/auto_pieces_app/graph/badge.svg?token=2fd97141-39a0-41e5-b98f-0bea5fa8a5b9)](https://codecov.io/gh/Nasko-dev/auto_pieces_app)
+[![Flutter Tests](https://github.com/Nasko-dev/auto_pieces_app/actions/workflows/flutter_tests.yml/badge.svg)](https://github.com/Nasko-dev/auto_pieces_app/actions)
+
+Application Flutter pour la vente de pièces automobiles d'occasion.
 
 ## Getting Started
 

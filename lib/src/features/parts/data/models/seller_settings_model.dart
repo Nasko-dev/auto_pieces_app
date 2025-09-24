@@ -4,19 +4,6 @@ import '../../domain/entities/seller_settings.dart';
 part 'seller_settings_model.freezed.dart';
 part 'seller_settings_model.g.dart';
 
-// Helper functions pour la conversion des dates
-DateTime? _dateTimeFromJson(dynamic json) {
-  if (json == null) return null;
-  if (json is String) {
-    return DateTime.tryParse(json);
-  }
-  if (json is DateTime) return json;
-  return null;
-}
-
-String? _dateTimeToJson(DateTime? dateTime) {
-  return dateTime?.toIso8601String();
-}
 
 @freezed
 class SellerSettingsModel with _$SellerSettingsModel {

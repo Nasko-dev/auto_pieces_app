@@ -139,6 +139,24 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   }
 
   @override
+  Future<Either<Failure, void>> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  }) async {
+    try {
+      await remoteDataSource.incrementUnreadCountForRecipient(
+        conversationId: conversationId,
+        recipientId: recipientId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Erreur lors de l\'incrémentation intelligente du compteur'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   }) async {

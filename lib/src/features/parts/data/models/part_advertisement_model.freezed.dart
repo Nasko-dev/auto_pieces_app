@@ -22,46 +22,29 @@ PartAdvertisementModel _$PartAdvertisementModelFromJson(
 /// @nodoc
 mixin _$PartAdvertisementModel {
   String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'part_type')
   String get partType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'part_name')
   String get partName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   double? get price => throw _privateConstructorUsedError;
   String? get condition => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_negotiable')
   bool get isNegotiable => throw _privateConstructorUsedError;
-  @JsonKey(name: 'contact_phone')
   String? get contactPhone => throw _privateConstructorUsedError;
-  @JsonKey(name: 'contact_email')
   String? get contactEmail => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
-  @JsonKey(name: 'zip_code')
   String? get zipCode => throw _privateConstructorUsedError;
   String? get department => throw _privateConstructorUsedError;
-  @JsonKey(name: 'view_count')
   int get viewCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'contact_count')
   int get contactCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'updated_at')
   DateTime get updatedAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
   /// Serializes this PartAdvertisementModel to a JSON map.
@@ -82,30 +65,30 @@ abstract class $PartAdvertisementModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      @JsonKey(name: 'user_id') String userId,
-      @JsonKey(name: 'part_type') String partType,
-      @JsonKey(name: 'part_name') String partName,
-      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
-      @JsonKey(name: 'vehicle_model') String? vehicleModel,
-      @JsonKey(name: 'vehicle_year') int? vehicleYear,
-      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
+      String userId,
+      String partType,
+      String partName,
+      String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
       List<String> images,
       String status,
-      @JsonKey(name: 'is_negotiable') bool isNegotiable,
-      @JsonKey(name: 'contact_phone') String? contactPhone,
-      @JsonKey(name: 'contact_email') String? contactEmail,
+      bool isNegotiable,
+      String? contactPhone,
+      String? contactEmail,
       String? city,
-      @JsonKey(name: 'zip_code') String? zipCode,
+      String? zipCode,
       String? department,
-      @JsonKey(name: 'view_count') int viewCount,
-      @JsonKey(name: 'contact_count') int contactCount,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      @JsonKey(name: 'updated_at') DateTime updatedAt,
-      @JsonKey(name: 'expires_at') DateTime? expiresAt});
+      int viewCount,
+      int contactCount,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -266,30 +249,30 @@ abstract class _$$PartAdvertisementModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      @JsonKey(name: 'user_id') String userId,
-      @JsonKey(name: 'part_type') String partType,
-      @JsonKey(name: 'part_name') String partName,
-      @JsonKey(name: 'vehicle_plate') String? vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') String? vehicleBrand,
-      @JsonKey(name: 'vehicle_model') String? vehicleModel,
-      @JsonKey(name: 'vehicle_year') int? vehicleYear,
-      @JsonKey(name: 'vehicle_engine') String? vehicleEngine,
+      String userId,
+      String partType,
+      String partName,
+      String? vehiclePlate,
+      String? vehicleBrand,
+      String? vehicleModel,
+      int? vehicleYear,
+      String? vehicleEngine,
       String? description,
       double? price,
       String? condition,
       List<String> images,
       String status,
-      @JsonKey(name: 'is_negotiable') bool isNegotiable,
-      @JsonKey(name: 'contact_phone') String? contactPhone,
-      @JsonKey(name: 'contact_email') String? contactEmail,
+      bool isNegotiable,
+      String? contactPhone,
+      String? contactEmail,
       String? city,
-      @JsonKey(name: 'zip_code') String? zipCode,
+      String? zipCode,
       String? department,
-      @JsonKey(name: 'view_count') int viewCount,
-      @JsonKey(name: 'contact_count') int contactCount,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      @JsonKey(name: 'updated_at') DateTime updatedAt,
-      @JsonKey(name: 'expires_at') DateTime? expiresAt});
+      int viewCount,
+      int contactCount,
+      DateTime createdAt,
+      DateTime updatedAt,
+      DateTime? expiresAt});
 }
 
 /// @nodoc
@@ -443,30 +426,30 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
 class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   const _$PartAdvertisementModelImpl(
       {required this.id,
-      @JsonKey(name: 'user_id') required this.userId,
-      @JsonKey(name: 'part_type') required this.partType,
-      @JsonKey(name: 'part_name') required this.partName,
-      @JsonKey(name: 'vehicle_plate') this.vehiclePlate,
-      @JsonKey(name: 'vehicle_brand') this.vehicleBrand,
-      @JsonKey(name: 'vehicle_model') this.vehicleModel,
-      @JsonKey(name: 'vehicle_year') this.vehicleYear,
-      @JsonKey(name: 'vehicle_engine') this.vehicleEngine,
+      required this.userId,
+      required this.partType,
+      required this.partName,
+      this.vehiclePlate,
+      this.vehicleBrand,
+      this.vehicleModel,
+      this.vehicleYear,
+      this.vehicleEngine,
       this.description,
       this.price,
       this.condition,
       final List<String> images = const [],
       this.status = 'active',
-      @JsonKey(name: 'is_negotiable') this.isNegotiable = true,
-      @JsonKey(name: 'contact_phone') this.contactPhone,
-      @JsonKey(name: 'contact_email') this.contactEmail,
+      this.isNegotiable = true,
+      this.contactPhone,
+      this.contactEmail,
       this.city,
-      @JsonKey(name: 'zip_code') this.zipCode,
+      this.zipCode,
       this.department,
-      @JsonKey(name: 'view_count') this.viewCount = 0,
-      @JsonKey(name: 'contact_count') this.contactCount = 0,
-      @JsonKey(name: 'created_at') required this.createdAt,
-      @JsonKey(name: 'updated_at') required this.updatedAt,
-      @JsonKey(name: 'expires_at') this.expiresAt})
+      this.viewCount = 0,
+      this.contactCount = 0,
+      required this.createdAt,
+      required this.updatedAt,
+      this.expiresAt})
       : _images = images,
         super._();
 
@@ -476,28 +459,20 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   @override
   final String id;
   @override
-  @JsonKey(name: 'user_id')
   final String userId;
   @override
-  @JsonKey(name: 'part_type')
   final String partType;
   @override
-  @JsonKey(name: 'part_name')
   final String partName;
   @override
-  @JsonKey(name: 'vehicle_plate')
   final String? vehiclePlate;
   @override
-  @JsonKey(name: 'vehicle_brand')
   final String? vehicleBrand;
   @override
-  @JsonKey(name: 'vehicle_model')
   final String? vehicleModel;
   @override
-  @JsonKey(name: 'vehicle_year')
   final int? vehicleYear;
   @override
-  @JsonKey(name: 'vehicle_engine')
   final String? vehicleEngine;
   @override
   final String? description;
@@ -518,35 +493,29 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   @JsonKey()
   final String status;
   @override
-  @JsonKey(name: 'is_negotiable')
+  @JsonKey()
   final bool isNegotiable;
   @override
-  @JsonKey(name: 'contact_phone')
   final String? contactPhone;
   @override
-  @JsonKey(name: 'contact_email')
   final String? contactEmail;
   @override
   final String? city;
   @override
-  @JsonKey(name: 'zip_code')
   final String? zipCode;
   @override
   final String? department;
   @override
-  @JsonKey(name: 'view_count')
+  @JsonKey()
   final int viewCount;
   @override
-  @JsonKey(name: 'contact_count')
+  @JsonKey()
   final int contactCount;
   @override
-  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
-  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
   @override
-  @JsonKey(name: 'expires_at')
   final DateTime? expiresAt;
 
   @override
@@ -654,32 +623,31 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
 
 abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   const factory _PartAdvertisementModel(
-          {required final String id,
-          @JsonKey(name: 'user_id') required final String userId,
-          @JsonKey(name: 'part_type') required final String partType,
-          @JsonKey(name: 'part_name') required final String partName,
-          @JsonKey(name: 'vehicle_plate') final String? vehiclePlate,
-          @JsonKey(name: 'vehicle_brand') final String? vehicleBrand,
-          @JsonKey(name: 'vehicle_model') final String? vehicleModel,
-          @JsonKey(name: 'vehicle_year') final int? vehicleYear,
-          @JsonKey(name: 'vehicle_engine') final String? vehicleEngine,
-          final String? description,
-          final double? price,
-          final String? condition,
-          final List<String> images,
-          final String status,
-          @JsonKey(name: 'is_negotiable') final bool isNegotiable,
-          @JsonKey(name: 'contact_phone') final String? contactPhone,
-          @JsonKey(name: 'contact_email') final String? contactEmail,
-          final String? city,
-          @JsonKey(name: 'zip_code') final String? zipCode,
-          final String? department,
-          @JsonKey(name: 'view_count') final int viewCount,
-          @JsonKey(name: 'contact_count') final int contactCount,
-          @JsonKey(name: 'created_at') required final DateTime createdAt,
-          @JsonKey(name: 'updated_at') required final DateTime updatedAt,
-          @JsonKey(name: 'expires_at') final DateTime? expiresAt}) =
-      _$PartAdvertisementModelImpl;
+      {required final String id,
+      required final String userId,
+      required final String partType,
+      required final String partName,
+      final String? vehiclePlate,
+      final String? vehicleBrand,
+      final String? vehicleModel,
+      final int? vehicleYear,
+      final String? vehicleEngine,
+      final String? description,
+      final double? price,
+      final String? condition,
+      final List<String> images,
+      final String status,
+      final bool isNegotiable,
+      final String? contactPhone,
+      final String? contactEmail,
+      final String? city,
+      final String? zipCode,
+      final String? department,
+      final int viewCount,
+      final int contactCount,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
+      final DateTime? expiresAt}) = _$PartAdvertisementModelImpl;
   const _PartAdvertisementModel._() : super._();
 
   factory _PartAdvertisementModel.fromJson(Map<String, dynamic> json) =
@@ -688,28 +656,20 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   @override
   String get id;
   @override
-  @JsonKey(name: 'user_id')
   String get userId;
   @override
-  @JsonKey(name: 'part_type')
   String get partType;
   @override
-  @JsonKey(name: 'part_name')
   String get partName;
   @override
-  @JsonKey(name: 'vehicle_plate')
   String? get vehiclePlate;
   @override
-  @JsonKey(name: 'vehicle_brand')
   String? get vehicleBrand;
   @override
-  @JsonKey(name: 'vehicle_model')
   String? get vehicleModel;
   @override
-  @JsonKey(name: 'vehicle_year')
   int? get vehicleYear;
   @override
-  @JsonKey(name: 'vehicle_engine')
   String? get vehicleEngine;
   @override
   String? get description;
@@ -722,35 +682,26 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   @override
   String get status;
   @override
-  @JsonKey(name: 'is_negotiable')
   bool get isNegotiable;
   @override
-  @JsonKey(name: 'contact_phone')
   String? get contactPhone;
   @override
-  @JsonKey(name: 'contact_email')
   String? get contactEmail;
   @override
   String? get city;
   @override
-  @JsonKey(name: 'zip_code')
   String? get zipCode;
   @override
   String? get department;
   @override
-  @JsonKey(name: 'view_count')
   int get viewCount;
   @override
-  @JsonKey(name: 'contact_count')
   int get contactCount;
   @override
-  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
-  @JsonKey(name: 'updated_at')
   DateTime get updatedAt;
   @override
-  @JsonKey(name: 'expires_at')
   DateTime? get expiresAt;
 
   /// Create a copy of PartAdvertisementModel

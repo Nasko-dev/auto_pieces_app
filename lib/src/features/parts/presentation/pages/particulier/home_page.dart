@@ -9,6 +9,7 @@ import '../../../../../core/providers/user_settings_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/entities/user_settings.dart';
+import '../../../../../core/services/notification_service.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -659,11 +660,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
 
     if (allParts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez spécifier au moins une pièce'),
-          backgroundColor: Colors.red,
-        ),
+      notificationService.error(
+        context,
+        'Veuillez spécifier au moins une pièce',
       );
       return;
     }
@@ -731,25 +730,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     final success = await controller.createPartRequest(params);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Demande postée avec succès pour ${_getVehicleInfo()}\nPièces: ${allParts.join(', ')}',
-          ),
-          backgroundColor: Colors.green.shade600,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      notificationService.showPartRequestCreated(context);
 
       // Reset form
       _resetForm();
     } else if (mounted) {
       final state = ref.read(partRequestControllerProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.error ?? 'Erreur lors de l\'envoi de la demande'),
-          backgroundColor: Colors.red,
-        ),
+      notificationService.error(
+        context,
+        state.error ?? 'Erreur lors de l\'envoi de la demande',
       );
     }
   }

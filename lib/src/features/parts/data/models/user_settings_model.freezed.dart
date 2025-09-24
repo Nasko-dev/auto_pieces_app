@@ -30,9 +30,7 @@ mixin _$UserSettingsModel {
   String? get avatarUrl => throw _privateConstructorUsedError;
   bool get notificationsEnabled => throw _privateConstructorUsedError;
   bool get emailNotificationsEnabled => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this UserSettingsModel to a JSON map.
@@ -62,9 +60,7 @@ abstract class $UserSettingsModelCopyWith<$Res> {
       String? avatarUrl,
       bool notificationsEnabled,
       bool emailNotificationsEnabled,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
@@ -168,9 +164,7 @@ abstract class _$$UserSettingsModelImplCopyWith<$Res>
       String? avatarUrl,
       bool notificationsEnabled,
       bool emailNotificationsEnabled,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime? updatedAt});
 }
 
@@ -267,9 +261,7 @@ class _$UserSettingsModelImpl extends _UserSettingsModel {
       this.avatarUrl,
       this.notificationsEnabled = true,
       this.emailNotificationsEnabled = true,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       this.updatedAt})
       : super._();
 
@@ -300,10 +292,8 @@ class _$UserSettingsModelImpl extends _UserSettingsModel {
   @JsonKey()
   final bool emailNotificationsEnabled;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? createdAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? updatedAt;
 
   @override
@@ -384,9 +374,7 @@ abstract class _UserSettingsModel extends UserSettingsModel {
       final String? avatarUrl,
       final bool notificationsEnabled,
       final bool emailNotificationsEnabled,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? createdAt,
-      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       final DateTime? updatedAt}) = _$UserSettingsModelImpl;
   const _UserSettingsModel._() : super._();
 
@@ -414,10 +402,8 @@ abstract class _UserSettingsModel extends UserSettingsModel {
   @override
   bool get emailNotificationsEnabled;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get createdAt;
   @override
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? get updatedAt;
 
   /// Create a copy of UserSettingsModel
