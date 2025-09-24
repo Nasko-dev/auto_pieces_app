@@ -72,6 +72,9 @@ dependencies:
   url_launcher: ^6.2.4
   flutter_dotenv: ^6.0.0
 
+  # Notifications
+  onesignal_flutter: ^5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
