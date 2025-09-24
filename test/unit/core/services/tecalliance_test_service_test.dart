@@ -98,7 +98,7 @@ class TestableTecAllianceTestService {
         'vrm': plate,
       });
 
-      final response = await _mockClient!.get(
+      await _mockClient!.get(
         url,
         headers: {'Accept': 'application/json'},
       );
@@ -114,7 +114,7 @@ class TestableTecAllianceTestService {
       final url = Uri.parse('https://test.example.com$endpoint')
           .replace(queryParameters: {'vrm': plate});
 
-      final response = await _mockClient!.get(
+      await _mockClient!.get(
         url,
         headers: {
           'X-Provider-Id': 'test-provider',
@@ -132,7 +132,7 @@ class TestableTecAllianceTestService {
       final url = Uri.parse('https://test.example.com$endpoint')
           .replace(queryParameters: {'vrm': plate});
 
-      final response = await _mockClient!.get(
+      await _mockClient!.get(
         url,
         headers: {
           'Authorization': 'Bearer test-api-key',
@@ -148,7 +148,7 @@ class TestableTecAllianceTestService {
     try {
       final url = Uri.parse('https://test.example.com$endpoint');
 
-      final response = await _mockClient!.post(
+      await _mockClient!.post(
         url,
         headers: {
           'Content-Type': 'application/json',
