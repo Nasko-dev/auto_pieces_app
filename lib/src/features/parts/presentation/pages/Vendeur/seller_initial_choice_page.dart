@@ -23,35 +23,10 @@ class SellerInitialChoicePage extends ConsumerWidget {
   Widget _buildBody(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Badge professionnel
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.business, size: 16, color: AppTheme.primaryBlue),
-                    SizedBox(width: 6),
-                    Text(
-                      'Compte Professionnel',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryBlue,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
               const Text(
                 'Que souhaitez-vous faire ?',
                 style: TextStyle(
@@ -104,29 +79,6 @@ class SellerInitialChoicePage extends ConsumerWidget {
               ),
 
               const Spacer(),
-
-              // Bouton retour
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => context.go('/seller/home'),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppTheme.gray),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Retour à l\'accueil',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.darkBlue,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

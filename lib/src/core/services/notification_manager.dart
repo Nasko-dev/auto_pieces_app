@@ -128,6 +128,19 @@ class NotificationManager {
 
       debugPrint('   📦 Données à insérer: $insertData');
 
+      // D'abord nettoyer les anciens tokens pour cet utilisateur (éviter les doublons)
+      if (userId != null) {
+        try {
+          await _supabase
+            .from('push_tokens')
+            .delete()
+            .eq('user_id', userId)
+            .neq('onesignal_player_id', playerId); // Garder celui avec le bon Player ID
+        } catch (e) {
+          debugPrint('   ⚠️ Nettoyage doublons: $e');
+        }
+      }
+
       await _supabase.from('push_tokens').upsert(insertData, onConflict: 'onesignal_player_id');
 
       debugPrint('   ✅ Sauvegardé dans push_tokens - Résultat: OK');
@@ -195,11 +208,13 @@ class NotificationManager {
     if (playerId != null && userId != null) {
       await savePlayerIdToDatabase();
 
-      // Vérifier que ça a bien été sauvegardé
+      // Vérifier que ça a bien été sauvegardé (prendre le plus récent en cas de doublon)
       final result = await _supabase
         .from('push_tokens')
         .select('onesignal_player_id')
         .eq('user_id', userId)
+        .order('updated_at', ascending: false)
+        .limit(1)
         .maybeSingle();
 
       if (result != null) {
@@ -265,11 +280,13 @@ class NotificationManager {
 
       debugPrint('🎯 Test pour User ID: $userId2');
 
-      // 1. Vérifier qu'il est bien dans la base
+      // 1. Vérifier qu'il est bien dans la base (prendre le plus récent)
       final result = await _supabase
         .from('push_tokens')
         .select('onesignal_player_id')
         .eq('user_id', userId2)
+        .order('updated_at', ascending: false)
+        .limit(1)
         .maybeSingle();
 
       debugPrint('📊 DB result: $result');
@@ -331,6 +348,8 @@ class NotificationManager {
           .from('push_tokens')
           .select('onesignal_player_id')
           .eq('user_id', userId)
+          .order('updated_at', ascending: false)
+          .limit(1)
           .maybeSingle();
 
         debugPrint('Dans push_tokens: ${result?['onesignal_player_id']}');
