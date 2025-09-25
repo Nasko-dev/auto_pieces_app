@@ -24,6 +24,7 @@ class PartRequestModel with _$PartRequestModel {
     // Métadonnées
     @Default('active') String status,
     @Default(false) bool isAnonymous,
+    @Default(false) bool isSellerRequest,
     @Default(0) int responseCount,
     @Default(0) int pendingResponseCount,
 
@@ -49,6 +50,7 @@ class PartRequestModel with _$PartRequestModel {
       additionalInfo: json['additional_info'] as String?,
       status: json['status'] as String? ?? 'active',
       isAnonymous: json['is_anonymous'] as bool? ?? false,
+      isSellerRequest: json['is_seller_request'] as bool? ?? false,
       responseCount: json['response_count'] as int? ?? 0,
       pendingResponseCount: json['pending_response_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -71,6 +73,7 @@ class PartRequestModel with _$PartRequestModel {
       'additional_info': additionalInfo,
       'status': status,
       'is_anonymous': isAnonymous,
+      'is_seller_request': isSellerRequest,
       'response_count': responseCount,
       'pending_response_count': pendingResponseCount,
       'created_at': createdAt.toIso8601String(),
@@ -94,6 +97,7 @@ class PartRequestModel with _$PartRequestModel {
       additionalInfo: additionalInfo,
       status: status,
       isAnonymous: isAnonymous,
+      isSellerRequest: isSellerRequest,
       responseCount: responseCount,
       pendingResponseCount: pendingResponseCount,
       createdAt: createdAt,
@@ -114,6 +118,7 @@ class PartRequestModel with _$PartRequestModel {
       'part_names': params.partNames,
       'additional_info': params.additionalInfo,
       'is_anonymous': params.isAnonymous,
+      'is_seller_request': params.isSellerRequest,
       'status': 'active',
     };
   }

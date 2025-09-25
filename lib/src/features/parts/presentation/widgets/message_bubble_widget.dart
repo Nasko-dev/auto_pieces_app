@@ -6,6 +6,7 @@ class MessageBubbleWidget extends StatelessWidget {
   final Message message;
   final bool isLastMessage;
   final MessageSenderType currentUserType;
+  final String currentUserId;
   final String? otherUserName;
   final String? otherUserAvatarUrl;
   final String? otherUserCompany;
@@ -14,6 +15,7 @@ class MessageBubbleWidget extends StatelessWidget {
     super.key,
     required this.message,
     required this.currentUserType,
+    required this.currentUserId,
     this.isLastMessage = false,
     this.otherUserName,
     this.otherUserAvatarUrl,
@@ -22,8 +24,8 @@ class MessageBubbleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Le message est "de nous" si le type correspond à l'utilisateur actuel
-    final isFromCurrentUser = message.senderType == currentUserType;
+    // Le message est "de nous" si c'est notre ID qui l'a envoyé
+    final isFromCurrentUser = message.senderId == currentUserId;
     final isOffer = message.messageType == MessageType.offer;
 
     return Align(

@@ -22,13 +22,26 @@ class CreatePartRequest implements UseCase<PartRequest, CreatePartRequestParams>
 
     // Si ce n'est pas anonyme, on doit avoir des informations de véhicule
     if (!params.isAnonymous) {
-      if (params.vehiclePlate == null && 
-          (params.vehicleBrand == null || 
-           params.vehicleModel == null || 
-           params.vehicleYear == null)) {
-        return const Left(ValidationFailure(
-          'La plaque d\'immatriculation ou les informations complètes du véhicule sont requises'
-        ));
+      final hasPlate = params.vehiclePlate != null;
+      final hasCompleteCarInfo = params.vehicleBrand != null &&
+                                 params.vehicleModel != null &&
+                                 params.vehicleYear != null;
+      final hasEngineInfo = params.vehicleEngine != null;
+
+      // Pour les pièces moteur, accepter seulement vehicleEngine
+      // Pour les pièces carrosserie, exiger les infos complètes ou plaque
+      if (params.partType == 'engine') {
+        if (!hasPlate && !hasEngineInfo) {
+          return const Left(ValidationFailure(
+            'La plaque d\'immatriculation ou la motorisation est requise pour les pièces moteur'
+          ));
+        }
+      } else {
+        if (!hasPlate && !hasCompleteCarInfo) {
+          return const Left(ValidationFailure(
+            'La plaque d\'immatriculation ou les informations complètes du véhicule sont requises'
+          ));
+        }
       }
     }
 

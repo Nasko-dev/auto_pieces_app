@@ -33,6 +33,8 @@ mixin _$PartRequest {
   String get status =>
       throw _privateConstructorUsedError; // 'active', 'closed', 'fulfilled'
   bool get isAnonymous => throw _privateConstructorUsedError;
+  bool get isSellerRequest =>
+      throw _privateConstructorUsedError; // Indique si la demande vient d'un vendeur
   int get responseCount => throw _privateConstructorUsedError;
   int get pendingResponseCount =>
       throw _privateConstructorUsedError; // Timestamps
@@ -66,6 +68,7 @@ abstract class $PartRequestCopyWith<$Res> {
       String? additionalInfo,
       String status,
       bool isAnonymous,
+      bool isSellerRequest,
       int responseCount,
       int pendingResponseCount,
       DateTime createdAt,
@@ -100,6 +103,7 @@ class _$PartRequestCopyWithImpl<$Res, $Val extends PartRequest>
     Object? additionalInfo = freezed,
     Object? status = null,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
     Object? responseCount = null,
     Object? pendingResponseCount = null,
     Object? createdAt = null,
@@ -155,6 +159,10 @@ class _$PartRequestCopyWithImpl<$Res, $Val extends PartRequest>
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
       responseCount: null == responseCount
           ? _value.responseCount
           : responseCount // ignore: cast_nullable_to_non_nullable
@@ -200,6 +208,7 @@ abstract class _$$PartRequestImplCopyWith<$Res>
       String? additionalInfo,
       String status,
       bool isAnonymous,
+      bool isSellerRequest,
       int responseCount,
       int pendingResponseCount,
       DateTime createdAt,
@@ -232,6 +241,7 @@ class __$$PartRequestImplCopyWithImpl<$Res>
     Object? additionalInfo = freezed,
     Object? status = null,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
     Object? responseCount = null,
     Object? pendingResponseCount = null,
     Object? createdAt = null,
@@ -287,6 +297,10 @@ class __$$PartRequestImplCopyWithImpl<$Res>
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
       responseCount: null == responseCount
           ? _value.responseCount
           : responseCount // ignore: cast_nullable_to_non_nullable
@@ -327,6 +341,7 @@ class _$PartRequestImpl extends _PartRequest {
       this.additionalInfo,
       this.status = 'active',
       this.isAnonymous = false,
+      this.isSellerRequest = false,
       this.responseCount = 0,
       this.pendingResponseCount = 0,
       required this.createdAt,
@@ -375,6 +390,10 @@ class _$PartRequestImpl extends _PartRequest {
   final bool isAnonymous;
   @override
   @JsonKey()
+  final bool isSellerRequest;
+// Indique si la demande vient d'un vendeur
+  @override
+  @JsonKey()
   final int responseCount;
   @override
   @JsonKey()
@@ -389,7 +408,7 @@ class _$PartRequestImpl extends _PartRequest {
 
   @override
   String toString() {
-    return 'PartRequest(id: $id, userId: $userId, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, status: $status, isAnonymous: $isAnonymous, responseCount: $responseCount, pendingResponseCount: $pendingResponseCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
+    return 'PartRequest(id: $id, userId: $userId, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, status: $status, isAnonymous: $isAnonymous, isSellerRequest: $isSellerRequest, responseCount: $responseCount, pendingResponseCount: $pendingResponseCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
   }
 
   @override
@@ -418,6 +437,8 @@ class _$PartRequestImpl extends _PartRequest {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.isAnonymous, isAnonymous) ||
                 other.isAnonymous == isAnonymous) &&
+            (identical(other.isSellerRequest, isSellerRequest) ||
+                other.isSellerRequest == isSellerRequest) &&
             (identical(other.responseCount, responseCount) ||
                 other.responseCount == responseCount) &&
             (identical(other.pendingResponseCount, pendingResponseCount) ||
@@ -445,6 +466,7 @@ class _$PartRequestImpl extends _PartRequest {
       additionalInfo,
       status,
       isAnonymous,
+      isSellerRequest,
       responseCount,
       pendingResponseCount,
       createdAt,
@@ -474,6 +496,7 @@ abstract class _PartRequest extends PartRequest {
       final String? additionalInfo,
       final String status,
       final bool isAnonymous,
+      final bool isSellerRequest,
       final int responseCount,
       final int pendingResponseCount,
       required final DateTime createdAt,
@@ -505,6 +528,8 @@ abstract class _PartRequest extends PartRequest {
   String get status; // 'active', 'closed', 'fulfilled'
   @override
   bool get isAnonymous;
+  @override
+  bool get isSellerRequest; // Indique si la demande vient d'un vendeur
   @override
   int get responseCount;
   @override
@@ -538,6 +563,7 @@ mixin _$CreatePartRequestParams {
   String? get additionalInfo =>
       throw _privateConstructorUsedError; // Métadonnées
   bool get isAnonymous => throw _privateConstructorUsedError;
+  bool get isSellerRequest => throw _privateConstructorUsedError;
 
   /// Create a copy of CreatePartRequestParams
   /// with the given fields replaced by the non-null parameter values.
@@ -561,7 +587,8 @@ abstract class $CreatePartRequestParamsCopyWith<$Res> {
       String partType,
       List<String> partNames,
       String? additionalInfo,
-      bool isAnonymous});
+      bool isAnonymous,
+      bool isSellerRequest});
 }
 
 /// @nodoc
@@ -589,6 +616,7 @@ class _$CreatePartRequestParamsCopyWithImpl<$Res,
     Object? partNames = null,
     Object? additionalInfo = freezed,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
   }) {
     return _then(_value.copyWith(
       vehiclePlate: freezed == vehiclePlate
@@ -627,6 +655,10 @@ class _$CreatePartRequestParamsCopyWithImpl<$Res,
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -649,7 +681,8 @@ abstract class _$$CreatePartRequestParamsImplCopyWith<$Res>
       String partType,
       List<String> partNames,
       String? additionalInfo,
-      bool isAnonymous});
+      bool isAnonymous,
+      bool isSellerRequest});
 }
 
 /// @nodoc
@@ -676,6 +709,7 @@ class __$$CreatePartRequestParamsImplCopyWithImpl<$Res>
     Object? partNames = null,
     Object? additionalInfo = freezed,
     Object? isAnonymous = null,
+    Object? isSellerRequest = null,
   }) {
     return _then(_$CreatePartRequestParamsImpl(
       vehiclePlate: freezed == vehiclePlate
@@ -714,6 +748,10 @@ class __$$CreatePartRequestParamsImplCopyWithImpl<$Res>
           ? _value.isAnonymous
           : isAnonymous // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSellerRequest: null == isSellerRequest
+          ? _value.isSellerRequest
+          : isSellerRequest // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -730,7 +768,8 @@ class _$CreatePartRequestParamsImpl implements _CreatePartRequestParams {
       required this.partType,
       required final List<String> partNames,
       this.additionalInfo,
-      this.isAnonymous = false})
+      this.isAnonymous = false,
+      this.isSellerRequest = false})
       : _partNames = partNames;
 
 // Informations du véhicule
@@ -761,10 +800,13 @@ class _$CreatePartRequestParamsImpl implements _CreatePartRequestParams {
   @override
   @JsonKey()
   final bool isAnonymous;
+  @override
+  @JsonKey()
+  final bool isSellerRequest;
 
   @override
   String toString() {
-    return 'CreatePartRequestParams(vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, isAnonymous: $isAnonymous)';
+    return 'CreatePartRequestParams(vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, partType: $partType, partNames: $partNames, additionalInfo: $additionalInfo, isAnonymous: $isAnonymous, isSellerRequest: $isSellerRequest)';
   }
 
   @override
@@ -789,7 +831,9 @@ class _$CreatePartRequestParamsImpl implements _CreatePartRequestParams {
             (identical(other.additionalInfo, additionalInfo) ||
                 other.additionalInfo == additionalInfo) &&
             (identical(other.isAnonymous, isAnonymous) ||
-                other.isAnonymous == isAnonymous));
+                other.isAnonymous == isAnonymous) &&
+            (identical(other.isSellerRequest, isSellerRequest) ||
+                other.isSellerRequest == isSellerRequest));
   }
 
   @override
@@ -803,7 +847,8 @@ class _$CreatePartRequestParamsImpl implements _CreatePartRequestParams {
       partType,
       const DeepCollectionEquality().hash(_partNames),
       additionalInfo,
-      isAnonymous);
+      isAnonymous,
+      isSellerRequest);
 
   /// Create a copy of CreatePartRequestParams
   /// with the given fields replaced by the non-null parameter values.
@@ -825,7 +870,8 @@ abstract class _CreatePartRequestParams implements CreatePartRequestParams {
       required final String partType,
       required final List<String> partNames,
       final String? additionalInfo,
-      final bool isAnonymous}) = _$CreatePartRequestParamsImpl;
+      final bool isAnonymous,
+      final bool isSellerRequest}) = _$CreatePartRequestParamsImpl;
 
 // Informations du véhicule
   @override
@@ -846,6 +892,8 @@ abstract class _CreatePartRequestParams implements CreatePartRequestParams {
   String? get additionalInfo; // Métadonnées
   @override
   bool get isAnonymous;
+  @override
+  bool get isSellerRequest;
 
   /// Create a copy of CreatePartRequestParams
   /// with the given fields replaced by the non-null parameter values.

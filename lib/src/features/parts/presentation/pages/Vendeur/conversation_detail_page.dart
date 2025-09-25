@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../domain/entities/message.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart';
@@ -271,6 +272,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           child: MessageBubbleWidget(
             message: message,
             currentUserType: MessageSenderType.seller, // Côté vendeur
+            currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
             isLastMessage: index == messages.length - 1,
             otherUserName: _getUserDisplayName(conversation),
             otherUserAvatarUrl: conversation?.userAvatarUrl,

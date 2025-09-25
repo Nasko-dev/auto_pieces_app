@@ -23,6 +23,7 @@ class PartRequest with _$PartRequest {
     // Métadonnées
     @Default('active') String status, // 'active', 'closed', 'fulfilled'
     @Default(false) bool isAnonymous,
+    @Default(false) bool isSellerRequest, // Indique si la demande vient d'un vendeur
     @Default(0) int responseCount,
     @Default(0) int pendingResponseCount,
     
@@ -86,5 +87,6 @@ class CreatePartRequestParams with _$CreatePartRequestParams {
     
     // Métadonnées
     @Default(false) bool isAnonymous,
+    @Default(false) bool isSellerRequest, // Indique si la demande vient d'un vendeur
   }) = _CreatePartRequestParams;
 }

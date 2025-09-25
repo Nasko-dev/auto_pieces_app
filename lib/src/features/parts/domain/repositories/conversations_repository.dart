@@ -40,6 +40,11 @@ abstract class ConversationsRepository {
     required String conversationId,
   });
 
+  Future<Either<Failure, void>> incrementUnreadCountForRecipient({
+    required String conversationId,
+    required String recipientId,
+  });
+
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId
   });
