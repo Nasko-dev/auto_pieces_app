@@ -32,7 +32,6 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +112,7 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => context.go(route),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(1),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Stack(
@@ -123,8 +122,7 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
                   child: Icon(
                     isSelected ? selectedIcon : icon,
                     size: 26,
-                    color:
-                        isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                    color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
                   ),
                 ),
                 // Point rouge pour messages non lus

@@ -34,7 +34,6 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return AuthWrapper(
@@ -82,7 +81,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     label: 'Messages',
                     route: '/messages-clients',
                     index: 2,
-                    hasUnread: ref.watch(particulierConversationsControllerProvider).unreadCount > 0,
+                    hasUnread: ref
+                            .watch(particulierConversationsControllerProvider)
+                            .unreadCount >
+                        0,
                   ),
                   _buildNavItem(
                     context: context,
@@ -118,6 +120,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
         child: InkWell(
           onTap: () => context.go(route),
           borderRadius: BorderRadius.circular(8),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Stack(
