@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/providers/seller_auth_providers.dart';
+import '../../../../core/services/notification_manager.dart';
 import '../../domain/entities/seller.dart';
 import '../../domain/usecases/seller_register.dart';
 import '../../domain/usecases/seller_login.dart';
@@ -70,8 +71,11 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
       (failure) {
         state = SellerAuthState.error(_mapFailureToMessage(failure));
       },
-      (seller) {
+      (seller) async {
         state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID après une inscription réussie
+        await NotificationManager.instance.forceSyncPlayerId();
       },
     );
   }
@@ -92,7 +96,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
 
     result.fold(
       (failure) => state = SellerAuthState.error(_mapFailureToMessage(failure)),
-      (seller) => state = SellerAuthState.authenticated(seller),
+      (seller) async {
+        state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID après une connexion réussie (comme pour les particuliers)
+        await NotificationManager.instance.forceSyncPlayerId();
+      },
     );
   }
 
@@ -133,7 +142,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
 
     result.fold(
       (failure) => state = const SellerAuthState.unauthenticated(),
-      (seller) => state = SellerAuthState.authenticated(seller),
+      (seller) async {
+        state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID pour le seller actuel
+        await NotificationManager.instance.forceSyncPlayerId();
+      },
     );
   }
 
@@ -143,7 +157,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
       final result = await _getCurrentSeller(NoParams());
       result.fold(
         (failure) => state = const SellerAuthState.unauthenticated(),
-        (seller) => state = SellerAuthState.authenticated(seller),
+        (seller) async {
+          state = SellerAuthState.authenticated(seller);
+
+          // Synchroniser le Player ID au démarrage si le seller est connecté
+          await NotificationManager.instance.forceSyncPlayerId();
+        },
       );
     } catch (e) {
       state = const SellerAuthState.unauthenticated();
