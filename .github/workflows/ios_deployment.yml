@@ -127,8 +127,10 @@ jobs:
     # Configuration Xcode et certificats
     - name: Setup Xcode
       run: |
-        sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+        # Utiliser la version Xcode par défaut du runner
         xcodebuild -version
+        # Vérifier le chemin actuel de Xcode
+        xcode-select -p
 
     - name: Install iOS dependencies
       working-directory: ios
