@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
-import '../../../../../core/theme/app_theme.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
