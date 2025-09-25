@@ -73,7 +73,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _cityController.text = settings.city ?? '';
             _postalCodeController.text = settings.postalCode ?? '';
             _phoneController.text = settings.phone ?? '';
-            _selectedCountry = settings.country;
+            // Vérifier que le pays existe dans la liste, sinon utiliser France par défaut
+            _selectedCountry = _countries.contains(settings.country)
+                ? settings.country
+                : 'France';
             _notificationsEnabled = settings.notificationsEnabled;
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _isLoadingSettings = false;
@@ -218,7 +221,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: DropdownButton<String>(
-                  value: _selectedCountry,
+                  value: _countries.contains(_selectedCountry) ? _selectedCountry : 'France',
                   isExpanded: true,
                   underline: const SizedBox.shrink(),
                   items: _countries.map((country) {
