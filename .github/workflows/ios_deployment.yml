@@ -1,0 +1,294 @@
+name: iOS Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.dart'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'ios/**'
+      - '.github/workflows/ios_deployment.yml'
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, ready_for_review]
+
+# Empêcher les builds concurrents sur la même branche
+concurrency:
+  group: ios-deployment-${{ github.ref }}
+  cancel-in-progress: false  # Ne pas annuler les builds en cours
+
+jobs:
+  # Job 1: Pré-validation rapide
+  pre-validation:
+    if: github.event.pull_request.draft == false
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    outputs:
+      should-deploy: ${{ steps.check-deploy.outputs.should-deploy }}
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+          .packages
+        key: ${{ runner.os }}-ios-deps-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-ios-deps-
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    - name: Analyze code
+      run: flutter analyze --no-fatal-infos
+
+    - name: Run critical tests
+      run: |
+        # Tests critiques pour iOS
+        flutter test test/unit/core/services/ test/unit/features/auth/
+      continue-on-error: false
+
+    - name: Extract version info
+      id: version
+      run: |
+        VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+        BUILD_NUMBER=$(grep 'version:' pubspec.yaml | sed 's/.*+//')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "build-number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        echo "📱 Version: $VERSION+$BUILD_NUMBER"
+
+    - name: Check if should deploy
+      id: check-deploy
+      run: |
+        if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
+          echo "should-deploy=true" >> $GITHUB_OUTPUT
+          echo "✅ Will deploy to TestFlight"
+        else
+          echo "should-deploy=false" >> $GITHUB_OUTPUT
+          echo "ℹ️  Build check only (PR or non-main branch)"
+        fi
+
+  # Job 2: Build iOS
+  ios-build:
+    needs: pre-validation
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    env:
+      FLUTTER_VERSION: '3.27.0'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+
+    - name: Restore dependencies cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+          .packages
+        key: ${{ runner.os }}-ios-deps-${{ hashFiles('**/pubspec.lock') }}
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Generate code
+      run: dart run build_runner build --delete-conflicting-outputs
+
+    # Configuration Xcode et certificats
+    - name: Setup Xcode
+      run: |
+        sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+        xcodebuild -version
+
+    - name: Install iOS dependencies
+      working-directory: ios
+      run: |
+        # Clean pod cache
+        pod repo update
+        pod install --repo-update
+
+    - name: Cache iOS build
+      uses: actions/cache@v4
+      with:
+        path: |
+          ios/build
+          ios/Pods
+          ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-ios-build-${{ hashFiles('ios/Podfile.lock', 'pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-ios-build-
+
+    # Build pour vérification (pas de signature)
+    - name: Build iOS (Debug)
+      if: needs.pre-validation.outputs.should-deploy == 'false'
+      run: |
+        flutter build ios --debug --no-codesign
+        echo "✅ iOS Debug build successful"
+
+    # Build pour déploiement (avec signature si main)
+    - name: Build iOS (Release)
+      if: needs.pre-validation.outputs.should-deploy == 'true'
+      run: |
+        # Build release sans signature d'abord pour validation
+        flutter build ios --release --no-codesign
+        echo "✅ iOS Release build created"
+
+        # Préparer pour Xcode Cloud (sans signature ici)
+        echo "📦 Build ready for Xcode Cloud processing"
+
+    - name: Archive build artifacts
+      if: needs.pre-validation.outputs.should-deploy == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build-${{ needs.pre-validation.outputs.version }}
+        path: |
+          build/ios/Release-iphoneos/
+          ios/build/
+        retention-days: 7
+
+    - name: Generate build report
+      run: |
+        echo "📊 BUILD REPORT" >> $GITHUB_STEP_SUMMARY
+        echo "===============" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ needs.pre-validation.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: ${{ needs.pre-validation.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deploy**: ${{ needs.pre-validation.outputs.should-deploy }}" >> $GITHUB_STEP_SUMMARY
+
+        if [[ "${{ needs.pre-validation.outputs.should-deploy }}" == "true" ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 **Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Xcode Cloud will detect this commit" >> $GITHUB_STEP_SUMMARY
+          echo "2. Automatic build with code signing" >> $GITHUB_STEP_SUMMARY
+          echo "3. Deploy to TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "4. Notify testers automatically" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Job 3: Coordination avec Xcode Cloud
+  xcode-cloud-trigger:
+    if: needs.pre-validation.outputs.should-deploy == 'true'
+    needs: [pre-validation, ios-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Trigger Xcode Cloud
+      run: |
+        echo "🚀 XCODE CLOUD COORDINATION"
+        echo "=========================="
+        echo ""
+        echo "✅ GitHub Actions build completed successfully"
+        echo "📱 Version: ${{ needs.pre-validation.outputs.version }}+${{ needs.pre-validation.outputs.build-number }}"
+        echo ""
+        echo "🔄 Xcode Cloud will now:"
+        echo "  1. Detect this push to main"
+        echo "  2. Start automatic iOS build"
+        echo "  3. Handle code signing & certificates"
+        echo "  4. Deploy to TestFlight"
+        echo "  5. Send notifications"
+        echo ""
+        echo "📊 Monitor progress in:"
+        echo "  - Xcode Cloud (Xcode → Report Navigator)"
+        echo "  - App Store Connect → TestFlight"
+        echo ""
+        echo "⏱️  Expected completion: ~15-20 minutes"
+
+    - name: Create deployment status
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            deployment_id: context.sha,
+            state: 'in_progress',
+            description: 'Xcode Cloud processing...',
+            environment: 'testflight'
+          });
+
+  # Job 4: Notification et suivi
+  notify:
+    if: always() && needs.pre-validation.result != 'cancelled'
+    needs: [pre-validation, ios-build, xcode-cloud-trigger]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Build Status Notification
+      run: |
+        BUILD_STATUS="${{ needs.ios-build.result }}"
+        SHOULD_DEPLOY="${{ needs.pre-validation.outputs.should-deploy }}"
+
+        if [[ "$BUILD_STATUS" == "success" ]]; then
+          if [[ "$SHOULD_DEPLOY" == "true" ]]; then
+            echo "🎉 iOS build successful - Deploying to TestFlight via Xcode Cloud"
+          else
+            echo "✅ iOS build validation passed - No deployment (PR/non-main)"
+          fi
+        else
+          echo "❌ iOS build failed - Check logs above"
+          exit 1
+        fi
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const buildStatus = '${{ needs.ios-build.result }}';
+          const version = '${{ needs.pre-validation.outputs.version }}';
+
+          let message = '## 📱 iOS Build Report\n\n';
+
+          if (buildStatus === 'success') {
+            message += '✅ **Status**: Build successful\n';
+            message += `📦 **Version**: ${version}\n`;
+            message += '🔍 **Validation**: All checks passed\n\n';
+            message += '> ✨ Ready for merge to trigger TestFlight deployment!';
+          } else {
+            message += '❌ **Status**: Build failed\n';
+            message += '🔧 **Action needed**: Check the workflow logs\n\n';
+            message += '> ⚠️ Fix issues before merging to main';
+          }
+
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
+
+# Variables d'environnement globales
+env:
+  FLUTTER_ROOT: /opt/hostedtoolcache/flutter
+  PUB_CACHE: ~/.pub-cache
