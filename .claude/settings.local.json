@@ -42,7 +42,8 @@
       "Bash(while read file)",
       "Bash(do basename \"$file\" .dart)",
       "Bash(done)",
-      "Bash(do basename \"$file\" _test.dart)"
+      "Bash(do basename \"$file\" _test.dart)",
+      "Bash(pod install:*)"
     ],
     "deny": [],
     "ask": [],

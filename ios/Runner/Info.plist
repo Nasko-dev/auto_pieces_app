@@ -76,5 +76,18 @@
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
 	</dict>
+
+	<!-- Permissions pour Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+
+	<!-- Support pour les notifications -->
+	<key>UNUserNotificationCenter</key>
+	<dict>
+		<key>UNAuthorizationStatusAuthorized</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
