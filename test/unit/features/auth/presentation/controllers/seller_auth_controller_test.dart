@@ -1,4 +1,5 @@
 import 'package:cente_pice/src/core/errors/failures.dart';
+import 'package:cente_pice/src/core/services/notification_manager.dart';
 import 'package:cente_pice/src/core/usecases/usecase.dart';
 import 'package:cente_pice/src/features/auth/domain/entities/seller.dart';
 import 'package:cente_pice/src/features/auth/domain/usecases/get_current_seller.dart';
@@ -20,6 +21,7 @@ import 'seller_auth_controller_test.mocks.dart';
   SellerForgotPassword,
   SellerLogout,
   GetCurrentSeller,
+  NotificationManager,
 ])
 void main() {
   late SellerAuthController controller;
