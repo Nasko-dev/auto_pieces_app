@@ -68,9 +68,17 @@ void main() async {
 
     // MAINTENANT initialiser le service de notifications (après l'auth)
     try {
-      debugPrint('🚀 Initialisation NotificationManager après auth...');
+      debugPrint('🚀 Initialisation des services de notifications après auth...');
+
+      // Initialiser PushNotificationService en PREMIER (pour les listeners)
+      final pushService = PushNotificationService.instance;
+      await pushService.initialize();
+      debugPrint('✅ PushNotificationService initialisé');
+
+      // Puis initialiser NotificationManager pour la sauvegarde du Player ID
       final notificationManager = NotificationManager.instance;
       await notificationManager.initialize();
+      debugPrint('✅ NotificationManager initialisé');
 
       // Forcer immédiatement la sauvegarde si on a un utilisateur
       if (user != null) {

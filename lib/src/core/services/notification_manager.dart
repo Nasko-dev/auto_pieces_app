@@ -3,6 +3,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'device_service.dart';
+import 'push_notification_service.dart';
 
 /// Service principal pour gérer TOUTES les notifications
 class NotificationManager {
@@ -71,18 +72,13 @@ class NotificationManager {
   }
 
   void _setupListeners() {
-    // Notification reçue en foreground
-    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint('📬 Notification reçue: ${event.notification.title}');
-      event.preventDefault();
-      event.notification.display();
-    });
+    // NE PAS configurer de listener ici !
+    // Le PushNotificationService gère déjà les notifications
+    debugPrint('⚠️ NotificationManager: Les listeners sont gérés par PushNotificationService');
 
-    // Notification cliquée
-    OneSignal.Notifications.addClickListener((event) {
-      debugPrint('👆 Notification cliquée: ${event.notification.title}');
-      // TODO: Navigation
-    });
+    // S'assurer que le PushNotificationService est initialisé
+    // (il sera initialisé automatiquement lors du premier accès)
+    final _ = PushNotificationService.instance;
   }
 
   /// Sauvegarde simple du Player ID
