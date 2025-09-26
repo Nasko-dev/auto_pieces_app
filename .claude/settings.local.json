@@ -43,7 +43,8 @@
       "Bash(do basename \"$file\" .dart)",
       "Bash(done)",
       "Bash(do basename \"$file\" _test.dart)",
-      "Bash(pod install:*)"
+      "Bash(pod install:*)",
+      "Bash(dos2unix:*)"
     ],
     "deny": [],
     "ask": [],
