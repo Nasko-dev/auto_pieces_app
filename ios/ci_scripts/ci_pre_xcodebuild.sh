@@ -11,9 +11,15 @@ echo "🔧 Variables d'environnement:"
 echo "   - HOME: $HOME"
 echo "   - CI_WORKSPACE: $CI_WORKSPACE"
 echo "   - PATH: $PATH"
+echo "   - PUB_CACHE: $PUB_CACHE (local)"
 
 # Variables avec chemins Xcode Cloud
 FLUTTER_ROOT="$HOME/flutter"
+PUB_CACHE="$HOME/.pub-cache"
+
+# Créer les répertoires nécessaires
+mkdir -p "$PUB_CACHE"
+export PUB_CACHE="$PUB_CACHE"
 
 # 1. Installation de Flutter si nécessaire
 echo "📱 [1/6] Vérification/Installation de Flutter..."
@@ -31,29 +37,54 @@ fi
 
 # 2. Retour au répertoire du projet
 echo "📂 [2/6] Navigation vers le répertoire du projet..."
-cd $CI_WORKSPACE
+if [ -z "$CI_WORKSPACE" ]; then
+    # Fallback si CI_WORKSPACE est vide
+    PROJECT_ROOT="/Volumes/workspace/repository"
+    echo "⚠️  CI_WORKSPACE vide, utilisation du fallback: $PROJECT_ROOT"
+else
+    PROJECT_ROOT="$CI_WORKSPACE"
+fi
 
-# 3. Installation des dépendances Flutter
-echo "📦 [3/6] Installation des dépendances Flutter..."
+cd "$PROJECT_ROOT"
+echo "✅ Répertoire de travail : $(pwd)"
+
+# 3. Mise à jour du numéro de build avec CI_BUILD_NUMBER d'Xcode Cloud
+echo "🔢 [3/8] Mise à jour du numéro de build..."
+if [ ! -z "$CI_BUILD_NUMBER" ]; then
+    echo "   Utilisation du build number Xcode Cloud: $CI_BUILD_NUMBER"
+    # Lire la version actuelle
+    CURRENT_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+    # Mettre à jour avec le nouveau build number
+    sed -i.bak "s/version: .*/version: $CURRENT_VERSION+$CI_BUILD_NUMBER/" pubspec.yaml
+    echo "   Version mise à jour: $CURRENT_VERSION+$CI_BUILD_NUMBER"
+else
+    echo "   ⚠️  CI_BUILD_NUMBER non défini, utilisation de la version existante"
+fi
+
+# 4. Installation des dépendances Flutter
+echo "📦 [4/8] Installation des dépendances Flutter..."
 $FLUTTER_ROOT/bin/flutter pub get
 
-# 4. Génération du code
-echo "🔧 [4/6] Génération du code (build_runner)..."
+# 5. Génération du code
+echo "🔧 [5/8] Génération du code (build_runner)..."
 $FLUTTER_ROOT/bin/dart run build_runner build --delete-conflicting-outputs || {
     echo "⚠️  Génération de code échouée, continuation sans erreur..."
 }
 
-# 5. Installation des CocoaPods
-echo "🍎 [5/6] Installation des dépendances CocoaPods..."
+# 6. Préparation iOS et installation des CocoaPods
+echo "🍎 [6/8] Préparation des artefacts iOS..."
+$FLUTTER_ROOT/bin/flutter precache --ios
+
+echo "📦 [7/8] Installation des dépendances CocoaPods..."
 cd ios
 # Mettre à jour les specs CocoaPods
 /usr/local/bin/pod repo update --silent || true
 # Installer les pods
 /usr/local/bin/pod install --repo-update
 
-# 6. Vérification finale
-echo "✅ [6/6] Vérification des fichiers générés..."
-cd $CI_WORKSPACE
+# 8. Vérification finale
+echo "✅ [8/8] Vérification des fichiers générés..."
+cd "$PROJECT_ROOT"
 
 # Vérifier que les fichiers critiques existent
 if [ -f "ios/Flutter/Generated.xcconfig" ]; then
@@ -74,4 +105,4 @@ echo "🎉 [Xcode Cloud] Pré-build terminé avec succès !"
 echo "📊 Résumé :"
 echo "   - Flutter: $($FLUTTER_ROOT/bin/flutter --version | head -n1)"
 echo "   - CocoaPods: $(/usr/local/bin/pod --version)"
-echo "   - Workspace: $CI_WORKSPACE"
+echo "   - Project Root: $PROJECT_ROOT"
