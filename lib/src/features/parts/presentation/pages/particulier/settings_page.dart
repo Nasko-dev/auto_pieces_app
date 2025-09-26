@@ -740,9 +740,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    // Afficher un indicateur de chargement
-    notificationService.showLoading(context, 'Sauvegarde en cours...');
-
     try {
       // Créer l'objet UserSettings
       final userSettings = UserSettings(
