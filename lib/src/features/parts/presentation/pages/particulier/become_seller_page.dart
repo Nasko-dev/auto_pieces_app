@@ -9,6 +9,7 @@ import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
+import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../../data/models/part_advertisement_model.dart';
@@ -202,6 +203,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                         onPressed: _goToPreviousStep,
                         tooltip: 'Retour',
                       ),
+                    const AppMenu(),
                   ],
                 )
               : SellerHeader(

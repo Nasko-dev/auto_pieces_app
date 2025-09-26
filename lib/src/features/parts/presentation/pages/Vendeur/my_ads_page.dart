@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
+import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
@@ -118,6 +119,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 },
                 tooltip: 'Nouvelle annonce',
               ),
+              const SellerMenu(),
             ],
           ),
           // Filtres

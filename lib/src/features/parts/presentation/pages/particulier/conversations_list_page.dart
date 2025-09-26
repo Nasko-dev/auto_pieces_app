@@ -7,6 +7,7 @@ import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
+import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../widgets/conversation_item_widget.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
@@ -100,6 +101,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                   ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
                 },
               ),
+              const AppMenu(),
             ],
           ),
           Expanded(

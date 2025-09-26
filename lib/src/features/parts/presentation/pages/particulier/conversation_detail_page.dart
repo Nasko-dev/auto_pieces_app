@@ -9,6 +9,7 @@ import '../../widgets/message_bubble_widget.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
+import '../../../../../shared/presentation/widgets/context_menu.dart';
 
 class ConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -104,27 +105,22 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
                         icon: const Icon(Icons.videocam_outlined, color: Colors.black),
                         onPressed: () => _makeVideoCall(conversation),
                       ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.black),
-                        onSelected: (value) => _handleMenuAction(value),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: ListTile(
-                              leading: Icon(Icons.delete, color: Colors.red),
-                              title: Text('Supprimer', style: TextStyle(color: Colors.red)),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          const PopupMenuItem(
+                      ContextMenu(
+                        items: const [
+                          ContextMenuItem(
                             value: 'block',
-                            child: ListTile(
-                              leading: Icon(Icons.block),
-                              title: Text('Bloquer le vendeur'),
-                              contentPadding: EdgeInsets.zero,
-                            ),
+                            label: 'Bloquer le vendeur',
+                            icon: Icons.block,
+                          ),
+                          ContextMenuItem(
+                            value: 'delete',
+                            label: 'Supprimer',
+                            icon: Icons.delete_outline,
+                            isDestructive: true,
+                            showDividerBefore: true,
                           ),
                         ],
+                        onSelected: (value) => _handleMenuAction(value),
                       ),
                     ],
                   ),
