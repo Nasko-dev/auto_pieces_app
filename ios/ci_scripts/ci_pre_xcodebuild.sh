@@ -58,16 +58,19 @@ $FLUTTER_ROOT/bin/dart run build_runner build --delete-conflicting-outputs || {
     echo "⚠️  Génération de code échouée, continuation sans erreur..."
 }
 
-# 5. Installation des CocoaPods
-echo "🍎 [5/6] Installation des dépendances CocoaPods..."
+# 5. Préparation iOS et installation des CocoaPods
+echo "🍎 [5/7] Préparation des artefacts iOS..."
+$FLUTTER_ROOT/bin/flutter precache --ios
+
+echo "📦 [6/7] Installation des dépendances CocoaPods..."
 cd ios
 # Mettre à jour les specs CocoaPods
 /usr/local/bin/pod repo update --silent || true
 # Installer les pods
 /usr/local/bin/pod install --repo-update
 
-# 6. Vérification finale
-echo "✅ [6/6] Vérification des fichiers générés..."
+# 7. Vérification finale
+echo "✅ [7/7] Vérification des fichiers générés..."
 cd "$PROJECT_ROOT"
 
 # Vérifier que les fichiers critiques existent
