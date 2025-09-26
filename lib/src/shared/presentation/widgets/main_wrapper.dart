@@ -140,8 +140,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     right: -4,
                     top: -2,
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: 6,
+                      height: 6,
                       decoration: const BoxDecoration(
                         color: Color(0xFFFF3B30),
                         shape: BoxShape.circle,

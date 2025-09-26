@@ -301,18 +301,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   // Badge pour le nombre de conversations non lues
   Widget _buildUnreadConversationsBadge(int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '$count',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFF3B30),
+        shape: BoxShape.circle,
       ),
     );
   }
@@ -320,18 +313,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
   // Badge pour le nombre de messages non lus d'une conversation individuelle
   Widget _buildMessageCountBadge(int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '$count',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFF3B30),
+        shape: BoxShape.circle,
       ),
     );
   }

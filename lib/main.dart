@@ -66,27 +66,19 @@ void main() async {
       await sessionService.updateCachedSession();
     }
 
-    // MAINTENANT initialiser le service de notifications (après l'auth)
+    // Initialiser les services de notifications
     try {
-      debugPrint('🚀 Initialisation des services de notifications après auth...');
-
-      // Initialiser PushNotificationService en PREMIER (pour les listeners)
       final pushService = PushNotificationService.instance;
       await pushService.initialize();
-      debugPrint('✅ PushNotificationService initialisé');
 
-      // Puis initialiser NotificationManager pour la sauvegarde du Player ID
       final notificationManager = NotificationManager.instance;
       await notificationManager.initialize();
-      debugPrint('✅ NotificationManager initialisé');
 
-      // Forcer immédiatement la sauvegarde si on a un utilisateur
       if (user != null) {
-        debugPrint('👤 Utilisateur connecté, forcer sync Player ID...');
         await notificationManager.forceSyncPlayerId();
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'initialisation des notifications: $e');
+      // Erreur silencieuse en production
     }
 
     // Initialiser le service Realtime
@@ -94,7 +86,7 @@ void main() async {
       final realtimeService = RealtimeService();
       await realtimeService.startRealtimeSubscriptions();
     } catch (e) {
-      debugPrint('Erreur lors de l\'initialisation du service Realtime: $e');
+      // Erreur silencieuse en production
     }
 
     runApp(
@@ -132,8 +124,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // IMPORTANT: L'app démarre en foreground
-    debugPrint('🚀 App démarrée - état FOREGROUND');
     PushNotificationService.instance.setAppState(true);
   }
 
@@ -147,28 +137,14 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    debugPrint('🔄 App lifecycle changed: $state');
-
     switch (state) {
       case AppLifecycleState.resumed:
-        // App revient en premier plan
-        debugPrint('🔥 RESUMED -> FOREGROUND');
         PushNotificationService.instance.setAppState(true);
         break;
       case AppLifecycleState.paused:
-        debugPrint('⏸️ PAUSED -> BACKGROUND');
-        PushNotificationService.instance.setAppState(false);
-        break;
       case AppLifecycleState.inactive:
-        debugPrint('🚦 INACTIVE -> BACKGROUND');
-        PushNotificationService.instance.setAppState(false);
-        break;
       case AppLifecycleState.detached:
-        debugPrint('📵 DETACHED -> BACKGROUND');
-        PushNotificationService.instance.setAppState(false);
-        break;
       case AppLifecycleState.hidden:
-        debugPrint('🙈 HIDDEN -> BACKGROUND');
         PushNotificationService.instance.setAppState(false);
         break;
     }

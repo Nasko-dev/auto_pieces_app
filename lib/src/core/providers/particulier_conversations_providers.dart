@@ -30,6 +30,8 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   Timer? _pollingTimer;
   bool _isPollingActive = false;
 
+  bool _isRealtimeInitialized = false;
+
   ParticulierConversationsController({
     required PartRequestRepository repository,
     required RealtimeService realtimeService,
@@ -46,6 +48,11 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   
   // Abonnement global aux messages - même structure que le vendeur
   void initializeRealtime(String userId) async {
+    if (_isRealtimeInitialized) {
+      return;
+    }
+
+    _isRealtimeInitialized = true;
     _startIntelligentPolling();
     _subscribeToGlobalMessages(userId);
   }
@@ -98,9 +105,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         // Marquer le message comme lu immédiatement si la conversation est ouverte
         _markConversationAsReadInDB(conversationId);
       } else {
-        // Incrémenter le compteur "particulier" - la méthode déterminera automatiquement
-        // si nous sommes le destinataire selon notre rôle dans cette conversation
-        _incrementUnreadCountInDB(conversationId);
+        _incrementUnreadCountForUserOnly(conversationId);
       }
     } catch (e) {
       // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
@@ -237,7 +242,20 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     }
   }
 
-  // ✅ DB-BASED: Marquer conversation comme lue en DB
+  void _incrementUnreadCountForUserOnly(String conversationId) async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await _repository.incrementUnreadCountForUser(
+        conversationId: conversationId,
+      );
+      loadConversations();
+    } catch (e) {
+      // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
+    }
+  }
+
   void _markConversationAsReadInDB(String conversationId) async {
     try {
       await _repository.markParticulierMessagesAsRead(

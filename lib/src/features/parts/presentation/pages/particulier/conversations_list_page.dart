@@ -35,11 +35,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Ré-initialiser si le provider change
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = ref.read(particulierConversationsControllerProvider.notifier);
-      _initializeRealtimeWithCorrectIds(controller);
-    });
+    // Ne plus ré-initialiser automatiquement - déjà fait dans initState
   }
 
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
@@ -59,9 +55,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           .toList();
           
       
-      // Initialiser le realtime pour chaque ID particulier
-      for (final userId in allUserIds) {
-        controller.initializeRealtime(userId);
+      if (allUserIds.isNotEmpty) {
+        final primaryUserId = allUserIds.first;
+        controller.initializeRealtime(primaryUserId);
       }
       
       // Fallback vers auth ID si aucun trouvé

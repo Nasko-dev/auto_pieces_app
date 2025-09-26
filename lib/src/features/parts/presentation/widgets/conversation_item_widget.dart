@@ -6,7 +6,7 @@ import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums
 
 class ConversationItemWidget extends ConsumerWidget {
   final dynamic
-  conversation; // Accept both Conversation and ParticulierConversation
+      conversation; // Accept both Conversation and ParticulierConversation
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onBlock;
@@ -34,11 +34,10 @@ class ConversationItemWidget extends ConsumerWidget {
     }
 
     final hasUnread = unreadCount > 0;
-    final sellerName =
-        isParticulier
-            ? _getSellerDisplayName() // Côté particulier : afficher le nom de l'entreprise ou fallback
-            : (_getParticulierDisplayName() ??
-                'Particulier'); // Côté vendeur : afficher le nom du particulier
+    final sellerName = isParticulier
+        ? _getSellerDisplayName() // Côté particulier : afficher le nom de l'entreprise ou fallback
+        : (_getParticulierDisplayName() ??
+            'Particulier'); // Côté vendeur : afficher le nom du particulier
     final lastMessage = _getLastMessageContent();
     final timestamp = _getLastMessageCreatedAt();
     final requestTitle = _getRequestTitle();
@@ -48,16 +47,14 @@ class ConversationItemWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border:
-            hasUnread
-                ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
-                : Border.all(color: Colors.grey.shade200),
+        border: hasUnread
+            ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
+            : Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color:
-                hasUnread
-                    ? const Color(0xFF007AFF).withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.04),
+            color: hasUnread
+                ? const Color(0xFF007AFF).withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: hasUnread ? 8 : 4,
             offset: const Offset(0, 2),
           ),
@@ -90,14 +87,12 @@ class ConversationItemWidget extends ConsumerWidget {
                               sellerName,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight:
-                                    hasUnread
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                color:
-                                    hasUnread
-                                        ? const Color(0xFF007AFF)
-                                        : Colors.black87,
+                                fontWeight: hasUnread
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: hasUnread
+                                    ? const Color(0xFF007AFF)
+                                    : Colors.black87,
                               ),
                             ),
                           ),
@@ -139,11 +134,10 @@ class ConversationItemWidget extends ConsumerWidget {
                                   ? Icons.reply
                                   : Icons.chat_bubble_outline,
                               size: 14,
-                              color:
-                                  _getLastMessageSenderType() ==
-                                          MessageSenderType.user
-                                      ? const Color(0xFF007AFF)
-                                      : const Color(0xFF5AC8FA),
+                              color: _getLastMessageSenderType() ==
+                                      MessageSenderType.user
+                                  ? const Color(0xFF007AFF)
+                                  : const Color(0xFF5AC8FA),
                             ),
                             const SizedBox(width: 6),
 
@@ -153,14 +147,12 @@ class ConversationItemWidget extends ConsumerWidget {
                                 lastMessage,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color:
-                                      hasUnread
-                                          ? Colors.black87
-                                          : Colors.grey[600],
-                                  fontWeight:
-                                      hasUnread
-                                          ? FontWeight.w500
-                                          : FontWeight.normal,
+                                  color: hasUnread
+                                      ? Colors.black87
+                                      : Colors.grey[600],
+                                  fontWeight: hasUnread
+                                      ? FontWeight.w500
+                                      : FontWeight.normal,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -174,14 +166,12 @@ class ConversationItemWidget extends ConsumerWidget {
                                 _formatTimestamp(timestamp),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color:
-                                      hasUnread
-                                          ? const Color(0xFF007AFF)
-                                          : Colors.grey[500],
-                                  fontWeight:
-                                      hasUnread
-                                          ? FontWeight.w500
-                                          : FontWeight.normal,
+                                  color: hasUnread
+                                      ? const Color(0xFF007AFF)
+                                      : Colors.grey[500],
+                                  fontWeight: hasUnread
+                                      ? FontWeight.w500
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ],
@@ -200,7 +190,6 @@ class ConversationItemWidget extends ConsumerWidget {
   }
 
   Widget _buildAvatar(String name, bool hasUnread) {
-
     // Récupérer l'URL de l'avatar si c'est une ParticulierConversation
     String? avatarUrl;
     if (conversation is ParticulierConversation) {
@@ -261,18 +250,11 @@ class ConversationItemWidget extends ConsumerWidget {
 
   Widget _buildUnreadBadge(int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFF3B30),
+        shape: BoxShape.circle,
       ),
     );
   }
@@ -290,29 +272,28 @@ class ConversationItemWidget extends ConsumerWidget {
             break;
         }
       },
-      itemBuilder:
-          (context) => [
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                  SizedBox(width: 12),
-                  Text('Supprimer', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'block',
-              child: Row(
-                children: [
-                  Icon(Icons.block, color: Colors.orange, size: 18),
-                  SizedBox(width: 12),
-                  Text('Bloquer', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-          ],
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 18),
+              SizedBox(width: 12),
+              Text('Supprimer', style: TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'block',
+          child: Row(
+            children: [
+              Icon(Icons.block, color: Colors.orange, size: 18),
+              SizedBox(width: 12),
+              Text('Bloquer', style: TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -326,8 +307,8 @@ class ConversationItemWidget extends ConsumerWidget {
     return words.length >= 2 && words[0].isNotEmpty && words[1].isNotEmpty
         ? '${words[0][0]}${words[1][0]}'.toUpperCase()
         : words[0].isEmpty
-        ? '?'
-        : words[0][0].toUpperCase();
+            ? '?'
+            : words[0][0].toUpperCase();
   }
 
   String _formatTimestamp(DateTime timestamp) {

@@ -70,20 +70,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     
     // S'abonner aux messages de cette conversation spécifique
     realtimeService.subscribeToMessages(widget.conversationId);
-    
-    // Écouter les nouveaux messages via le stream spécifique à cette conversation
-    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen((message) {
-      // Vérifier que c'est bien pour notre conversation
-      if (message.conversationId == widget.conversationId) {
-        
-        // Envoyer au controller via la méthode unifiée
-        ref.read(conversationsControllerProvider.notifier)
-            .handleIncomingMessage(message);
-        
-        // Faire défiler vers le bas
-        _scrollToBottom();
-      }
-    });
   }
   
   void _scrollToBottom() {
