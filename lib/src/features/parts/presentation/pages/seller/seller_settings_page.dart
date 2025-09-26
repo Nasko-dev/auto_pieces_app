@@ -619,9 +619,6 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       return;
     }
 
-    // Afficher un indicateur de chargement
-    notificationService.showLoading(context, 'Sauvegarde en cours...');
-
     try {
       // Créer l'objet SellerSettings
       final sellerSettings = SellerSettings(

@@ -4,8 +4,30 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'notification_navigation_service.dart';
 
+/// Service pour gérer l'état de l'application (foreground/background)
+class AppStateManager {
+  static final AppStateManager _instance = AppStateManager._internal();
+  factory AppStateManager() => _instance;
+  AppStateManager._internal();
+
+  // IMPORTANT: Démarrer avec false (background) par défaut pour être sûr
+  bool _isInForeground = false;
+  bool get isInForeground => _isInForeground;
+
+  void setAppState(bool isInForeground) {
+    final previousState = _isInForeground;
+    _isInForeground = isInForeground;
+    debugPrint('📱 App State changed: $previousState -> ${isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
+  }
+
+  void debugCurrentState() {
+    debugPrint('🔍 Current app state: ${_isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
+  }
+}
+
 class PushNotificationService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final AppStateManager _appStateManager = AppStateManager();
 
   static PushNotificationService? _instance;
   static PushNotificationService get instance {
@@ -70,10 +92,28 @@ class PushNotificationService {
   void _setupNotificationListeners() {
     // Listener quand une notification est reçue
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint('Notification reçue en foreground: ${event.notification.title}');
-      // Laisser OneSignal afficher la notification
+      debugPrint('==== NOTIFICATION RECEIVED ====');
+      debugPrint('🔔 Title: ${event.notification.title}');
+      debugPrint('🔔 Body: ${event.notification.body}');
+
+      // Debug détaillé de l'état de l'app
+      _appStateManager.debugCurrentState();
+      final isInForeground = _appStateManager.isInForeground;
+      debugPrint('📱 isInForeground value: $isInForeground');
+
+      // Prévenir l'affichage par défaut
       event.preventDefault();
-      event.notification.display();
+
+      // LOGIQUE INVERSEÉE : N'afficher QUE si app est en background
+      if (isInForeground) {
+        debugPrint('❌ FOREGROUND DÉTECTÉ - NOTIFICATION BLOQUÉE');
+        // NE PAS AFFICHER - l'utilisateur est sur l'app
+      } else {
+        debugPrint('✅ BACKGROUND DÉTECTÉ - NOTIFICATION AFFICHÉE');
+        event.notification.display();
+      }
+
+      debugPrint('==== END NOTIFICATION PROCESSING ====');
     });
 
     // Listener quand l'utilisateur clique sur une notification
@@ -319,6 +359,13 @@ class PushNotificationService {
     } catch (e) {
       debugPrint('Erreur lors de la mise à jour des tags: $e');
     }
+  }
+
+  /// Mettre à jour l'état de l'application
+  void setAppState(bool isInForeground) {
+    debugPrint('📍 PushNotificationService.setAppState called with: $isInForeground');
+    _appStateManager.setAppState(isInForeground);
+    _appStateManager.debugCurrentState();
   }
 
   void dispose() {

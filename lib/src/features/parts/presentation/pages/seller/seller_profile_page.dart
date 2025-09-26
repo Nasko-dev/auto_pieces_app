@@ -530,8 +530,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       return;
     }
 
-    notificationService.showLoading(context, 'Sauvegarde en cours...');
-
     try {
       final sellerSettings = SellerSettings(
         sellerId: currentUser.id,
@@ -547,7 +545,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       final result = await saveSellerSettings(sellerSettings);
 
       if (!context.mounted) return;
-      // L'indicateur de chargement se masque automatiquement
 
       result.fold(
         (failure) {

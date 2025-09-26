@@ -15,6 +15,7 @@ import 'src/core/services/session_service.dart';
 import 'src/core/services/device_service.dart';
 import 'src/core/services/notification_manager.dart';
 import 'src/core/services/notification_navigation_service.dart';
+import 'src/core/services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,19 +66,19 @@ void main() async {
       await sessionService.updateCachedSession();
     }
 
-    // MAINTENANT initialiser le service de notifications (après l'auth)
+    // Initialiser les services de notifications
     try {
-      debugPrint('🚀 Initialisation NotificationManager après auth...');
+      final pushService = PushNotificationService.instance;
+      await pushService.initialize();
+
       final notificationManager = NotificationManager.instance;
       await notificationManager.initialize();
 
-      // Forcer immédiatement la sauvegarde si on a un utilisateur
       if (user != null) {
-        debugPrint('👤 Utilisateur connecté, forcer sync Player ID...');
         await notificationManager.forceSyncPlayerId();
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'initialisation des notifications: $e');
+      // Erreur silencieuse en production
     }
 
     // Initialiser le service Realtime
@@ -85,7 +86,7 @@ void main() async {
       final realtimeService = RealtimeService();
       await realtimeService.startRealtimeSubscriptions();
     } catch (e) {
-      debugPrint('Erreur lors de l\'initialisation du service Realtime: $e');
+      // Erreur silencieuse en production
     }
 
     runApp(
@@ -110,11 +111,47 @@ void main() async {
   }
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    PushNotificationService.instance.setAppState(true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        PushNotificationService.instance.setAppState(true);
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        PushNotificationService.instance.setAppState(false);
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
     // Configurer le router global pour les notifications

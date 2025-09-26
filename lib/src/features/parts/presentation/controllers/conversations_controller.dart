@@ -146,8 +146,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
         // Marquer le message comme lu immédiatement si la conversation est ouverte
         _markConversationAsReadInDB(conversationId);
       } else {
-        // Incrémenter le bon compteur selon notre rôle dans cette conversation
-        _incrementUnreadCountInDB(conversationId);
+        _incrementUnreadCountForSellerOnly(conversationId);
       }
     } catch (e) {
       // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
@@ -488,26 +487,22 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   }
 
-  // ✅ DB-BASED: Incrémenter compteur intelligent selon le rôle - SANS REFRESH AUTO
-  void _incrementUnreadCountInDB(String conversationId) async {
+
+  void _incrementUnreadCountForSellerOnly(String conversationId) async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
 
-      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
-      await _dataSource.incrementUnreadCountForRecipient(
+      await _dataSource.incrementUnreadCountForSeller(
         conversationId: conversationId,
-        recipientId: userId,
       );
 
-      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
       _updateLocalUnreadCount(conversationId, 1);
     } catch (e) {
       // Ignorer l'erreur silencieusement
     }
   }
 
-  // ✅ DB-BASED: Marquer conversation comme lue en DB - SANS REFRESH AUTO
   void _markConversationAsReadInDB(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
