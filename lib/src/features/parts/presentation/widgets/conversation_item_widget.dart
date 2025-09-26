@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/presentation/widgets/context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/particulier_conversation.dart';
@@ -278,8 +279,21 @@ class ConversationItemWidget extends ConsumerWidget {
   }
 
   Widget _buildActionMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_horiz, color: Colors.grey[600], size: 20),
+    return ContextMenu(
+      items: const [
+        ContextMenuItem(
+          value: 'block',
+          label: 'Bloquer',
+          icon: Icons.block,
+        ),
+        ContextMenuItem(
+          value: 'delete',
+          label: 'Supprimer',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+          showDividerBefore: true,
+        ),
+      ],
       onSelected: (value) {
         switch (value) {
           case 'delete':
@@ -290,29 +304,6 @@ class ConversationItemWidget extends ConsumerWidget {
             break;
         }
       },
-      itemBuilder:
-          (context) => [
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                  SizedBox(width: 12),
-                  Text('Supprimer', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'block',
-              child: Row(
-                children: [
-                  Icon(Icons.block, color: Colors.orange, size: 18),
-                  SizedBox(width: 12),
-                  Text('Bloquer', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-          ],
     );
   }
 
