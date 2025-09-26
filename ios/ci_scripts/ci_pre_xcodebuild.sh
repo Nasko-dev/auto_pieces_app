@@ -37,7 +37,16 @@ fi
 
 # 2. Retour au répertoire du projet
 echo "📂 [2/6] Navigation vers le répertoire du projet..."
-cd $CI_WORKSPACE
+if [ -z "$CI_WORKSPACE" ]; then
+    # Fallback si CI_WORKSPACE est vide
+    PROJECT_ROOT="/Volumes/workspace/repository"
+    echo "⚠️  CI_WORKSPACE vide, utilisation du fallback: $PROJECT_ROOT"
+else
+    PROJECT_ROOT="$CI_WORKSPACE"
+fi
+
+cd "$PROJECT_ROOT"
+echo "✅ Répertoire de travail : $(pwd)"
 
 # 3. Installation des dépendances Flutter
 echo "📦 [3/6] Installation des dépendances Flutter..."
@@ -59,7 +68,7 @@ cd ios
 
 # 6. Vérification finale
 echo "✅ [6/6] Vérification des fichiers générés..."
-cd $CI_WORKSPACE
+cd "$PROJECT_ROOT"
 
 # Vérifier que les fichiers critiques existent
 if [ -f "ios/Flutter/Generated.xcconfig" ]; then
@@ -80,4 +89,4 @@ echo "🎉 [Xcode Cloud] Pré-build terminé avec succès !"
 echo "📊 Résumé :"
 echo "   - Flutter: $($FLUTTER_ROOT/bin/flutter --version | head -n1)"
 echo "   - CocoaPods: $(/usr/local/bin/pod --version)"
-echo "   - Workspace: $CI_WORKSPACE"
+echo "   - Project Root: $PROJECT_ROOT"
