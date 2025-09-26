@@ -11,9 +11,15 @@ echo "🔧 Variables d'environnement:"
 echo "   - HOME: $HOME"
 echo "   - CI_WORKSPACE: $CI_WORKSPACE"
 echo "   - PATH: $PATH"
+echo "   - PUB_CACHE: $PUB_CACHE (local)"
 
 # Variables avec chemins Xcode Cloud
 FLUTTER_ROOT="$HOME/flutter"
+PUB_CACHE="$HOME/.pub-cache"
+
+# Créer les répertoires nécessaires
+mkdir -p "$PUB_CACHE"
+export PUB_CACHE="$PUB_CACHE"
 
 # 1. Installation de Flutter si nécessaire
 echo "📱 [1/6] Vérification/Installation de Flutter..."
