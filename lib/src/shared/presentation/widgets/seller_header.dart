@@ -107,10 +107,6 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
             onTap: widget.onBackPressed ?? () => Navigator.of(context).pop(),
             child: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: const Icon(
                 Icons.arrow_back_ios,
                 size: 20,

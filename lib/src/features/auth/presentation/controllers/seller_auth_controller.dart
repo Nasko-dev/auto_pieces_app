@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/providers/seller_auth_providers.dart';
+import '../../../../core/services/notification_manager.dart';
 import '../../domain/entities/seller.dart';
 import '../../domain/usecases/seller_register.dart';
 import '../../domain/usecases/seller_login.dart';
@@ -70,8 +72,16 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
       (failure) {
         state = SellerAuthState.error(_mapFailureToMessage(failure));
       },
-      (seller) {
+      (seller) async {
         state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID après une inscription réussie
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
       },
     );
   }
@@ -92,7 +102,17 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
 
     result.fold(
       (failure) => state = SellerAuthState.error(_mapFailureToMessage(failure)),
-      (seller) => state = SellerAuthState.authenticated(seller),
+      (seller) async {
+        state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID après une connexion réussie (comme pour les particuliers)
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
+      },
     );
   }
 
@@ -133,7 +153,17 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
 
     result.fold(
       (failure) => state = const SellerAuthState.unauthenticated(),
-      (seller) => state = SellerAuthState.authenticated(seller),
+      (seller) async {
+        state = SellerAuthState.authenticated(seller);
+
+        // Synchroniser le Player ID pour le seller actuel
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
+      },
     );
   }
 
@@ -143,7 +173,17 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
       final result = await _getCurrentSeller(NoParams());
       result.fold(
         (failure) => state = const SellerAuthState.unauthenticated(),
-        (seller) => state = SellerAuthState.authenticated(seller),
+        (seller) async {
+          state = SellerAuthState.authenticated(seller);
+
+          // Synchroniser le Player ID au démarrage si le seller est connecté
+          try {
+            await NotificationManager.instance.forceSyncPlayerId();
+          } catch (e) {
+            // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+            debugPrint('Erreur sync Player ID: $e');
+          }
+        },
       );
     } catch (e) {
       state = const SellerAuthState.unauthenticated();

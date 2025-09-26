@@ -206,13 +206,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                 )
               : SellerHeader(
                   title: 'Déposer une annonce',
+                  showBackButton: true,
+                  onBackPressed: _currentStep > 0
+                    ? _goToPreviousStep
+                    : () => context.go('/seller/add'),
                   actions: [
-                    if (_currentStep > 0)
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-                        onPressed: _goToPreviousStep,
-                        tooltip: 'Retour',
-                      ),
                     // Bouton debug temporaire pour vendeurs
                     IconButton(
                       icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
