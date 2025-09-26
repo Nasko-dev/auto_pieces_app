@@ -118,8 +118,6 @@ class PushNotificationService {
 
     // Listener quand l'utilisateur clique sur une notification
     OneSignal.Notifications.addClickListener((event) {
-      debugPrint('Notification cliquée: ${event.notification.title}');
-      // TODO: Navigation vers la conversation appropriée
       _handleNotificationClick(event.notification);
     });
 
@@ -298,9 +296,6 @@ class PushNotificationService {
     try {
       final additionalData = notification.additionalData;
       if (additionalData != null) {
-        debugPrint('Notification cliquée - Data: $additionalData');
-
-        // Utiliser le service de navigation global
         final navigationService = NotificationNavigationService.instance;
 
         // Navigation asynchrone sans besoin de contexte
@@ -309,7 +304,7 @@ class PushNotificationService {
         });
       }
     } catch (e) {
-      debugPrint('Erreur lors du traitement du clic notification: $e');
+      // Erreur silencieuse en production
     }
   }
 

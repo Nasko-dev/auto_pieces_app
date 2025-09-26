@@ -22,10 +22,7 @@ class NotificationNavigationService {
       final type = notificationData['type'];
       final conversationId = notificationData['conversation_group_id'] ?? notificationData['conversation_id'];
 
-      debugPrint('Navigation notification - Type: $type, Conversation: $conversationId');
-
       if (context == null || !context.mounted) {
-        debugPrint('Contexte non disponible pour la navigation');
         return;
       }
 
@@ -36,16 +33,18 @@ class NotificationNavigationService {
 
       switch (type) {
         case 'new_message':
+        case 'message':
           await _navigateToConversation(context, conversationId, userType);
           break;
         case 'part_request_response':
           await _navigateToRequests(context, userType);
           break;
         default:
-          debugPrint('Type de notification non géré: $type');
+          // Fallback vers la liste des conversations
+          await _navigateToConversationsList(context, userType);
       }
     } catch (e) {
-      debugPrint('Erreur lors de la navigation depuis notification: $e');
+      // Erreur silencieuse en production
     }
   }
 
@@ -75,7 +74,6 @@ class NotificationNavigationService {
 
       return particulier != null ? 'particulier' : null;
     } catch (e) {
-      debugPrint('Erreur lors de la détermination du type utilisateur: $e');
       return null;
     }
   }
@@ -86,8 +84,8 @@ class NotificationNavigationService {
     String? conversationId,
     String? userType,
   ) async {
-    if (conversationId == null) {
-      debugPrint('ID de conversation manquant');
+    if (conversationId == null || conversationId.isEmpty) {
+      await _navigateToConversationsList(context, userType);
       return;
     }
 
@@ -105,9 +103,7 @@ class NotificationNavigationService {
           pathParameters: {'conversationId': conversationId},
         );
       }
-      debugPrint('Navigation vers conversation: $conversationId (type: $userType)');
     } catch (e) {
-      debugPrint('Erreur lors de la navigation vers conversation: $e');
       // Fallback: aller vers la liste des conversations
       await _navigateToConversationsList(context, userType);
     }
@@ -124,9 +120,8 @@ class NotificationNavigationService {
       } else {
         context.goNamed('conversations');
       }
-      debugPrint('Navigation vers liste conversations (type: $userType)');
     } catch (e) {
-      debugPrint('Erreur lors de la navigation vers liste conversations: $e');
+      // Erreur silencieuse en production
     }
   }
 
@@ -143,9 +138,8 @@ class NotificationNavigationService {
         // Pour les particuliers, aller vers les demandes
         context.goNamed('requests');
       }
-      debugPrint('Navigation vers demandes/notifications (type: $userType)');
     } catch (e) {
-      debugPrint('Erreur lors de la navigation vers demandes: $e');
+      // Erreur silencieuse en production
     }
   }
 
@@ -156,25 +150,32 @@ class NotificationNavigationService {
   ) async {
     try {
       final type = notificationData['type'];
-      final conversationId = notificationData['conversation_group_id'] ?? notificationData['conversation_id'];
-
-      debugPrint('Navigation notification global - Type: $type, Conversation: $conversationId');
+      final conversationId = notificationData['conversation_group_id'] ??
+                           notificationData['conversation_id'] ??
+                           notificationData['conversationId'];
 
       // Déterminer le type d'utilisateur actuel
       final userType = await _getCurrentUserType();
 
       switch (type) {
         case 'new_message':
+        case 'message':
           await _navigateToConversationGlobal(conversationId, userType);
           break;
         case 'part_request_response':
           await _navigateToRequestsGlobal(userType);
           break;
         default:
-          debugPrint('Type de notification non géré: $type');
+          // Fallback vers la liste des conversations
+          await _navigateToConversationsListGlobal(userType);
       }
     } catch (e) {
-      debugPrint('Erreur lors de la navigation depuis notification: $e');
+      // En cas d'erreur, aller vers l'accueil
+      try {
+        _globalGoRouter?.go('/home');
+      } catch (_) {
+        // Erreur silencieuse en production
+      }
     }
   }
 
@@ -183,8 +184,9 @@ class NotificationNavigationService {
     String? conversationId,
     String? userType,
   ) async {
-    if (conversationId == null) {
-      debugPrint('ID de conversation manquant');
+    if (conversationId == null || conversationId.isEmpty) {
+      // Fallback vers la liste des conversations
+      await _navigateToConversationsListGlobal(userType);
       return;
     }
 
@@ -202,9 +204,9 @@ class NotificationNavigationService {
           pathParameters: {'conversationId': conversationId},
         );
       }
-      debugPrint('Navigation globale vers conversation: $conversationId (type: $userType)');
     } catch (e) {
-      debugPrint('Erreur lors de la navigation globale vers conversation: $e');
+      // Fallback vers la liste des conversations
+      await _navigateToConversationsListGlobal(userType);
     }
   }
 
@@ -216,9 +218,23 @@ class NotificationNavigationService {
       } else {
         _globalGoRouter?.goNamed('requests');
       }
-      debugPrint('Navigation globale vers demandes/notifications (type: $userType)');
     } catch (e) {
-      debugPrint('Erreur lors de la navigation globale vers demandes: $e');
+      // Fallback vers l'accueil
+      _globalGoRouter?.go('/home');
+    }
+  }
+
+  /// Navigation globale vers la liste des conversations
+  Future<void> _navigateToConversationsListGlobal(String? userType) async {
+    try {
+      if (userType == 'vendeur') {
+        _globalGoRouter?.goNamed('seller-messages');
+      } else {
+        _globalGoRouter?.goNamed('conversations');
+      }
+    } catch (e) {
+      // Fallback vers l'accueil
+      _globalGoRouter?.go('/home');
     }
   }
 
