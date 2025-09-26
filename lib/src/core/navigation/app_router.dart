@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/session_providers.dart' as session;
 import '../providers/session_providers.dart' show sessionServiceProvider;
+import 'custom_transitions.dart';
 import '../../features/auth/presentation/pages/yannko_welcome_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/auth/presentation/pages/seller_login_page.dart';
@@ -30,6 +32,22 @@ import '../../shared/presentation/widgets/seller_wrapper.dart';
 import '../../shared/presentation/pages/under_development_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  // Tracker pour la localisation précédente pour les transitions
+  String? previousLocation;
+
+  // Fonction helper pour créer des pages avec transitions
+  Page<T> buildPageWithTransition<T extends Object?>(
+    GoRouterState state,
+    Widget child,
+  ) {
+    final page = slideTransitionPage<T>(
+      child: child,
+      state: state,
+      previousLocation: previousLocation,
+    );
+    previousLocation = state.matchedLocation;
+    return page;
+  }
   // Utiliser try-catch pour éviter les erreurs au démarrage
   String getInitialLocation() {
     try {
@@ -108,17 +126,26 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/home',
             name: 'home',
-            builder: (context, state) => const HomePage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const HomePage(),
+            ),
           ),
           GoRoute(
             path: '/requests',
             name: 'requests',
-            builder: (context, state) => const RequestsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const RequestsPage(),
+            ),
           ),
           GoRoute(
             path: '/conversations',
             name: 'conversations',
-            builder: (context, state) => const ConversationsListPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const ConversationsListPage(),
+            ),
             routes: [
               GoRoute(
                 path: '/:conversationId',
@@ -133,27 +160,42 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/messages-clients',
             name: 'messages-clients',
-            builder: (context, state) => const ConversationsListPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const ConversationsListPage(),
+            ),
           ),
           GoRoute(
             path: '/become-seller',
             name: 'become-seller',
-            builder: (context, state) => const BecomeSellerPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const BecomeSellerPage(),
+            ),
           ),
           GoRoute(
             path: '/help',
             name: 'help',
-            builder: (context, state) => const HelpPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const HelpPage(),
+            ),
           ),
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (context, state) => const ProfilePage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const ProfilePage(),
+            ),
           ),
           GoRoute(
             path: '/settings',
             name: 'settings',
-            builder: (context, state) => const SettingsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SettingsPage(),
+            ),
           ),
         ],
       ),
@@ -165,12 +207,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/home',
             name: 'seller-home',
-            builder: (context, state) => const HomeSellerPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const HomeSellerPage(),
+            ),
           ),
           GoRoute(
             path: '/seller/add',
             name: 'seller-add',
-            builder: (context, state) => const SellerInitialChoicePage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SellerInitialChoicePage(),
+            ),
           ),
           GoRoute(
             path: '/seller/create-ad',
@@ -185,12 +233,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/ads',
             name: 'seller-ads',
-            builder: (context, state) => const MyAdsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const MyAdsPage(),
+            ),
           ),
           GoRoute(
             path: '/seller/messages',
             name: 'seller-messages',
-            builder: (context, state) => const SellerMessagesPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SellerMessagesPage(),
+            ),
           ),
           GoRoute(
             path: '/seller/notifications',
@@ -212,17 +266,26 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/profile',
             name: 'seller-profile',
-            builder: (context, state) => const SellerProfilePage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SellerProfilePage(),
+            ),
           ),
           GoRoute(
             path: '/seller/settings',
             name: 'seller-settings',
-            builder: (context, state) => const SellerSettingsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SellerSettingsPage(),
+            ),
           ),
           GoRoute(
             path: '/seller/help',
             name: 'seller-help',
-            builder: (context, state) => const SellerHelpPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const SellerHelpPage(),
+            ),
           ),
         ],
       ),
