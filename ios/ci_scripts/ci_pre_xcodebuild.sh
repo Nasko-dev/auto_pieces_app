@@ -48,29 +48,42 @@ fi
 cd "$PROJECT_ROOT"
 echo "✅ Répertoire de travail : $(pwd)"
 
-# 3. Installation des dépendances Flutter
-echo "📦 [3/6] Installation des dépendances Flutter..."
+# 3. Mise à jour du numéro de build avec CI_BUILD_NUMBER d'Xcode Cloud
+echo "🔢 [3/8] Mise à jour du numéro de build..."
+if [ ! -z "$CI_BUILD_NUMBER" ]; then
+    echo "   Utilisation du build number Xcode Cloud: $CI_BUILD_NUMBER"
+    # Lire la version actuelle
+    CURRENT_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+    # Mettre à jour avec le nouveau build number
+    sed -i.bak "s/version: .*/version: $CURRENT_VERSION+$CI_BUILD_NUMBER/" pubspec.yaml
+    echo "   Version mise à jour: $CURRENT_VERSION+$CI_BUILD_NUMBER"
+else
+    echo "   ⚠️  CI_BUILD_NUMBER non défini, utilisation de la version existante"
+fi
+
+# 4. Installation des dépendances Flutter
+echo "📦 [4/8] Installation des dépendances Flutter..."
 $FLUTTER_ROOT/bin/flutter pub get
 
-# 4. Génération du code
-echo "🔧 [4/6] Génération du code (build_runner)..."
+# 5. Génération du code
+echo "🔧 [5/8] Génération du code (build_runner)..."
 $FLUTTER_ROOT/bin/dart run build_runner build --delete-conflicting-outputs || {
     echo "⚠️  Génération de code échouée, continuation sans erreur..."
 }
 
-# 5. Préparation iOS et installation des CocoaPods
-echo "🍎 [5/7] Préparation des artefacts iOS..."
+# 6. Préparation iOS et installation des CocoaPods
+echo "🍎 [6/8] Préparation des artefacts iOS..."
 $FLUTTER_ROOT/bin/flutter precache --ios
 
-echo "📦 [6/7] Installation des dépendances CocoaPods..."
+echo "📦 [7/8] Installation des dépendances CocoaPods..."
 cd ios
 # Mettre à jour les specs CocoaPods
 /usr/local/bin/pod repo update --silent || true
 # Installer les pods
 /usr/local/bin/pod install --repo-update
 
-# 7. Vérification finale
-echo "✅ [7/7] Vérification des fichiers générés..."
+# 8. Vérification finale
+echo "✅ [8/8] Vérification des fichiers générés..."
 cd "$PROJECT_ROOT"
 
 # Vérifier que les fichiers critiques existent
