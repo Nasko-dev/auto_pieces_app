@@ -224,23 +224,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   }
 
-  // ✅ DB-BASED: Incrémenter compteur intelligent selon le rôle en DB
-  void _incrementUnreadCountInDB(String conversationId) async {
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
-      await _repository.incrementUnreadCountForRecipient(
-        conversationId: conversationId,
-        recipientId: userId,
-      );
-      // Refresh pour récupérer le nouveau compteur
-      loadConversations();
-    } catch (e) {
-      // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
-    }
-  }
 
   void _incrementUnreadCountForUserOnly(String conversationId) async {
     try {

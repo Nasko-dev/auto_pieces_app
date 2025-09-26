@@ -487,24 +487,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   }
 
-  // ✅ DB-BASED: Incrémenter compteur intelligent selon le rôle - SANS REFRESH AUTO
-  void _incrementUnreadCountInDB(String conversationId) async {
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      // Utiliser la méthode intelligente qui détermine le bon compteur selon le rôle
-      await _dataSource.incrementUnreadCountForRecipient(
-        conversationId: conversationId,
-        recipientId: userId,
-      );
-
-      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
-      _updateLocalUnreadCount(conversationId, 1);
-    } catch (e) {
-      // Ignorer l'erreur silencieusement
-    }
-  }
 
   void _incrementUnreadCountForSellerOnly(String conversationId) async {
     try {
