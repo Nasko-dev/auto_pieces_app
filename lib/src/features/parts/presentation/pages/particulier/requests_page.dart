@@ -7,6 +7,7 @@ import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
+import '../../../../../shared/presentation/widgets/context_menu.dart';
 
 class RequestsPage extends ConsumerStatefulWidget {
   const RequestsPage({super.key});
@@ -235,29 +236,8 @@ class _RequestCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert,
-                          color: AppTheme.gray,
-                          size: 18,
-                        ),
-                        onSelected: (value) {
-                          if (value == 'delete') {
-                            _showDeleteDialog(context, ref);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                                SizedBox(width: 12),
-                                Text('Supprimer', style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                        ],
+                      DeleteContextMenu(
+                        onDelete: () => _showDeleteDialog(context, ref),
                       ),
                     ],
                   ),

@@ -15,6 +15,7 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
+import '../../../../../shared/presentation/widgets/context_menu.dart';
 
 class SellerConversationDetailPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -128,27 +129,22 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             icon: const Icon(Icons.videocam_outlined, color: Colors.black),
             onPressed: () => _makeVideoCall(conversation),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-            onSelected: (value) => _handleMenuAction(value),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
+          ContextMenu(
+            items: const [
+              ContextMenuItem(
                 value: 'close',
-                child: ListTile(
-                  leading: Icon(Icons.close),
-                  title: Text('Fermer la conversation'),
-                  contentPadding: EdgeInsets.zero,
-                ),
+                label: 'Fermer la conversation',
+                icon: Icons.close,
               ),
-              const PopupMenuItem(
+              ContextMenuItem(
                 value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
-                  contentPadding: EdgeInsets.zero,
-                ),
+                label: 'Supprimer',
+                icon: Icons.delete_outline,
+                isDestructive: true,
+                showDividerBefore: true,
               ),
             ],
+            onSelected: (value) => _handleMenuAction(value),
           ),
         ],
       ),

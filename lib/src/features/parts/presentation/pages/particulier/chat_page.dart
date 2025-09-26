@@ -16,6 +16,7 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
+import '../../../../../shared/presentation/widgets/context_menu.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -201,8 +202,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             icon: const Icon(Icons.videocam_outlined, color: Colors.black),
             onPressed: () => _makeVideoCall(conversation),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
+          ContextMenu(
+            items: const [
+              ContextMenuItem(
+                value: 'close',
+                label: 'Fermer la conversation',
+                icon: Icons.close,
+              ),
+              ContextMenuItem(
+                value: 'block',
+                label: 'Bloquer le vendeur',
+                icon: Icons.block,
+              ),
+              ContextMenuItem(
+                value: 'delete',
+                label: 'Supprimer',
+                icon: Icons.delete_outline,
+                isDestructive: true,
+                showDividerBefore: true,
+              ),
+            ],
             onSelected: (value) {
               switch (value) {
                 case 'close':
@@ -216,32 +235,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   break;
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'close',
-                child: ListTile(
-                  leading: Icon(Icons.close),
-                  title: Text('Fermer la conversation'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Supprimer', style: TextStyle(color: Colors.red)),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'block',
-                child: ListTile(
-                  leading: Icon(Icons.block),
-                  title: Text('Bloquer le vendeur'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
           ),
         ],
       ),
