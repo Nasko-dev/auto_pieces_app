@@ -6,6 +6,7 @@
 import 'dart:async' as _i5;
 
 import 'package:cente_pice/src/core/errors/failures.dart' as _i6;
+import 'package:cente_pice/src/core/services/notification_manager.dart' as _i13;
 import 'package:cente_pice/src/core/usecases/usecase.dart' as _i11;
 import 'package:cente_pice/src/features/auth/domain/entities/seller.dart'
     as _i7;
@@ -236,4 +237,91 @@ class MockGetCurrentSeller extends _i1.Mock implements _i12.GetCurrentSeller {
           ),
         )),
       ) as _i5.Future<_i3.Either<_i6.Failure, _i7.Seller>>);
+}
+
+/// A class which mocks [NotificationManager].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockNotificationManager extends _i1.Mock
+    implements _i13.NotificationManager {
+  MockNotificationManager() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.Future<void> initialize() => (super.noSuchMethod(
+        Invocation.method(
+          #initialize,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<bool> savePlayerIdToDatabase() => (super.noSuchMethod(
+        Invocation.method(
+          #savePlayerIdToDatabase,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<String?> getCurrentPlayerId() => (super.noSuchMethod(
+        Invocation.method(
+          #getCurrentPlayerId,
+          [],
+        ),
+        returnValue: _i5.Future<String?>.value(),
+      ) as _i5.Future<String?>);
+
+  @override
+  _i5.Future<void> forceSyncPlayerId() => (super.noSuchMethod(
+        Invocation.method(
+          #forceSyncPlayerId,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> debugDatabase() => (super.noSuchMethod(
+        Invocation.method(
+          #debugDatabase,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> testBetweenRegisteredUsers() => (super.noSuchMethod(
+        Invocation.method(
+          #testBetweenRegisteredUsers,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> runTest() => (super.noSuchMethod(
+        Invocation.method(
+          #runTest,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<bool> checkAndRequestPermissions() => (super.noSuchMethod(
+        Invocation.method(
+          #checkAndRequestPermissions,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 }

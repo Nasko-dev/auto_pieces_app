@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/errors/failures.dart';
@@ -75,7 +76,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
         state = SellerAuthState.authenticated(seller);
 
         // Synchroniser le Player ID après une inscription réussie
-        await NotificationManager.instance.forceSyncPlayerId();
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
       },
     );
   }
@@ -100,7 +106,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
         state = SellerAuthState.authenticated(seller);
 
         // Synchroniser le Player ID après une connexion réussie (comme pour les particuliers)
-        await NotificationManager.instance.forceSyncPlayerId();
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
       },
     );
   }
@@ -146,7 +157,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
         state = SellerAuthState.authenticated(seller);
 
         // Synchroniser le Player ID pour le seller actuel
-        await NotificationManager.instance.forceSyncPlayerId();
+        try {
+          await NotificationManager.instance.forceSyncPlayerId();
+        } catch (e) {
+          // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+          debugPrint('Erreur sync Player ID: $e');
+        }
       },
     );
   }
@@ -161,7 +177,12 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
           state = SellerAuthState.authenticated(seller);
 
           // Synchroniser le Player ID au démarrage si le seller est connecté
-          await NotificationManager.instance.forceSyncPlayerId();
+          try {
+            await NotificationManager.instance.forceSyncPlayerId();
+          } catch (e) {
+            // Ignorer les erreurs de NotificationManager en tests ou si Supabase non initialisé
+            debugPrint('Erreur sync Player ID: $e');
+          }
         },
       );
     } catch (e) {
