@@ -15,6 +15,7 @@ import 'src/core/services/session_service.dart';
 import 'src/core/services/device_service.dart';
 import 'src/core/services/notification_manager.dart';
 import 'src/core/services/notification_navigation_service.dart';
+import 'src/core/services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,11 +111,49 @@ void main() async {
   }
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // L'app démarre toujours en foreground
+    PushNotificationService.instance.setAppState(true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App revient en premier plan
+        PushNotificationService.instance.setAppState(true);
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // App passe en arrière-plan
+        PushNotificationService.instance.setAppState(false);
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
     // Configurer le router global pour les notifications

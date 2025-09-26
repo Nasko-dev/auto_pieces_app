@@ -4,8 +4,24 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'notification_navigation_service.dart';
 
+/// Service pour gérer l'état de l'application (foreground/background)
+class AppStateManager {
+  static final AppStateManager _instance = AppStateManager._internal();
+  factory AppStateManager() => _instance;
+  AppStateManager._internal();
+
+  bool _isInForeground = true;
+  bool get isInForeground => _isInForeground;
+
+  void setAppState(bool isInForeground) {
+    _isInForeground = isInForeground;
+    debugPrint('📱 App State changed: ${isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
+  }
+}
+
 class PushNotificationService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final AppStateManager _appStateManager = AppStateManager();
 
   static PushNotificationService? _instance;
   static PushNotificationService get instance {
@@ -70,10 +86,20 @@ class PushNotificationService {
   void _setupNotificationListeners() {
     // Listener quand une notification est reçue
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      debugPrint('Notification reçue en foreground: ${event.notification.title}');
-      // Laisser OneSignal afficher la notification
+      debugPrint('🔔 Notification reçue: ${event.notification.title}');
+      debugPrint('📱 App en foreground: ${_appStateManager.isInForeground}');
+
+      // Prévenir l'affichage par défaut
       event.preventDefault();
-      event.notification.display();
+
+      // N'afficher la notification QUE si l'app est en arrière-plan
+      if (!_appStateManager.isInForeground) {
+        debugPrint('✅ App en background - notification affichée');
+        event.notification.display();
+      } else {
+        debugPrint('❌ App en foreground - notification supprimée');
+        // Ne pas afficher la notification quand l'app est active
+      }
     });
 
     // Listener quand l'utilisateur clique sur une notification
@@ -319,6 +345,11 @@ class PushNotificationService {
     } catch (e) {
       debugPrint('Erreur lors de la mise à jour des tags: $e');
     }
+  }
+
+  /// Mettre à jour l'état de l'application
+  void setAppState(bool isInForeground) {
+    _appStateManager.setAppState(isInForeground);
   }
 
   void dispose() {
