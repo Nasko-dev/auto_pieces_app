@@ -123,7 +123,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // L'app démarre toujours en foreground
+
+    // IMPORTANT: L'app démarre en foreground
+    debugPrint('🚀 App démarrée - état FOREGROUND');
     PushNotificationService.instance.setAppState(true);
   }
 
@@ -137,16 +139,28 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
+    debugPrint('🔄 App lifecycle changed: $state');
+
     switch (state) {
       case AppLifecycleState.resumed:
         // App revient en premier plan
+        debugPrint('🔥 RESUMED -> FOREGROUND');
         PushNotificationService.instance.setAppState(true);
         break;
       case AppLifecycleState.paused:
+        debugPrint('⏸️ PAUSED -> BACKGROUND');
+        PushNotificationService.instance.setAppState(false);
+        break;
       case AppLifecycleState.inactive:
+        debugPrint('🚦 INACTIVE -> BACKGROUND');
+        PushNotificationService.instance.setAppState(false);
+        break;
       case AppLifecycleState.detached:
+        debugPrint('📵 DETACHED -> BACKGROUND');
+        PushNotificationService.instance.setAppState(false);
+        break;
       case AppLifecycleState.hidden:
-        // App passe en arrière-plan
+        debugPrint('🙈 HIDDEN -> BACKGROUND');
         PushNotificationService.instance.setAppState(false);
         break;
     }
