@@ -13,6 +13,7 @@ import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
+import '../../../../../core/providers/in_app_notification_providers.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -55,6 +56,10 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
+
+      // ✅ Marquer cette conversation comme active (pas de notif in-app)
+      ref.read(inAppMessageNotifierProvider.notifier)
+          .setCurrentConversation(widget.conversationId);
     });
   }
 
@@ -83,6 +88,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   @override
   void dispose() {
+    // ✅ Désactiver la conversation active
+    ref.read(inAppMessageNotifierProvider.notifier).setCurrentConversation(null);
+
     _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
@@ -160,7 +168,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             onSend: (content) => _sendMessage(),
             onCamera: _takePhoto,
             onGallery: _pickFromGallery,
-            onOffer: _createOffer,
+            onOffer: null, // ✅ CORRECTION: Système d'offres supprimé
             isLoading: isSendingMessage,
           ),
         ],
@@ -582,224 +590,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     }
   }
 
-  Future<void> _createOffer() async {
-
-    // Afficher une dialog pour créer l'offre
-    final offer = await _showOfferDialog();
-
-    if (offer != null) {
-      try {
-
-        // Afficher un indicateur de chargement
-        _showInfoSnackBar('Envoi de l\'offre en cours...');
-
-        // Envoyer l'offre via le controller
-        await ref.read(conversationsControllerProvider.notifier).sendMessage(
-          conversationId: widget.conversationId,
-          content: 'Offre de prix', // Contenu générique
-          messageType: MessageType.offer,
-          offerPrice: offer['price'],
-          offerDeliveryDays: offer['delivery_days'],
-        );
-
-        _showSuccessSnackBar('Offre envoyée avec succès !');
-      } catch (e) {
-        _showErrorSnackBar('Erreur lors de l\'envoi de l\'offre');
-      }
-    }
-  }
-
-  Future<Map<String, dynamic>?> _showOfferDialog() async {
-    final priceController = TextEditingController();
-    final deliveryController = TextEditingController();
-
-    return showDialog<Map<String, dynamic>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // En-tête avec icône bleue
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)], // Bleu au lieu de vert
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Icon(
-                  Icons.local_offer,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Titre
-              const Text(
-                'Faire une offre',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Sous-titre
-              Text(
-                'Proposez votre meilleur prix',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Champ Prix avec thème bleu
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  controller: priceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    labelText: 'Prix',
-                    labelStyle: TextStyle(color: Colors.grey[600]),
-                    suffixText: '€',
-                    suffixStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF3B82F6), // Bleu
-                    ),
-                    hintText: '150.00',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(20),
-                    prefixIcon: const Icon(
-                      Icons.euro,
-                      color: Color(0xFF3B82F6), // Bleu
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Champ Délai avec thème bleu
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  controller: deliveryController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    labelText: 'Délai de livraison',
-                    labelStyle: TextStyle(color: Colors.grey[600]),
-                    suffixText: 'jours',
-                    suffixStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF3B82F6), // Bleu
-                    ),
-                    hintText: '2',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(20),
-                    prefixIcon: const Icon(
-                      Icons.schedule,
-                      color: Color(0xFF3B82F6), // Bleu
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Boutons avec thème bleu
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Annuler',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final priceText = priceController.text.trim();
-                        final deliveryText = deliveryController.text.trim();
-
-                        final price = double.tryParse(priceText);
-                        final delivery = int.tryParse(deliveryText);
-
-                        if (price != null && price > 0) {
-                          Navigator.of(context).pop({
-                            'price': price,
-                            'delivery_days': delivery,
-                          });
-                        } else {
-                          notificationService.warning(context, 'Veuillez entrer un prix valide');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6), // Bleu au lieu de vert
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'Envoyer l\'offre',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // ✅ CORRECTION: Système d'offres supprimé (inutile côté vendeur)
 
   void _showSuccessSnackBar(String message) {
     if (mounted) {

@@ -8,7 +8,6 @@ import '../constants/app_constants.dart';
 import 'particulier_auth_providers.dart';
 import 'part_request_providers.dart';
 import 'seller_auth_providers.dart' as seller_auth;
-import 'part_advertisement_providers.dart';
 
 final immatriculationServiceProvider = Provider<ImmatriculationService>((ref) {
   final username = const String.fromEnvironment(
@@ -91,20 +90,16 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   }
 
   Future<void> searchVehicle(String plate) async {
-    
-    // Vérification s'il y a déjà une demande/annonce active
-    if (state.hasActiveRequest) {
-      
-      // Adapter le message selon le type d'utilisateur
-      final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
-      final isSeller = currentSeller != null;
-      
-      final errorMessage = isSeller 
-          ? 'Vous avez atteint la limite de 10 annonces actives'
-          : 'Une demande est déjà en cours';
-      
+
+    // ✅ CORRECTION: Ne bloquer QUE les particuliers avec une demande active
+    // Les vendeurs peuvent créer des annonces sans limite
+    final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
+    final isSeller = currentSeller != null;
+
+    // Bloquer UNIQUEMENT les particuliers ayant une demande active
+    if (!isSeller && state.hasActiveRequest) {
       state = state.copyWith(
-        error: errorMessage,
+        error: 'Une demande est déjà en cours. Veuillez attendre sa clôture avant d\'en créer une nouvelle.',
         clearVehicleInfo: true,
       );
       return;
@@ -307,36 +302,8 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
         await _checkParticulierRequests();
       }
       
-      // SOLUTION TEMPORAIRE : Forcer le déblocage vendeur 
-      // On applique la logique vendeur (limite 10) même si pas détecté comme vendeur
-      if (!isSeller) {
-        try {
-          
-          final advertisements = await _getMyAdvertisements();
-          final activeAds = advertisements.where((ad) => ad['status'] == 'active').toList();
-          
-          
-          // Si l'utilisateur a des annonces, on le traite comme un vendeur avec limite 10
-          if (advertisements.isNotEmpty) {
-            
-            if (activeAds.length >= 10) {
-              state = state.copyWith(
-                hasActiveRequest: true,
-                isCheckingActiveRequest: false,
-              );
-            } else {
-              state = state.copyWith(
-                hasActiveRequest: false,
-                isCheckingActiveRequest: false,
-              );
-            }
-          } else {
-            // Garde la logique particulier qui a été appliquée
-          }
-        } catch (e) {
-          // En cas d'erreur, ne pas bloquer l'utilisateur
-        }
-      }
+      // ✅ CORRECTION: Suppression de la logique temporaire incorrecte
+      // La vérification vendeur/particulier est maintenant propre
     } catch (e) {
       state = state.copyWith(
         hasActiveRequest: false,
@@ -345,30 +312,14 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
     }
   }
   
-  /// Vérifie les annonces pour les vendeurs (limite 10)
+  /// Vérifie les annonces pour les vendeurs (AUCUNE LIMITE)
   Future<void> _checkSellerAdvertisements() async {
-    
     try {
-      final repository = _ref.read(partAdvertisementRepositoryProvider);
-      
-      final myAdsResult = await repository.getMyPartAdvertisements();
-      
-      myAdsResult.fold(
-        (failure) {
-          state = state.copyWith(
-            hasActiveRequest: false,
-            isCheckingActiveRequest: false,
-          );
-        },
-        (advertisements) { 
-          // VENDEURS : AUCUNE LIMITE
-          
-          state = state.copyWith(
-            hasActiveRequest: false,
-            isCheckingActiveRequest: false,
-          );
-          
-        },
+      // ✅ CORRECTION: Les vendeurs n'ont AUCUNE limite d'annonces
+      // Toujours autoriser la création d'annonces pour les vendeurs
+      state = state.copyWith(
+        hasActiveRequest: false,
+        isCheckingActiveRequest: false,
       );
     } catch (e) {
       state = state.copyWith(
@@ -377,14 +328,14 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
       );
     }
   }
-  
+
   /// Vérifie les demandes pour les particuliers (limite 1)
   Future<void> _checkParticulierRequests() async {
-    
+
     try {
       final repository = _ref.read(partRequestRepositoryProvider);
       final allRequestsResult = await repository.getUserPartRequests();
-      
+
       allRequestsResult.fold(
         (failure) {
           state = state.copyWith(
@@ -394,10 +345,10 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
         },
         (requests) {
           final activeRequests = requests.where((r) => r.status == 'active').toList();
-          
+
           // Limite de 1 pour les particuliers
           if (activeRequests.isNotEmpty) {
-            
+
             state = state.copyWith(
               hasActiveRequest: true,
               isCheckingActiveRequest: false,
@@ -421,25 +372,6 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   /// Force la vérification de la demande active (pour l'UI)
   Future<void> checkActiveRequest() async {
     await _checkActiveRequest();
-  }
-  
-  /// Méthode utilitaire pour récupérer les annonces directement
-  Future<List<dynamic>> _getMyAdvertisements() async {
-    try {
-      final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
-      final userId = supabaseClient.auth.currentUser?.id;
-      
-      if (userId == null) return [];
-      
-      final response = await supabaseClient
-          .from('part_advertisements')
-          .select()
-          .eq('user_id', userId);
-          
-      return response;
-    } catch (e) {
-      return [];
-    }
   }
 
   /// Méthode utilitaire pour debug - force le reset et re-check
