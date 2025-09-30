@@ -25,7 +25,8 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   final FocusNode _focusNode = FocusNode();
   bool _hasMultiple = false;
   bool _isCompleteVehicle = false;
-  bool _isCompleteMotor = false; // Nouvelle option pour moteur complet
+  bool _isCompleteMotor = false; // Option pour moteur complet (catégorie moteur)
+  bool _isCompleteBody = false; // Option pour carrosserie intérieure complète (catégorie carrosserie)
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   final List<String> _selectedParts = [];
@@ -171,9 +172,10 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     setState(() {
       _isCompleteVehicle = value ?? false;
       if (_isCompleteVehicle) {
-        // Si on coche véhicule complet, désactiver plusieurs pièces et moteur complet
+        // Si on coche véhicule complet, désactiver plusieurs pièces, moteur complet et carrosserie complète
         _hasMultiple = false;
         _isCompleteMotor = false;
+        _isCompleteBody = false;
         _selectedParts.clear();
         _partController.text = 'Véhicule complet';
       } else {
@@ -189,9 +191,10 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     setState(() {
       _isCompleteMotor = value ?? false;
       if (_isCompleteMotor) {
-        // Si on coche moteur complet, désactiver plusieurs pièces et véhicule complet
+        // Si on coche moteur complet, désactiver plusieurs pièces, véhicule complet et carrosserie complète
         _hasMultiple = false;
         _isCompleteVehicle = false;
+        _isCompleteBody = false;
         _selectedParts.clear();
         _partController.text = 'Moteur complet';
       } else {
@@ -203,12 +206,31 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     });
   }
 
+  void _onCompleteBodyChanged(bool? value) {
+    setState(() {
+      _isCompleteBody = value ?? false;
+      if (_isCompleteBody) {
+        // Si on coche carrosserie complète, désactiver plusieurs pièces, véhicule complet et moteur complet
+        _hasMultiple = false;
+        _isCompleteVehicle = false;
+        _isCompleteMotor = false;
+        _selectedParts.clear();
+        _partController.text = 'Carrosserie intérieure complète';
+      } else {
+        // Si on décoche carrosserie complète, vider le champ
+        if (_partController.text == 'Carrosserie intérieure complète') {
+          _partController.clear();
+        }
+      }
+    });
+  }
+
   bool _isFormValid() {
     final hasText = _partController.text.trim().isNotEmpty;
     final hasParts = _selectedParts.isNotEmpty;
 
-    if (_isCompleteVehicle || _isCompleteMotor) {
-      // Mode véhicule complet ou moteur complet : toujours valide
+    if (_isCompleteVehicle || _isCompleteMotor || _isCompleteBody) {
+      // Mode véhicule complet, moteur complet ou carrosserie complète : toujours valide
       return true;
     } else if (_hasMultiple) {
       // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
@@ -227,6 +249,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     } else if (_isCompleteMotor) {
       // Mode moteur complet
       widget.onPartSubmitted('Moteur complet', false);
+    } else if (_isCompleteBody) {
+      // Mode carrosserie intérieure complète
+      widget.onPartSubmitted('Carrosserie intérieure complète', false);
     } else if (_hasMultiple) {
       // En mode multiple, envoyer la liste des parts comme une chaîne séparée par des virgules
       final allParts = _selectedParts.toList();
@@ -333,7 +358,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           child: TextField(
             controller: _partController,
             focusNode: _focusNode,
-            enabled: !_isCompleteVehicle && !_isCompleteMotor,
+            enabled: !_isCompleteVehicle && !_isCompleteMotor && !_isCompleteBody,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
@@ -464,40 +489,73 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   Widget _buildMultipleCheckbox() {
     return Column(
       children: [
-        // Case "Moteur complet"
-        Row(
-          children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: Checkbox(
-                value: _isCompleteMotor,
-                onChanged: _onCompleteMotorChanged,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
-                activeColor: AppTheme.primaryBlue,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Moteur complet',
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.3,
-                  color: AppTheme.darkGray,
+        // Case "Moteur complet" - Seulement pour catégorie moteur
+        if (widget.selectedCategory == 'moteur' || widget.selectedCategory == 'engine') ...[
+          Row(
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: Checkbox(
+                  value: _isCompleteMotor,
+                  onChanged: _onCompleteMotorChanged,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  activeColor: AppTheme.primaryBlue,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
-            ),
-          ],
-        ),
-        // N'afficher "Véhicule complet" que si "lesdeux" est sélectionné
-        if (widget.selectedCategory == 'lesdeux') ...[
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Moteur complet',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.3,
+                    color: AppTheme.darkGray,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        // Case "Carrosserie intérieure complète" - Seulement pour catégorie carrosserie
+        if (widget.selectedCategory == 'carrosserie' || widget.selectedCategory == 'body') ...[
           const SizedBox(height: 12),
-          // Case "Véhicule complet"
+          Row(
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: Checkbox(
+                  value: _isCompleteBody,
+                  onChanged: _onCompleteBodyChanged,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  activeColor: AppTheme.primaryBlue,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Carrosserie intérieure complète',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.3,
+                    color: AppTheme.darkGray,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        // Case "Véhicule complet" - Seulement pour catégorie lesdeux
+        if (widget.selectedCategory == 'lesdeux') ...[
           Row(
             children: [
               SizedBox(
