@@ -70,7 +70,7 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
 
       // Convertir le premier (et seul) élément en PartAdvertisementModel
       final adData = responseList.first as Map<String, dynamic>;
-      return PartAdvertisementModel.fromJson(adData);
+      return PartAdvertisementModel.fromSupabase(adData); // ✅ FIX: Utiliser fromSupabase pour le snake_case
     } catch (e) {
       throw ServerException('Erreur lors de la création: $e');
     }
