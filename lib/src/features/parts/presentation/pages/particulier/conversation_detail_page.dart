@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
+import '../../../../../core/providers/in_app_notification_providers.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../../domain/entities/conversation_enums.dart';
 import '../../../../../core/services/notification_service.dart';
@@ -35,11 +36,18 @@ class _ConversationDetailPageState extends ConsumerState<ConversationDetailPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversationDetails();
       _markAsRead(); // Marquage réactivé
+
+      // ✅ Marquer cette conversation comme active (pas de notif in-app)
+      ref.read(inAppMessageNotifierProvider.notifier)
+          .setCurrentConversation(widget.conversationId);
     });
   }
 
   @override
   void dispose() {
+    // ✅ Désactiver la conversation active
+    ref.read(inAppMessageNotifierProvider.notifier).setCurrentConversation(null);
+
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

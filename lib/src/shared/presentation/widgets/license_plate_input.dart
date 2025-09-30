@@ -9,6 +9,7 @@ class LicensePlateInput extends ConsumerStatefulWidget {
   final bool showManualOption;
   final bool autoSearch;
   final String? initialPlate;
+  final bool allowWithActiveRequest; // ✅ FIX: Permettre même si demande active (pour annonces)
 
   const LicensePlateInput({
     super.key,
@@ -17,6 +18,7 @@ class LicensePlateInput extends ConsumerStatefulWidget {
     this.showManualOption = true,
     this.autoSearch = true,
     this.initialPlate,
+    this.allowWithActiveRequest = false, // Par défaut, bloquer (comportement actuel)
   });
 
   @override
@@ -101,16 +103,16 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
               _handleSearch();
             }
           },
-          onSubmitted: vehicleState.hasActiveRequest ? null : (_) => _handleSearch(),
+          onSubmitted: (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ? null : (_) => _handleSearch(),
         ),
 
-        // Affichage du blocage pour demande active (PRIORITÉ)
-        if (vehicleState.hasActiveRequest) ...[
+        // ✅ FIX: Affichage du blocage UNIQUEMENT si pas allowWithActiveRequest
+        if (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ...[
           const SizedBox(height: 12),
           _ActiveRequestWarning(),
         ]
         // Affichage des limitations de tentatives SEULEMENT si pas de demande active
-        else ...[
+        else if (!vehicleState.hasActiveRequest || widget.allowWithActiveRequest) ...[
           if (vehicleState.isRateLimited) ...[
             const SizedBox(height: 12),
             _RateLimitWarning(

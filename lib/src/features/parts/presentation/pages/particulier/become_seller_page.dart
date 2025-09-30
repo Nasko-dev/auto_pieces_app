@@ -71,20 +71,17 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     });
 
     try {
-      // Créer l'annonce en base de données
       await _createAdvertisement();
-      
-      // Succès : passer à l'étape suivante
+
       setState(() {
         _isSubmitting = false;
         _currentStep = 3;
       });
     } catch (e) {
-      // Erreur : afficher un message et rester sur la même page
       setState(() {
         _isSubmitting = false;
       });
-      
+
       if (mounted) {
         notificationService.error(
           context,
@@ -97,11 +94,9 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
   Future<void> _createAdvertisement() async {
     try {
-      // Récupérer les informations du véhicule depuis le provider
       final vehicleState = ref.read(vehicleSearchProvider);
       String description = 'Pièce mise en vente par un particulier';
 
-      // Enrichir la description avec les infos du véhicule si disponibles
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final vehicleDetails = <String>[];
@@ -115,8 +110,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           description += ' - Véhicule: ${vehicleDetails.join(' ')}';
         }
       }
-      
-      // Mapper les valeurs du frontend vers la base de données
+
       String dbPartType;
       switch (_selectedChoice) {
         case 'engine':
@@ -127,11 +121,10 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         case 'carrosserie':
         case 'lesdeux':
         default:
-          dbPartType = 'body'; // Par défaut, tout ce qui n'est pas moteur est carrosserie
+          dbPartType = 'body';
           break;
       }
 
-      // Extraire les informations du véhicule
       String? vehicleBrand, vehicleModel, vehicleEngine;
       int? vehicleYear;
 
@@ -143,9 +136,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         vehicleEngine = info.engineSize ?? info.fuelType;
       }
 
-      // Créer les paramètres pour l'annonce
       final params = CreatePartAdvertisementParams(
-        partType: dbPartType, // Valeur mappée pour la base de données
+        partType: dbPartType,
         partName: _partName,
         vehiclePlate: _vehiclePlate.isNotEmpty ? _vehiclePlate : null,
         vehicleBrand: vehicleBrand,
@@ -155,17 +147,15 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         description: description,
       );
 
-      // Appeler le controller pour créer l'annonce
       final controller = ref.read(partAdvertisementControllerProvider.notifier);
       final success = await controller.createPartAdvertisement(params);
 
-      if (success) {
-      } else {
+      if (!success) {
         final state = ref.read(partAdvertisementControllerProvider);
         throw Exception(state.error ?? 'Erreur inconnue');
       }
     } catch (e) {
-      rethrow; // Propager l'erreur pour la gestion dans l'UI
+      rethrow;
     }
   }
 

@@ -569,13 +569,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _onTextChanged() async {
-    final query = _partController.text;
-    
+    final query = _partController.text.trim();
+
+    // ✅ CORRECTION: Nettoyage robuste des suggestions quand le champ est vide
     if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-        _showSuggestions = false;
-      });
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+      }
       return;
     }
 
@@ -595,7 +598,20 @@ class _HomePageState extends ConsumerState<HomePage> {
         'limit_results': 8,
       });
 
-      if (response != null && mounted) {
+      // ✅ CORRECTION: Vérifier que le texte n'a pas changé pendant l'appel async
+      if (!mounted) return;
+
+      // Re-vérifier que le champ n'est pas vide après l'appel async
+      final currentQuery = _partController.text.trim();
+      if (currentQuery.isEmpty) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+        return;
+      }
+
+      if (response != null) {
         final parts = (response as List)
             .map((data) => data['name'] as String)
             .take(8)
@@ -604,6 +620,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         setState(() {
           _suggestions = parts;
           _showSuggestions = parts.isNotEmpty && _focusNode.hasFocus;
+        });
+      } else {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
         });
       }
     } catch (e) {
@@ -619,7 +640,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _onFocusChanged() {
     setState(() {
-      _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
+      // ✅ CORRECTION: Cacher les suggestions si le champ est vide, même au focus
+      if (_partController.text.trim().isEmpty) {
+        _suggestions = [];
+        _showSuggestions = false;
+      } else {
+        _showSuggestions = _suggestions.isNotEmpty && _focusNode.hasFocus;
+      }
     });
   }
 
@@ -628,6 +655,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       setState(() {
         _selectedParts.add(suggestion);
         _partController.clear();
+        // ✅ CORRECTION: Nettoyage explicite des suggestions après sélection
+        _suggestions = [];
         _showSuggestions = false;
       });
     }
