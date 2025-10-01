@@ -49,7 +49,7 @@ class GlobalMessageNotificationService {
     if (authUserId == null) return;
 
     try {
-      // Vérifier si c'est un vendeur - l'ID dans sellers EST l'auth user ID
+      // Vérifier si c'est un vendeur
       final sellerResponse = await _supabase
           .from('sellers')
           .select('id')
@@ -59,18 +59,31 @@ class GlobalMessageNotificationService {
       if (sellerResponse != null) {
         _currentSellerId = sellerResponse['id'] as String;
         debugPrint('✅ [GlobalNotification] ID Vendeur: $_currentSellerId');
+        return; // Si vendeur, pas besoin de chercher particulier
       }
 
-      // Vérifier si c'est un particulier - l'ID dans particuliers EST l'auth user ID
-      final particulierResponse = await _supabase
-          .from('particuliers')
-          .select('id')
-          .eq('id', authUserId)
-          .maybeSingle();
+      // Pour les particuliers, utiliser device_id (auth anonyme)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
 
-      if (particulierResponse != null) {
-        _currentParticulierId = particulierResponse['id'] as String;
-        debugPrint('✅ [GlobalNotification] ID Particulier: $_currentParticulierId');
+        final particulierResponse = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId)
+            .order('created_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+
+        if (particulierResponse != null) {
+          _currentParticulierId = particulierResponse['id'] as String;
+          debugPrint('✅ [GlobalNotification] ID Particulier (via device_id): $_currentParticulierId');
+        } else {
+          debugPrint('⚠️  [GlobalNotification] Aucun particulier trouvé pour device_id: $deviceId');
+        }
+      } catch (e) {
+        debugPrint('❌ [GlobalNotification] Erreur device_id: $e');
       }
     } catch (e) {
       debugPrint('❌ [GlobalNotification] Erreur récupération IDs: $e');
