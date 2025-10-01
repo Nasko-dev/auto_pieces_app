@@ -39,6 +39,10 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   StreamSubscription? _messageSubscription;
   int _previousMessageCount = 0;
 
+  // Cache local pour les données particulier
+  Map<String, dynamic>? _particulierInfo;
+  bool _isLoadingParticulierInfo = false;
+
   @override
   void initState() {
     super.initState();
@@ -61,7 +65,58 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
+
+      // Charger les infos particulier
+      _loadParticulierInfo();
     });
+  }
+
+  Future<void> _loadParticulierInfo() async {
+    if (_isLoadingParticulierInfo) return;
+
+    setState(() {
+      _isLoadingParticulierInfo = true;
+    });
+
+    try {
+      // Charger la conversation directement pour obtenir le user_id
+      final convResponse = await Supabase.instance.client
+          .from('conversations')
+          .select('user_id')
+          .eq('id', widget.conversationId)
+          .maybeSingle();
+
+      if (convResponse == null || convResponse['user_id'] == null) {
+        if (mounted) {
+          setState(() {
+            _isLoadingParticulierInfo = false;
+          });
+        }
+        return;
+      }
+
+      final userId = convResponse['user_id'] as String;
+
+      final response = await Supabase.instance.client
+          .from('particuliers')
+          .select('id, display_name, phone, avatar_url')
+          .eq('id', userId)
+          .limit(1);
+
+      if (response.isNotEmpty && mounted) {
+        setState(() {
+          _particulierInfo = response.first;
+          _isLoadingParticulierInfo = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur chargement info particulier: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingParticulierInfo = false;
+        });
+      }
+    }
   }
 
   void _markAsRead() {
@@ -283,7 +338,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
             isLastMessage: index == messages.length - 1,
             otherUserName: _getUserDisplayName(conversation),
-            otherUserAvatarUrl: conversation?.userAvatarUrl,
+            otherUserAvatarUrl: _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl,
             otherUserCompany: null,
           ),
         );
@@ -404,8 +459,12 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   String _getUserDisplayName(dynamic conversation) {
-    // Afficher le nom du particulier depuis les nouvelles données
-    if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
+    // Priorité : données chargées directement > données de conversation
+    final displayName = _particulierInfo?['display_name'];
+
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    } else if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
       return conversation.userDisplayName!;
     } else if (conversation?.userName != null && conversation.userName!.isNotEmpty) {
       return conversation.userName!;
@@ -415,7 +474,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Widget _buildUserAvatar(dynamic conversation) {
-    if (conversation?.userAvatarUrl != null && conversation.userAvatarUrl!.isNotEmpty) {
+    final avatarUrl = _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl;
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar avec vraie photo du particulier
       return Container(
         width: 32,
@@ -429,7 +490,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         ),
         child: ClipOval(
           child: Image.network(
-            conversation.userAvatarUrl!,
+            avatarUrl,
             width: 32,
             height: 32,
             fit: BoxFit.cover,

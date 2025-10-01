@@ -103,19 +103,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
   Future<void> _loadSellerInfo() async {
-    final conversationsState = ref.read(particulierConversationsControllerProvider);
-    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
-
-    if (conversation?.sellerId == null || _isLoadingSellerInfo) return;
+    if (_isLoadingSellerInfo) return;
 
     setState(() {
       _isLoadingSellerInfo = true;
     });
 
     try {
-      // Vérifier que le sellerId n'est pas null
-      final sellerId = conversation?.sellerId;
-      if (sellerId == null) return;
+      // Charger la conversation directement pour obtenir le sellerId
+      final convResponse = await Supabase.instance.client
+          .from('conversations')
+          .select('seller_id')
+          .eq('id', widget.conversationId)
+          .maybeSingle();
+
+      if (convResponse == null || convResponse['seller_id'] == null) {
+        if (mounted) {
+          setState(() {
+            _isLoadingSellerInfo = false;
+          });
+        }
+        return;
+      }
+
+      final sellerId = convResponse['seller_id'] as String;
 
       final response = await Supabase.instance.client
           .from('sellers')
@@ -130,6 +141,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         });
       }
     } catch (e) {
+      debugPrint('❌ Erreur chargement info vendeur: $e');
       if (mounted) {
         setState(() {
           _isLoadingSellerInfo = false;
