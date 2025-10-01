@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -129,10 +130,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
                 const SizedBox(height: 24),
 
-                // Section Test des Notifications
-                _buildNotificationTestSection(),
-
-                const SizedBox(height: 24),
+                // Section Test des Notifications (visible uniquement en mode debug)
+                if (kDebugMode) ...[
+                  _buildNotificationTestSection(),
+                  const SizedBox(height: 24),
+                ],
 
                 // Bouton Sauvegarder
                 _buildSaveButton(),

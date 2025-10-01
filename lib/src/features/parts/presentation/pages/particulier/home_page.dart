@@ -90,16 +90,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (currentUser == null) return;
 
     final getUserSettings = ref.read(getUserSettingsProvider);
-    final result = await getUserSettings(currentUser.id);
-
-    result.fold(
-      (failure) => null,
-      (settings) {
-        if (settings != null && mounted) {
-          // UserSettings loaded successfully
-        }
-      },
-    );
+    await getUserSettings(currentUser.id);
   }
 
   @override
@@ -119,7 +110,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final double hPadding = 24;
+    const double hPadding = 24;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -137,7 +128,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 // Titre qui prend toute la largeur de l'écran
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  padding: const EdgeInsets.symmetric(horizontal: hPadding),
                   child: const Text(
                     'Quel type de pièce recherchez-vous ?',
                     style: TextStyle(
@@ -152,7 +143,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                 // Reste du contenu avec padding
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: hPadding),
+                  padding: const EdgeInsets.symmetric(horizontal: hPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -191,7 +182,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                           _plate.text = plate;
                           _showDescription = true;
                         });
-                        // Scroll automatique vers la section description
                         Future.delayed(const Duration(milliseconds: 100), () {
                           _scrollController.animateTo(
                             _scrollController.position.maxScrollExtent,
@@ -275,7 +265,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             },
             child: Row(
               children: [
-                Icon(Icons.arrow_back_ios, size: 16, color: _blue),
+                const Icon(Icons.arrow_back_ios, size: 16, color: _blue),
                 const SizedBox(width: 4),
                 Text(
                   'Retour plaque d\'immatriculation',
@@ -905,7 +895,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 color: _blue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.close, size: 12, color: _blue),
+              child: const Icon(Icons.close, size: 12, color: _blue),
             ),
           ),
         ],

@@ -149,18 +149,4 @@ class BecomeSellerSharedWidgets {
       ),
     );
   }
-
-  static Widget buildManualBox() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F4F7),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Text(
-        'Motorisation (ex : 1.6 HDi 115, 2.0 TFSI 200, etc.)',
-        style: TextStyle(color: AppTheme.gray),
-      ),
-    );
-  }
 }

@@ -189,10 +189,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Trouver la conversation pour le titre - gestion sécurisée
     final conversationsState = ref.watch(particulierConversationsControllerProvider);
     final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
-    
-    // Si pas de conversation trouvée, afficher un titre par défaut
-    if (conversation == null) {
-    }
 
 
     return Scaffold(
