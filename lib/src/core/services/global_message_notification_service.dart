@@ -136,7 +136,7 @@ class GlobalMessageNotificationService {
           final particConvs = await _supabase
               .from('conversations')
               .select('id')
-              .eq('user_id', _currentParticulierId);
+              .eq('user_id', _currentParticulierId!);
 
           for (final conv in particConvs) {
             _myConversationIds.add(conv['id'] as String);
