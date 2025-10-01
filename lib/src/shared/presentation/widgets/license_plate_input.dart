@@ -55,7 +55,10 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
       _hasSearched = true;
     });
 
-    await ref.read(vehicleSearchProvider.notifier).searchVehicle(plate);
+    await ref.read(vehicleSearchProvider.notifier).searchVehicle(
+      plate,
+      allowWithActiveRequest: widget.allowWithActiveRequest,
+    );
 
     final state = ref.read(vehicleSearchProvider);
 
