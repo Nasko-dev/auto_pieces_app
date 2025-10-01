@@ -88,12 +88,12 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
 
         FrenchLicensePlate(
           controller: _plateController,
-          enabled: !vehicleState.isLoading && (widget.allowWithActiveRequest || !vehicleState.hasActiveRequest),
+          enabled: !vehicleState.isLoading && !vehicleState.hasActiveRequest,
           isLoading: vehicleState.isLoading || vehicleState.isCheckingActiveRequest,
           errorText: vehicleState.error != null && _hasSearched
               ? vehicleState.error
               : null,
-          onChanged: (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ? null : (value) {
+          onChanged: vehicleState.hasActiveRequest ? null : (value) {
             setState(() {
               _hasSearched = false;
             });
