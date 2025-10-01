@@ -207,6 +207,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         });
                       },
                       showManualOption: true,
+                      allowWithActiveRequest: true,
                       autoSearch: true,
                     ),
                   ],
