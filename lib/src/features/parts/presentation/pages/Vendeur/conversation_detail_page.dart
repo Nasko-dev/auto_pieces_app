@@ -13,7 +13,7 @@ import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
-import '../../../../../core/providers/in_app_notification_providers.dart';
+import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -41,6 +41,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   void initState() {
     super.initState();
 
+    // Informer le service global que cette conversation est active
+    GlobalMessageNotificationService().setActiveConversation(widget.conversationId);
+
     // Pré-remplir le message si fourni
     if (widget.prefilledMessage != null) {
       _messageController.text = widget.prefilledMessage!;
@@ -56,10 +59,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
-
-      // ✅ Marquer cette conversation comme active (pas de notif in-app)
-      ref.read(inAppMessageNotifierProvider.notifier)
-          .setCurrentConversation(widget.conversationId);
     });
   }
 
@@ -71,16 +70,60 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
   
   void _subscribeToRealtimeMessages() {
-    
+    debugPrint('🔄 [Vendeur] DEBUT _subscribeToRealtimeMessages pour conversation: ${widget.conversationId}');
+
     final realtimeService = ref.read(realtimeServiceProvider);
-    
-    // S'abonner aux messages de cette conversation spécifique
+    debugPrint('🔄 [Vendeur] RealtimeService récupéré: $realtimeService');
+
+    // IMPORTANT: Activer la subscription Supabase pour cette conversation
     realtimeService.subscribeToMessages(widget.conversationId);
+    debugPrint('🔄 [Vendeur] Subscription Supabase activée');
+
+    // S'abonner et écouter les messages en temps réel pour cette conversation
+    debugPrint('🔄 [Vendeur] Création du stream listener...');
+    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+      (message) {
+        debugPrint('🎯 [Vendeur Realtime] Nouveau message reçu via stream !');
+        debugPrint('   Message ID: ${message.id}');
+        debugPrint('   Sender ID: ${message.senderId}');
+        debugPrint('   Content: ${message.content}');
+
+        // Vérifier que c'est bien pour notre conversation
+        if (message.conversationId == widget.conversationId) {
+          // Les notifications sont gérées par le service global
+          // Pas besoin de notification locale ici
+          ref.read(conversationsControllerProvider.notifier).handleIncomingMessage(message);
+
+          // Auto-scroll vers le bas
+          _scrollToBottom();
+        }
+      },
+      onError: (error) {
+        debugPrint('❌ [Vendeur Realtime] Erreur stream: $error');
+      },
+    );
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
   }
 
 
   @override
   void deactivate() {
+    // Informer le service global qu'aucune conversation n'est active
+    GlobalMessageNotificationService().setActiveConversation(null);
+
     ref.read(conversationsControllerProvider.notifier)
         .setConversationInactive();
     super.deactivate();
@@ -88,9 +131,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   @override
   void dispose() {
-    // ✅ Désactiver la conversation active
-    ref.read(inAppMessageNotifierProvider.notifier).setCurrentConversation(null);
-
     _messageSubscription?.cancel();
     _scrollController.dispose();
     _messageController.dispose();
@@ -105,9 +145,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final error = ref.watch(conversationsErrorProvider);
     final conversation = _getConversationFromList();
 
-
     // Auto-scroll vers le bas quand de nouveaux messages arrivent
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Les notifications sont gérées par le service global
+      // Pas besoin de notification locale ici
+
       if (_scrollController.hasClients && messages.isNotEmpty) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,

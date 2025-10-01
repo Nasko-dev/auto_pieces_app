@@ -14,6 +14,7 @@ import '../../widgets/chat_input_widget.dart';
 import '../../../../../core/providers/particulier_conversations_providers.dart';
 import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
+import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -43,12 +44,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
     super.initState();
-    
+
+    // Informer le service global que cette conversation est active
+    GlobalMessageNotificationService().setActiveConversation(widget.conversationId);
+
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
-      
+
       // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
       Future.microtask(() {
         ref.read(particulierConversationsControllerProvider.notifier)
@@ -64,31 +68,39 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
   
   void _subscribeToRealtimeMessages() {
-    
+    debugPrint('🔔 [Particulier Realtime] Abonnement aux messages de conversation ${widget.conversationId}');
+
     final realtimeService = ref.read(realtimeServiceProvider);
-    
+
     // S'abonner aux messages de cette conversation spécifique
     realtimeService.subscribeToMessages(widget.conversationId);
-    
+
     // Écouter les nouveaux messages via le stream spécifique à cette conversation
     _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
       (message) {
-        
+        debugPrint('🎯 [Particulier Realtime] Nouveau message reçu via stream !');
+        debugPrint('   Message ID: ${message.id}');
+        debugPrint('   Sender ID: ${message.senderId}');
+        debugPrint('   Content: ${message.content}');
+
         // Vérifier que c'est bien pour notre conversation
         if (message.conversationId == widget.conversationId) {
-          
+          // Les notifications sont gérées par le service global
+          // Pas besoin de notification locale ici
+
           // Envoyer au controller via la méthode unifiée
           ref.read(conversationsControllerProvider.notifier)
               .handleIncomingMessage(message);
-          
+
           // Faire défiler vers le bas
           _scrollToBottom();
-        } else {
         }
       },
       onError: (error) {
+        debugPrint('❌ [Particulier Realtime] Erreur stream: $error');
       },
       onDone: () {
+        debugPrint('✅ [Particulier Realtime] Stream terminé');
       },
     );
   }
@@ -143,6 +155,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   void deactivate() {
+    // Informer le service global qu'aucune conversation n'est active
+    GlobalMessageNotificationService().setActiveConversation(null);
+
     // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
     ref.read(particulierConversationsControllerProvider.notifier)
         .setConversationInactive();

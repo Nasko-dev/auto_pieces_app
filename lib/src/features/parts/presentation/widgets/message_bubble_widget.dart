@@ -413,9 +413,11 @@ class MessageBubbleWidget extends StatelessWidget {
               children: [
                 const Icon(Icons.local_shipping, size: 18, color: Colors.blue),
                 const SizedBox(width: 8),
-                Text(
-                  'Livraison: ${message.offerDeliveryDays} jour${message.offerDeliveryDays! > 1 ? 's' : ''}',
-                  style: TextStyle(fontSize: 14, color: Colors.blue[800]),
+                Expanded(
+                  child: Text(
+                    'Livraison: ${message.offerDeliveryDays} jour${message.offerDeliveryDays! > 1 ? 's' : ''}',
+                    style: TextStyle(fontSize: 14, color: Colors.blue[800]),
+                  ),
                 ),
               ],
             ),

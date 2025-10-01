@@ -10,7 +10,6 @@ import 'src/core/constants/app_constants.dart';
 import 'src/core/providers/particulier_auth_providers.dart';
 import 'src/core/providers/session_providers.dart' as session_providers;
 import 'src/core/providers/user_settings_providers.dart' as user_settings;
-import 'src/core/providers/in_app_notification_providers.dart';
 import 'src/core/services/realtime_service.dart';
 import 'src/core/services/session_service.dart';
 import 'src/core/services/device_service.dart';
@@ -124,13 +123,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
     PushNotificationService.instance.setAppState(true);
-
-    // ✅ Initialiser le service de notifications in-app
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(inAppMessageNotifierProvider.notifier).setContext(context);
-    });
   }
 
   @override
@@ -162,9 +155,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
     // Configurer le router global pour les notifications
     NotificationNavigationService.setGlobalRouter(router);
-
-    // ✅ Mettre à jour le contexte pour les notifications in-app
-    ref.read(inAppMessageNotifierProvider.notifier).setContext(context);
 
     return MaterialApp.router(
       title: 'Pièces d\'Occasion',
