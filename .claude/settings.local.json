@@ -45,12 +45,16 @@
       "Bash(do basename \"$file\" _test.dart)",
       "Bash(pod install:*)",
       "Bash(dos2unix:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(paste:*)",
+      "Bash(bc)",
+      "Bash(tree:*)",
+      "Bash(psql:*)",
+      "Read(//c/**)"
     ],
     "deny": [],
     "ask": [],
-    "additionalDirectories": [
-      "C:\\Users\\willi\\Documents\\Client"
-    ]
-  }
+    "additionalDirectories": ["C:\\Users\\willi\\Documents\\Client"]
+  },
+  "spinnerTipsEnabled": false
 }

@@ -269,21 +269,27 @@ class IOSNotification extends StatelessWidget {
                       children: [
                         Text(
                           message,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF1C1C1E),
                             height: 1.2,
+                            decoration: TextDecoration.none,
                           ),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
                           Text(
                             subtitle!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
                               height: 1.2,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                         ],

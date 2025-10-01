@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/providers/part_request_providers.dart';
 import '../../../../core/providers/immatriculation_providers.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -49,25 +50,47 @@ class PartRequestController extends StateNotifier<PartRequestState> {
   // Créer une nouvelle demande
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
 
-    // Vérifier d'abord s'il y a déjà une demande active
-    final repository = _ref.read(partRequestRepositoryProvider);
-    final hasActiveResult = await repository.hasActivePartRequest();
-    
-    final hasActive = hasActiveResult.fold(
-      (failure) {
-        return false; // En cas d'erreur, on laisse continuer
-      },
-      (hasActive) {
-        return hasActive;
-      },
-    );
+    // ✅ FIX: Vérifier si l'utilisateur est vendeur
+    // Les vendeurs n'ont AUCUNE limite de demandes
+    bool isSeller = false;
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
 
-    if (hasActive) {
-      state = state.copyWith(
-        isCreating: false,
-        error: 'Une demande est déjà en cours. Veuillez attendre sa clôture.',
+      if (userId != null) {
+        // Vérifier directement dans la table sellers
+        final response = await Supabase.instance.client
+            .from('sellers')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+
+        isSeller = response != null;
+      }
+    } catch (e) {
+      isSeller = false;
+    }
+
+    // ✅ LIMITE: Vérifier les demandes actives UNIQUEMENT pour les particuliers
+    if (!isSeller) {
+      final repository = _ref.read(partRequestRepositoryProvider);
+      final hasActiveResult = await repository.hasActivePartRequest();
+
+      final hasActive = hasActiveResult.fold(
+        (failure) {
+          return false; // En cas d'erreur, on laisse continuer
+        },
+        (hasActive) {
+          return hasActive;
+        },
       );
-      return false;
+
+      if (hasActive) {
+        state = state.copyWith(
+          isCreating: false,
+          error: 'Une demande est déjà en cours. Veuillez attendre sa clôture.',
+        );
+        return false;
+      }
     }
     
     

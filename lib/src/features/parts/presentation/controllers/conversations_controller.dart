@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/conversation.dart';
@@ -144,15 +145,17 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       // Utiliser notre méthode intelligente pour déterminer qui reçoit le message
       if (state.activeConversationId == conversationId) {
         // Marquer le message comme lu immédiatement si la conversation est ouverte
-        _markConversationAsReadInDB(conversationId);
+        await _markConversationAsReadInDB(conversationId);
       } else {
-        _incrementUnreadCountForSellerOnly(conversationId);
+        // ✅ FIX: ATTENDRE que la DB soit mise à jour AVANT le refresh
+        await _incrementUnreadCountForSellerOnly(conversationId);
       }
+
+      // ✅ FIX: Rafraîchir la conversation pour mettre à jour lastMessage et réordonner
+      await _refreshSingleConversation(conversationId);
     } catch (e) {
       // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
     }
-
-    // ✅ OPTIMISATION: Plus de refresh automatique, juste mise à jour locale
   }
 
   // ✅ OPTIMISÉ: Méthode publique simplifiée pour les pages de chat
@@ -196,6 +199,116 @@ class ConversationsController extends BaseConversationController<ConversationsSt
           // Plus besoin de recalculer - compteurs locaux gérés en temps réel
         },
       );
+    }
+  }
+
+  // ✅ FIX SYNC: Rafraîchir une seule conversation pour mettre à jour lastMessage et réordonner
+  Future<void> _refreshSingleConversation(String conversationId) async {
+    try {
+      debugPrint('🔄 [ConversationsController] Rafraîchissement de la conversation $conversationId');
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Récupérer UNIQUEMENT cette conversation depuis la DB (sans joins complexes)
+      final response = await Supabase.instance.client
+          .from('conversations')
+          .select('''
+            id,
+            request_id,
+            user_id,
+            seller_id,
+            status,
+            last_message_at,
+            created_at,
+            updated_at,
+            seller_name,
+            seller_company,
+            request_title,
+            last_message_content,
+            last_message_sender_type,
+            last_message_created_at,
+            unread_count_for_user,
+            unread_count_for_seller,
+            total_messages
+          ''')
+          .eq('id', conversationId)
+          .maybeSingle();
+
+      if (response == null) {
+        debugPrint('⚠️ [ConversationsController] Conversation non trouvée en DB');
+        return;
+      }
+
+      // Récupérer les infos du demandeur (particulier ou vendeur)
+      String demandeurId = response['user_id'];
+      if (response['request_id'] != null) {
+        try {
+          final partRequest = await Supabase.instance.client
+              .from('part_requests')
+              .select('user_id')
+              .eq('id', response['request_id'])
+              .single();
+          demandeurId = partRequest['user_id'];
+        } catch (e) {
+          // Garder demandeurId par défaut
+        }
+      }
+
+      // Déterminer le bon compteur selon le rôle
+      final isUserTheRequester = userId == demandeurId;
+      int unreadCount = 0;
+
+      if (isUserTheRequester) {
+        unreadCount = response['unread_count_for_user'] ?? 0;
+      } else {
+        unreadCount = response['unread_count_for_seller'] ?? 0;
+      }
+
+      // ✅ FIX AVATARS: Au lieu de remplacer TOUTE la conversation,
+      // on met à jour UNIQUEMENT les champs qui ont changé avec copyWith
+      debugPrint('✅ [ConversationsController] Mise à jour: lastMessage="${response['last_message_content']}", unreadCount=$unreadCount');
+
+      // Mettre à jour UNIQUEMENT les champs nécessaires dans la liste locale
+      final updatedConversations = state.conversations.map((conv) {
+        if (conv.id == conversationId) {
+          // ✅ IMPORTANT: Garder tous les champs existants (avatars, etc.)
+          return conv.copyWith(
+            lastMessageContent: response['last_message_content'],
+            lastMessageAt: DateTime.parse(response['last_message_at']),
+            lastMessageSenderType: response['last_message_sender_type'] != null
+                ? (response['last_message_sender_type'] == 'seller'
+                    ? MessageSenderType.seller
+                    : MessageSenderType.user)
+                : null,
+            lastMessageCreatedAt: response['last_message_created_at'] != null
+                ? DateTime.parse(response['last_message_created_at'])
+                : null,
+            unreadCount: unreadCount,
+            totalMessages: response['total_messages'] ?? conv.totalMessages,
+            updatedAt: DateTime.parse(response['updated_at']),
+          );
+        }
+        return conv;
+      }).toList();
+
+      // ✅ IMPORTANT: Réordonner par lastMessageAt DESC (le plus récent en premier)
+      updatedConversations.sort((a, b) {
+        return b.lastMessageAt.compareTo(a.lastMessageAt); // DESC: plus récent en premier
+      });
+
+      // Recalculer le total unread
+      final newTotal = updatedConversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+
+      // Mettre à jour le state
+      state = state.copyWith(
+        conversations: updatedConversations,
+        totalUnreadCount: newTotal,
+      );
+
+      debugPrint('✅ [ConversationsController] Liste réordonnée, totalUnread=$newTotal');
+    } catch (e) {
+      debugPrint('❌ [ConversationsController] Erreur refresh single conversation: $e');
+      // Ignorer l'erreur silencieusement
     }
   }
 
@@ -479,65 +592,53 @@ class ConversationsController extends BaseConversationController<ConversationsSt
   // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
 
-    // Marquer en DB
-    _markConversationAsReadInDB(conversationId);
+    // Marquer en DB et rafraîchir après
+    _markConversationAsReadInDB(conversationId).then((_) {
+      // ✅ FIX: Rafraîchir la conversation pour mettre à jour le badge
+      _refreshSingleConversation(conversationId);
+    });
 
-    // Marquer comme conversation active
+    // Marquer comme conversation active immédiatement
     state = state.copyWith(activeConversationId: conversationId);
 
   }
 
 
-  void _incrementUnreadCountForSellerOnly(String conversationId) async {
+  Future<void> _incrementUnreadCountForSellerOnly(String conversationId) async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
 
+      // ✅ FIX: Attendre que la DB soit mise à jour AVANT le refresh
       await _dataSource.incrementUnreadCountForSeller(
         conversationId: conversationId,
       );
 
-      _updateLocalUnreadCount(conversationId, 1);
+      // ✅ SUPPRIMÉ: Plus de mise à jour locale, on laisse le refresh gérer tout
+      // _updateLocalUnreadCount(conversationId, 1);
     } catch (e) {
       // Ignorer l'erreur silencieusement
     }
   }
 
-  void _markConversationAsReadInDB(String conversationId) async {
+  Future<void> _markConversationAsReadInDB(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
+      // ✅ FIX: Attendre que la DB soit mise à jour AVANT le refresh
       await _dataSource.markMessagesAsRead(
         conversationId: conversationId,
         userId: userId,
       );
 
-      // ✅ OPTIMISATION: Mise à jour locale immédiate au lieu de full reload
-      _updateLocalUnreadCount(conversationId, -999); // Reset à 0
+      // ✅ SUPPRIMÉ: Plus de mise à jour locale, on laisse le refresh gérer tout
+      // _updateLocalUnreadCount(conversationId, -999); // Reset à 0
     } catch (e) {
       // Ignorer l'erreur silencieusement
     }
   }
 
-  // ✅ OPTIMISATION: Mise à jour locale pour éviter les full reload
-  void _updateLocalUnreadCount(String conversationId, int delta) {
-    final updatedConversations = state.conversations.map((conv) {
-      if (conv.id == conversationId) {
-        final newCount = delta == -999 ? 0 : (conv.unreadCount + delta).clamp(0, 9999);
-        return conv.copyWith(unreadCount: newCount);
-      }
-      return conv;
-    }).toList();
-
-    final newTotal = updatedConversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
-
-    state = state.copyWith(
-      conversations: updatedConversations,
-      totalUnreadCount: newTotal,
-    );
-
-  }
 
   // ✅ SIMPLE: Désactiver la conversation active
   void setConversationInactive() {

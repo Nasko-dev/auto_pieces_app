@@ -12,6 +12,7 @@ class SellerMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
+      key: const Key('seller_menu_popup'), // ✅ FIX: Clé unique pour éviter les erreurs de layout
       icon: const Icon(
         Icons.more_vert,
         color: AppTheme.darkGray,
