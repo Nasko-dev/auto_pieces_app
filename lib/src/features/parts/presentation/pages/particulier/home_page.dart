@@ -660,7 +660,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         _showSuggestions = false;
       });
     }
-    _focusNode.requestFocus();
+    // Ne pas redonner le focus automatiquement pour éviter de réafficher les suggestions
   }
 
   void _removePart(String part) {
