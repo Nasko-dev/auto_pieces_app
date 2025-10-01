@@ -1,0 +1,19 @@
+{
+  "commands": [
+    {
+      "name": "debug-complet",
+      "description": "Analyse complète et recherche de bugs dans le projet",
+      "prompt": "Effectue un processus de débogage complet:\n1. Analyse le code modifié récemment (git diff)\n2. Vérifie les erreurs de syntaxe (flutter analyze)\n3. Recherche les bugs potentiels dans les fichiers critiques\n4. Vérifie les services core et les controllers\n5. Propose des solutions concrètes\n\nFocus sur: performance, null safety, state management, navigation"
+    },
+    {
+      "name": "debug-feature",
+      "description": "Debug une feature spécifique",
+      "prompt": "Debug la feature {{feature}}:\n1. Lit tous les fichiers de la feature\n2. Analyse le flux de données\n3. Vérifie les providers et controllers\n4. Teste la logique métier\n5. Identifie les bugs potentiels"
+    },
+    {
+      "name": "verif-qualite",
+      "description": "Vérification qualité du code",
+      "prompt": "Vérification qualité complète:\n1. Lance flutter analyze\n2. Vérifie les warnings\n3. Identifie le code mort\n4. Vérifie les performances\n5. Suggère des optimisations"
+    }
+  ]
+}

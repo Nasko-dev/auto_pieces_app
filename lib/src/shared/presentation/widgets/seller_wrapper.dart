@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/parts/presentation/providers/conversations_providers.dart';
+import '../../../core/services/global_message_notification_service.dart';
 
 class SellerWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -14,6 +15,24 @@ class SellerWrapper extends ConsumerStatefulWidget {
 }
 
 class _SellerWrapperState extends ConsumerState<SellerWrapper> {
+  final GlobalMessageNotificationService _globalNotificationService = GlobalMessageNotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('🎬 [SellerWrapper] Initialisation du wrapper vendeur');
+    // Initialiser le service global de notifications
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('🎬 [SellerWrapper] Initialisation du service global...');
+      _globalNotificationService.initialize(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _globalNotificationService.dispose();
+    super.dispose();
+  }
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {

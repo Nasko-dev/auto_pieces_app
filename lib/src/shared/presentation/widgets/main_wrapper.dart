@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/particulier_conversations_providers.dart';
+import '../../../core/services/global_message_notification_service.dart';
 import 'auth_wrapper.dart';
 
 class MainWrapper extends ConsumerStatefulWidget {
@@ -18,6 +19,25 @@ class MainWrapper extends ConsumerStatefulWidget {
 }
 
 class _MainWrapperState extends ConsumerState<MainWrapper> {
+  final GlobalMessageNotificationService _globalNotificationService = GlobalMessageNotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('🎬 [MainWrapper] Initialisation du wrapper');
+    // Initialiser le service global de notifications
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('🎬 [MainWrapper] Initialisation du service global...');
+      _globalNotificationService.initialize(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _globalNotificationService.dispose();
+    super.dispose();
+  }
+
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
