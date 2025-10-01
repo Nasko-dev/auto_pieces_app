@@ -92,9 +92,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           // Envoyer au controller via la méthode unifiée
           ref.read(conversationsControllerProvider.notifier)
               .handleIncomingMessage(message);
-
-          // Faire défiler vers le bas
-          _scrollToBottom();
         }
       },
       onError: (error) {
@@ -105,19 +102,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       },
     );
   }
-  
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      });
-    }
-  }
-
   Future<void> _loadSellerInfo() async {
     final conversationsState = ref.read(particulierConversationsControllerProvider);
     final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
@@ -183,7 +167,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Auto-scroll quand de nouveaux messages arrivent
     if (messages.length > _previousMessageCount) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToBottom();
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
       });
       _previousMessageCount = messages.length;
     }
@@ -357,17 +343,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
       );
     }
-
-    // Faire défiler vers le bas automatiquement
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
 
     return ListView.builder(
       controller: _scrollController,

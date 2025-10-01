@@ -37,6 +37,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
+  int _previousMessageCount = 0;
 
   @override
   void initState() {
@@ -94,29 +95,12 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           // Les notifications sont gérées par le service global
           // Pas besoin de notification locale ici
           ref.read(conversationsControllerProvider.notifier).handleIncomingMessage(message);
-
-          // Auto-scroll vers le bas
-          _scrollToBottom();
         }
       },
       onError: (error) {
         debugPrint('❌ [Vendeur Realtime] Erreur stream: $error');
       },
     );
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted && _scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
   }
 
 
@@ -146,19 +130,15 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final error = ref.watch(conversationsErrorProvider);
     final conversation = _getConversationFromList();
 
-    // Auto-scroll vers le bas quand de nouveaux messages arrivent
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Les notifications sont gérées par le service global
-      // Pas besoin de notification locale ici
-
-      if (_scrollController.hasClients && messages.isNotEmpty) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    // Auto-scroll quand de nouveaux messages arrivent
+    if (messages.length > _previousMessageCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+      _previousMessageCount = messages.length;
+    }
 
     return Scaffold(
       appBar: AppBar(
