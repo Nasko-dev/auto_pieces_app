@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_service.dart';
+import 'device_service.dart';
 import '../../shared/presentation/widgets/ios_notification_fixed.dart';
 
 /// Service global pour afficher les notifications de messages partout dans l'app
@@ -18,6 +20,7 @@ class GlobalMessageNotificationService {
   bool _isInitialized = false;
   String? _currentSellerId; // ID vendeur si l'utilisateur est vendeur
   String? _currentParticulierId; // ID particulier si l'utilisateur est particulier
+  final Set<String> _myConversationIds = {}; // IDs des conversations de l'utilisateur
 
   /// Initialiser le service avec le contexte de l'app
   Future<void> initialize(BuildContext context) async {
@@ -33,6 +36,9 @@ class GlobalMessageNotificationService {
 
     // Récupérer les IDs vendeur/particulier
     await _fetchUserIds();
+
+    // Charger les IDs de conversations
+    await _loadMyConversations();
 
     _subscribeToAllMessages();
   }
@@ -71,10 +77,89 @@ class GlobalMessageNotificationService {
     }
   }
 
+  /// Charger les IDs de conversations de l'utilisateur
+  Future<void> _loadMyConversations() async {
+    final authUserId = _supabase.auth.currentUser?.id;
+    if (authUserId == null) return;
+
+    try {
+      _myConversationIds.clear();
+
+      // Pour vendeurs
+      if (_currentSellerId != null) {
+        final sellerConvs = await _supabase
+            .from('conversations')
+            .select('id')
+            .or('seller_id.eq.$_currentSellerId,user_id.eq.$_currentSellerId');
+
+        for (final conv in sellerConvs) {
+          _myConversationIds.add(conv['id'] as String);
+        }
+      }
+
+      // Pour particuliers - utiliser device_id pour auth anonyme
+      if (_currentParticulierId != null) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final deviceService = DeviceService(prefs);
+          final deviceId = await deviceService.getDeviceId();
+
+          // Récupérer tous les user_ids liés à ce device
+          final allParticuliersWithDevice = await _supabase
+              .from('particuliers')
+              .select('id')
+              .eq('device_id', deviceId);
+
+          final allUserIds = allParticuliersWithDevice
+              .map((p) => p['id'] as String)
+              .toList();
+
+          // Ajouter l'utilisateur actuel s'il n'est pas dans la liste
+          if (!allUserIds.contains(_currentParticulierId)) {
+            allUserIds.add(_currentParticulierId!);
+          }
+
+          // Récupérer les conversations pour tous ces user_ids
+          if (allUserIds.isNotEmpty) {
+            final particConvs = await _supabase
+                .from('conversations')
+                .select('id')
+                .inFilter('user_id', allUserIds);
+
+            for (final conv in particConvs) {
+              _myConversationIds.add(conv['id'] as String);
+            }
+          }
+        } catch (e) {
+          debugPrint('⚠️  [GlobalNotification] Erreur device_id, fallback user_id: $e');
+          // Fallback: récupérer seulement avec user_id
+          final particConvs = await _supabase
+              .from('conversations')
+              .select('id')
+              .eq('user_id', _currentParticulierId);
+
+          for (final conv in particConvs) {
+            _myConversationIds.add(conv['id'] as String);
+          }
+        }
+      }
+
+      debugPrint('✅ [GlobalNotification] ${_myConversationIds.length} conversations chargées');
+    } catch (e) {
+      debugPrint('❌ [GlobalNotification] Erreur chargement conversations: $e');
+    }
+  }
+
   /// Définir quelle conversation est actuellement active (pour éviter les doublons)
   void setActiveConversation(String? conversationId) {
     _activeConversationId = conversationId;
     debugPrint('📍 [GlobalNotification] Conversation active: ${conversationId ?? "aucune"}');
+
+    // Ajouter cette conversation à notre liste si elle n'y est pas déjà
+    if (conversationId != null && !_myConversationIds.contains(conversationId)) {
+      _myConversationIds.add(conversationId);
+      debugPrint('➕ [GlobalNotification] Nouvelle conversation ajoutée: $conversationId');
+    }
   }
 
   /// S'abonner à TOUS les messages de l'utilisateur connecté
@@ -121,6 +206,12 @@ class GlobalMessageNotificationService {
 
       if (conversationId == null || senderId == null || content == null) {
         debugPrint('⏭️  [GlobalNotification] Message incomplet ignoré');
+        return;
+      }
+
+      // Vérifier si cette conversation nous appartient
+      if (!_myConversationIds.contains(conversationId)) {
+        debugPrint('⏭️  [GlobalNotification] Conversation non pertinente ignorée (ID: $conversationId)');
         return;
       }
 
