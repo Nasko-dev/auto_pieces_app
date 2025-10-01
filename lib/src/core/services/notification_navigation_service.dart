@@ -58,7 +58,7 @@ class NotificationNavigationService {
       final seller = await _supabase
           .from('sellers')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .maybeSingle();
 
       if (seller != null) {
