@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -206,7 +207,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/conversations');
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -488,7 +496,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           .deleteConversation(widget.conversationId);
 
       if (mounted) {
-        Navigator.of(context).pop(); // Retourner à la liste
+        // Utiliser GoRouter pour compatibilité notifications
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go('/conversations');
+        }
         notificationService.showConversationDeleted(context);
       }
     }
@@ -507,7 +520,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           .blockConversation(widget.conversationId);
 
       if (mounted) {
-        Navigator.of(context).pop(); // Retourner à la liste
+        // Utiliser GoRouter pour compatibilité notifications
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go('/conversations');
+        }
         notificationService.showSellerBlocked(context);
       }
     }

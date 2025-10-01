@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -168,7 +169,14 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/seller/messages');
+            }
+          },
         ),
         actions: [
           IconButton(
