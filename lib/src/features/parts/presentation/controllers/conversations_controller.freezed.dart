@@ -191,7 +191,9 @@ class __$$ConversationsStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ConversationsStateImpl implements _ConversationsState {
+class _$ConversationsStateImpl
+    with DiagnosticableTreeMixin
+    implements _ConversationsState {
   const _$ConversationsStateImpl(
       {final List<Conversation> conversations = const [],
       final Map<String, List<Message>> conversationMessages = const {},
@@ -241,8 +243,23 @@ class _$ConversationsStateImpl implements _ConversationsState {
   final int totalUnreadCount;
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'ConversationsState(conversations: $conversations, conversationMessages: $conversationMessages, isLoading: $isLoading, isLoadingMessages: $isLoadingMessages, isSendingMessage: $isSendingMessage, error: $error, activeConversationId: $activeConversationId, totalUnreadCount: $totalUnreadCount)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ConversationsState'))
+      ..add(DiagnosticsProperty('conversations', conversations))
+      ..add(DiagnosticsProperty('conversationMessages', conversationMessages))
+      ..add(DiagnosticsProperty('isLoading', isLoading))
+      ..add(DiagnosticsProperty('isLoadingMessages', isLoadingMessages))
+      ..add(DiagnosticsProperty('isSendingMessage', isSendingMessage))
+      ..add(DiagnosticsProperty('error', error))
+      ..add(DiagnosticsProperty('activeConversationId', activeConversationId))
+      ..add(DiagnosticsProperty('totalUnreadCount', totalUnreadCount));
   }
 
   @override

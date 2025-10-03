@@ -116,12 +116,18 @@ class __$$InitialImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$InitialImpl implements _Initial {
+class _$InitialImpl with DiagnosticableTreeMixin implements _Initial {
   const _$InitialImpl();
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'SellerAuthState.initial()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties..add(DiagnosticsProperty('type', 'SellerAuthState.initial'));
   }
 
   @override
@@ -239,12 +245,18 @@ class __$$LoadingImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$LoadingImpl implements _Loading {
+class _$LoadingImpl with DiagnosticableTreeMixin implements _Loading {
   const _$LoadingImpl();
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'SellerAuthState.loading()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties..add(DiagnosticsProperty('type', 'SellerAuthState.loading'));
   }
 
   @override
@@ -376,15 +388,25 @@ class __$$AuthenticatedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$AuthenticatedImpl implements _Authenticated {
+class _$AuthenticatedImpl
+    with DiagnosticableTreeMixin
+    implements _Authenticated {
   const _$AuthenticatedImpl(this.seller);
 
   @override
   final Seller seller;
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'SellerAuthState.authenticated(seller: $seller)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SellerAuthState.authenticated'))
+      ..add(DiagnosticsProperty('seller', seller));
   }
 
   @override
@@ -520,12 +542,21 @@ class __$$UnauthenticatedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$UnauthenticatedImpl implements _Unauthenticated {
+class _$UnauthenticatedImpl
+    with DiagnosticableTreeMixin
+    implements _Unauthenticated {
   const _$UnauthenticatedImpl();
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'SellerAuthState.unauthenticated()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SellerAuthState.unauthenticated'));
   }
 
   @override
@@ -657,15 +688,23 @@ class __$$ErrorImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ErrorImpl implements _Error {
+class _$ErrorImpl with DiagnosticableTreeMixin implements _Error {
   const _$ErrorImpl(this.message);
 
   @override
   final String message;
 
   @override
-  String toString() {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
     return 'SellerAuthState.error(message: $message)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SellerAuthState.error'))
+      ..add(DiagnosticsProperty('message', message));
   }
 
   @override
