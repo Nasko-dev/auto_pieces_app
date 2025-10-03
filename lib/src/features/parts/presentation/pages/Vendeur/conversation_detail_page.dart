@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -36,6 +37,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
+  int _previousMessageCount = 0;
+
+  // Cache local pour les données particulier
+  Map<String, dynamic>? _particulierInfo;
+  bool _isLoadingParticulierInfo = false;
 
   @override
   void initState() {
@@ -59,7 +65,58 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
       // S'abonner aux messages en temps réel pour cette conversation
       _subscribeToRealtimeMessages();
+
+      // Charger les infos particulier
+      _loadParticulierInfo();
     });
+  }
+
+  Future<void> _loadParticulierInfo() async {
+    if (_isLoadingParticulierInfo) return;
+
+    setState(() {
+      _isLoadingParticulierInfo = true;
+    });
+
+    try {
+      // Charger la conversation directement pour obtenir le user_id
+      final convResponse = await Supabase.instance.client
+          .from('conversations')
+          .select('user_id')
+          .eq('id', widget.conversationId)
+          .maybeSingle();
+
+      if (convResponse == null || convResponse['user_id'] == null) {
+        if (mounted) {
+          setState(() {
+            _isLoadingParticulierInfo = false;
+          });
+        }
+        return;
+      }
+
+      final userId = convResponse['user_id'] as String;
+
+      final response = await Supabase.instance.client
+          .from('particuliers')
+          .select('id, display_name, phone, avatar_url')
+          .eq('id', userId)
+          .limit(1);
+
+      if (response.isNotEmpty && mounted) {
+        setState(() {
+          _particulierInfo = response.first;
+          _isLoadingParticulierInfo = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur chargement info particulier: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingParticulierInfo = false;
+        });
+      }
+    }
   }
 
   void _markAsRead() {
@@ -93,29 +150,12 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           // Les notifications sont gérées par le service global
           // Pas besoin de notification locale ici
           ref.read(conversationsControllerProvider.notifier).handleIncomingMessage(message);
-
-          // Auto-scroll vers le bas
-          _scrollToBottom();
         }
       },
       onError: (error) {
         debugPrint('❌ [Vendeur Realtime] Erreur stream: $error');
       },
     );
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted && _scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
   }
 
 
@@ -145,19 +185,15 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final error = ref.watch(conversationsErrorProvider);
     final conversation = _getConversationFromList();
 
-    // Auto-scroll vers le bas quand de nouveaux messages arrivent
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Les notifications sont gérées par le service global
-      // Pas besoin de notification locale ici
-
-      if (_scrollController.hasClients && messages.isNotEmpty) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    // Auto-scroll quand de nouveaux messages arrivent
+    if (messages.length > _previousMessageCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+      _previousMessageCount = messages.length;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -168,7 +204,14 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/seller/messages');
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -295,7 +338,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
             isLastMessage: index == messages.length - 1,
             otherUserName: _getUserDisplayName(conversation),
-            otherUserAvatarUrl: conversation?.userAvatarUrl,
+            otherUserAvatarUrl: _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl,
             otherUserCompany: null,
           ),
         );
@@ -416,8 +459,12 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   String _getUserDisplayName(dynamic conversation) {
-    // Afficher le nom du particulier depuis les nouvelles données
-    if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
+    // Priorité : données chargées directement > données de conversation
+    final displayName = _particulierInfo?['display_name'];
+
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    } else if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
       return conversation.userDisplayName!;
     } else if (conversation?.userName != null && conversation.userName!.isNotEmpty) {
       return conversation.userName!;
@@ -427,7 +474,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Widget _buildUserAvatar(dynamic conversation) {
-    if (conversation?.userAvatarUrl != null && conversation.userAvatarUrl!.isNotEmpty) {
+    final avatarUrl = _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl;
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar avec vraie photo du particulier
       return Container(
         width: 32,
@@ -441,7 +490,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         ),
         child: ClipOval(
           child: Image.network(
-            conversation.userAvatarUrl!,
+            avatarUrl,
             width: 32,
             height: 32,
             fit: BoxFit.cover,

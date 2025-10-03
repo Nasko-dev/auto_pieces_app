@@ -33,11 +33,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Ne plus ré-initialiser automatiquement - déjà fait dans initState
-  }
 
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
     try {

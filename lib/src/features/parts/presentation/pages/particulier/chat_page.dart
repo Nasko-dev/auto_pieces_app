@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -91,9 +92,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           // Envoyer au controller via la méthode unifiée
           ref.read(conversationsControllerProvider.notifier)
               .handleIncomingMessage(message);
-
-          // Faire défiler vers le bas
-          _scrollToBottom();
         }
       },
       onError: (error) {
@@ -104,33 +102,31 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       },
     );
   }
-  
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      });
-    }
-  }
-
   Future<void> _loadSellerInfo() async {
-    final conversationsState = ref.read(particulierConversationsControllerProvider);
-    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
-
-    if (conversation?.sellerId == null || _isLoadingSellerInfo) return;
+    if (_isLoadingSellerInfo) return;
 
     setState(() {
       _isLoadingSellerInfo = true;
     });
 
     try {
-      // Vérifier que le sellerId n'est pas null
-      final sellerId = conversation?.sellerId;
-      if (sellerId == null) return;
+      // Charger la conversation directement pour obtenir le sellerId
+      final convResponse = await Supabase.instance.client
+          .from('conversations')
+          .select('seller_id')
+          .eq('id', widget.conversationId)
+          .maybeSingle();
+
+      if (convResponse == null || convResponse['seller_id'] == null) {
+        if (mounted) {
+          setState(() {
+            _isLoadingSellerInfo = false;
+          });
+        }
+        return;
+      }
+
+      final sellerId = convResponse['seller_id'] as String;
 
       final response = await Supabase.instance.client
           .from('sellers')
@@ -145,6 +141,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         });
       }
     } catch (e) {
+      debugPrint('❌ Erreur chargement info vendeur: $e');
       if (mounted) {
         setState(() {
           _isLoadingSellerInfo = false;
@@ -182,7 +179,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Auto-scroll quand de nouveaux messages arrivent
     if (messages.length > _previousMessageCount) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToBottom();
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
       });
       _previousMessageCount = messages.length;
     }
@@ -190,10 +189,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Trouver la conversation pour le titre - gestion sécurisée
     final conversationsState = ref.watch(particulierConversationsControllerProvider);
     final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
-    
-    // Si pas de conversation trouvée, afficher un titre par défaut
-    if (conversation == null) {
-    }
 
 
     return Scaffold(
@@ -206,7 +201,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/conversations');
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -350,17 +352,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
     }
 
-    // Faire défiler vers le bas automatiquement
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
@@ -488,7 +479,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           .deleteConversation(widget.conversationId);
 
       if (mounted) {
-        Navigator.of(context).pop(); // Retourner à la liste
+        // Utiliser GoRouter pour compatibilité notifications
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go('/conversations');
+        }
         notificationService.showConversationDeleted(context);
       }
     }
@@ -507,7 +503,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           .blockConversation(widget.conversationId);
 
       if (mounted) {
-        Navigator.of(context).pop(); // Retourner à la liste
+        // Utiliser GoRouter pour compatibilité notifications
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go('/conversations');
+        }
         notificationService.showSellerBlocked(context);
       }
     }

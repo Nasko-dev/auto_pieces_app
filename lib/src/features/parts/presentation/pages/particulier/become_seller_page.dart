@@ -171,11 +171,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     }
   }
 
-  // Méthode de debug temporaire
-  void _debugRefresh() async {
-    final notifier = ref.read(vehicleSearchProvider.notifier);
-    await notifier.forceRefreshActiveRequestCheck();
-  }
+  // Méthode de debug temporaire - Désactivée en production
+  // void _debugRefresh() async {
+  //   final notifier = ref.read(vehicleSearchProvider.notifier);
+  //   await notifier.forceRefreshActiveRequestCheck();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -202,14 +202,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   onBackPressed: _currentStep > 0
                     ? _goToPreviousStep
                     : () => context.go('/seller/add'),
-                  actions: [
-                    // Bouton debug temporaire pour vendeurs
-                    IconButton(
-                      icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
-                      onPressed: _debugRefresh,
-                      tooltip: 'Debug: Refresh limitations',
-                    ),
-                  ],
                 ),
           Expanded(child: _buildBody()),
         ],
