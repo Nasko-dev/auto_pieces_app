@@ -89,15 +89,15 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
     // Elle sera appelée par les pages qui en ont besoin
   }
 
-  Future<void> searchVehicle(String plate) async {
+  Future<void> searchVehicle(String plate, {bool allowWithActiveRequest = false}) async {
 
-    // ✅ CORRECTION: Ne bloquer QUE les particuliers avec une demande active
+    // ✅ CORRECTION: Ne bloquer QUE les particuliers avec une demande active (sauf annonces)
     // Les vendeurs peuvent créer des annonces sans limite
     final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
     final isSeller = currentSeller != null;
 
-    // Bloquer UNIQUEMENT les particuliers ayant une demande active
-    if (!isSeller && state.hasActiveRequest) {
+    // Bloquer UNIQUEMENT les particuliers ayant une demande active (sauf si annonce)
+    if (!isSeller && state.hasActiveRequest && !allowWithActiveRequest) {
       state = state.copyWith(
         error: 'Une demande est déjà en cours. Veuillez attendre sa clôture avant d\'en créer une nouvelle.',
         clearVehicleInfo: true,

@@ -331,9 +331,9 @@ class _RequestCard extends ConsumerWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  final String status;
-
   const _StatusBadge({required this.status});
+
+  final String status;
 
   @override
   Widget build(BuildContext context) {

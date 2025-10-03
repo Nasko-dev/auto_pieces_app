@@ -55,7 +55,10 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
       _hasSearched = true;
     });
 
-    await ref.read(vehicleSearchProvider.notifier).searchVehicle(plate);
+    await ref.read(vehicleSearchProvider.notifier).searchVehicle(
+      plate,
+      allowWithActiveRequest: widget.allowWithActiveRequest,
+    );
 
     final state = ref.read(vehicleSearchProvider);
 
@@ -88,12 +91,12 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
 
         FrenchLicensePlate(
           controller: _plateController,
-          enabled: !vehicleState.isLoading && !vehicleState.hasActiveRequest,
+          enabled: !vehicleState.isLoading && (widget.allowWithActiveRequest || !vehicleState.hasActiveRequest),
           isLoading: vehicleState.isLoading || vehicleState.isCheckingActiveRequest,
           errorText: vehicleState.error != null && _hasSearched
               ? vehicleState.error
               : null,
-          onChanged: vehicleState.hasActiveRequest ? null : (value) {
+          onChanged: (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ? null : (value) {
             setState(() {
               _hasSearched = false;
             });

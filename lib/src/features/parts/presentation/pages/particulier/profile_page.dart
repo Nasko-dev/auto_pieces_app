@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
@@ -940,7 +941,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           _isUploadingImage = true;
         });
 
-_uploadAndSaveAvatar(File(pickedFile.path));
+        await _uploadAndSaveAvatar(File(pickedFile.path));
       }
     } catch (e) {
       if (mounted) {
@@ -952,7 +953,7 @@ _uploadAndSaveAvatar(File(pickedFile.path));
     }
   }
 
-  void _uploadAndSaveAvatar(File imageFile) async {
+  Future<void> _uploadAndSaveAvatar(File imageFile) async {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) {
       notificationService.error(context, 'Erreur: utilisateur non connecté');
@@ -1078,9 +1079,52 @@ _uploadAndSaveAvatar(File(pickedFile.path));
     );
 
     if (result == true && mounted) {
-      // TODO: Implémenter suppression de compte
-      if (mounted) {
-        notificationService.error(context, 'Suppression de compte - Fonctionnalité à venir');
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      if (currentUser == null) {
+        if (mounted) {
+          notificationService.error(context, 'Erreur: utilisateur non connecté');
+        }
+        return;
+      }
+
+      try {
+        // Afficher un loader
+        if (mounted) {
+          notificationService.info(context, 'Suppression du compte en cours...');
+        }
+
+        // 1. Supprimer les données du particulier dans la base de données
+        // Les RLS et CASCADE devraient gérer la suppression des données liées
+        await Supabase.instance.client
+            .from('particuliers')
+            .delete()
+            .eq('id', currentUser.id);
+
+        // 2. Nettoyer le cache local
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+
+        // 3. Déconnexion
+        await Supabase.instance.client.auth.signOut();
+
+        if (mounted) {
+          notificationService.success(
+            context,
+            'Compte supprimé',
+            subtitle: 'Votre compte et toutes vos données ont été supprimés.',
+          );
+
+          // 4. Rediriger vers la page d'accueil
+          context.go('/');
+        }
+      } catch (e) {
+        if (mounted) {
+          notificationService.error(
+            context,
+            'Erreur lors de la suppression',
+            subtitle: e.toString(),
+          );
+        }
       }
     }
   }
