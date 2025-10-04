@@ -50,11 +50,16 @@
       "Bash(bc)",
       "Bash(tree:*)",
       "Bash(psql:*)",
-      "Read(//c/**)"
+      "Read(//c/**)",
+      "Bash(dir)",
+      "Bash(git remote add:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": [],
-    "additionalDirectories": ["C:\\Users\\willi\\Documents\\Client"]
+    "additionalDirectories": [
+      "C:\\Users\\willi\\Documents\\Client"
+    ]
   },
   "spinnerTipsEnabled": false
 }
