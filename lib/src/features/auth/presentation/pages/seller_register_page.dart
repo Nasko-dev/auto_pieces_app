@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../shared/presentation/widgets/document_upload_widget.dart';
 
 class SellerRegisterPage extends ConsumerStatefulWidget {
   const SellerRegisterPage({super.key});
@@ -25,6 +27,8 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
+  File? _identityDocument;
+  File? _kbisDocument;
 
   // Couleurs cohérentes avec le design
   static const _bg = Colors.white;
@@ -301,8 +305,56 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                   },
                 ),
                 
+                SizedBox(height: 32 * s),
+
+                // Section Documents
+                Text('Documents requis', style: h2(20)),
+                SizedBox(height: 8 * s),
+                Text(
+                  'Pour vérifier votre identité et votre entreprise, merci de fournir les documents suivants :',
+                  style: body(14),
+                ),
+
                 SizedBox(height: 24 * s),
-                
+
+                // Pièce d'identité
+                DocumentUploadWidget(
+                  title: 'Pièce d\'identité',
+                  instructions: const [
+                    '📸 Photographiez votre pièce d\'identité de face',
+                    '✓ Le document doit être entièrement visible',
+                    '✓ Assurez-vous que toutes les informations sont lisibles',
+                    '✓ Évitez les reflets et les zones floues',
+                  ],
+                  acceptedFormats: 'JPG, PNG (max 5 Mo)',
+                  onDocumentSelected: (file) {
+                    setState(() {
+                      _identityDocument = file;
+                    });
+                  },
+                ),
+
+                SizedBox(height: 24 * s),
+
+                // KBIS
+                DocumentUploadWidget(
+                  title: 'Extrait KBIS',
+                  instructions: const [
+                    '📄 Joignez votre extrait KBIS de moins de 3 mois',
+                    '✓ Le document doit être entièrement visible',
+                    '✓ Assurez-vous que toutes les informations sont lisibles',
+                    '✓ Formats acceptés : photo ou scan du document',
+                  ],
+                  acceptedFormats: 'JPG, PNG, PDF (max 5 Mo)',
+                  onDocumentSelected: (file) {
+                    setState(() {
+                      _kbisDocument = file;
+                    });
+                  },
+                ),
+
+                SizedBox(height: 32 * s),
+
                 // Accepter les conditions
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +421,12 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                   width: double.infinity,
                   height: 56 * s,
                   child: ElevatedButton(
-                    onPressed: (authState.isLoading || !_acceptTerms) ? null : _handleRegister,
+                    onPressed: (authState.isLoading ||
+                                !_acceptTerms ||
+                                _identityDocument == null ||
+                                _kbisDocument == null)
+                        ? null
+                        : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryBlue,
                       foregroundColor: Colors.white,
