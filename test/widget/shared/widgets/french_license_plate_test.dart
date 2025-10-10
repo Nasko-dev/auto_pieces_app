@@ -50,7 +50,7 @@ void main() {
       expect(controller.text, plateNumber);
     });
 
-    testWidgets('doit formater automatiquement le texte saisi', (tester) async {
+    testWidgets('doit convertir le texte saisi en majuscules sans formatage automatique', (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -64,10 +64,10 @@ void main() {
       await tester.enterText(find.byType(TextField), 'ab123cd');
 
       // assert
-      expect(controller.text, 'AB-123-CD');
+      expect(controller.text, 'AB123CD');
     });
 
-    testWidgets('doit gérer les différentes étapes de formatage', (tester) async {
+    testWidgets('doit gérer les différentes étapes de saisie sans formatage automatique', (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -85,19 +85,19 @@ void main() {
       expect(controller.text, 'AB');
 
       await tester.enterText(find.byType(TextField), 'AB1');
-      expect(controller.text, 'AB-1');
+      expect(controller.text, 'AB1');
 
       await tester.enterText(find.byType(TextField), 'AB123');
-      expect(controller.text, 'AB-123');
+      expect(controller.text, 'AB123');
 
       await tester.enterText(find.byType(TextField), 'AB123C');
-      expect(controller.text, 'AB-123-C');
+      expect(controller.text, 'AB123C');
 
       await tester.enterText(find.byType(TextField), 'AB123CD');
-      expect(controller.text, 'AB-123-CD');
+      expect(controller.text, 'AB123CD');
     });
 
-    testWidgets('doit limiter la longueur à 9 caractères', (tester) async {
+    testWidgets('doit limiter la longueur à 15 caractères', (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -108,13 +108,13 @@ void main() {
       );
 
       // act - essayer de saisir plus de caractères
-      await tester.enterText(find.byType(TextField), 'AB123CDEF');
+      await tester.enterText(find.byType(TextField), 'AB123CDEFGHIJKLMNO');
 
       // assert
-      expect(controller.text.length, lessThanOrEqualTo(9));
+      expect(controller.text.length, lessThanOrEqualTo(15));
     });
 
-    testWidgets('doit supprimer les caractères non alphanumériques', (tester) async {
+    testWidgets('doit supprimer les caractères non alphanumériques sauf tirets', (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -128,7 +128,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'AB@123#CD\$');
 
       // assert
-      expect(controller.text, 'AB-123-CD');
+      expect(controller.text, 'AB123CD');
     });
 
     testWidgets('doit convertir en majuscules', (tester) async {
@@ -145,7 +145,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'ab123cd');
 
       // assert
-      expect(controller.text, 'AB-123-CD');
+      expect(controller.text, 'AB123CD');
     });
 
     testWidgets('doit appeler onChanged quand le texte change', (tester) async {
@@ -166,7 +166,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'AB123');
 
       // assert
-      expect(changedValue, 'AB-123');
+      expect(changedValue, 'AB123');
     });
 
     testWidgets('doit appeler onSubmitted quand soumis', (tester) async {
@@ -188,7 +188,7 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
 
       // assert
-      expect(submittedValue, 'AB-123-CD');
+      expect(submittedValue, 'AB123CD');
     });
 
     testWidgets('doit désactiver le champ quand enabled=false', (tester) async {
@@ -397,10 +397,10 @@ void main() {
 
         // act & assert
         await tester.enterText(find.byType(TextField), 'AB1');
-        expect(controller.text, 'AB-1');
+        expect(controller.text, 'AB1');
 
         await tester.enterText(find.byType(TextField), 'AB12');
-        expect(controller.text, 'AB-12');
+        expect(controller.text, 'AB12');
       });
 
       testWidgets('doit gérer les textes trop longs', (tester) async {
@@ -416,8 +416,9 @@ void main() {
         // act
         await tester.enterText(find.byType(TextField), 'ABCDEFGHIJKLMNOP');
 
-        // assert - doit être tronqué et retourner le texte original en majuscules
-        expect(controller.text, contains('ABCDEFGHI')); // Les 9 premiers caractères max
+        // assert - doit être tronqué à 15 caractères max
+        expect(controller.text.length, lessThanOrEqualTo(15));
+        expect(controller.text, 'ABCDEFGHIJKLMNO'); // Les 15 premiers caractères
       });
     });
 
