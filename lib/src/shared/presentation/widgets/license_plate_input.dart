@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/providers/immatriculation_providers.dart';
 import 'french_license_plate.dart';
 
@@ -297,7 +298,7 @@ class _RemainingAttemptsInfo extends StatelessWidget {
 }
 
 class _ActiveRequestWarning extends StatelessWidget {
-  static const Color _info = Color(0xFF007AFF);
+  static const Color _warning = Color(0xFFFF9500); // Orange léger
   static const Color _textDark = Color(0xFF1C1C1E);
   static const double _radius = 12;
 
@@ -305,46 +306,57 @@ class _ActiveRequestWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _info.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _info.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.block,
-                color: _info,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Une demande est déjà en cours',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: _textDark,
+    return InkWell(
+      onTap: () {
+        context.go('/requests');
+      },
+      borderRadius: BorderRadius.circular(_radius),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _warning.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(_radius),
+          border: Border.all(color: _warning.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.block,
+                  color: _warning,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Une demande est déjà en cours',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: _textDark,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Vous ne pouvez pas créer une nouvelle demande tant qu\'une demande est active. Consultez vos demandes dans l\'onglet "Mes demandes".',
-            style: TextStyle(
-              fontSize: 13,
-              color: _textDark.withValues(alpha: 0.8),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: _warning,
+                  size: 16,
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              'Vous ne pouvez pas créer une nouvelle demande tant qu\'une demande est en cours. Consultez vos demandes dans l\'onglet "Mes demandes".',
+              style: TextStyle(
+                fontSize: 13,
+                color: _textDark.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
