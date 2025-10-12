@@ -155,7 +155,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: _TypeCard(
                           selected: _selectedType == 'engine',
                           icon: Icons.settings,
-                          title: 'Pièces moteur',
+                          title: 'Pièces liées à la motorisation',
                           onTap: () => setState(() => _selectedType = 'engine'),
                         ),
                       ),
@@ -164,7 +164,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: _TypeCard(
                           selected: _selectedType == 'body',
                           icon: Icons.car_repair,
-                          title: 'Pièces carrosserie\n/ interieures',
+                          title: 'Pièces liées à la carrosserie ou à l\'habitacle',
                           onTap: () => setState(() => _selectedType = 'body'),
                         ),
                       ),
@@ -912,30 +912,35 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-        
-        // Affichage différentiel selon le type de pièce
-        if (_selectedType == 'engine') {
-          // Pour les pièces moteur : afficher uniquement la motorisation
-          if (info.engineSize != null) parts.add(info.engineSize!);
-          if (info.fuelType != null) parts.add(info.fuelType!);
-          if (info.engineCode != null) parts.add(info.engineCode!);
-        } else {
-          // Pour les pièces carrosserie/intérieur : afficher marque, modèle, année, version et finition
-          if (info.make != null) parts.add(info.make!);
-          if (info.model != null) parts.add(info.model!);
-          if (info.year != null) parts.add(info.year.toString());
-          if (info.bodyStyle != null) parts.add(info.bodyStyle!);
-          // Version et finition peuvent être extraites du rawData si disponibles
-          final rawData = info.rawData;
-          if (rawData != null) {
-            final vehicleInfo = rawData['vehicleInformation'] as Map<String, dynamic>?;
-            if (vehicleInfo != null) {
-              final version = vehicleInfo['version']?.toString();
-              final finition = vehicleInfo['trim']?.toString() ?? vehicleInfo['finition']?.toString();
-              if (version != null) parts.add(version);
-              if (finition != null) parts.add(finition);
+
+        // Afficher toujours : Marque, Modèle, Année (date1erCir_fr), Motorisation
+        if (info.make != null) parts.add(info.make!);
+        if (info.model != null) parts.add(info.model!);
+
+        // Récupérer l'année depuis date1erCir_fr (format: DD-MM-YYYY)
+        if (info.rawData != null) {
+          final date1erCirFr = info.rawData!['date1erCir_fr']?.toString();
+          if (date1erCirFr != null && date1erCirFr.isNotEmpty) {
+            // Extraire l'année depuis le format DD-MM-YYYY
+            final dateParts = date1erCirFr.split('-');
+            if (dateParts.length == 3) {
+              parts.add(dateParts[2]); // Année = dernier élément
+            } else {
+              parts.add(date1erCirFr);
             }
+          } else if (info.year != null) {
+            parts.add(info.year.toString());
           }
+        } else if (info.year != null) {
+          parts.add(info.year.toString());
+        }
+
+        // Motorisation (cylindrée + carburant)
+        final motorParts = <String>[];
+        if (info.engineSize != null) motorParts.add(info.engineSize!);
+        if (info.fuelType != null) motorParts.add(info.fuelType!);
+        if (motorParts.isNotEmpty) {
+          parts.add(motorParts.join(' '));
         }
 
         if (parts.isNotEmpty) {
@@ -975,8 +980,8 @@ class _TypeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 120),
-          padding: const EdgeInsets.all(16),
+          height: 150,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
@@ -985,8 +990,10 @@ class _TypeCard extends StatelessWidget {
             ),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -998,16 +1005,22 @@ class _TypeCard extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 24, color: selected ? _blue : _blue),
               ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  height: 1.2,
-                  color: Color(0xFF1C1C1E),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 64,
+                child: Center(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
                 ),
               ),
             ],
