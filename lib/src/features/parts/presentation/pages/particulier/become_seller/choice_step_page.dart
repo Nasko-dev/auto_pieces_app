@@ -39,7 +39,7 @@ class _ChoiceStepPageState extends State<ChoiceStepPage> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Vendez-vous des pièces concernant le\nmoteur seulement, ou avez-vous aussi\ndes pièces concernant la carrosserie\nou l\'intérieur du véhicule ?',
+                    'Vendez-vous des pièces concernant le\nmoteur seulement, ou avez-vous aussi\ndes pièces concernant la carrosserie\nou l\'habitacle du véhicule ?',
                     style: TextStyle(
                       fontSize: 16,
                       height: 1.35,
@@ -57,7 +57,8 @@ class _ChoiceStepPageState extends State<ChoiceStepPage> {
                   BecomeSellerSharedWidgets.buildOptionCard(
                     label: 'Carrosserie / Intérieur',
                     selected: _choice == 'carrosserie',
-                    icon: BecomeSellerSharedWidgets.buildIcon(Icons.directions_car),
+                    icon: BecomeSellerSharedWidgets.buildIcon(
+                        Icons.directions_car),
                     onTap: () => setState(() => _choice = 'carrosserie'),
                   ),
                   const SizedBox(height: 12),
@@ -67,9 +68,11 @@ class _ChoiceStepPageState extends State<ChoiceStepPage> {
                     icon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.settings, size: 16, color: AppTheme.darkBlue),
+                        Icon(Icons.settings,
+                            size: 16, color: AppTheme.darkBlue),
                         const SizedBox(width: 4),
-                        Icon(Icons.directions_car, size: 16, color: AppTheme.darkBlue),
+                        Icon(Icons.directions_car,
+                            size: 16, color: AppTheme.darkBlue),
                       ],
                     ),
                     onTap: () => setState(() => _choice = 'lesdeux'),
@@ -82,10 +85,9 @@ class _ChoiceStepPageState extends State<ChoiceStepPage> {
           BecomeSellerSharedWidgets.buildPrimaryButton(
             label: 'Suivant',
             enabled: _choice.isNotEmpty,
-            onPressed:
-                _choice.isNotEmpty
-                    ? () => widget.onChoiceSelected(_choice)
-                    : null,
+            onPressed: _choice.isNotEmpty
+                ? () => widget.onChoiceSelected(_choice)
+                : null,
           ),
         ],
       ),

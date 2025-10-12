@@ -1262,7 +1262,24 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String getVehicleInfo() {
     if (_isManualMode) {
-      return '${_marqueController.text} ${_modeleController.text} ${_anneeController.text} - ${_motorisationController.text}';
+      // Mode manuel : selon le type de pièce
+      if (_selectedType == 'engine') {
+        // Pièces moteur : cylindrée + carburant + chevaux
+        final parts = <String>[];
+        if (_selectedCylindree != null) parts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) parts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          parts.add('${_horsepowerController.text}cv');
+        }
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      } else {
+        // Pièces carrosserie : marque + modèle + année
+        final parts = <String>[];
+        if (_selectedMarque != null) parts.add(_selectedMarque!);
+        if (_selectedModele != null) parts.add(_selectedModele!);
+        if (_selectedAnnee != null) parts.add(_selectedAnnee!.toString());
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      }
     } else {
       // Utiliser les données de l'API si disponibles
       final vehicleState = ref.read(vehicleSearchProvider);
