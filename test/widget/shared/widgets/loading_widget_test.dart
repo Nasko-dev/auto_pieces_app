@@ -1,10 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cente_pice/src/shared/presentation/widgets/loading_widget.dart';
 
 void main() {
   group('LoadingWidget', () {
-    testWidgets('doit afficher CircularProgressIndicator avec les paramètres par défaut', (tester) async {
+    testWidgets('doit afficher CupertinoActivityIndicator avec les paramètres par défaut', (tester) async {
       // arrange & act
       await tester.pumpWidget(
         const MaterialApp(
@@ -15,18 +16,18 @@ void main() {
       );
 
       // assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
       expect(find.byType(LoadingWidget), findsOneWidget);
 
       final sizedBox = tester.widget<SizedBox>(find.ancestor(
-        of: find.byType(CircularProgressIndicator),
+        of: find.byType(CupertinoActivityIndicator),
         matching: find.byType(SizedBox),
       ).first);
       expect(sizedBox.width, 40.0);
       expect(sizedBox.height, 40.0);
     });
 
-    testWidgets('doit afficher CircularProgressIndicator avec taille personnalisée', (tester) async {
+    testWidgets('doit afficher CupertinoActivityIndicator avec taille personnalisée', (tester) async {
       // arrange
       const customSize = 60.0;
 
@@ -40,17 +41,17 @@ void main() {
       );
 
       // assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
       final sizedBox = tester.widget<SizedBox>(find.ancestor(
-        of: find.byType(CircularProgressIndicator),
+        of: find.byType(CupertinoActivityIndicator),
         matching: find.byType(SizedBox),
       ).first);
       expect(sizedBox.width, customSize);
       expect(sizedBox.height, customSize);
     });
 
-    testWidgets('doit afficher CircularProgressIndicator avec couleur personnalisée', (tester) async {
+    testWidgets('doit afficher CupertinoActivityIndicator avec couleur personnalisée', (tester) async {
       // arrange
       const customColor = Colors.red;
 
@@ -64,10 +65,10 @@ void main() {
       );
 
       // assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
-      final indicator = tester.widget<CircularProgressIndicator>(
-        find.byType(CircularProgressIndicator),
+      final indicator = tester.widget<CupertinoActivityIndicator>(
+        find.byType(CupertinoActivityIndicator),
       );
       expect(indicator.color, customColor);
     });
@@ -87,27 +88,28 @@ void main() {
       );
 
       // assert
-      final indicator = tester.widget<CircularProgressIndicator>(
-        find.byType(CircularProgressIndicator),
+      final indicator = tester.widget<CupertinoActivityIndicator>(
+        find.byType(CupertinoActivityIndicator),
       );
       expect(indicator.color, primaryColor);
     });
 
-    testWidgets('doit avoir strokeWidth de 3', (tester) async {
+    testWidgets('doit avoir le bon radius basé sur la taille', (tester) async {
       // arrange & act
+      const testSize = 50.0;
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: LoadingWidget(),
+            body: LoadingWidget(size: testSize),
           ),
         ),
       );
 
       // assert
-      final indicator = tester.widget<CircularProgressIndicator>(
-        find.byType(CircularProgressIndicator),
+      final indicator = tester.widget<CupertinoActivityIndicator>(
+        find.byType(CupertinoActivityIndicator),
       );
-      expect(indicator.strokeWidth, 3);
+      expect(indicator.radius, testSize / 2.5);
     });
 
     testWidgets('doit combiner taille et couleur personnalisées', (tester) async {
@@ -129,14 +131,14 @@ void main() {
 
       // assert
       final sizedBox = tester.widget<SizedBox>(find.ancestor(
-        of: find.byType(CircularProgressIndicator),
+        of: find.byType(CupertinoActivityIndicator),
         matching: find.byType(SizedBox),
       ).first);
       expect(sizedBox.width, customSize);
       expect(sizedBox.height, customSize);
 
-      final indicator = tester.widget<CircularProgressIndicator>(
-        find.byType(CircularProgressIndicator),
+      final indicator = tester.widget<CupertinoActivityIndicator>(
+        find.byType(CupertinoActivityIndicator),
       );
       expect(indicator.color, customColor);
     });
@@ -171,7 +173,7 @@ void main() {
 
         // assert
         final sizedBox = tester.widget<SizedBox>(find.ancestor(
-          of: find.byType(CircularProgressIndicator),
+          of: find.byType(CupertinoActivityIndicator),
           matching: find.byType(SizedBox),
         ).first);
         expect(sizedBox.width, size);
@@ -193,7 +195,7 @@ void main() {
 
       // assert
       expect(find.byType(LoadingWidget), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
       // arrange & act - dans un Container
       await tester.pumpWidget(
@@ -211,7 +213,7 @@ void main() {
 
       // assert
       expect(find.byType(LoadingWidget), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
     });
   });
 }
