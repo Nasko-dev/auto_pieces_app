@@ -277,11 +277,41 @@ class _SellerCreateRequestPageState
 
       // Champs selon le type de pièce sélectionné
       if (_selectedType == 'engine') ...[
-        // Pièces moteur : uniquement motorisation
+        // Pièces moteur : marque, modèle, année + motorisation
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _marqueController,
+                label: 'Marque',
+                hint: 'Ex: Peugeot',
+                icon: Icons.directions_car,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTextField(
+                controller: _modeleController,
+                label: 'Modèle',
+                hint: 'Ex: 308',
+                icon: Icons.model_training,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _anneeController,
+          label: 'Année',
+          hint: 'Ex: 2022',
+          icon: Icons.calendar_today,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 16),
         _buildTextField(
           controller: _motorisationController,
           label: 'Motorisation',
-          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
+          hint: 'Ex: 1.6L Essence 110cv',
           icon: Icons.speed,
         ),
       ] else ...[
@@ -519,14 +549,17 @@ class _SellerCreateRequestPageState
   }
 
   bool _canContinueManual() {
+    // Pour tous les types : marque, modèle, année requises
+    final hasBasicInfo = _marqueController.text.isNotEmpty &&
+        _modeleController.text.isNotEmpty &&
+        _anneeController.text.isNotEmpty;
+
     if (_selectedType == 'engine') {
-      // Pièces moteur : seulement motorisation requise
-      return _motorisationController.text.isNotEmpty;
+      // Pièces moteur : marque + modèle + année + motorisation requises
+      return hasBasicInfo && _motorisationController.text.isNotEmpty;
     } else {
-      // Pièces carrosserie/intérieur : marque, modèle, année requises
-      return _marqueController.text.isNotEmpty &&
-          _modeleController.text.isNotEmpty &&
-          _anneeController.text.isNotEmpty;
+      // Pièces carrosserie/intérieur : marque + modèle + année requises
+      return hasBasicInfo;
     }
   }
 
@@ -638,18 +671,17 @@ class _SellerCreateRequestPageState
     String? vehiclePlate;
 
     if (_isManualMode) {
-      // Mode manuel : selon le type de pièce
-      if (_selectedType == 'body') {
-        // Carrosserie : marque + modèle + année seulement
-        vehicleBrand =
-            _marqueController.text.isNotEmpty ? _marqueController.text : null;
-        vehicleModel =
-            _modeleController.text.isNotEmpty ? _modeleController.text : null;
-        vehicleYear = _anneeController.text.isNotEmpty
-            ? int.tryParse(_anneeController.text)
-            : null;
-      } else if (_selectedType == 'engine') {
-        // Moteur : motorisation seulement
+      // Mode manuel : marque + modèle + année toujours requis
+      vehicleBrand =
+          _marqueController.text.isNotEmpty ? _marqueController.text : null;
+      vehicleModel =
+          _modeleController.text.isNotEmpty ? _modeleController.text : null;
+      vehicleYear = _anneeController.text.isNotEmpty
+          ? int.tryParse(_anneeController.text)
+          : null;
+
+      // Motorisation en plus pour pièces moteur
+      if (_selectedType == 'engine') {
         vehicleEngine = _motorisationController.text.isNotEmpty
             ? _motorisationController.text
             : null;
@@ -661,20 +693,17 @@ class _SellerCreateRequestPageState
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
 
-        if (_selectedType == 'body') {
-          // Carrosserie : marque + modèle + année depuis l'API
-          vehicleBrand = info.make;
-          vehicleModel = info.model;
-          vehicleYear = info.year;
-        } else if (_selectedType == 'engine') {
-          // Moteur : motorisation seulement depuis l'API
-          final engineParts = <String>[];
-          if (info.engineSize != null) engineParts.add(info.engineSize!);
-          if (info.fuelType != null) engineParts.add(info.fuelType!);
-          if (info.power != null) engineParts.add('${info.power}cv');
-          vehicleEngine =
-              engineParts.isNotEmpty ? engineParts.join(' - ') : null;
-        }
+        // Pour TOUS les types : marque + modèle + année + motorisation
+        vehicleBrand = info.make;
+        vehicleModel = info.model;
+        vehicleYear = info.year;
+
+        final engineParts = <String>[];
+        if (info.engineSize != null) engineParts.add(info.engineSize!);
+        if (info.fuelType != null) engineParts.add(info.fuelType!);
+        if (info.power != null) engineParts.add('${info.power}cv');
+        vehicleEngine =
+            engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     }
 
@@ -863,32 +892,13 @@ class _SellerCreateRequestPageState
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
 
-        // Affichage différentiel selon le type de pièce
-        if (_selectedType == 'engine') {
-          // Pour les pièces moteur : afficher uniquement la motorisation
-          if (info.engineSize != null) parts.add(info.engineSize!);
-          if (info.fuelType != null) parts.add(info.fuelType!);
-          if (info.engineCode != null) parts.add(info.engineCode!);
-        } else {
-          // Pour les pièces carrosserie/intérieur : afficher marque, modèle, année, version et finition
-          if (info.make != null) parts.add(info.make!);
-          if (info.model != null) parts.add(info.model!);
-          if (info.year != null) parts.add(info.year.toString());
-          if (info.bodyStyle != null) parts.add(info.bodyStyle!);
-          // Version et finition peuvent être extraites du rawData si disponibles
-          final rawData = info.rawData;
-          if (rawData != null) {
-            final vehicleInfo =
-                rawData['vehicleInformation'] as Map<String, dynamic>?;
-            if (vehicleInfo != null) {
-              final version = vehicleInfo['version']?.toString();
-              final finition = vehicleInfo['trim']?.toString() ??
-                  vehicleInfo['finition']?.toString();
-              if (version != null) parts.add(version);
-              if (finition != null) parts.add(finition);
-            }
-          }
-        }
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
+        if (info.make != null) parts.add(info.make!);
+        if (info.model != null) parts.add(info.model!);
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
