@@ -555,40 +555,27 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
-          child: DropdownButtonFormField<T>(
-            value: value,
-            isExpanded: true,
-            items: items
-                .map((item) => DropdownMenuItem<T>(
-                      value: item,
-                      child: Text(
-                        item.toString(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: enabled
-                              ? _textDark
-                              : _textGray.withValues(alpha: 0.5),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ))
-                .toList(),
-            onChanged: enabled ? onChanged : null,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: _textGray.withValues(alpha: 0.7),
-                fontSize: 16,
-              ),
-              prefixIcon: Icon(
-                icon,
-                color: enabled ? _blue : _textGray.withValues(alpha: 0.5),
-                size: 20,
-              ),
+          child: DropdownMenu<T>(
+            enabled: enabled,
+            enableFilter: true,
+            enableSearch: true,
+            requestFocusOnTap: true,
+            width: MediaQuery.of(context).size.width - 48, // padding horizontal
+            initialSelection: value,
+            hintText: hint,
+            leadingIcon: Icon(
+              icon,
+              color: enabled ? _blue : _textGray.withValues(alpha: 0.5),
+              size: 20,
+            ),
+            textStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: enabled ? _textDark : _textGray.withValues(alpha: 0.5),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
               filled: true,
-              fillColor:
-                  enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
+              fillColor: enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
@@ -610,6 +597,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                 borderSide: const BorderSide(color: _blue, width: 2),
               ),
             ),
+            dropdownMenuEntries: items
+                .map((item) => DropdownMenuEntry<T>(
+                      value: item,
+                      label: item.toString(),
+                      style: MenuItemButton.styleFrom(
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ))
+                .toList(),
+            onSelected: enabled ? onChanged : null,
           ),
         ),
       ],
