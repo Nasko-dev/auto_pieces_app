@@ -17,6 +17,7 @@ import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/haptic_helper.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -32,10 +33,12 @@ class SellerConversationDetailPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SellerConversationDetailPage> createState() => _SellerConversationDetailPageState();
+  ConsumerState<SellerConversationDetailPage> createState() =>
+      _SellerConversationDetailPageState();
 }
 
-class _SellerConversationDetailPageState extends ConsumerState<SellerConversationDetailPage> {
+class _SellerConversationDetailPageState
+    extends ConsumerState<SellerConversationDetailPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
@@ -50,7 +53,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     super.initState();
 
     // Informer le service global que cette conversation est active
-    GlobalMessageNotificationService().setActiveConversation(widget.conversationId);
+    GlobalMessageNotificationService()
+        .setActiveConversation(widget.conversationId);
 
     // Pré-remplir le message si fourni
     if (widget.prefilledMessage != null) {
@@ -59,7 +63,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     // Charger les messages pour toutes les conversations
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
 
       // Marquer la conversation comme lue
@@ -124,12 +129,15 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   void _markAsRead() {
     // SIMPLE: Eviter setState during build en différant l'appel
     Future.microtask(() {
-      ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
+      ref
+          .read(conversationsControllerProvider.notifier)
+          .markConversationAsRead(widget.conversationId);
     });
   }
 
   void _subscribeToRealtimeMessages() {
-    debugPrint('[Vendeur] DEBUT _subscribeToRealtimeMessages pour conversation: ${widget.conversationId}');
+    debugPrint(
+        '[Vendeur] DEBUT _subscribeToRealtimeMessages pour conversation: ${widget.conversationId}');
 
     final realtimeService = ref.read(realtimeServiceProvider);
     debugPrint('[Vendeur] RealtimeService récupéré: $realtimeService');
@@ -140,7 +148,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     // S'abonner et écouter les messages en temps réel pour cette conversation
     debugPrint('[Vendeur] Création du stream listener...');
-    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+    _messageSubscription = realtimeService
+        .getMessageStreamForConversation(widget.conversationId)
+        .listen(
       (message) {
         debugPrint('[Vendeur Realtime] Nouveau message reçu via stream !');
         debugPrint('   Message ID: ${message.id}');
@@ -151,7 +161,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         if (message.conversationId == widget.conversationId) {
           // Les notifications sont gérées par le service global
           // Pas besoin de notification locale ici
-          ref.read(conversationsControllerProvider.notifier).handleIncomingMessage(message);
+          ref
+              .read(conversationsControllerProvider.notifier)
+              .handleIncomingMessage(message);
         }
       },
       onError: (error) {
@@ -160,13 +172,13 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
   }
 
-
   @override
   void deactivate() {
     // Informer le service global qu'aucune conversation n'est active
     GlobalMessageNotificationService().setActiveConversation(null);
 
-    ref.read(conversationsControllerProvider.notifier)
+    ref
+        .read(conversationsControllerProvider.notifier)
         .setConversationInactive();
     super.deactivate();
   }
@@ -181,7 +193,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(conversationMessagesProvider(widget.conversationId));
+    final messages =
+        ref.watch(conversationMessagesProvider(widget.conversationId));
     final isLoadingMessages = ref.watch(isLoadingMessagesProvider);
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
@@ -198,14 +211,15 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     }
 
     return Scaffold(
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
+        backgroundColor: AppTheme.white,
+        foregroundColor: AppTheme.darkGray,
+        elevation: 0,
+        shadowColor: AppTheme.black.withValues(alpha: 0.1),
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colors.black),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
           onPressed: () {
             HapticHelper.light();
             // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
@@ -218,11 +232,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            icon: const Icon(Icons.phone_outlined, color: AppTheme.darkGray),
             onPressed: () => _makePhoneCall(conversation),
           ),
           IconButton(
-            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            icon: const Icon(Icons.videocam_outlined, color: AppTheme.darkGray),
             onPressed: () => _makeVideoCall(conversation),
           ),
           ContextMenu(
@@ -248,7 +262,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
+            child: _buildMessagesArea(
+                messages, isLoadingMessages, error, conversation),
           ),
           // Zone de saisie
           ChatInputWidget(
@@ -264,10 +279,12 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading,
+      String? error, dynamic conversation) {
+    Widget content;
 
     if (isLoading && messages.isEmpty) {
-      return const Center(
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -277,20 +294,31 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           ],
         ),
       );
-    }
-
-    if (error != null && messages.isEmpty) {
-      return Center(
+    } else if (error != null && messages.isEmpty) {
+      content = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppTheme.error,
+            ),
             const SizedBox(height: 16),
-            Text('Erreur: $error'),
+            Text(
+              'Erreur de chargement',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                ref.read(conversationsControllerProvider.notifier)
+                ref
+                    .read(conversationsControllerProvider.notifier)
                     .loadConversationMessages(widget.conversationId);
               },
               child: const Text('Réessayer'),
@@ -298,10 +326,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           ],
         ),
       );
-    }
-
-    if (messages.isEmpty) {
-      return const Center(
+    } else if (messages.isEmpty) {
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -324,28 +350,49 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
           ],
         ),
       );
+    } else {
+      content = ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+
+          return Padding(
+            padding: const EdgeInsets.only(
+                bottom: 12), // Plus d'espace entre messages
+            child: MessageBubbleWidget(
+              message: message,
+              currentUserType: MessageSenderType.seller, // Côté vendeur
+              currentUserId:
+                  Supabase.instance.client.auth.currentUser?.id ?? '',
+              isLastMessage: index == messages.length - 1,
+              otherUserName: _getUserDisplayName(conversation),
+              otherUserAvatarUrl: _particulierInfo?['avatar_url'] ??
+                  conversation?.userAvatarUrl,
+              otherUserCompany: null,
+            ),
+          );
+        },
+      );
     }
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12), // Plus d'espace entre messages
-          child: MessageBubbleWidget(
-            message: message,
-            currentUserType: MessageSenderType.seller, // Côté vendeur
-            currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
-            isLastMessage: index == messages.length - 1,
-            otherUserName: _getUserDisplayName(conversation),
-            otherUserAvatarUrl: _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl,
-            otherUserCompany: null,
+    // Envelopper le contenu dans un Stack avec le logo en arrière-plan
+    return Stack(
+      children: [
+        // Logo en arrière-plan au centre
+        Center(
+          child: Image.asset(
+            'assets/Backgrund-message.png',
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
-        );
-      },
+        ),
+        // Contenu par-dessus
+        content,
+      ],
     );
   }
 
@@ -401,12 +448,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-
     ref.read(conversationsControllerProvider.notifier).sendMessage(
-      conversationId: widget.conversationId,
-      content: content,
-      messageType: MessageType.text,
-    );
+          conversationId: widget.conversationId,
+          content: content,
+          messageType: MessageType.text,
+        );
 
     _messageController.clear();
   }
@@ -432,7 +478,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
 
     if (result == true && mounted) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .closeConversation(widget.conversationId);
       if (mounted) {
         Navigator.of(context).pop(); // Retour à la liste
@@ -451,7 +498,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     );
 
     if (result == true && mounted) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .deleteConversation(widget.conversationId);
       if (mounted) {
         Navigator.of(context).pop(); // Retour à la liste
@@ -466,9 +514,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
     if (displayName != null && displayName.isNotEmpty) {
       return displayName;
-    } else if (conversation?.userDisplayName != null && conversation.userDisplayName!.isNotEmpty) {
+    } else if (conversation?.userDisplayName != null &&
+        conversation.userDisplayName!.isNotEmpty) {
       return conversation.userDisplayName!;
-    } else if (conversation?.userName != null && conversation.userName!.isNotEmpty) {
+    } else if (conversation?.userName != null &&
+        conversation.userName!.isNotEmpty) {
       return conversation.userName!;
     } else {
       return 'Client';
@@ -476,7 +526,8 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Widget _buildUserAvatar(dynamic conversation) {
-    final avatarUrl = _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl;
+    final avatarUrl =
+        _particulierInfo?['avatar_url'] ?? conversation?.userAvatarUrl;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar avec vraie photo du particulier
@@ -519,7 +570,10 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.grey400, AppColors.grey700], // Gradient gris pour particulier
+          colors: [
+            AppColors.grey400,
+            AppColors.grey700
+          ], // Gradient gris pour particulier
         ),
         shape: BoxShape.circle,
         border: Border.all(
@@ -544,10 +598,10 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
 
   Future<void> _makePhoneCall(dynamic conversation) async {
     // Récupérer le numéro de téléphone du particulier
-    final phoneNumber = conversation?.userName; // userName contient le téléphone
+    final phoneNumber =
+        conversation?.userName; // userName contient le téléphone
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-
       // Nettoyer le numéro (enlever espaces, tirets, etc.)
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
       final uri = Uri(scheme: 'tel', path: cleanPhone);
@@ -571,7 +625,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final phoneNumber = conversation?.userName;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-
       // Pour l'appel vidéo, on peut essayer différentes applications
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
 
@@ -605,7 +658,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Future<void> _takePhoto() async {
-
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? photo = await picker.pickImage(
@@ -624,7 +676,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Future<void> _pickFromGallery() async {
-
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -643,7 +694,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   Future<void> _sendImageMessage(File imageFile) async {
-
     try {
       final conversationId = widget.conversationId;
       final userId = ref.read(currentUserProvider)?.id;
@@ -663,7 +713,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         imageFile: imageFile,
       );
 
-
       // Envoyer le message via le provider
       await ref.read(conversationsControllerProvider.notifier).sendMessage(
         conversationId: conversationId,
@@ -677,7 +726,6 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       );
 
       _showSuccessSnackBar('Image envoyée !');
-
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
     }

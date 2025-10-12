@@ -279,8 +279,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
+    Widget content;
+
     if (isLoading && messages.isEmpty) {
-      return const Center(
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -290,10 +292,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       );
-    }
-
-    if (error != null && messages.isEmpty) {
-      return Center(
+    } else if (error != null && messages.isEmpty) {
+      content = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -323,10 +323,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       );
-    }
-
-    if (messages.isEmpty) {
-      return const Center(
+    } else if (messages.isEmpty) {
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -352,9 +350,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       );
-    }
-
-    return ListView.builder(
+    } else {
+      content = ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
       itemCount: messages.length,
@@ -382,6 +379,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         );
       },
+    );
+    }
+
+    // Envelopper le contenu dans un Stack avec le logo en arrière-plan
+    return Stack(
+      children: [
+        // Logo en arrière-plan au centre
+        Center(
+          child: Image.asset(
+            'assets/Backgrund-message.png',
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+        // Contenu par-dessus
+        content,
+      ],
     );
   }
 

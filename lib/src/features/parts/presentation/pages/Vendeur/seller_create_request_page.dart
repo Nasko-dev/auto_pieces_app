@@ -875,7 +875,7 @@ class _SellerCreateRequestPageState
     );
   }
 
-  String _getVehicleInfo() {
+  String getVehicleInfo() {
     if (_isManualMode) {
       return '${_marqueController.text} ${_modeleController.text} ${_anneeController.text} - ${_motorisationController.text}';
     } else {
