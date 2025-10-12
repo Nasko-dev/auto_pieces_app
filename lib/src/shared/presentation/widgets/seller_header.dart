@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/providers/seller_settings_providers.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../features/parts/domain/entities/seller_settings.dart';
+import '../../../core/utils/haptic_helper.dart';
 import 'seller_menu.dart';
 
 class SellerHeader extends ConsumerStatefulWidget {
@@ -28,10 +30,6 @@ class SellerHeader extends ConsumerStatefulWidget {
 }
 
 class _SellerHeaderState extends ConsumerState<SellerHeader> {
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-
   SellerSettings? _sellerSettings;
 
   @override
@@ -104,13 +102,20 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
         // Bouton retour si demandé
         if (widget.showBackButton)
           GestureDetector(
-            onTap: widget.onBackPressed ?? () => Navigator.of(context).pop(),
+            onTap: () {
+              HapticHelper.light();
+              if (widget.onBackPressed != null) {
+                widget.onBackPressed!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
             child: Container(
               padding: const EdgeInsets.all(8),
               child: const Icon(
-                Icons.arrow_back_ios,
+                Icons.chevron_left,
                 size: 20,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -126,7 +131,7 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: _textDark,
+                  color: AppTheme.darkGray,
                 ),
               ),
             ),
@@ -138,7 +143,7 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -210,7 +215,7 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
         const Text(
           'Bienvenue',
           style: TextStyle(
-            color: _textGray,
+            color: AppTheme.gray,
             fontSize: 14,
             fontWeight: FontWeight.w400,
           ),
@@ -219,7 +224,7 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
         Text(
           displayName,
           style: const TextStyle(
-            color: _textDark,
+            color: AppTheme.darkGray,
             fontSize: 20,
             fontWeight: FontWeight.w600,
             height: 1.1,
@@ -236,8 +241,8 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _blue.withValues(alpha: 0.8),
-            _blue,
+            AppTheme.primaryBlue.withValues(alpha: 0.8),
+            AppTheme.primaryBlue,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

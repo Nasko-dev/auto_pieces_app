@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/haptic_helper.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/choice_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/sell_part_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/plate_step_page.dart';
@@ -57,8 +58,11 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
         centerTitle: false,
         leading: _currentStep > 0
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _goToPreviousStep,
+                icon: const Icon(Icons.chevron_left),
+                onPressed: () {
+                  HapticHelper.light();
+                  _goToPreviousStep();
+                },
               )
             : null,
         actions: const [

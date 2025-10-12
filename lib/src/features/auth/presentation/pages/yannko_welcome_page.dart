@@ -18,18 +18,18 @@ class YannkoWelcomePage extends StatelessWidget {
     final s = size.width / 390.0;
 
     TextStyle h1(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w800,
-      height: 1.0,
-      color: _textPrimary,
-      letterSpacing: -0.5 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w800,
+          height: 1.0,
+          color: _textPrimary,
+          letterSpacing: -0.5 * s,
+        );
     TextStyle h2(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w700,
-      color: _textPrimary,
-      letterSpacing: -0.2 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w700,
+          color: _textPrimary,
+          letterSpacing: -0.2 * s,
+        );
 
     return Scaffold(
       backgroundColor: _bg,
@@ -50,12 +50,11 @@ class YannkoWelcomePage extends StatelessWidget {
                       'assets/images/cheetah_head.png',
                       height: 112 * s,
                       fit: BoxFit.contain,
-                      errorBuilder:
-                          (_, __, ___) => Icon(
-                            Icons.pets_rounded,
-                            color: Colors.amber.shade300,
-                            size: 96 * s,
-                          ),
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.pets_rounded,
+                        color: Colors.amber.shade300,
+                        size: 96 * s,
+                      ),
                     ),
                   ),
 
@@ -68,6 +67,20 @@ class YannkoWelcomePage extends StatelessWidget {
 
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
+
+                  SizedBox(height: 16 * s),
+
+                  // Description
+                  Text(
+                    'Rechercher vos pièces Auto en quelques clics',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 19 * s,
+                      fontWeight: FontWeight.w400,
+                      color: _textPrimary.withValues(alpha: 0.8),
+                      height: 1.4,
+                    ),
+                  ),
 
                   const Spacer(),
 

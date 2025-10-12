@@ -11,6 +11,8 @@ import '../../../../../core/providers/engine_catalog_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/app_colors.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -25,12 +27,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  // Couleurs calibrées pour matcher le screen
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  // Constantes de style iOS
+  static const double _radius = 10; // Standard iOS
 
   String _selectedType = 'engine';
   bool _isManualMode = false;
@@ -140,7 +138,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
-                      color: _textDark,
+                      color: AppTheme.darkGray,
                     ),
                   ),
                 ),
@@ -265,21 +263,22 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           GestureDetector(
             onTap: () {
+              HapticHelper.light();
               setState(() {
                 _isManualMode = false;
                 _showDescription = false;
               });
             },
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.arrow_back_ios, size: 16, color: _blue),
-                const SizedBox(width: 4),
+                Icon(Icons.chevron_left, size: 16, color: AppTheme.primaryBlue),
+                SizedBox(width: 4),
                 Text(
                   'Retour plaque d\'immatriculation',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: _blue,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
               ],
@@ -299,7 +298,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -573,7 +572,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 16,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -615,11 +614,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
@@ -627,7 +626,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             dropdownMenuEntries: items
@@ -745,15 +744,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              _getVehicleInfo(),
-              style: const TextStyle(
-                color: _textDark,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
+            const SizedBox(height: 16),
+            ..._buildVehicleInfoRows(),
           ],
         ),
       ),
@@ -768,7 +760,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -844,6 +836,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canContinueManual() {
+    // Pour tous les types : marque, modèle, année requises
+    final hasBasicInfo = _marqueController.text.isNotEmpty &&
+        _modeleController.text.isNotEmpty &&
+        _anneeController.text.isNotEmpty;
+
     if (_selectedType == 'engine') {
       // Pièces moteur : cylindrée, carburant et code moteur requis
       return _selectedCylindree != null &&
@@ -1105,21 +1102,21 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(color: _textGray.withValues(alpha: 0.7)),
+              hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -1156,7 +1153,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             dense: true,
             title: Text(
               suggestion,
-              style: const TextStyle(fontSize: 14, color: _textDark),
+              style: const TextStyle(fontSize: 14, color: AppTheme.darkGray),
             ),
             onTap: () => _selectSuggestion(suggestion),
             contentPadding: const EdgeInsets.symmetric(
@@ -1181,9 +1178,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _blue.withValues(alpha: 0.1),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _blue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1192,7 +1189,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             part,
             style: TextStyle(
               fontSize: 14,
-              color: _blue,
+              color: AppTheme.primaryBlue,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1203,10 +1200,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: _blue.withValues(alpha: 0.2),
+                color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: _blue),
+              child: const Icon(Icons.close, size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -1238,36 +1235,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-
-        // Afficher toujours : Marque, Modèle, Année (date1erCir_fr), Motorisation
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
         if (info.make != null) parts.add(info.make!);
         if (info.model != null) parts.add(info.model!);
-
-        // Récupérer l'année depuis date1erCir_fr (format: DD-MM-YYYY)
-        if (info.rawData != null) {
-          final date1erCirFr = info.rawData!['date1erCir_fr']?.toString();
-          if (date1erCirFr != null && date1erCirFr.isNotEmpty) {
-            // Extraire l'année depuis le format DD-MM-YYYY
-            final dateParts = date1erCirFr.split('-');
-            if (dateParts.length == 3) {
-              parts.add(dateParts[2]); // Année = dernier élément
-            } else {
-              parts.add(date1erCirFr);
-            }
-          } else if (info.year != null) {
-            parts.add(info.year.toString());
-          }
-        } else if (info.year != null) {
-          parts.add(info.year.toString());
-        }
-
-        // Motorisation (cylindrée + carburant)
-        final motorParts = <String>[];
-        if (info.engineSize != null) motorParts.add(info.engineSize!);
-        if (info.fuelType != null) motorParts.add(info.fuelType!);
-        if (motorParts.isNotEmpty) {
-          parts.add(motorParts.join(' '));
-        }
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
@@ -1275,6 +1249,77 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
       return 'Plaque: ${_plate.text}';
     }
+  }
+
+  List<Widget> _buildVehicleInfoRows() {
+    if (_isManualMode) {
+      // Mode manuel
+      return [
+        if (_marqueController.text.isNotEmpty)
+          _buildInfoRow('Marque', _marqueController.text),
+        if (_modeleController.text.isNotEmpty)
+          _buildInfoRow('Modèle', _modeleController.text),
+        if (_anneeController.text.isNotEmpty)
+          _buildInfoRow('Année', _anneeController.text),
+        if (_motorisationController.text.isNotEmpty)
+          _buildInfoRow('Motorisation', _motorisationController.text),
+      ];
+    } else {
+      // Mode API
+      final vehicleState = ref.read(vehicleSearchProvider);
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+
+        // Construire la motorisation
+        final motorisationParts = <String>[];
+        if (info.engineSize != null) motorisationParts.add(info.engineSize!);
+        if (info.fuelType != null) motorisationParts.add(info.fuelType!);
+        if (info.engineCode != null) motorisationParts.add(info.engineCode!);
+
+        return [
+          if (info.make != null)
+            _buildInfoRow('Marque', info.make!),
+          if (info.model != null)
+            _buildInfoRow('Modèle', info.model!),
+          if (info.year != null)
+            _buildInfoRow('Année', info.year.toString()),
+          if (motorisationParts.isNotEmpty)
+            _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
+        ];
+      }
+    }
+    return [];
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1292,10 +1337,8 @@ class _TypeCard extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  static const Color _blue = Color(0xFF1976D2);
   static const Color _bgSelected = Color(0xFFEAF2FF);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  static const double _radius = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -1311,7 +1354,7 @@ class _TypeCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
-              color: selected ? _blue : _border,
+              color: selected ? AppTheme.primaryBlue : AppColors.grey200,
               width: selected ? 2 : 1,
             ),
           ),
@@ -1328,7 +1371,7 @@ class _TypeCard extends StatelessWidget {
                       : _blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 24, color: selected ? _blue : _blue),
+                child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
               const SizedBox(height: 10),
               SizedBox(
