@@ -122,7 +122,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: () => context.go('/'),
+                    onPressed: () => context.go('/home'),
                     icon: const Icon(Icons.add),
                     label: const Text('Poster une demande'),
                     style: ElevatedButton.styleFrom(
