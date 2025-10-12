@@ -47,9 +47,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   String? _selectedModele;
   int? _selectedAnnee;
 
-  // Pour les pièces moteur - mode manuel avec 2 dropdowns
+  // Pour les pièces moteur - mode manuel avec 2 dropdowns + chevaux optionnel
   String? _selectedCylindree;
   String? _selectedFuelType;
+  final _horsepowerController = TextEditingController();
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
 
@@ -109,6 +110,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _plate.dispose();
     _partController.removeListener(_onTextChanged);
     _partController.dispose();
+    _horsepowerController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -385,6 +387,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             );
           },
+        ),
+        const SizedBox(height: 16),
+        // Champ optionnel pour les chevaux
+        _buildTextField(
+          label: 'Chevaux (optionnel)',
+          hint: 'Ex: 110',
+          icon: Icons.flash_on,
+          controller: _horsepowerController,
+          keyboardType: TextInputType.number,
         ),
       ] else ...[
         // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
@@ -668,6 +679,81 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: AppTheme.darkGray,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_radius),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: _textDark,
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: _textGray.withValues(alpha: 0.7),
+                fontSize: 16,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: _blue,
+                size: 20,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide: const BorderSide(color: AppColors.grey200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide: const BorderSide(color: AppColors.grey200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
+              ),
+            ),
           ),
         ),
       ],
@@ -960,10 +1046,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         vehicleModel = _selectedModele;
         vehicleYear = _selectedAnnee;
       } else if (_selectedType == 'engine') {
-        // Moteur : construire motorisation à partir des 2 champs
+        // Moteur : construire motorisation à partir des 2 champs + chevaux optionnel
         final engineParts = <String>[];
         if (_selectedCylindree != null) engineParts.add(_selectedCylindree!);
         if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          engineParts.add('${_horsepowerController.text}cv');
+        }
         vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     } else {
@@ -1033,6 +1122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _selectedAnnee = null;
       _selectedCylindree = null;
       _selectedFuelType = null;
+      _horsepowerController.clear();
     });
   }
 
@@ -1173,12 +1263,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_isManualMode) {
       // Mode manuel
       if (_selectedType == 'engine') {
-        // Pièces moteur : afficher cylindrée et carburant
+        // Pièces moteur : afficher cylindrée, carburant et chevaux
         return [
           if (_selectedCylindree != null && _selectedCylindree!.isNotEmpty)
             _buildInfoRow('Cylindrée', _selectedCylindree!),
           if (_selectedFuelType != null && _selectedFuelType!.isNotEmpty)
             _buildInfoRow('Carburant', _selectedFuelType!),
+          if (_horsepowerController.text.isNotEmpty)
+            _buildInfoRow('Puissance', '${_horsepowerController.text}cv'),
         ];
       } else {
         // Pièces carrosserie : afficher marque, modèle, année
