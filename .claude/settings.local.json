@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\namélioration: affichage en colonnes des informations véhicule\n\n- Affichage ligne par ligne au lieu d''une seule ligne avec tirets\n- Implémentation de _buildVehicleInfoRows() dans home_page et seller_create_request_page\n- Format : Marque, Modèle, Année, Motorisation en colonnes\n- Support mode API et mode manuel\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],
