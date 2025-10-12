@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/seller_dashboard_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
@@ -87,8 +88,11 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.white),
-          onPressed: () => context.pop(),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.white),
+          onPressed: () {
+            HapticHelper.light();
+            context.pop();
+          },
         ),
         title: const Text(
           'Toutes les notifications',
@@ -225,8 +229,11 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              HapticHelper.light();
+              context.pop();
+            },
+            icon: const Icon(Icons.chevron_left),
             label: const Text('Retour'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryBlue,
@@ -348,11 +355,10 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
   }
 
   void _rejectRequest(BuildContext context, PartRequest partRequest) async {
-    final result = await context.showIOSDialog(
+    final result = await context.showWarningDialog(
       title: 'Refuser la demande',
       message: 'Êtes-vous sûr de vouloir refuser cette demande ?\n'
           'Cette action ne peut pas être annulée.',
-      type: DialogType.warning,
       confirmText: 'Refuser',
       cancelText: 'Annuler',
     );

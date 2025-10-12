@@ -588,11 +588,10 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   }
 
   void _rejectRequest(BuildContext context, PartRequest partRequest) async {
-    final result = await context.showIOSDialog(
+    final result = await context.showWarningDialog(
       title: 'Refuser la demande',
       message: 'Êtes-vous sûr de vouloir refuser cette demande ?\n'
           'Cette action ne peut pas être annulée.',
-      type: DialogType.warning,
       confirmText: 'Refuser',
       cancelText: 'Annuler',
     );

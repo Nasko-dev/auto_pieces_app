@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import 'become_seller/choice_step_page.dart';
 import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
@@ -189,8 +190,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   actions: [
                     if (_currentStep > 0)
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-                        onPressed: _goToPreviousStep,
+                        icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+                        onPressed: () {
+                          HapticHelper.light();
+                          _goToPreviousStep();
+                        },
                         tooltip: 'Retour',
                       ),
                     const AppMenu(),

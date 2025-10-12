@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoadingWidget extends StatelessWidget {
@@ -15,8 +16,8 @@ class LoadingWidget extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CircularProgressIndicator(
-        strokeWidth: 3,
+      child: CupertinoActivityIndicator(
+        radius: size / 2.5,
         color: color ?? Theme.of(context).primaryColor,
       ),
     );

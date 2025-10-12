@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/theme/app_theme.dart';
 
 class FrenchLicensePlate extends StatefulWidget {
   final TextEditingController controller;
@@ -35,7 +37,7 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
     _focusNode.addListener(() {
       setState(() {});
     });
-    
+
     // Initialiser le controller avec plateNumber si fourni
     if (widget.plateNumber != null && widget.controller.text.isEmpty) {
       widget.controller.text = widget.plateNumber!;
@@ -162,18 +164,16 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
                           Positioned.fill(
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.white.withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppTheme.white.withValues(alpha: 0.8),
                               ),
                               child: const Center(
                                 child: SizedBox(
                                   width: 30,
                                   height: 30,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF003399),
-                                    ),
+                                  child: CupertinoActivityIndicator(
+                                    radius: 12,
+                                    color: AppTheme.primaryBlue,
                                   ),
                                 ),
                               ),
@@ -193,7 +193,7 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
             padding: const EdgeInsets.only(left: 8),
             child: Text(
               widget.errorText!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+              style: const TextStyle(color: AppTheme.error, fontSize: 12),
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 
 class SellerHelpPage extends ConsumerWidget {
   const SellerHelpPage({super.key});
@@ -14,8 +15,11 @@ class SellerHelpPage extends ConsumerWidget {
         backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-          onPressed: () => context.go('/seller/home'),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+          onPressed: () {
+            HapticHelper.light();
+            context.go('/seller/home');
+          },
         ),
         title: const Text(
           'Centre d\'aide vendeur',

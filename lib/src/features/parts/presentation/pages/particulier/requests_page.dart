@@ -277,11 +277,10 @@ class _RequestCard extends ConsumerWidget {
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
-    final result = await context.showIOSDialog(
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer la demande',
       message: 'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
-      type: DialogType.error,
-      confirmText: 'Supprimer',
+      destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 

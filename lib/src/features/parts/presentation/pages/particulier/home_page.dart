@@ -6,9 +6,12 @@ import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/app_colors.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -23,12 +26,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  // Couleurs calibrées pour matcher le screen
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  // Constantes de style iOS
+  static const double _radius = 10; // Standard iOS
 
   String _selectedType = 'engine';
   bool _isManualMode = false;
@@ -135,7 +134,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
-                      color: _textDark,
+                      color: AppTheme.darkGray,
                     ),
                   ),
                 ),
@@ -219,7 +218,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         onPressed:
                             _canContinue() ? _continueToDescription : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _blue,
+                          backgroundColor: AppTheme.primaryBlue,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -258,21 +257,22 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           GestureDetector(
             onTap: () {
+              HapticHelper.light();
               setState(() {
                 _isManualMode = false;
                 _showDescription = false;
               });
             },
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.arrow_back_ios, size: 16, color: _blue),
-                const SizedBox(width: 4),
+                Icon(Icons.chevron_left, size: 16, color: AppTheme.primaryBlue),
+                SizedBox(width: 4),
                 Text(
                   'Retour plaque d\'immatriculation',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: _blue,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
               ],
@@ -286,13 +286,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          _selectedType == 'engine' 
+          _selectedType == 'engine'
             ? 'Informations de motorisation'
             : 'Informations du véhicule',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -300,11 +300,41 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       // Champs selon le type de pièce sélectionné
       if (_selectedType == 'engine') ...[
-        // Pièces moteur : uniquement motorisation
+        // Pièces moteur : marque, modèle, année + motorisation
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _marqueController,
+                label: 'Marque',
+                hint: 'Ex: Peugeot',
+                icon: Icons.directions_car,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTextField(
+                controller: _modeleController,
+                label: 'Modèle',
+                hint: 'Ex: 308',
+                icon: Icons.model_training,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _anneeController,
+          label: 'Année',
+          hint: 'Ex: 2022',
+          icon: Icons.calendar_today,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 16),
         _buildTextField(
           controller: _motorisationController,
           label: 'Motorisation',
-          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
+          hint: 'Ex: 1.6L Essence 110cv',
           icon: Icons.speed,
         ),
       ] else ...[
@@ -357,7 +387,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 16,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -379,10 +409,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: _textGray.withValues(alpha: 0.7),
+                color: AppTheme.gray.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
-              prefixIcon: Icon(icon, color: _blue, size: 20),
+              prefixIcon: Icon(icon, color: AppTheme.primaryBlue, size: 20),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
@@ -391,15 +421,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -447,7 +477,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             Text(
               _getVehicleInfo(),
               style: const TextStyle(
-                color: _textDark,
+                color: AppTheme.darkGray,
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
               ),
@@ -466,7 +496,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -543,14 +573,17 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canContinueManual() {
+    // Pour tous les types : marque, modèle, année requises
+    final hasBasicInfo = _marqueController.text.isNotEmpty &&
+        _modeleController.text.isNotEmpty &&
+        _anneeController.text.isNotEmpty;
+
     if (_selectedType == 'engine') {
-      // Pièces moteur : seulement motorisation requise
-      return _motorisationController.text.isNotEmpty;
+      // Pièces moteur : marque + modèle + année + motorisation requises
+      return hasBasicInfo && _motorisationController.text.isNotEmpty;
     } else {
-      // Pièces carrosserie/intérieur : marque, modèle, année requises
-      return _marqueController.text.isNotEmpty &&
-          _modeleController.text.isNotEmpty &&
-          _anneeController.text.isNotEmpty;
+      // Pièces carrosserie/intérieur : marque + modèle + année requises
+      return hasBasicInfo;
     }
   }
 
@@ -692,14 +725,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     String? vehiclePlate;
 
     if (_isManualMode) {
-      // Mode manuel : selon le type de pièce
-      if (_selectedType == 'body') {
-        // Carrosserie : marque + modèle + année seulement
-        vehicleBrand = _marqueController.text.isNotEmpty ? _marqueController.text : null;
-        vehicleModel = _modeleController.text.isNotEmpty ? _modeleController.text : null;
-        vehicleYear = _anneeController.text.isNotEmpty ? int.tryParse(_anneeController.text) : null;
-      } else if (_selectedType == 'engine') {
-        // Moteur : motorisation seulement
+      // Mode manuel : marque + modèle + année toujours requis
+      vehicleBrand = _marqueController.text.isNotEmpty ? _marqueController.text : null;
+      vehicleModel = _modeleController.text.isNotEmpty ? _modeleController.text : null;
+      vehicleYear = _anneeController.text.isNotEmpty ? int.tryParse(_anneeController.text) : null;
+
+      // Motorisation en plus pour pièces moteur
+      if (_selectedType == 'engine') {
         vehicleEngine = _motorisationController.text.isNotEmpty ? _motorisationController.text : null;
       }
     } else {
@@ -708,22 +740,17 @@ class _HomePageState extends ConsumerState<HomePage> {
       final vehicleState = ref.read(vehicleSearchProvider);
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
-        
-        if (_selectedType == 'body') {
-          // Carrosserie : marque + modèle + année depuis l'API
-          vehicleBrand = info.make;
-          vehicleModel = info.model;
-          vehicleYear = info.year;
-          
-        } else if (_selectedType == 'engine') {
-          // Moteur : motorisation seulement depuis l'API
-          final engineParts = <String>[];
-          if (info.engineSize != null) engineParts.add(info.engineSize!);
-          if (info.fuelType != null) engineParts.add(info.fuelType!);
-          if (info.power != null) engineParts.add('${info.power}cv');
-          vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
-          
-        }
+
+        // Pour TOUS les types : marque + modèle + année + motorisation
+        vehicleBrand = info.make;
+        vehicleModel = info.model;
+        vehicleYear = info.year;
+
+        final engineParts = <String>[];
+        if (info.engineSize != null) engineParts.add(info.engineSize!);
+        if (info.fuelType != null) engineParts.add(info.fuelType!);
+        if (info.power != null) engineParts.add('${info.power}cv');
+        vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     }
 
@@ -794,21 +821,21 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(color: _textGray.withValues(alpha: 0.7)),
+              hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -838,14 +865,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         padding: EdgeInsets.zero,
         itemCount: _suggestions.length,
         separatorBuilder:
-            (context, index) => const Divider(height: 1, color: _border),
+            (context, index) => const Divider(height: 1, color: AppColors.grey200),
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
           return ListTile(
             dense: true,
             title: Text(
               suggestion,
-              style: const TextStyle(fontSize: 14, color: _textDark),
+              style: const TextStyle(fontSize: 14, color: AppTheme.darkGray),
             ),
             onTap: () => _selectSuggestion(suggestion),
             contentPadding: const EdgeInsets.symmetric(
@@ -870,9 +897,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _blue.withValues(alpha: 0.1),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _blue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -881,7 +908,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             part,
             style: TextStyle(
               fontSize: 14,
-              color: _blue,
+              color: AppTheme.primaryBlue,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -892,10 +919,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: _blue.withValues(alpha: 0.2),
+                color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: _blue),
+              child: const Icon(Icons.close, size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -912,36 +939,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-
-        // Afficher toujours : Marque, Modèle, Année (date1erCir_fr), Motorisation
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
         if (info.make != null) parts.add(info.make!);
         if (info.model != null) parts.add(info.model!);
-
-        // Récupérer l'année depuis date1erCir_fr (format: DD-MM-YYYY)
-        if (info.rawData != null) {
-          final date1erCirFr = info.rawData!['date1erCir_fr']?.toString();
-          if (date1erCirFr != null && date1erCirFr.isNotEmpty) {
-            // Extraire l'année depuis le format DD-MM-YYYY
-            final dateParts = date1erCirFr.split('-');
-            if (dateParts.length == 3) {
-              parts.add(dateParts[2]); // Année = dernier élément
-            } else {
-              parts.add(date1erCirFr);
-            }
-          } else if (info.year != null) {
-            parts.add(info.year.toString());
-          }
-        } else if (info.year != null) {
-          parts.add(info.year.toString());
-        }
-
-        // Motorisation (cylindrée + carburant)
-        final motorParts = <String>[];
-        if (info.engineSize != null) motorParts.add(info.engineSize!);
-        if (info.fuelType != null) motorParts.add(info.fuelType!);
-        if (motorParts.isNotEmpty) {
-          parts.add(motorParts.join(' '));
-        }
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
@@ -966,10 +970,8 @@ class _TypeCard extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  static const Color _blue = Color(0xFF1976D2);
   static const Color _bgSelected = Color(0xFFEAF2FF);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  static const double _radius = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -985,7 +987,7 @@ class _TypeCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
-              color: selected ? _blue : _border,
+              color: selected ? AppTheme.primaryBlue : AppColors.grey200,
               width: selected ? 2 : 1,
             ),
           ),
@@ -999,11 +1001,11 @@ class _TypeCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       selected
-                          ? _blue.withValues(alpha: 0.12)
-                          : _blue.withValues(alpha: 0.08),
+                          ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                          : AppTheme.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 24, color: selected ? _blue : _blue),
+                child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
               const SizedBox(height: 10),
               SizedBox(

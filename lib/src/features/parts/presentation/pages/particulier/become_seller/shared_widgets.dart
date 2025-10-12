@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_colors.dart';
 
 class BecomeSellerSharedWidgets {
   static Widget buildOptionCard({
@@ -17,7 +18,7 @@ class BecomeSellerSharedWidgets {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? AppTheme.primaryBlue : const Color(0xFFE6E9EF),
+            color: selected ? AppTheme.primaryBlue : AppColors.grey200,
             width: selected ? 2 : 1,
           ),
         ),
@@ -31,7 +32,7 @@ class BecomeSellerSharedWidgets {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF14213D),
+                color: AppTheme.darkBlue,
               ),
             ),
           ],
@@ -52,7 +53,7 @@ class BecomeSellerSharedWidgets {
         onPressed: enabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryBlue,
-          disabledBackgroundColor: const Color(0xFFB9CCFF),
+          disabledBackgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.5),
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -75,7 +76,7 @@ class BecomeSellerSharedWidgets {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE6E9EF)),
+          side: BorderSide(color: AppColors.grey200),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -96,7 +97,7 @@ class BecomeSellerSharedWidgets {
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F4F7),
+        color: AppTheme.lightGray,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -107,7 +108,7 @@ class BecomeSellerSharedWidgets {
             width: 52,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFF0A4AFF),
+              color: AppTheme.primaryBlue,
               borderRadius: BorderRadius.circular(6),
             ),
             alignment: Alignment.center,
@@ -141,7 +142,7 @@ class BecomeSellerSharedWidgets {
             width: 52,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFF0A4AFF),
+              color: AppTheme.primaryBlue,
               borderRadius: BorderRadius.circular(6),
             ),
           ),
