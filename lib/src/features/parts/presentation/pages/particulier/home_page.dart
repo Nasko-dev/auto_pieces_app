@@ -13,6 +13,7 @@ import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -29,6 +30,10 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   // Constantes de style iOS
   static const double _radius = 10; // Standard iOS
+  static const Color _textGray = AppTheme.gray;
+  static const Color _textDark = AppTheme.darkGray;
+  static const Color _border = AppColors.grey200;
+  static const Color _blue = AppTheme.primaryBlue;
 
   String _selectedType = 'engine';
   bool _isManualMode = false;
@@ -841,11 +846,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canContinueManual() {
-    // Pour tous les types : marque, modèle, année requises
-    final hasBasicInfo = _marqueController.text.isNotEmpty &&
-        _modeleController.text.isNotEmpty &&
-        _anneeController.text.isNotEmpty;
-
     if (_selectedType == 'engine') {
       // Pièces moteur : cylindrée, carburant et code moteur requis
       return _selectedCylindree != null &&
@@ -1259,16 +1259,27 @@ class _HomePageState extends ConsumerState<HomePage> {
   List<Widget> _buildVehicleInfoRows() {
     if (_isManualMode) {
       // Mode manuel
-      return [
-        if (_marqueController.text.isNotEmpty)
-          _buildInfoRow('Marque', _marqueController.text),
-        if (_modeleController.text.isNotEmpty)
-          _buildInfoRow('Modèle', _modeleController.text),
-        if (_anneeController.text.isNotEmpty)
-          _buildInfoRow('Année', _anneeController.text),
-        if (_motorisationController.text.isNotEmpty)
-          _buildInfoRow('Motorisation', _motorisationController.text),
-      ];
+      if (_selectedType == 'engine') {
+        // Pièces moteur : afficher cylindrée, carburant, code moteur
+        return [
+          if (_selectedCylindree != null && _selectedCylindree!.isNotEmpty)
+            _buildInfoRow('Cylindrée', _selectedCylindree!),
+          if (_selectedFuelType != null && _selectedFuelType!.isNotEmpty)
+            _buildInfoRow('Carburant', _selectedFuelType!),
+          if (_selectedEngineCode != null && _selectedEngineCode!.isNotEmpty)
+            _buildInfoRow('Code moteur', _selectedEngineCode!),
+        ];
+      } else {
+        // Pièces carrosserie : afficher marque, modèle, année
+        return [
+          if (_selectedMarque != null && _selectedMarque!.isNotEmpty)
+            _buildInfoRow('Marque', _selectedMarque!),
+          if (_selectedModele != null && _selectedModele!.isNotEmpty)
+            _buildInfoRow('Modèle', _selectedModele!),
+          if (_selectedAnnee != null)
+            _buildInfoRow('Année', _selectedAnnee!.toString()),
+        ];
+      }
     } else {
       // Mode API
       final vehicleState = ref.read(vehicleSearchProvider);
@@ -1372,8 +1383,8 @@ class _TypeCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: selected
-                      ? _blue.withValues(alpha: 0.12)
-                      : _blue.withValues(alpha: 0.08),
+                      ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                      : AppTheme.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
