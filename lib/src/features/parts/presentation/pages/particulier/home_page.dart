@@ -47,10 +47,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   String? _selectedModele;
   int? _selectedAnnee;
 
-  // Pour les pièces moteur - mode manuel avec 3 dropdowns en cascade
+  // Pour les pièces moteur - mode manuel avec 2 dropdowns
   String? _selectedCylindree;
   String? _selectedFuelType;
-  String? _selectedEngineCode;
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
 
@@ -312,7 +311,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       // Champs selon le type de pièce sélectionné
       if (_selectedType == 'engine') ...[
-        // Pièces moteur : 3 dropdowns en cascade (cylindrée, carburant, moteur exact)
+        // Pièces moteur : 2 dropdowns (cylindrée, carburant)
         // Dropdown Cylindrée
         Consumer(
           builder: (context, ref, child) {
@@ -327,9 +326,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedCylindree = value;
-                    // Reset carburant et moteur quand cylindrée change
+                    // Reset carburant quand cylindrée change
                     _selectedFuelType = null;
-                    _selectedEngineCode = null;
                   });
                 },
                 enabled: true,
@@ -366,8 +364,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedFuelType = value;
-                    // Reset moteur quand carburant change
-                    _selectedEngineCode = null;
                   });
                 },
                 enabled: _selectedCylindree != null &&
@@ -382,49 +378,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 label: 'Type de carburant',
                 hint: 'Erreur de chargement',
                 icon: Icons.local_gas_station,
-                value: null,
-                items: const [],
-                onChanged: null,
-                enabled: false,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        // Dropdown Moteur exact
-        Consumer(
-          builder: (context, ref, child) {
-            // Créer une clé composite : "cylindree|fuelType"
-            final filterKey =
-                '${_selectedCylindree ?? ''}|${_selectedFuelType ?? ''}';
-            final engineModelsAsync =
-                ref.watch(engineModelsProvider(filterKey));
-            return engineModelsAsync.when(
-              data: (engines) => _buildDropdown<String>(
-                label: 'Code moteur',
-                hint: 'Sélectionnez un code moteur',
-                icon: Icons.engineering,
-                value: _selectedEngineCode,
-                items: engines,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedEngineCode = value;
-                  });
-                },
-                enabled: _selectedCylindree != null &&
-                    _selectedCylindree!.isNotEmpty &&
-                    _selectedFuelType != null &&
-                    _selectedFuelType!.isNotEmpty,
-              ),
-              loading: () => _buildLoadingDropdown(
-                label: 'Code moteur',
-                hint: 'Chargement...',
-                icon: Icons.engineering,
-              ),
-              error: (_, __) => _buildDropdown<String>(
-                label: 'Code moteur',
-                hint: 'Erreur de chargement',
-                icon: Icons.engineering,
                 value: null,
                 items: const [],
                 onChanged: null,
@@ -636,7 +589,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             dropdownMenuEntries: items
@@ -847,13 +801,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   bool _canContinueManual() {
     if (_selectedType == 'engine') {
-      // Pièces moteur : cylindrée, carburant et code moteur requis
+      // Pièces moteur : cylindrée et carburant requis
       return _selectedCylindree != null &&
           _selectedCylindree!.isNotEmpty &&
           _selectedFuelType != null &&
-          _selectedFuelType!.isNotEmpty &&
-          _selectedEngineCode != null &&
-          _selectedEngineCode!.isNotEmpty;
+          _selectedFuelType!.isNotEmpty;
     } else {
       // Pièces carrosserie/intérieur : marque, modèle, année requises
       return _selectedMarque != null &&
@@ -1008,11 +960,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         vehicleModel = _selectedModele;
         vehicleYear = _selectedAnnee;
       } else if (_selectedType == 'engine') {
-        // Moteur : construire motorisation à partir des 3 champs
+        // Moteur : construire motorisation à partir des 2 champs
         final engineParts = <String>[];
         if (_selectedCylindree != null) engineParts.add(_selectedCylindree!);
         if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
-        if (_selectedEngineCode != null) engineParts.add(_selectedEngineCode!);
         vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     } else {
@@ -1082,7 +1033,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       _selectedAnnee = null;
       _selectedCylindree = null;
       _selectedFuelType = null;
-      _selectedEngineCode = null;
     });
   }
 
@@ -1121,7 +1071,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -1185,7 +1136,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       decoration: BoxDecoration(
         color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+            color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1208,7 +1160,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: AppTheme.primaryBlue),
+              child: const Icon(Icons.close,
+                  size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -1220,14 +1173,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (_isManualMode) {
       // Mode manuel
       if (_selectedType == 'engine') {
-        // Pièces moteur : afficher cylindrée, carburant, code moteur
+        // Pièces moteur : afficher cylindrée et carburant
         return [
           if (_selectedCylindree != null && _selectedCylindree!.isNotEmpty)
             _buildInfoRow('Cylindrée', _selectedCylindree!),
           if (_selectedFuelType != null && _selectedFuelType!.isNotEmpty)
             _buildInfoRow('Carburant', _selectedFuelType!),
-          if (_selectedEngineCode != null && _selectedEngineCode!.isNotEmpty)
-            _buildInfoRow('Code moteur', _selectedEngineCode!),
         ];
       } else {
         // Pièces carrosserie : afficher marque, modèle, année
@@ -1253,12 +1204,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (info.engineCode != null) motorisationParts.add(info.engineCode!);
 
         return [
-          if (info.make != null)
-            _buildInfoRow('Marque', info.make!),
-          if (info.model != null)
-            _buildInfoRow('Modèle', info.model!),
-          if (info.year != null)
-            _buildInfoRow('Année', info.year.toString()),
+          if (info.make != null) _buildInfoRow('Marque', info.make!),
+          if (info.model != null) _buildInfoRow('Modèle', info.model!),
+          if (info.year != null) _buildInfoRow('Année', info.year.toString()),
           if (motorisationParts.isNotEmpty)
             _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
         ];
@@ -1347,7 +1295,10 @@ class _TypeCard extends StatelessWidget {
                       : AppTheme.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
+                child: Icon(icon,
+                    size: 24,
+                    color:
+                        selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
               const SizedBox(height: 10),
               SizedBox(
