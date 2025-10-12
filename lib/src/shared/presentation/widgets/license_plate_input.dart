@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/immatriculation_providers.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_colors.dart';
 import 'french_license_plate.dart';
 
 class LicensePlateInput extends ConsumerStatefulWidget {
@@ -26,10 +28,7 @@ class LicensePlateInput extends ConsumerStatefulWidget {
 }
 
 class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  static const double _radius = 10;
 
   late TextEditingController _plateController;
   bool _hasSearched = false;
@@ -72,7 +71,7 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
   @override
   Widget build(BuildContext context) {
     final vehicleState = ref.watch(vehicleSearchProvider);
-    
+
     // Debug prints pour diagnostiquer l'état
 
     return Column(
@@ -84,7 +83,7 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
             fontSize: 18,
             fontWeight: FontWeight.w700,
             height: 1.3,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
         const SizedBox(height: 12),
@@ -139,7 +138,7 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: _textGray,
+              color: AppTheme.gray,
             ),
           ),
           const SizedBox(height: 12),
@@ -149,10 +148,10 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
             child: ElevatedButton(
               onPressed: widget.onManualMode,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: _textDark,
+                backgroundColor: AppTheme.white,
+                foregroundColor: AppTheme.darkGray,
                 elevation: 0,
-                side: const BorderSide(color: _border, width: 1),
+                side: const BorderSide(color: AppColors.grey200, width: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(_radius),
                 ),
@@ -174,9 +173,7 @@ class _RateLimitWarning extends StatelessWidget {
   final int remainingAttempts;
   final int timeUntilReset;
 
-  static const Color _error = Color(0xFFFF3B30);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const double _radius = 12;
+  static const double _radius = 10;
 
   const _RateLimitWarning({
     required this.remainingAttempts,
@@ -189,15 +186,15 @@ class _RateLimitWarning extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _error.withValues(alpha: 0.1),
+        color: AppTheme.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _error.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.grey300),
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline,
-            color: _error,
+            color: AppTheme.error,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -207,7 +204,7 @@ class _RateLimitWarning extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -220,9 +217,7 @@ class _RateLimitWarning extends StatelessWidget {
 class _RemainingAttemptsInfo extends StatelessWidget {
   final int remainingAttempts;
 
-  static const Color _warning = Color(0xFFFF9500);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const double _radius = 12;
+  static const double _radius = 10;
 
   const _RemainingAttemptsInfo({
     required this.remainingAttempts,
@@ -234,15 +229,15 @@ class _RemainingAttemptsInfo extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _warning.withValues(alpha: 0.1),
+        color: AppTheme.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _warning.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.grey300),
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline,
-            color: _warning,
+            color: AppTheme.warning,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -252,7 +247,7 @@ class _RemainingAttemptsInfo extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -263,9 +258,7 @@ class _RemainingAttemptsInfo extends StatelessWidget {
 }
 
 class _ActiveRequestWarning extends StatelessWidget {
-  static const Color _info = Color(0xFF007AFF);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const double _radius = 12;
+  static const double _radius = 10;
 
   const _ActiveRequestWarning();
 
@@ -275,18 +268,18 @@ class _ActiveRequestWarning extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _info.withValues(alpha: 0.1),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: _info.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.grey300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.block,
-                color: _info,
+                color: AppTheme.primaryBlue,
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -296,7 +289,7 @@ class _ActiveRequestWarning extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: _textDark,
+                    color: AppTheme.darkGray,
                   ),
                 ),
               ),
@@ -307,7 +300,7 @@ class _ActiveRequestWarning extends StatelessWidget {
             'Vous ne pouvez pas créer une nouvelle demande tant qu\'une demande est active. Consultez vos demandes dans l\'onglet "Mes demandes".',
             style: TextStyle(
               fontSize: 13,
-              color: _textDark.withValues(alpha: 0.8),
+              color: AppTheme.darkGray.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -321,13 +314,13 @@ class _ActiveRequestWarning extends StatelessWidget {
 //   static const Color _blue = Color(0xFF1976D2);
 //   static const Color _textDark = Color(0xFF1C1C1E);
 //   static const double _radius = 16;
-  
+
 //   const _VehicleInfoCard({required this.vehicleInfo});
-  
+
 //   @override
 //   Widget build(BuildContext context, WidgetRef ref) {
 //     final details = ref.read(vehicleSearchProvider.notifier).getVehicleDetails();
-    
+
 //     return Container(
 //       width: double.infinity,
 //       padding: const EdgeInsets.all(20),

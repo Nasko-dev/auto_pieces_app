@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/seller_auth_controller.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/utils/haptic_helper.dart';
 
 class SellerForgotPasswordPage extends ConsumerStatefulWidget {
   const SellerForgotPasswordPage({super.key});
@@ -89,9 +90,12 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
         backgroundColor: _bg,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => context.pop(),
+          onPressed: () {
+            HapticHelper.light();
+            context.pop();
+          },
           icon: Icon(
-            Icons.arrow_back_ios_rounded,
+            Icons.chevron_left,
             color: _textPrimary,
             size: 24 * s,
           ),

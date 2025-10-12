@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/providers/providers.dart';
 import 'shared_widgets.dart';
 
@@ -269,7 +270,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppTheme.lightGray,
       body: SafeArea(
         child: Stack(
           children: [
@@ -363,19 +364,19 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
               filled: true,
-              fillColor: const Color(0xFFF2F4F7),
+              fillColor: AppTheme.lightGray,
               contentPadding: const EdgeInsets.symmetric(horizontal: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFFE6E9EF),
+                borderSide: BorderSide(
+                  color: AppColors.grey200,
                   width: 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFFE6E9EF),
+                borderSide: BorderSide(
+                  color: AppColors.grey200,
                   width: 1,
                 ),
               ),
@@ -414,7 +415,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         itemCount: _suggestions.length,
         separatorBuilder:
             (context, index) =>
-                const Divider(height: 1, color: Color(0xFFE6E9EF)),
+                Divider(height: 1, color: AppColors.grey200),
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
           return ListTile(
@@ -502,7 +503,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  side: BorderSide(color: AppTheme.gray, width: 1.2),
                   activeColor: AppTheme.primaryBlue,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -535,7 +536,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  side: BorderSide(color: AppTheme.gray, width: 1.2),
                   activeColor: AppTheme.primaryBlue,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -567,7 +568,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  side: const BorderSide(color: Color(0xFFD0D5DD), width: 1.2),
+                  side: BorderSide(color: AppTheme.gray, width: 1.2),
                   activeColor: AppTheme.primaryBlue,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),

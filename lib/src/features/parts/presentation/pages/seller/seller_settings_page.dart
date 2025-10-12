@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/seller_settings_providers.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../../domain/entities/seller_settings.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_notification_fixed.dart';
@@ -92,8 +93,11 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
         backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-          onPressed: () => context.go('/seller/home'),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+          onPressed: () {
+            HapticHelper.light();
+            context.go('/seller/home');
+          },
         ),
         title: const Text(
           'Paramètres Professionnels',

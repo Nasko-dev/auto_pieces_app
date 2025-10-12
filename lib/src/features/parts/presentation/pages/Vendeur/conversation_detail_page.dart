@@ -16,6 +16,8 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
 
@@ -110,7 +112,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         });
       }
     } catch (e) {
-      debugPrint('❌ Erreur chargement info particulier: $e');
+      debugPrint('Erreur chargement info particulier: $e');
       if (mounted) {
         setState(() {
           _isLoadingParticulierInfo = false;
@@ -120,27 +122,27 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   void _markAsRead() {
-    // ✅ SIMPLE: Éviter setState during build en différant l'appel
+    // SIMPLE: Eviter setState during build en différant l'appel
     Future.microtask(() {
       ref.read(conversationsControllerProvider.notifier).markConversationAsRead(widget.conversationId);
     });
   }
-  
+
   void _subscribeToRealtimeMessages() {
-    debugPrint('🔄 [Vendeur] DEBUT _subscribeToRealtimeMessages pour conversation: ${widget.conversationId}');
+    debugPrint('[Vendeur] DEBUT _subscribeToRealtimeMessages pour conversation: ${widget.conversationId}');
 
     final realtimeService = ref.read(realtimeServiceProvider);
-    debugPrint('🔄 [Vendeur] RealtimeService récupéré: $realtimeService');
+    debugPrint('[Vendeur] RealtimeService récupéré: $realtimeService');
 
     // IMPORTANT: Activer la subscription Supabase pour cette conversation
     realtimeService.subscribeToMessages(widget.conversationId);
-    debugPrint('🔄 [Vendeur] Subscription Supabase activée');
+    debugPrint('[Vendeur] Subscription Supabase activée');
 
     // S'abonner et écouter les messages en temps réel pour cette conversation
-    debugPrint('🔄 [Vendeur] Création du stream listener...');
+    debugPrint('[Vendeur] Création du stream listener...');
     _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
       (message) {
-        debugPrint('🎯 [Vendeur Realtime] Nouveau message reçu via stream !');
+        debugPrint('[Vendeur Realtime] Nouveau message reçu via stream !');
         debugPrint('   Message ID: ${message.id}');
         debugPrint('   Sender ID: ${message.senderId}');
         debugPrint('   Content: ${message.content}');
@@ -153,7 +155,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         }
       },
       onError: (error) {
-        debugPrint('❌ [Vendeur Realtime] Erreur stream: $error');
+        debugPrint('[Vendeur Realtime] Erreur stream: $error');
       },
     );
   }
@@ -203,8 +205,9 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         shadowColor: Colors.black.withValues(alpha: 0.1),
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.chevron_left, color: Colors.black),
           onPressed: () {
+            HapticHelper.light();
             // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
             if (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
@@ -253,7 +256,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
             onSend: (content) => _sendMessage(),
             onCamera: _takePhoto,
             onGallery: _pickFromGallery,
-            onOffer: null, // ✅ CORRECTION: Système d'offres supprimé
+            onOffer: null, // CORRECTION: Système d'offres supprimé
             isLoading: isSendingMessage,
           ),
         ],
@@ -329,7 +332,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 12), // Plus d'espace entre messages
           child: MessageBubbleWidget(
@@ -398,7 +401,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    
+
     ref.read(conversationsControllerProvider.notifier).sendMessage(
       conversationId: widget.conversationId,
       content: content,
@@ -439,12 +442,11 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
   }
 
   void _showDeleteDialog() async {
-    final result = await context.showIOSDialog(
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer la conversation',
       message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? '
           'Cette action ne peut pas être annulée.',
-      type: DialogType.error,
-      confirmText: 'Supprimer',
+      destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 
@@ -517,7 +519,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFF9CA3AF), const Color(0xFF6B7280)], // Gradient gris pour particulier
+          colors: [AppColors.grey400, AppColors.grey700], // Gradient gris pour particulier
         ),
         shape: BoxShape.circle,
         border: Border.all(
@@ -681,7 +683,7 @@ class _SellerConversationDetailPageState extends ConsumerState<SellerConversatio
     }
   }
 
-  // ✅ CORRECTION: Système d'offres supprimé (inutile côté vendeur)
+  // CORRECTION: Système d'offres supprimé (inutile côté vendeur)
 
   void _showSuccessSnackBar(String message) {
     if (mounted) {

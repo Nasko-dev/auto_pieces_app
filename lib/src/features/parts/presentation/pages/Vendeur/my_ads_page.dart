@@ -21,7 +21,7 @@ class UnifiedItem with _$UnifiedItem {
 
 class MyAdsPage extends ConsumerStatefulWidget {
   const MyAdsPage({super.key});
-  
+
   @override
   ConsumerState<MyAdsPage> createState() => _MyAdsPageState();
 }
@@ -150,14 +150,14 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               builder: (context, ref, child) {
                 final state = ref.watch(partAdvertisementControllerProvider);
                 // Variable supprimée car non utilisée
-                
-                
+
+
                 if (state.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-                
+
                 if (state.error != null) {
                   return Center(
                     child: Column(
@@ -181,7 +181,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     ),
                   );
                 }
-                
+
                 // Check if both ads and requests are empty
                 if (filteredAds.isEmpty && sellerRequests.isEmpty) {
                   return Center(
@@ -198,7 +198,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     ),
                   );
                 }
-                
+
                 return RefreshIndicator(
                   onRefresh: () async {
                     await ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
@@ -217,7 +217,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                       // Section Annonces et Demandes
                       Text(
                         'Mes Annonces (${unifiedItems.length})',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.darkBlue,
@@ -273,9 +273,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
   }
 
   Widget _buildFilterChip(String label, String value, int count) {
-    const blue = Color(0xFF1976D2);
     final isSelected = _selectedFilter == value;
-    
+
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -287,10 +286,10 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? blue.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? blue : Colors.grey.shade300,
+            color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
             width: 1.5,
           ),
         ),
@@ -301,7 +300,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? blue : Colors.grey.shade600,
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade600,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 12,
               ),
@@ -310,7 +309,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? blue : Colors.grey.shade400,
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -355,33 +354,28 @@ class _AdvertisementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const blue = Color(0xFF1976D2);
-    const green = Color(0xFF00C853);
-    const orange = Color(0xFFFF9800);
-    const grey = Color(0xFF9E9E9E);
-
     Color statusColor;
     String statusText;
     IconData statusIcon;
 
     switch (advertisement.status) {
       case 'active':
-        statusColor = green;
+        statusColor = AppTheme.success;
         statusText = 'Active';
         statusIcon = Icons.visibility;
         break;
       case 'sold':
-        statusColor = blue;
+        statusColor = AppTheme.primaryBlue;
         statusText = 'Vendue';
         statusIcon = Icons.check_circle;
         break;
       case 'paused':
-        statusColor = orange;
+        statusColor = AppTheme.warning;
         statusText = 'Pausée';
         statusIcon = Icons.pause_circle;
         break;
       default:
-        statusColor = grey;
+        statusColor = AppTheme.gray;
         statusText = 'Inconnue';
         statusIcon = Icons.help;
     }
@@ -420,18 +414,18 @@ class _AdvertisementCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: blue.withValues(alpha: 0.1),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.store, color: blue, size: 12),
+                      Icon(Icons.store, color: AppTheme.primaryBlue, size: 12),
                       const SizedBox(width: 4),
                       Text(
                         'ANNONCE',
                         style: TextStyle(
-                          color: blue,
+                          color: AppTheme.primaryBlue,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                         ),
@@ -473,10 +467,10 @@ class _AdvertisementCard extends StatelessWidget {
               children: [
                 Text(
                   '${advertisement.price?.toStringAsFixed(0) ?? '0'}€',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: blue,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
                 const Spacer(),
@@ -587,18 +581,18 @@ class _RequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: AppTheme.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.search, color: Colors.orange, size: 12),
+                    Icon(Icons.search, color: AppTheme.warning, size: 12),
                     const SizedBox(width: 4),
                     Text(
                       'DEMANDE',
                       style: TextStyle(
-                        color: Colors.orange,
+                        color: AppTheme.warning,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),

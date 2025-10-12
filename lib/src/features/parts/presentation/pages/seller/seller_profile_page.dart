@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,6 +9,7 @@ import 'dart:io';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/seller_settings_providers.dart';
 import '../../../../../core/services/image_upload_service.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../../domain/entities/seller_settings.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
@@ -84,8 +87,11 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-          onPressed: () => context.go('/seller/home'),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+          onPressed: () {
+            HapticHelper.light();
+            context.go('/seller/home');
+          },
         ),
         title: const Text(
           'Mon Profil Professionnel',
@@ -598,145 +604,65 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
   void _pickImage() async {
     if (_isUploadingImage) return;
 
-    showModalBottomSheet(
+    showCupertinoModalPopup(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppTheme.gray,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Changer la photo de profil',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.darkBlue,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  // Appareil photo
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _selectImageSource(ImageSource.camera);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: BoxDecoration(
-                          color: AppTheme.lightGray,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: AppTheme.primaryBlue,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Appareil photo',
-                              style: TextStyle(
-                                color: AppTheme.darkGray,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Galerie
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _selectImageSource(ImageSource.gallery);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: BoxDecoration(
-                          color: AppTheme.lightGray,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: const Icon(
-                                Icons.photo_library,
-                                color: AppTheme.primaryBlue,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Galerie',
-                              style: TextStyle(
-                                color: AppTheme.darkGray,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('Changer la photo de profil'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              HapticFeedback.mediumImpact();
+              _selectImageSource(ImageSource.camera);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(CupertinoIcons.camera, color: AppTheme.primaryBlue),
+                SizedBox(width: 12),
+                Text('Appareil photo'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              HapticFeedback.mediumImpact();
+              _selectImageSource(ImageSource.gallery);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(CupertinoIcons.photo, color: AppTheme.primaryBlue),
+                SizedBox(width: 12),
+                Text('Galerie'),
+              ],
+            ),
+          ),
+          if (_avatarUrl != null)
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.pop(context);
+                HapticFeedback.heavyImpact();
+                _removeProfilePicture();
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(CupertinoIcons.delete),
+                  SizedBox(width: 12),
+                  Text('Supprimer la photo'),
                 ],
               ),
-              if (_avatarUrl != null) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _removeProfilePicture();
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Supprimer la photo'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.error,
-                      side: const BorderSide(color: AppTheme.error),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-            ],
-          ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.pop(context);
+          },
+          child: const Text('Annuler'),
         ),
       ),
     );
@@ -878,6 +804,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
       confirmText: 'Se déconnecter',
       cancelText: 'Annuler',
+      isDestructive: false,
     );
 
     if (result == true && context.mounted) {
@@ -895,11 +822,11 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
   }
 
   void _deleteAccount() async {
-    final result = await context.showIOSDialog(
+    // Utiliser le nouveau dialog destructive natif
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer le compte',
       message: 'Cette action est irréversible. Toutes vos annonces et données seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
-      type: DialogType.error,
-      confirmText: 'Supprimer définitivement',
+      destructiveText: 'Supprimer définitivement',
       cancelText: 'Annuler',
     );
 

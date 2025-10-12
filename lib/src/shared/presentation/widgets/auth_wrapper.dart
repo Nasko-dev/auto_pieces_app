@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
 import '../../../core/providers/session_providers.dart' as session;
+import '../../../core/theme/app_theme.dart';
 
 class AuthWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -21,12 +23,12 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
       _checkCurrentAuth();
     });
   }
-  
+
   Future<void> _checkCurrentAuth() async {
     // Si un utilisateur est déjà connecté via Supabase, mettre à jour l'état
     final supabase = ref.read(session.supabaseClientProvider);
     final currentUser = supabase.auth.currentUser;
-    
+
     if (currentUser != null && mounted) {
       // L'utilisateur est déjà connecté, déclencher la connexion anonyme pour mettre à jour l'état
       ref.read(particulierAuthControllerProvider.notifier).signInAnonymously();
@@ -39,10 +41,10 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
 
     return authState.when(
       initial: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
       ),
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
       ),
       anonymousAuthenticated: (_) => widget.child,
       error: (message) => _buildErrorView(context, message),
@@ -52,7 +54,7 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
 
   Widget _buildErrorView(BuildContext context, String message) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -63,32 +65,32 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
               const Icon(
                 Icons.error_outline,
                 size: 80,
-                color: Colors.red,
+                color: AppTheme.error,
               ),
               const SizedBox(height: 32),
-              
-              Text(
+
+              const Text(
                 'Erreur de connexion',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1D1D1F),
+                  color: AppTheme.darkGray,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              
+
               Text(
                 message,
                 style: const TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF86868B),
+                  color: AppTheme.gray,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              
+
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -97,10 +99,10 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
                     ref.read(particulierAuthControllerProvider.notifier).resetState();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.primaryBlue,
+                    foregroundColor: AppTheme.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     elevation: 0,
                   ),

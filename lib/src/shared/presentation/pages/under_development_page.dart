@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/haptic_helper.dart';
 
 class UnderDevelopmentPage extends StatelessWidget {
   const UnderDevelopmentPage({super.key});
@@ -13,8 +14,9 @@ class UnderDevelopmentPage extends StatelessWidget {
         backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
           onPressed: () {
+            HapticHelper.light();
             if (context.mounted) {
               context.go('/');
             }
@@ -137,11 +139,12 @@ class UnderDevelopmentPage extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    HapticHelper.light();
                     if (context.mounted) {
                       context.go('/');
                     }
                   },
-                  icon: const Icon(Icons.arrow_back, size: 20),
+                  icon: const Icon(Icons.chevron_left, size: 20),
                   label: const Text('Retour à l\'accueil'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryBlue,
