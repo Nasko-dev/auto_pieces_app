@@ -118,7 +118,7 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
                 ? null
                 : _handleSearch,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _blue,
+              backgroundColor: AppTheme.primaryBlue,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
