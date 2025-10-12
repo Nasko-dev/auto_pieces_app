@@ -64,7 +64,7 @@ class IOSBottomNavigation extends StatelessWidget {
         color: backgroundColor ?? AppTheme.white,
         border: Border(
           top: BorderSide(
-            color: AppTheme.gray.withOpacity(0.2),
+            color: AppTheme.gray.withValues(alpha: 0.2),
             width: 0.5,
           ),
         ),
