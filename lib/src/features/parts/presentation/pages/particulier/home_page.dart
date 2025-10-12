@@ -157,7 +157,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                             child: _TypeCard(
                               selected: _selectedType == 'engine',
                               icon: Icons.settings,
-                              title: 'Pièces liées à la motorisation ou à la boîte de vitesse',
+                              title:
+                                  'Pièces liées à la motorisation ou à la boîte de vitesse',
                               onTap: () =>
                                   setState(() => _selectedType = 'engine'),
                             ),
@@ -389,8 +390,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         Consumer(
           builder: (context, ref, child) {
             // Créer une clé composite : "cylindree|fuelType"
-            final filterKey = '${_selectedCylindree ?? ''}|${_selectedFuelType ?? ''}';
-            final engineModelsAsync = ref.watch(engineModelsProvider(filterKey));
+            final filterKey =
+                '${_selectedCylindree ?? ''}|${_selectedFuelType ?? ''}';
+            final engineModelsAsync =
+                ref.watch(engineModelsProvider(filterKey));
             return engineModelsAsync.when(
               data: (engines) => _buildDropdown<String>(
                 label: 'Code moteur',
@@ -518,7 +521,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         Consumer(
           builder: (context, ref, child) {
             // Créer une clé stable : "brand|model"
-            final brandModel = '${_selectedMarque ?? ''}|${_selectedModele ?? ''}';
+            final brandModel =
+                '${_selectedMarque ?? ''}|${_selectedModele ?? ''}';
             final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
             return yearsAsync.when(
               data: (years) => _buildDropdown<int>(
@@ -607,7 +611,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
-              fillColor: enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
+              fillColor:
+                  enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
