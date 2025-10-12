@@ -114,7 +114,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Vous n\'avez pas encore posté de demande de pièces.',
+                    'Ici vous trouverez vos demandes en cours. Pour le moment, aucune demande n\'est en cours.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey[600],

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch"
+      "WebSearch",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\namélioration: widget d''avertissement demande active cliquable et en orange\n\n- Ajout de la navigation vers /requests au clic sur le widget d''avertissement\n- Changement de la couleur du widget en orange léger (FF9500) au lieu de bleu\n- Ajout d''une icône flèche pour indiquer que le widget est cliquable\n- Amélioration de l''UX pour permettre l''accès rapide aux demandes actives\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ncorrection: redirection du bouton Poster une demande vers l''accueil particulier\n\n- Changement de la route de ''/'' vers ''/home'' pour le bouton dans requests_page\n- Permet aux utilisateurs d''accéder directement à la page d''accueil particulier\n- Amélioration de la navigation depuis la page \"Mes Demandes\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": [],
