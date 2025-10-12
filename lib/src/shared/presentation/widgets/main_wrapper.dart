@@ -73,7 +73,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
           ),
           child: SafeArea(
             child: Container(
-              height: 56,
+              height: 68,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -90,7 +90,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     context: context,
                     icon: Icons.assignment_outlined,
                     selectedIcon: Icons.assignment_rounded,
-                    label: 'Demandes',
+                    label: 'Recherches',
                     route: '/requests',
                     index: 1,
                   ),
@@ -144,30 +144,45 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
           highlightColor: Colors.transparent,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Stack(
-              clipBehavior: Clip.none,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Center(
-                  child: Icon(
-                    isSelected ? selectedIcon : icon,
-                    size: 26,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isSelected ? selectedIcon : icon,
+                      size: 24,
+                      color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
+                    ),
+                    // Point rouge pour messages non lus
+                    if (hasUnread)
+                      Positioned(
+                        right: -4,
+                        top: -2,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF3B30),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected ? AppTheme.primaryBlue : AppTheme.gray,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                // Point rouge pour messages non lus
-                if (hasUnread)
-                  Positioned(
-                    right: -4,
-                    top: -2,
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF3B30),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
