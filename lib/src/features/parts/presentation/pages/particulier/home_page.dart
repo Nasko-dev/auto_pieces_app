@@ -334,15 +334,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                 hint: 'Chargement...',
                 icon: Icons.speed,
               ),
-              error: (_, __) => _buildDropdown<String>(
-                label: 'Cylindrée',
-                hint: 'Erreur de chargement',
-                icon: Icons.speed,
-                value: null,
-                items: const [],
-                onChanged: null,
-                enabled: false,
-              ),
+              error: (error, stackTrace) {
+                // Afficher l'erreur dans la console pour debug
+                print('❌ Erreur cylindrées: $error');
+                return _buildDropdown<String>(
+                  label: 'Cylindrée',
+                  hint: 'Erreur: $error',
+                  icon: Icons.speed,
+                  value: null,
+                  items: const [],
+                  onChanged: null,
+                  enabled: false,
+                );
+              },
             );
           },
         ),
