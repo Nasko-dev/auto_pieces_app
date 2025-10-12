@@ -18,6 +18,9 @@ jobs:
       with:
         fetch-depth: 0  # Shallow clone pour rapidité
 
+    - name: Create .env file
+      run: cp .env.example .env
+
     - name: Cache everything
       uses: actions/cache@v4
       with:

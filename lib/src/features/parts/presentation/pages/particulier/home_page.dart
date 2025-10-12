@@ -154,7 +154,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: _TypeCard(
                           selected: _selectedType == 'engine',
                           icon: Icons.settings,
-                          title: 'Pièces moteur',
+                          title: 'Pièces liées à la motorisation',
                           onTap: () => setState(() => _selectedType = 'engine'),
                         ),
                       ),
@@ -163,7 +163,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: _TypeCard(
                           selected: _selectedType == 'body',
                           icon: Icons.car_repair,
-                          title: 'Pièces carrosserie\n/ interieures',
+                          title: 'Pièces liées à la carrosserie ou à l\'habitacle',
                           onTap: () => setState(() => _selectedType = 'body'),
                         ),
                       ),
@@ -939,7 +939,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-
         // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
         if (info.make != null) parts.add(info.make!);
         if (info.model != null) parts.add(info.model!);
@@ -983,8 +982,8 @@ class _TypeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 120),
-          padding: const EdgeInsets.all(16),
+          height: 150,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
@@ -993,8 +992,10 @@ class _TypeCard extends StatelessWidget {
             ),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -1006,16 +1007,22 @@ class _TypeCard extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  height: 1.2,
-                  color: Color(0xFF1C1C1E),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 64,
+                child: Center(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
                 ),
               ),
             ],

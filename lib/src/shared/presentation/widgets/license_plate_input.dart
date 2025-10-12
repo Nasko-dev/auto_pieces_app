@@ -28,6 +28,7 @@ class LicensePlateInput extends ConsumerStatefulWidget {
 }
 
 class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
+
   static const double _radius = 10;
 
   late TextEditingController _plateController;
@@ -99,13 +100,46 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
             setState(() {
               _hasSearched = false;
             });
-
-            if (widget.autoSearch &&
-                value.replaceAll(RegExp(r'[^A-Z0-9]'), '').length >= 7) {
-              _handleSearch();
-            }
           },
-          onSubmitted: (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ? null : (_) => _handleSearch(),
+          onSubmitted: null,
+        ),
+
+        const SizedBox(height: 16),
+
+        // Bouton de validation
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: (vehicleState.isLoading ||
+                       vehicleState.isCheckingActiveRequest ||
+                       (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ||
+                       _plateController.text.replaceAll(RegExp(r'[^A-Z0-9]'), '').length < 7)
+                ? null
+                : _handleSearch,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _blue,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_radius),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+            child: vehicleState.isLoading || vehicleState.isCheckingActiveRequest
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text('Valider'),
+          ),
         ),
 
         // ✅ FIX: Affichage du blocage UNIQUEMENT si pas allowWithActiveRequest

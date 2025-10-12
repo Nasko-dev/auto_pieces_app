@@ -51,21 +51,8 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
   }
 
   String _formatPlateText(String text) {
-    // Supprime tout sauf lettres et chiffres
-    String cleaned = text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-
-    // Format français moderne : AA-123-BB
-    if (cleaned.length >= 2 && cleaned.length <= 7) {
-      if (cleaned.length <= 2) {
-        return cleaned;
-      } else if (cleaned.length <= 5) {
-        return '${cleaned.substring(0, 2)}-${cleaned.substring(2)}';
-      } else {
-        return '${cleaned.substring(0, 2)}-${cleaned.substring(2, 5)}-${cleaned.substring(5)}';
-      }
-    }
-
-    return text.toUpperCase();
+    // Convertir en majuscules et garder uniquement lettres, chiffres et tirets
+    return text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9\-]'), '');
   }
 
   @override
@@ -125,8 +112,8 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
                                   ),
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(
-                                      9,
-                                    ), // AA-123-BB
+                                      15,
+                                    ), // Permet plus de caractères pour plaques collection
                                     TextInputFormatter.withFunction((
                                       oldValue,
                                       newValue,
