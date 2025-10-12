@@ -7,6 +7,7 @@ import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../../../../core/providers/vehicle_catalog_providers.dart';
+import '../../../../../core/providers/engine_catalog_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
@@ -43,7 +44,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   String? _selectedModele;
   int? _selectedAnnee;
 
-  final _motorisationController = TextEditingController();
+  // Pour les pièces moteur - mode manuel avec 3 dropdowns en cascade
+  String? _selectedCylindree;
+  String? _selectedFuelType;
+  String? _selectedEngineCode;
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
 
@@ -103,7 +107,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     _plate.dispose();
     _partController.removeListener(_onTextChanged);
     _partController.dispose();
-    _motorisationController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -156,7 +159,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             child: _TypeCard(
                               selected: _selectedType == 'engine',
                               icon: Icons.settings,
-                              title: 'Pièces liées à la motorisation',
+                              title: 'Pièces liées à la motorisation ou à la boîte de vitesse',
                               onTap: () =>
                                   setState(() => _selectedType = 'engine'),
                             ),
@@ -304,12 +307,124 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       // Champs selon le type de pièce sélectionné
       if (_selectedType == 'engine') ...[
-        // Pièces moteur : uniquement motorisation
-        _buildTextField(
-          controller: _motorisationController,
-          label: 'Motorisation',
-          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
-          icon: Icons.speed,
+        // Pièces moteur : 3 dropdowns en cascade (cylindrée, carburant, moteur exact)
+        // Dropdown Cylindrée
+        Consumer(
+          builder: (context, ref, child) {
+            final cylindersAsync = ref.watch(engineCylindersProvider);
+            return cylindersAsync.when(
+              data: (cylinders) => _buildDropdown<String>(
+                label: 'Cylindrée',
+                hint: 'Sélectionnez une cylindrée',
+                icon: Icons.speed,
+                value: _selectedCylindree,
+                items: cylinders,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCylindree = value;
+                    // Reset carburant et moteur quand cylindrée change
+                    _selectedFuelType = null;
+                    _selectedEngineCode = null;
+                  });
+                },
+                enabled: true,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Cylindrée',
+                hint: 'Chargement...',
+                icon: Icons.speed,
+              ),
+              error: (_, __) => _buildDropdown<String>(
+                label: 'Cylindrée',
+                hint: 'Erreur de chargement',
+                icon: Icons.speed,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // Dropdown Type de carburant
+        Consumer(
+          builder: (context, ref, child) {
+            final fuelTypesAsync = ref.watch(engineFuelTypesProvider);
+            return fuelTypesAsync.when(
+              data: (fuelTypes) => _buildDropdown<String>(
+                label: 'Type de carburant',
+                hint: 'Sélectionnez un type de carburant',
+                icon: Icons.local_gas_station,
+                value: _selectedFuelType,
+                items: fuelTypes,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedFuelType = value;
+                    // Reset moteur quand carburant change
+                    _selectedEngineCode = null;
+                  });
+                },
+                enabled: _selectedCylindree != null &&
+                    _selectedCylindree!.isNotEmpty,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Type de carburant',
+                hint: 'Chargement...',
+                icon: Icons.local_gas_station,
+              ),
+              error: (_, __) => _buildDropdown<String>(
+                label: 'Type de carburant',
+                hint: 'Erreur de chargement',
+                icon: Icons.local_gas_station,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // Dropdown Moteur exact
+        Consumer(
+          builder: (context, ref, child) {
+            // Créer une clé composite : "cylindree|fuelType"
+            final filterKey = '${_selectedCylindree ?? ''}|${_selectedFuelType ?? ''}';
+            final engineModelsAsync = ref.watch(engineModelsProvider(filterKey));
+            return engineModelsAsync.when(
+              data: (engines) => _buildDropdown<String>(
+                label: 'Code moteur',
+                hint: 'Sélectionnez un code moteur',
+                icon: Icons.engineering,
+                value: _selectedEngineCode,
+                items: engines,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedEngineCode = value;
+                  });
+                },
+                enabled: _selectedCylindree != null &&
+                    _selectedCylindree!.isNotEmpty &&
+                    _selectedFuelType != null &&
+                    _selectedFuelType!.isNotEmpty,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Code moteur',
+                hint: 'Chargement...',
+                icon: Icons.engineering,
+              ),
+              error: (_, __) => _buildDropdown<String>(
+                label: 'Code moteur',
+                hint: 'Erreur de chargement',
+                icon: Icons.engineering,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
         ),
       ] else ...[
         // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
@@ -439,88 +554,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ],
     ];
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType? keyboardType,
-    bool enabled = true,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: _textDark,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            enabled: enabled,
-            keyboardType: keyboardType,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: enabled ? _textDark : _textGray.withValues(alpha: 0.5),
-            ),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: _textGray.withValues(alpha: 0.7),
-                fontSize: 16,
-              ),
-              prefixIcon: Icon(
-                icon,
-                color: enabled ? _blue : _textGray.withValues(alpha: 0.5),
-                size: 20,
-              ),
-              filled: true,
-              fillColor:
-                  enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: BorderSide(color: _textGray.withValues(alpha: 0.2)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
-              ),
-            ),
-            onChanged: (value) => setState(() {}),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildDropdown<T>({
@@ -812,8 +845,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   bool _canContinueManual() {
     if (_selectedType == 'engine') {
-      // Pièces moteur : seulement motorisation requise
-      return _motorisationController.text.isNotEmpty;
+      // Pièces moteur : cylindrée, carburant et code moteur requis
+      return _selectedCylindree != null &&
+          _selectedCylindree!.isNotEmpty &&
+          _selectedFuelType != null &&
+          _selectedFuelType!.isNotEmpty &&
+          _selectedEngineCode != null &&
+          _selectedEngineCode!.isNotEmpty;
     } else {
       // Pièces carrosserie/intérieur : marque, modèle, année requises
       return _selectedMarque != null &&
@@ -968,10 +1006,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         vehicleModel = _selectedModele;
         vehicleYear = _selectedAnnee;
       } else if (_selectedType == 'engine') {
-        // Moteur : motorisation seulement
-        vehicleEngine = _motorisationController.text.isNotEmpty
-            ? _motorisationController.text
-            : null;
+        // Moteur : construire motorisation à partir des 3 champs
+        final engineParts = <String>[];
+        if (_selectedCylindree != null) engineParts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_selectedEngineCode != null) engineParts.add(_selectedEngineCode!);
+        vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
@@ -1038,7 +1078,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       _selectedMarque = null;
       _selectedModele = null;
       _selectedAnnee = null;
-      _motorisationController.clear();
+      _selectedCylindree = null;
+      _selectedFuelType = null;
+      _selectedEngineCode = null;
     });
   }
 
@@ -1183,10 +1225,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (_selectedAnnee != null) parts.add(_selectedAnnee!.toString());
         return parts.isNotEmpty ? parts.join(' - ') : '';
       } else {
-        // Moteur : motorisation uniquement
-        return _motorisationController.text.isNotEmpty
-            ? 'Motorisation: ${_motorisationController.text}'
-            : '';
+        // Moteur : cylindrée + carburant + code moteur
+        final parts = <String>[];
+        if (_selectedCylindree != null) parts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) parts.add(_selectedFuelType!);
+        if (_selectedEngineCode != null) parts.add(_selectedEngineCode!);
+        return parts.isNotEmpty ? 'Motorisation: ${parts.join(' - ')}' : '';
       }
     } else {
       // Utiliser les données de l'API si disponibles

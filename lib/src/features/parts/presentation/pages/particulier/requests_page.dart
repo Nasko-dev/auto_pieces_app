@@ -105,7 +105,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune demande',
+                    'Aucune recherches',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -114,7 +114,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Ici vous trouverez vos demandes en cours. Pour le moment, aucune demande n\'est en cours.',
+                    'Ici vous trouverez vos recherches en cours. Pour le moment, aucune recherche n\'est en cours.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey[600],
@@ -124,7 +124,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ElevatedButton.icon(
                     onPressed: () => context.go('/home'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Poster une demande'),
+                    label: const Text('Lancer une recherche'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryBlue,
                       foregroundColor: Colors.white,
