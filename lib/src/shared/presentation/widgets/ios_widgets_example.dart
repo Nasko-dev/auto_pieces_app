@@ -1,6 +1,6 @@
-/// FICHIER D'EXEMPLE - Ne pas utiliser en production
-///
-/// Ce fichier montre comment utiliser les composants iOS réutilisables
+// FICHIER D'EXEMPLE - Ne pas utiliser en production
+//
+// Ce fichier montre comment utiliser les composants iOS réutilisables
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

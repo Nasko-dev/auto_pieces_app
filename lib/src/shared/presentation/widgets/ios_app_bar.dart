@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/haptic_helper.dart';
@@ -82,7 +81,7 @@ class IOSAppBar extends StatelessWidget implements PreferredSizeWidget {
         border: showBorder
             ? Border(
                 bottom: BorderSide(
-                  color: AppTheme.gray.withOpacity(0.2),
+                  color: AppTheme.gray.withValues(alpha: 0.2),
                   width: 0.5,
                 ),
               )
@@ -131,7 +130,6 @@ class IOSAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildBackButton(BuildContext context) {
     return CupertinoButton(
       padding: const EdgeInsets.only(left: 8, right: 16),
-      minSize: 44,
       onPressed: () {
         // Haptic feedback pour la navigation
         HapticHelper.navigation();
@@ -200,7 +198,7 @@ class IOSLargeAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: backgroundColor ?? AppTheme.white,
       border: Border(
         bottom: BorderSide(
-          color: AppTheme.gray.withOpacity(0.2),
+          color: AppTheme.gray.withValues(alpha: 0.2),
           width: 0.5,
         ),
       ),
