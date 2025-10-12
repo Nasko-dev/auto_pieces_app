@@ -852,21 +852,22 @@ class _ModernNotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          partRequest.vehicleInfo.isNotEmpty
-                              ? partRequest.vehicleInfo
-                              : 'Véhicule non spécifié',
+                          partRequest.partNames.join(', '),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.darkBlue,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
-                          partRequest.partNames.join(', '),
+                          partRequest.vehicleInfo.isNotEmpty
+                              ? partRequest.vehicleInfo
+                              : 'Véhicule non spécifié',
                           style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.gray,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.darkGray,
                           ),
                         ),
                       ],

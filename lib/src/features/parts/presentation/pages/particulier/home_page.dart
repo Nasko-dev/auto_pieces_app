@@ -1259,6 +1259,32 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+
+  String getVehicleInfo() {
+    if (_isManualMode) {
+      return '${_marqueController.text} ${_modeleController.text} ${_anneeController.text} - ${_motorisationController.text}';
+    } else {
+      // Utiliser les données de l'API si disponibles
+      final vehicleState = ref.read(vehicleSearchProvider);
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+        final parts = <String>[];
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
+        if (info.make != null) parts.add(info.make!);
+        if (info.model != null) parts.add(info.model!);
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
+
+        if (parts.isNotEmpty) {
+          return parts.join(' - ');
+        }
+      }
+      return 'Plaque: ${_plate.text}';
+    }
+  }
+
   List<Widget> _buildVehicleInfoRows() {
     if (_isManualMode) {
       // Mode manuel

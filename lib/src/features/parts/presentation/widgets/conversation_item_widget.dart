@@ -43,10 +43,10 @@ class ConversationItemWidget extends ConsumerWidget {
     final requestTitle = _getRequestTitle();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: hasUnread
             ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
             : Border.all(color: Colors.grey.shade200),
@@ -55,8 +55,8 @@ class ConversationItemWidget extends ConsumerWidget {
             color: hasUnread
                 ? const Color(0xFF007AFF).withValues(alpha: 0.1)
                 : Colors.black.withValues(alpha: 0.04),
-            blurRadius: hasUnread ? 8 : 4,
-            offset: const Offset(0, 2),
+            blurRadius: hasUnread ? 6 : 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -64,15 +64,15 @@ class ConversationItemWidget extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 // Avatar du vendeur/client
                 _buildAvatar(sellerName, hasUnread),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
 
                 // Contenu principal
                 Expanded(
@@ -86,7 +86,7 @@ class ConversationItemWidget extends ConsumerWidget {
                             child: Text(
                               sellerName,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: hasUnread
                                     ? FontWeight.w600
                                     : FontWeight.w500,
@@ -109,11 +109,11 @@ class ConversationItemWidget extends ConsumerWidget {
 
                       // Titre de la demande si disponible
                       if (requestTitle != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           requestTitle,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: Colors.grey[600],
                             fontWeight: FontWeight.w400,
                           ),
@@ -124,7 +124,7 @@ class ConversationItemWidget extends ConsumerWidget {
 
                       // Dernier message si disponible
                       if (lastMessage != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             // Icône de direction du message
@@ -146,7 +146,7 @@ class ConversationItemWidget extends ConsumerWidget {
                               child: Text(
                                 lastMessage,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   color: hasUnread
                                       ? Colors.black87
                                       : Colors.grey[600],
@@ -199,17 +199,17 @@ class ConversationItemWidget extends ConsumerWidget {
     // Si on a une URL d'avatar valide, l'afficher
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return Container(
-        width: 48,
-        height: 48,
+        width: 42,
+        height: 42,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           child: Image.network(
             avatarUrl,
-            width: 48,
-            height: 48,
+            width: 42,
+            height: 42,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _buildInitialsAvatar(name, hasUnread);
@@ -229,18 +229,18 @@ class ConversationItemWidget extends ConsumerWidget {
 
   Widget _buildInitialsAvatar(String name, bool hasUnread) {
     return Container(
-      width: 48,
-      height: 48,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFF007AFF) : const Color(0xFF5AC8FA),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Center(
         child: Text(
           _getInitials(name),
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
