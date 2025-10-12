@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cente_pice/src/shared/presentation/widgets/french_license_plate.dart';
+import 'package:cente_pice/src/core/theme/app_theme.dart';
 
 void main() {
   group('FrenchLicensePlate Widget', () {
@@ -241,7 +243,7 @@ void main() {
       );
 
       // assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
     });
 
     testWidgets('doit afficher le message d\'erreur', (tester) async {
@@ -266,7 +268,7 @@ void main() {
         find.byWidgetPredicate(
           (widget) => widget is Text &&
                       widget.data == errorMessage &&
-                      widget.style?.color == Colors.red,
+                      widget.style?.color == AppTheme.error,
         ),
         findsOneWidget,
       );
@@ -285,7 +287,7 @@ void main() {
       // assert
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is Text && (widget.style?.color == Colors.red),
+          (widget) => widget is Text && (widget.style?.color == AppTheme.error),
         ),
         findsNothing,
       );
@@ -440,7 +442,7 @@ void main() {
         // assert
         final textField = tester.widget<TextField>(find.byType(TextField));
         expect(textField.enabled, false);
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
       });
 
       testWidgets('doit gérer errorText ET isLoading ensemble', (tester) async {
@@ -458,7 +460,7 @@ void main() {
         );
 
         // assert
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
         expect(find.text('Erreur de test'), findsOneWidget);
       });
     });
