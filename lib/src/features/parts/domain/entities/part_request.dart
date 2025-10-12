@@ -40,33 +40,15 @@ class PartRequest with _$PartRequest {
   bool get isActive => status == 'active' && !isExpired;
   bool get hasResponses => responseCount > 0;
   String get vehicleInfo {
-    // Pour les pièces de carrosserie : afficher marque + modèle + année
-    if (partType == 'body') {
-      final parts = <String>[];
-      if (vehicleBrand != null) parts.add(vehicleBrand!);
-      if (vehicleModel != null) parts.add(vehicleModel!);
-      if (vehicleYear != null) parts.add(vehicleYear.toString());
-      return parts.join(' ');
-    }
-    
-    // Pour les pièces de moteur : afficher seulement la motorisation
-    if (partType == 'engine') {
-      if (vehicleEngine != null) {
-        return vehicleEngine!;
-      }
-    }
-    
-    // Fallback : afficher ce qui est disponible
+    // Afficher TOUJOURS marque + modèle + année + motorisation (si disponibles)
     final parts = <String>[];
+
     if (vehicleBrand != null) parts.add(vehicleBrand!);
     if (vehicleModel != null) parts.add(vehicleModel!);
     if (vehicleYear != null) parts.add(vehicleYear.toString());
-    
-    if (parts.isEmpty && vehicleEngine != null) {
-      return vehicleEngine!;
-    }
-    
-    return parts.join(' ');
+    if (vehicleEngine != null) parts.add(vehicleEngine!);
+
+    return parts.isNotEmpty ? parts.join(' - ') : 'Véhicule non spécifié';
   }
 }
 
