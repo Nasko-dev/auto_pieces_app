@@ -450,15 +450,8 @@ class _SellerCreateRequestPageState
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              _getVehicleInfo(),
-              style: const TextStyle(
-                color: AppTheme.darkGray,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
+            const SizedBox(height: 16),
+            ..._buildVehicleInfoRows(),
           ],
         ),
       ),
@@ -906,6 +899,77 @@ class _SellerCreateRequestPageState
       }
       return 'Plaque: ${_plate.text}';
     }
+  }
+
+  List<Widget> _buildVehicleInfoRows() {
+    if (_isManualMode) {
+      // Mode manuel
+      return [
+        if (_marqueController.text.isNotEmpty)
+          _buildInfoRow('Marque', _marqueController.text),
+        if (_modeleController.text.isNotEmpty)
+          _buildInfoRow('Modèle', _modeleController.text),
+        if (_anneeController.text.isNotEmpty)
+          _buildInfoRow('Année', _anneeController.text),
+        if (_motorisationController.text.isNotEmpty)
+          _buildInfoRow('Motorisation', _motorisationController.text),
+      ];
+    } else {
+      // Mode API
+      final vehicleState = ref.read(vehicleSearchProvider);
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+
+        // Construire la motorisation
+        final motorisationParts = <String>[];
+        if (info.engineSize != null) motorisationParts.add(info.engineSize!);
+        if (info.fuelType != null) motorisationParts.add(info.fuelType!);
+        if (info.engineCode != null) motorisationParts.add(info.engineCode!);
+
+        return [
+          if (info.make != null)
+            _buildInfoRow('Marque', info.make!),
+          if (info.model != null)
+            _buildInfoRow('Modèle', info.model!),
+          if (info.year != null)
+            _buildInfoRow('Année', info.year.toString()),
+          if (motorisationParts.isNotEmpty)
+            _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
+        ];
+      }
+    }
+    return [];
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
