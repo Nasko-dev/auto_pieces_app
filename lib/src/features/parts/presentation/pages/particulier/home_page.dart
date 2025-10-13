@@ -1367,6 +1367,48 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  String getVehicleInfo() {
+    if (_isManualMode) {
+      // Mode manuel : selon le type de pièce
+      if (_selectedType == 'engine') {
+        // Pièces moteur : cylindrée + carburant + chevaux
+        final parts = <String>[];
+        if (_selectedCylindree != null) parts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) parts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          parts.add('${_horsepowerController.text}cv');
+        }
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      } else {
+        // Pièces carrosserie : marque + modèle + année
+        final parts = <String>[];
+        if (_selectedMarque != null) parts.add(_selectedMarque!);
+        if (_selectedModele != null) parts.add(_selectedModele!);
+        if (_selectedAnnee != null) parts.add(_selectedAnnee!.toString());
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      }
+    } else {
+      // Utiliser les données de l'API si disponibles
+      final vehicleState = ref.read(vehicleSearchProvider);
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+        final parts = <String>[];
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
+        if (info.make != null) parts.add(info.make!);
+        if (info.model != null) parts.add(info.model!);
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
+
+        if (parts.isNotEmpty) {
+          return parts.join(' - ');
+        }
+      }
+      return 'Plaque: ${_plate.text}';
+    }
+  }
+
   List<Widget> _buildVehicleInfoRows() {
     if (_isManualMode) {
       // Mode manuel
