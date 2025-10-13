@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/providers/providers.dart';
-import 'shared_widgets.dart';
 
 class SellPartStepPage extends ConsumerStatefulWidget {
   final String selectedCategory;
@@ -671,6 +670,15 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                 }
               });
             },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: _isCompleteMotor,
+            label: 'Moteur complet',
+            description:
+                'Vous vendez le moteur complet avec tous ses composants',
+            icon: Icons.engineering_outlined,
+            onChanged: _onCompleteMotorChanged,
           ),
         ],
 

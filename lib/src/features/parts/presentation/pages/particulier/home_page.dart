@@ -51,6 +51,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   String? _selectedCylindree;
   String? _selectedFuelType;
   final _horsepowerController = TextEditingController();
+
+  // Pour les pièces de boîte de vitesse - mode manuel
+  String? _selectedTransmissionType; // manuelle, automatique, robotisée, etc.
+  String? _selectedGearCount; // nombre de rapports
+  String? _selectedDriveType; // traction, propulsion, 4x4 (optionnel)
+
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
 
@@ -156,15 +162,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // 2 CARTES (sélection)
+                      // 2 CARTES EN HAUT (motorisation et carrosserie)
                       Row(
                         children: [
                           Expanded(
                             child: _TypeCard(
                               selected: _selectedType == 'engine',
                               icon: Icons.settings,
-                              title:
-                                  'Pièces liées à la motorisation ou à la boîte de vitesse',
+                              title: 'Pièces liées à la motorisation',
                               onTap: () =>
                                   setState(() => _selectedType = 'engine'),
                             ),
@@ -173,7 +178,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           Expanded(
                             child: _TypeCard(
                               selected: _selectedType == 'body',
-                              icon: Icons.car_repair,
+                              icon: Icons.directions_car,
                               title:
                                   'Pièces liées à la carrosserie ou à l\'habitacle',
                               onTap: () =>
@@ -181,6 +186,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 3ÈME CARTE PLEINE LARGEUR (boîte de vitesse)
+                      _TypeCard(
+                        selected: _selectedType == 'transmission',
+                        icon: Icons.settings_input_component,
+                        title: 'Pièces liées à la boîte de vitesse',
+                        onTap: () =>
+                            setState(() => _selectedType = 'transmission'),
+                        compact: true,
                       ),
 
                       const SizedBox(height: 28),
@@ -301,7 +318,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: Text(
           _selectedType == 'engine'
               ? 'Informations de motorisation'
-              : 'Informations du véhicule',
+              : _selectedType == 'transmission'
+                  ? 'Informations de boîte de vitesse'
+                  : 'Informations du véhicule',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -396,6 +415,59 @@ class _HomePageState extends ConsumerState<HomePage> {
           icon: Icons.flash_on,
           controller: _horsepowerController,
           keyboardType: TextInputType.number,
+        ),
+      ] else if (_selectedType == 'transmission') ...[
+        // Pièces boîte de vitesse : type de boîte et nombre de rapports
+        _buildDropdown<String>(
+          label: 'Type de boîte de vitesse',
+          hint: 'Sélectionnez un type',
+          icon: Icons.settings_input_composite,
+          value: _selectedTransmissionType,
+          items: const [
+            'Manuelle',
+            'Automatique',
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedTransmissionType = value;
+            });
+          },
+          enabled: true,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<String>(
+          label: 'Nombre de rapports',
+          hint: 'Sélectionnez le nombre de vitesses',
+          icon: Icons.linear_scale,
+          value: _selectedGearCount,
+          items: const ['4', '5', '6', '7', '8', '9', '10', 'Je ne sais pas'],
+          onChanged: (value) {
+            setState(() {
+              _selectedGearCount = value;
+            });
+          },
+          enabled: _selectedTransmissionType != null &&
+              _selectedTransmissionType!.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<String>(
+          label: 'Type de transmission',
+          hint: 'Sélectionnez un type',
+          icon: Icons.sync_alt,
+          value: _selectedDriveType,
+          items: const [
+            'Traction',
+            'Propulsion',
+            '4 roues motrices',
+            'Je ne sais pas',
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedDriveType = value;
+            });
+          },
+          enabled: _selectedGearCount != null &&
+              _selectedGearCount!.isNotEmpty,
         ),
       ] else ...[
         // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
@@ -892,6 +964,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           _selectedCylindree!.isNotEmpty &&
           _selectedFuelType != null &&
           _selectedFuelType!.isNotEmpty;
+    } else if (_selectedType == 'transmission') {
+      // Pièces boîte de vitesse : type, nombre de rapports et type transmission requis
+      return _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGearCount != null &&
+          _selectedGearCount!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
     } else {
       // Pièces carrosserie/intérieur : marque, modèle, année requises
       return _selectedMarque != null &&
@@ -926,6 +1006,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       categoryFilter = 'moteur';
     } else if (_selectedType == 'body') {
       categoryFilter = 'interieur'; // Pour les pièces carrosserie/intérieur
+    } else if (_selectedType == 'transmission') {
+      categoryFilter = 'transmission'; // Pour les pièces boîte de vitesse
     }
 
     try {
@@ -1015,6 +1097,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _submitRequest() async {
+    // ✅ SÉCURITÉ: Bloquer la soumission si une demande active existe déjà
+    final vehicleState = ref.read(vehicleSearchProvider);
+    if (vehicleState.hasActiveRequest) {
+      notificationService.error(
+        context,
+        'Vous avez déjà une demande active. Veuillez la supprimer avant d\'en créer une nouvelle.',
+      );
+      return;
+    }
+
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty &&
         !allParts.contains(_partController.text)) {
@@ -1054,6 +1146,19 @@ class _HomePageState extends ConsumerState<HomePage> {
           engineParts.add('${_horsepowerController.text}cv');
         }
         vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
+      } else if (_selectedType == 'transmission') {
+        // Boîte de vitesse : type + nombre de rapports + type transmission (optionnel)
+        final transmissionParts = <String>[];
+        if (_selectedTransmissionType != null) {
+          transmissionParts.add(_selectedTransmissionType!);
+        }
+        if (_selectedGearCount != null) {
+          transmissionParts.add('${_selectedGearCount!} vitesses');
+        }
+        if (_selectedDriveType != null && _selectedDriveType!.isNotEmpty) {
+          transmissionParts.add(_selectedDriveType!);
+        }
+        vehicleEngine = transmissionParts.isNotEmpty ? transmissionParts.join(' - ') : null;
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
@@ -1123,6 +1228,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       _selectedCylindree = null;
       _selectedFuelType = null;
       _horsepowerController.clear();
+      _selectedTransmissionType = null;
+      _selectedGearCount = null;
+      _selectedDriveType = null;
     });
   }
 
@@ -1314,6 +1422,16 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (_horsepowerController.text.isNotEmpty)
             _buildInfoRow('Puissance', '${_horsepowerController.text}cv'),
         ];
+      } else if (_selectedType == 'transmission') {
+        // Pièces boîte de vitesse : afficher type, nombre de rapports et type transmission
+        return [
+          if (_selectedTransmissionType != null && _selectedTransmissionType!.isNotEmpty)
+            _buildInfoRow('Type', _selectedTransmissionType!),
+          if (_selectedGearCount != null && _selectedGearCount!.isNotEmpty)
+            _buildInfoRow('Nombre de vitesses', _selectedGearCount!),
+          if (_selectedDriveType != null && _selectedDriveType!.isNotEmpty)
+            _buildInfoRow('Transmission', _selectedDriveType!),
+        ];
       } else {
         // Pièces carrosserie : afficher marque, modèle, année
         return [
@@ -1388,12 +1506,14 @@ class _TypeCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    this.compact = false,
   });
 
   final bool selected;
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final bool compact;
 
   static const Color _bgSelected = Color(0xFFEAF2FF);
   static const double _radius = 10;
@@ -1407,8 +1527,8 @@ class _TypeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         onTap: onTap,
         child: Container(
-          height: 150,
-          padding: const EdgeInsets.all(12),
+          height: compact ? 80 : 150,
+          padding: compact ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12) : const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
@@ -1416,44 +1536,79 @@ class _TypeCard extends StatelessWidget {
               width: selected ? 2 : 1,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppTheme.primaryBlue.withValues(alpha: 0.12)
-                      : AppTheme.primaryBlue.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon,
-                    size: 24,
-                    color:
-                        selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 64,
-                child: Center(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
-                      color: Color(0xFF1C1C1E),
+          child: compact
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                            : AppTheme.primaryBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon,
+                          size: 24,
+                          color: selected
+                              ? AppTheme.primaryBlue
+                              : AppTheme.primaryBlue),
                     ),
-                  ),
+                    const SizedBox(width: 16),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                        color: Color(0xFF1C1C1E),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                            : AppTheme.primaryBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon,
+                          size: 24,
+                          color: selected
+                              ? AppTheme.primaryBlue
+                              : AppTheme.primaryBlue),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 64,
+                      child: Center(
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: Color(0xFF1C1C1E),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

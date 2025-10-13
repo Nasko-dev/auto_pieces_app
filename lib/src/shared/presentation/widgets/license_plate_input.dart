@@ -166,7 +166,7 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
         //   const SizedBox(height: 12),
         //   _VehicleInfoCard(vehicleInfo: vehicleState.vehicleInfo!),
         // ],
-        if (widget.showManualOption && vehicleState.vehicleInfo == null) ...[
+        if (widget.showManualOption && !vehicleState.hasActiveRequest) ...[
           const SizedBox(height: 24),
           const Text(
             'Ou remplir les informations manuellement',
