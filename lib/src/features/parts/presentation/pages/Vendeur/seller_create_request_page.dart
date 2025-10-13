@@ -30,7 +30,7 @@ class _SellerCreateRequestPageState
   // Constantes de style iOS
   static const double _radius = 10; // Standard iOS
 
-  String _selectedType = 'engine';
+  String _selectedType = 'engine'; // 'engine', 'body', ou 'lesdeux'
   bool _isManualMode = false;
   bool _showDescription = false;
 
@@ -46,6 +46,7 @@ class _SellerCreateRequestPageState
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   final List<String> _selectedParts = [];
+  bool _hasMultiple = false; // Mode plusieurs pièces (+ de 5)
 
   @override
   void initState() {
@@ -121,7 +122,7 @@ class _SellerCreateRequestPageState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // 2 CARTES (sélection) identiques
+                      // 3 CARTES (sélection)
                       Row(
                         children: [
                           Expanded(
@@ -133,14 +134,24 @@ class _SellerCreateRequestPageState
                                   setState(() => _selectedType = 'engine'),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: _TypeCard(
                               selected: _selectedType == 'body',
                               icon: Icons.car_repair,
-                              title: 'Pièces carrosserie\n/ interieures',
+                              title: 'Carrosserie / Habitacle',
                               onTap: () =>
                                   setState(() => _selectedType = 'body'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _TypeCard(
+                              selected: _selectedType == 'lesdeux',
+                              icon: Icons.dashboard_customize,
+                              title: 'Les deux',
+                              onTap: () =>
+                                  setState(() => _selectedType = 'lesdeux'),
                             ),
                           ),
                         ],
@@ -406,7 +417,8 @@ class _SellerCreateRequestPageState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -471,7 +483,12 @@ class _SellerCreateRequestPageState
         ),
       ),
 
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
+
+      // Options de catégorie
+      _buildCategoryOptions(),
+
+      const SizedBox(height: 20),
 
       // Champ de recherche de pièces avec suggestions
       _buildPartTextFieldWithSuggestions(),
@@ -557,7 +574,14 @@ class _SellerCreateRequestPageState
   }
 
   bool _canSubmit() {
-    return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
+    if (_hasMultiple) {
+      // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
+      return _selectedParts.isNotEmpty ||
+          _partController.text.trim().isNotEmpty;
+    } else {
+      // Mode simple : valide si du texte dans le champ
+      return _partController.text.trim().isNotEmpty;
+    }
   }
 
   void _onTextChanged() async {
@@ -577,6 +601,8 @@ class _SellerCreateRequestPageState
       categoryFilter = 'moteur';
     } else if (_selectedType == 'body') {
       categoryFilter = 'interieur'; // Pour les pièces carrosserie/intérieur
+    } else if (_selectedType == 'lesdeux') {
+      categoryFilter = null; // Toutes les catégories
     }
 
     try {
@@ -617,19 +643,39 @@ class _SellerCreateRequestPageState
   }
 
   void _selectSuggestion(String suggestion) {
-    if (!_selectedParts.contains(suggestion)) {
+    if (_hasMultiple) {
+      // Mode multiple : ajouter à la liste des tags
+      if (!_selectedParts.contains(suggestion)) {
+        setState(() {
+          _selectedParts.add(suggestion);
+          _partController.clear();
+          _showSuggestions = false;
+        });
+      }
+      _focusNode.requestFocus(); // Garder le focus pour continuer la saisie
+    } else {
+      // Mode simple : remplacer le texte
       setState(() {
-        _selectedParts.add(suggestion);
-        _partController.clear();
+        _partController.text = suggestion;
         _showSuggestions = false;
       });
+      _focusNode.unfocus();
     }
-    _focusNode.requestFocus();
   }
 
   void _removePart(String part) {
     setState(() {
       _selectedParts.remove(part);
+    });
+  }
+
+  void _onHasMultipleChanged(bool? value) {
+    setState(() {
+      _hasMultiple = value ?? false;
+      if (!_hasMultiple) {
+        // Si on désactive le mode multiple, vider la liste des pièces sélectionnées
+        _selectedParts.clear();
+      }
     });
   }
 
@@ -640,10 +686,20 @@ class _SellerCreateRequestPageState
   }
 
   Future<void> _submitRequest() async {
-    final allParts = _selectedParts.toList();
-    if (_partController.text.isNotEmpty &&
-        !allParts.contains(_partController.text)) {
-      allParts.add(_partController.text);
+    final allParts = <String>[];
+
+    if (_hasMultiple) {
+      // Mode multiple : inclure toutes les pièces sélectionnées + le texte du champ
+      allParts.addAll(_selectedParts);
+      if (_partController.text.trim().isNotEmpty &&
+          !allParts.contains(_partController.text.trim())) {
+        allParts.add(_partController.text.trim());
+      }
+    } else {
+      // Mode simple : juste le texte du champ
+      if (_partController.text.trim().isNotEmpty) {
+        allParts.add(_partController.text.trim());
+      }
     }
 
     if (allParts.isEmpty) {
@@ -695,8 +751,7 @@ class _SellerCreateRequestPageState
         if (info.engineSize != null) engineParts.add(info.engineSize!);
         if (info.fuelType != null) engineParts.add(info.fuelType!);
         if (info.power != null) engineParts.add('${info.power}cv');
-        vehicleEngine =
-            engineParts.isNotEmpty ? engineParts.join(' - ') : null;
+        vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     }
 
@@ -742,6 +797,7 @@ class _SellerCreateRequestPageState
       _modeleController.clear();
       _anneeController.clear();
       _motorisationController.clear();
+      _hasMultiple = false;
     });
   }
 
@@ -780,7 +836,8 @@ class _SellerCreateRequestPageState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -844,7 +901,8 @@ class _SellerCreateRequestPageState
       decoration: BoxDecoration(
         color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+            color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -867,7 +925,8 @@ class _SellerCreateRequestPageState
                 color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: AppTheme.primaryBlue),
+              child: const Icon(Icons.close,
+                  size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -927,12 +986,9 @@ class _SellerCreateRequestPageState
         if (info.engineCode != null) motorisationParts.add(info.engineCode!);
 
         return [
-          if (info.make != null)
-            _buildInfoRow('Marque', info.make!),
-          if (info.model != null)
-            _buildInfoRow('Modèle', info.model!),
-          if (info.year != null)
-            _buildInfoRow('Année', info.year.toString()),
+          if (info.make != null) _buildInfoRow('Marque', info.make!),
+          if (info.model != null) _buildInfoRow('Modèle', info.model!),
+          if (info.year != null) _buildInfoRow('Année', info.year.toString()),
           if (motorisationParts.isNotEmpty)
             _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
         ];
@@ -968,6 +1024,157 @@ class _SellerCreateRequestPageState
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryOptions() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.grey200,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Options',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.darkGray,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Options identiques pour TOUTES les catégories
+          _buildOptionCheckbox(
+            value: _hasMultiple,
+            label: 'J\'ai plus de 5 pièces',
+            description: 'Vous recherchez plusieurs pièces (plus de 5)',
+            icon: Icons.inventory_outlined,
+            onChanged: (value) {
+              _onHasMultipleChanged(value);
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: !_hasMultiple,
+            label: 'J\'ai moins de 5 pièces',
+            description: 'Vous recherchez quelques pièces (moins de 5)',
+            icon: Icons.settings_outlined,
+            onChanged: (value) {
+              if (value == true) {
+                _onHasMultipleChanged(false);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionCheckbox({
+    required bool value,
+    required String label,
+    required String description,
+    required IconData icon,
+    required Function(bool?) onChanged,
+  }) {
+    Color categoryColor;
+    if (_selectedType == 'engine') {
+      categoryColor = const Color(0xFF2196F3); // Bleu pour moteur
+    } else if (_selectedType == 'body') {
+      categoryColor = const Color(0xFF4CAF50); // Vert pour carrosserie
+    } else {
+      categoryColor = const Color(0xFFFF9800); // Orange pour les deux
+    }
+
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: value
+              ? categoryColor.withValues(alpha: 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: value
+                ? categoryColor.withValues(alpha: 0.3)
+                : AppColors.grey200,
+            width: value ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icône
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: value
+                    ? categoryColor.withValues(alpha: 0.15)
+                    : AppTheme.lightGray,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: value ? categoryColor : AppTheme.gray,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Texte
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: value ? categoryColor : AppTheme.darkGray,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.gray.withValues(alpha: 0.8),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Checkbox
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: onChanged,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                side: BorderSide(
+                  color: value ? categoryColor : AppTheme.gray,
+                  width: 2,
+                ),
+                activeColor: categoryColor,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1019,7 +1226,10 @@ class _TypeCard extends StatelessWidget {
                       : AppTheme.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
+                child: Icon(icon,
+                    size: 24,
+                    color:
+                        selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
               const SizedBox(height: 8),
               Text(

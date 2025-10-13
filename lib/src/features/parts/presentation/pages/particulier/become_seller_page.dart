@@ -9,6 +9,11 @@ import 'become_seller/choice_step_page.dart';
 import 'become_seller/sell_part_step_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
+// Pages vendeur
+import '../Vendeur/add_advertisement/seller_choice_step_page.dart';
+import '../Vendeur/add_advertisement/seller_parts_step_page.dart';
+import '../Vendeur/add_advertisement/seller_plate_step_page.dart';
+import '../Vendeur/add_advertisement/seller_congrats_step_page.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
@@ -33,6 +38,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   int _currentStep = 0;
   String _selectedChoice = '';
   String _partName = '';
+  double _price = 0.0;
   bool hasMultipleParts = false;
   String _vehiclePlate = '';
   bool _isSubmitting = false;
@@ -60,6 +66,15 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onPartSubmitted(String partName, bool hasMultiple) {
     setState(() {
       _partName = partName;
+      hasMultipleParts = hasMultiple;
+      _currentStep = 2;
+    });
+  }
+
+  void _onSellerPartSubmitted(String partName, double price, bool hasMultiple) {
+    setState(() {
+      _partName = partName;
+      _price = price;
       hasMultipleParts = hasMultiple;
       _currentStep = 2;
     });
@@ -214,6 +229,40 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   Widget _buildBody() {
+    // Utiliser les pages vendeur si mode = vendeur
+    if (widget.mode == SellerMode.vendeur) {
+      return SafeArea(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Container(
+            key: ValueKey(_currentStep),
+            child: switch (_currentStep) {
+              0 => SellerChoiceStepPage(
+                  onChoiceSelected: _onChoiceSelected,
+                ),
+              1 => SellerPartsStepPage(
+                  selectedChoice: _selectedChoice,
+                  onPartSubmitted: _onSellerPartSubmitted,
+                ),
+              2 => SellerPlateStepPage(
+                  partName: _partName,
+                  price: _price,
+                  onPlateSubmitted: _onPlateSubmitted,
+                  isSubmitting: _isSubmitting,
+                ),
+              _ => SellerCongratsStepPage(
+                  partName: _partName,
+                  price: _price,
+                  isRequest: false,
+                  onFinish: _finishFlow,
+                ),
+            },
+          ),
+        ),
+      );
+    }
+
+    // Pages particuliers (flux original)
     return SafeArea(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
