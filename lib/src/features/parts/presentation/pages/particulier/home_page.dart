@@ -178,7 +178,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           Expanded(
                             child: _TypeCard(
                               selected: _selectedType == 'body',
-                              icon: Icons.car_repair,
+                              icon: Icons.directions_car,
                               title:
                                   'Pièces liées à la carrosserie ou à l\'habitacle',
                               onTap: () =>
@@ -193,7 +193,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       // 3ÈME CARTE PLEINE LARGEUR (boîte de vitesse)
                       _TypeCard(
                         selected: _selectedType == 'transmission',
-                        icon: Icons.speed,
+                        icon: Icons.settings_input_component,
                         title: 'Pièces liées à la boîte de vitesse',
                         onTap: () =>
                             setState(() => _selectedType = 'transmission'),
@@ -426,7 +426,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           items: const [
             'Manuelle',
             'Automatique',
-            'Autre',
           ],
           onChanged: (value) {
             setState(() {
@@ -441,7 +440,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           hint: 'Sélectionnez le nombre de vitesses',
           icon: Icons.linear_scale,
           value: _selectedGearCount,
-          items: const ['4', '5', '6', '7', '8', '9', '10'],
+          items: const ['4', '5', '6', '7', '8', '9', '10', 'Je ne sais pas'],
           onChanged: (value) {
             setState(() {
               _selectedGearCount = value;
@@ -452,7 +451,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
         const SizedBox(height: 16),
         _buildDropdown<String>(
-          label: 'Type de transmission (optionnel)',
+          label: 'Type de transmission',
           hint: 'Sélectionnez un type',
           icon: Icons.sync_alt,
           value: _selectedDriveType,
@@ -460,6 +459,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             'Traction',
             'Propulsion',
             '4 roues motrices',
+            'Je ne sais pas',
           ],
           onChanged: (value) {
             setState(() {
@@ -965,11 +965,13 @@ class _HomePageState extends ConsumerState<HomePage> {
           _selectedFuelType != null &&
           _selectedFuelType!.isNotEmpty;
     } else if (_selectedType == 'transmission') {
-      // Pièces boîte de vitesse : type et nombre de rapports requis
+      // Pièces boîte de vitesse : type, nombre de rapports et type transmission requis
       return _selectedTransmissionType != null &&
           _selectedTransmissionType!.isNotEmpty &&
           _selectedGearCount != null &&
-          _selectedGearCount!.isNotEmpty;
+          _selectedGearCount!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
     } else {
       // Pièces carrosserie/intérieur : marque, modèle, année requises
       return _selectedMarque != null &&

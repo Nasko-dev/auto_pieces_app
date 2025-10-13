@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Couleurs principales
-  static const Color primaryBlue = Color(0xFF007AFF);
+  static const Color primaryBlue = Color(0xFF4169E1); // Bleu roi (Royal Blue)
   static const Color lightBlue = Color(0xFF5AC8FA);
   static const Color darkBlue = Color(0xFF0051D5);
   
