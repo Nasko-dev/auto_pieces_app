@@ -23,12 +23,7 @@ class SellPartStepPage extends ConsumerStatefulWidget {
 class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   final TextEditingController _partController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  bool _hasMultiple = false;
-  bool _isCompleteVehicle = false;
-  bool _isCompleteMotor =
-      false; // Option pour moteur complet (catégorie moteur)
-  bool _isCompleteBody =
-      false; // Option pour carrosserie intérieure complète (catégorie carrosserie)
+  bool? _hasMultiple; // null = aucun choix, true = +5 pièces, false = -5 pièces
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   final List<String> _selectedParts = [];
@@ -139,7 +134,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   }
 
   void _selectSuggestion(String suggestion) {
-    if (_hasMultiple) {
+    if (_hasMultiple == true) {
       // Mode multiple : ajouter à la liste des tags
       if (!_selectedParts.contains(suggestion)) {
         setState(() {
@@ -165,101 +160,42 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     });
   }
 
-  void _onCompleteVehicleChanged(bool? value) {
-    setState(() {
-      _isCompleteVehicle = value ?? false;
-      if (_isCompleteVehicle) {
-        // Si on coche véhicule complet, désactiver plusieurs pièces, moteur complet et carrosserie complète
-        _hasMultiple = false;
-        _isCompleteMotor = false;
-        _isCompleteBody = false;
-        _selectedParts.clear();
-        _partController.text = 'Véhicule complet';
-      } else {
-        // Si on décoche véhicule complet, vider le champ
-        if (_partController.text == 'Véhicule complet') {
-          _partController.clear();
-        }
-      }
-    });
-  }
-
-  void _onCompleteMotorChanged(bool? value) {
-    setState(() {
-      _isCompleteMotor = value ?? false;
-      if (_isCompleteMotor) {
-        // Si on coche moteur complet, désactiver plusieurs pièces, véhicule complet et carrosserie complète
-        _hasMultiple = false;
-        _isCompleteVehicle = false;
-        _isCompleteBody = false;
-        _selectedParts.clear();
-        _partController.text = 'Moteur complet';
-      } else {
-        // Si on décoche moteur complet, vider le champ
-        if (_partController.text == 'Moteur complet') {
-          _partController.clear();
-        }
-      }
-    });
-  }
-
-  void _onCompleteBodyChanged(bool? value) {
-    setState(() {
-      _isCompleteBody = value ?? false;
-      if (_isCompleteBody) {
-        // Si on coche carrosserie complète, désactiver plusieurs pièces, véhicule complet et moteur complet
-        _hasMultiple = false;
-        _isCompleteVehicle = false;
-        _isCompleteMotor = false;
-        _selectedParts.clear();
-        _partController.text = 'Carrosserie intérieure complète';
-      } else {
-        // Si on décoche carrosserie complète, vider le champ
-        if (_partController.text == 'Carrosserie intérieure complète') {
-          _partController.clear();
-        }
-      }
-    });
-  }
-
   bool _isFormValid() {
-    final hasText = _partController.text.trim().isNotEmpty;
-    final hasParts = _selectedParts.isNotEmpty;
-
-    if (_isCompleteVehicle || _isCompleteMotor || _isCompleteBody) {
-      // Mode véhicule complet, moteur complet ou carrosserie complète : toujours valide
-      return true;
-    } else if (_hasMultiple) {
-      // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
-      final isValid = hasParts || hasText;
-      return isValid;
-    } else {
-      // Mode simple : valide si du texte dans le champ
-      return hasText;
-    }
+    // L'utilisateur doit d'abord choisir une option (plus ou moins de 5 pièces)
+    // Dès qu'une option est sélectionnée, le bouton Continuer est actif
+    return _hasMultiple != null;
   }
 
   void _handleSubmit() {
-    if (_isCompleteVehicle) {
-      // Mode véhicule complet
-      widget.onPartSubmitted('Véhicule complet', false);
-    } else if (_isCompleteMotor) {
-      // Mode moteur complet
-      widget.onPartSubmitted('Moteur complet', false);
-    } else if (_isCompleteBody) {
-      // Mode carrosserie intérieure complète
-      widget.onPartSubmitted('Carrosserie intérieure complète', false);
-    } else if (_hasMultiple) {
-      // En mode multiple, envoyer la liste des parts comme une chaîne séparée par des virgules
-      final allParts = _selectedParts.toList();
-      if (_partController.text.isNotEmpty &&
-          !allParts.contains(_partController.text)) {
-        allParts.add(_partController.text);
+    // Si aucun texte n'a été saisi, envoyer une chaîne vide
+    // Cela permettra à la page suivante de gérer la saisie des pièces
+    final hasText = _partController.text.trim().isNotEmpty;
+    final hasParts = _selectedParts.isNotEmpty;
+
+    if (_hasMultiple == true) {
+      // Mode multiple (+5 pièces)
+      if (hasParts || hasText) {
+        // Si l'utilisateur a déjà commencé à saisir des pièces
+        final allParts = _selectedParts.toList();
+        if (_partController.text.isNotEmpty &&
+            !allParts.contains(_partController.text)) {
+          allParts.add(_partController.text);
+        }
+        final partsString = allParts.join(', ');
+        widget.onPartSubmitted(partsString, true);
+      } else {
+        // Aucune pièce saisie, passer à la page suivante pour la saisie
+        widget.onPartSubmitted('', true);
       }
-      final partsString = allParts.join(', ');
-      widget.onPartSubmitted(partsString, _hasMultiple);
     } else {
-      widget.onPartSubmitted(_partController.text, _hasMultiple);
+      // Mode simple (-5 pièces)
+      if (hasText) {
+        // Si l'utilisateur a déjà saisi une pièce
+        widget.onPartSubmitted(_partController.text, false);
+      } else {
+        // Aucune pièce saisie, passer à la page suivante pour la saisie
+        widget.onPartSubmitted('', false);
+      }
     }
   }
 
@@ -339,7 +275,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                       if (widget.selectedCategory != 'moteur' &&
                           widget.selectedCategory != 'engine') ...[
                         _buildPartSearchField(),
-                        if (_hasMultiple && _selectedParts.isNotEmpty) ...[
+                        if (_hasMultiple == true && _selectedParts.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           _buildSelectedPartsTags(),
                         ],
@@ -459,8 +395,6 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           child: TextField(
             controller: _partController,
             focusNode: _focusNode,
-            enabled:
-                !_isCompleteVehicle && !_isCompleteMotor && !_isCompleteBody,
             textInputAction: TextInputAction.done,
             style: const TextStyle(
               fontSize: 16,
@@ -640,99 +574,94 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         if (widget.selectedCategory == 'moteur' ||
             widget.selectedCategory == 'engine') ...[
           _buildOptionCheckbox(
-            value: _hasMultiple,
+            value: _hasMultiple == true,
             label: 'J\'ai plus que 5 pièces',
             description:
                 'Vous avez plusieurs pièces moteur à vendre (plus de 5)',
             icon: Icons.inventory_outlined,
             onChanged: (value) {
               setState(() {
-                _hasMultiple = value ?? false;
-                if (!_hasMultiple) {
-                  _selectedParts.clear();
-                }
+                _hasMultiple = true;
+                _selectedParts.clear();
               });
             },
           ),
           const SizedBox(height: 12),
           _buildOptionCheckbox(
-            value: !_hasMultiple && !_isCompleteMotor,
+            value: _hasMultiple == false,
             label: 'J\'ai moins de 5 pièces',
             description:
                 'Vous avez quelques pièces moteur à vendre (moins de 5)',
             icon: Icons.settings_outlined,
             onChanged: (value) {
               setState(() {
-                if (value == true) {
-                  _hasMultiple = false;
-                  _isCompleteMotor = false;
-                  _selectedParts.clear();
-                }
+                _hasMultiple = false;
+                _selectedParts.clear();
               });
             },
           ),
-          const SizedBox(height: 12),
-          _buildOptionCheckbox(
-            value: _isCompleteMotor,
-            label: 'Moteur complet',
-            description:
-                'Vous vendez le moteur complet avec tous ses composants',
-            icon: Icons.engineering_outlined,
-            onChanged: _onCompleteMotorChanged,
-          ),
         ],
 
-        // Pour catégorie CARROSSERIE : options standards
+        // Pour catégorie CARROSSERIE : options de quantité
         if (widget.selectedCategory == 'carrosserie' ||
             widget.selectedCategory == 'body') ...[
           _buildOptionCheckbox(
-            value: _hasMultiple,
-            label: 'J\'ai plusieurs pièces à vendre',
-            description: 'Ajoutez plusieurs pièces en même temps',
-            icon: Icons.inventory_2_outlined,
+            value: _hasMultiple == true,
+            label: 'J\'ai plus que 5 pièces',
+            description:
+                'Vous avez plusieurs pièces de carrosserie à vendre (plus de 5)',
+            icon: Icons.inventory_outlined,
             onChanged: (value) {
               setState(() {
-                _hasMultiple = value ?? false;
-                if (!_hasMultiple) {
-                  _selectedParts.clear();
-                }
+                _hasMultiple = true;
+                _selectedParts.clear();
               });
             },
           ),
           const SizedBox(height: 12),
           _buildOptionCheckbox(
-            value: _isCompleteBody,
-            label: 'Carrosserie complète',
+            value: _hasMultiple == false,
+            label: 'J\'ai moins de 5 pièces',
             description:
-                'Vous vendez toute la carrosserie ou l\'intérieur complet',
-            icon: Icons.car_repair_outlined,
-            onChanged: _onCompleteBodyChanged,
+                'Vous avez quelques pièces de carrosserie à vendre (moins de 5)',
+            icon: Icons.directions_car_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = false;
+                _selectedParts.clear();
+              });
+            },
           ),
         ],
 
-        // Pour catégorie LES DEUX : véhicule complet
+        // Pour catégorie LES DEUX : options de quantité
         if (widget.selectedCategory == 'lesdeux') ...[
           _buildOptionCheckbox(
-            value: _hasMultiple,
-            label: 'J\'ai plusieurs pièces à vendre',
-            description: 'Ajoutez plusieurs pièces en même temps',
-            icon: Icons.inventory_2_outlined,
+            value: _hasMultiple == true,
+            label: 'J\'ai plus que 5 pièces',
+            description:
+                'Vous avez plusieurs pièces à vendre (plus de 5)',
+            icon: Icons.inventory_outlined,
             onChanged: (value) {
               setState(() {
-                _hasMultiple = value ?? false;
-                if (!_hasMultiple) {
-                  _selectedParts.clear();
-                }
+                _hasMultiple = true;
+                _selectedParts.clear();
               });
             },
           ),
           const SizedBox(height: 12),
           _buildOptionCheckbox(
-            value: _isCompleteVehicle,
-            label: 'Véhicule complet',
-            description: 'Vous vendez le véhicule en entier pour pièces',
-            icon: Icons.directions_car_outlined,
-            onChanged: _onCompleteVehicleChanged,
+            value: _hasMultiple == false,
+            label: 'J\'ai moins de 5 pièces',
+            description:
+                'Vous avez quelques pièces à vendre (moins de 5)',
+            icon: Icons.dashboard_customize_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = false;
+                _selectedParts.clear();
+              });
+            },
           ),
         ],
       ],
