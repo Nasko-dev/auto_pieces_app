@@ -1,0 +1,50 @@
+-- Ajout des pièces ADAS, sécurité active et technologies avancées
+
+-- ========================================
+-- ADAS & SÉCURITÉ ACTIVE
+-- ========================================
+INSERT INTO public.parts (name, category, subcategory, synonyms, is_popular) VALUES
+('Radar avant longue portée', 'electronique', 'aide', ARRAY['radar ACC'], true),
+('Radar avant courte portée', 'electronique', 'aide', ARRAY['radar SRR'], false),
+('Radar arrière gauche', 'electronique', 'aide', ARRAY['radar angle mort G'], true),
+('Radar arrière droit', 'electronique', 'aide', ARRAY['radar angle mort D'], true),
+('Caméra avant multifonction', 'electronique', 'vision', ARRAY['caméra pare-brise'], true),
+('Caméra arrière vision', 'electronique', 'vision', ARRAY['caméra recul'], true),
+('Caméra latérale gauche', 'electronique', 'vision', ARRAY['caméra angle mort G'], false),
+('Caméra latérale droite', 'electronique', 'vision', ARRAY['caméra angle mort D'], false),
+('Caméra 360 avant', 'electronique', 'vision', ARRAY['caméra surround AV'], false),
+('Caméra 360 arrière', 'electronique', 'vision', ARRAY['caméra surround AR'], false),
+('Lidar', 'electronique', 'detection', ARRAY['capteur laser'], false),
+('Capteur ultrason avant gauche', 'electronique', 'aide', ARRAY['radar parking AV G'], true),
+('Capteur ultrason avant centre gauche', 'electronique', 'aide', ARRAY['radar parking AV CG'], false),
+('Capteur ultrason avant centre droit', 'electronique', 'aide', ARRAY['radar parking AV CD'], false),
+('Capteur ultrason avant droit', 'electronique', 'aide', ARRAY['radar parking AV D'], true),
+('Capteur ultrason arrière gauche', 'electronique', 'aide', ARRAY['radar parking AR G'], true),
+('Capteur ultrason arrière centre gauche', 'electronique', 'aide', ARRAY['radar parking AR CG'], false),
+('Capteur ultrason arrière centre droit', 'electronique', 'aide', ARRAY['radar parking AR CD'], false),
+('Capteur ultrason arrière droit', 'electronique', 'aide', ARRAY['radar parking AR D'], true),
+('Unité de caméra stéréo', 'electronique', 'vision', ARRAY['caméra 3D'], false),
+('Calculateur ADAS', 'electronique', 'gestion', ARRAY['ECU aide conduite'], true),
+('Module ESP ABS', 'electronique', 'securite', ARRAY['unité ESP'], true),
+('Capteur de vitesse de lacet', 'electronique', 'mesure', ARRAY['gyroscope'], false),
+('Capteur d''accélération', 'electronique', 'mesure', ARRAY['accéléromètre'], false),
+('Module lane assist', 'electronique', 'aide', ARRAY['aide maintien voie'], true),
+('Actuateur lane keeping', 'electronique', 'aide', ARRAY['moteur maintien voie'], false),
+('Module adaptive cruise control', 'electronique', 'aide', ARRAY['régulateur adaptatif'], true),
+('Système de freinage d''urgence', 'electronique', 'securite', ARRAY['AEB'], true),
+('Détecteur de fatigue', 'electronique', 'securite', ARRAY['attention assist'], false),
+('Reconnaissance panneaux', 'electronique', 'aide', ARRAY['TSR'], true),
+('Module night vision', 'electronique', 'vision', ARRAY['vision nocturne'], false),
+('Affichage tête haute', 'electronique', 'affichage', ARRAY['HUD'], true),
+('Projecteur HUD', 'electronique', 'affichage', ARRAY['système HUD'], false),
+('Écran HUD', 'electronique', 'affichage', ARRAY['vitre HUD'], false),
+('Rétroviseur intérieur électrochrome', 'electronique', 'confort', ARRAY['rétro auto-obscurcissant'], true),
+('Rétroviseur extérieur électrochrome', 'electronique', 'confort', ARRAY['rétro anti-éblouissement'], false),
+('Système de parking automatique', 'electronique', 'aide', ARRAY['park assist'], true),
+('Module traffic sign assist', 'electronique', 'aide', ARRAY['lecture panneaux'], false),
+('Alerte angle mort', 'electronique', 'securite', ARRAY['BSD'], true),
+('Alerte trafic arrière', 'electronique', 'securite', ARRAY['RCTA'], false),
+('Détection piétons', 'electronique', 'securite', ARRAY['PDS'], false),
+('Système anti-collision', 'electronique', 'securite', ARRAY['pre-crash'], false)
+
+ON CONFLICT (name) DO NOTHING;

@@ -291,7 +291,7 @@ void main() {
       );
     });
 
-    testWidgets('doit afficher l\'image de fond de la plaque', (tester) async {
+    testWidgets('doit afficher les carrés bleus européens', (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -301,15 +301,9 @@ void main() {
         ),
       );
 
-      // assert
-      expect(
-        find.byWidgetPredicate(
-          (widget) => widget is Image &&
-                      widget.image is AssetImage &&
-                      (widget.image as AssetImage).assetName == 'assets/images/french_plate.png',
-        ),
-        findsOneWidget,
-      );
+      // assert - Vérifier que les éléments de la plaque sont présents
+      expect(find.text('F'), findsOneWidget); // Lettre France
+      expect(find.text('★'), findsNWidgets(12)); // 12 étoiles européennes
     });
 
     testWidgets('doit avoir le bon style de texte', (tester) async {
@@ -325,9 +319,9 @@ void main() {
       // assert
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.style?.fontFamily, 'Arial');
-      expect(textField.style?.fontSize, 36);
+      expect(textField.style?.fontSize, 22);
       expect(textField.style?.fontWeight, FontWeight.w900);
-      expect(textField.style?.letterSpacing, 8);
+      expect(textField.style?.letterSpacing, 3);
       expect(textField.style?.color, Colors.black);
     });
 

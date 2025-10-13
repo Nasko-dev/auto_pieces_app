@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/theme/app_theme.dart';
 
 class FrenchLicensePlate extends StatefulWidget {
   final TextEditingController controller;
@@ -31,12 +32,10 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
   @override
   void initState() {
     super.initState();
-    // Focus listener pour les callbacks si nécessaire
     _focusNode.addListener(() {
       setState(() {});
     });
-    
-    // Initialiser le controller avec plateNumber si fourni
+
     if (widget.plateNumber != null && widget.controller.text.isEmpty) {
       widget.controller.text = widget.plateNumber!;
     }
@@ -49,7 +48,6 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
   }
 
   String _formatPlateText(String text) {
-    // Convertir en majuscules et garder uniquement lettres, chiffres et tirets
     return text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9\-]'), '');
   }
 
@@ -60,129 +58,148 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
       children: [
         SizedBox(
           width: double.infinity,
-          height: 80, // Hauteur très augmentée pour éviter le rognage
+          height: 60,
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black, width: 0.5),
+            ),
             child: Stack(
               children: [
-                // Image de fond de la plaque
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Image en arrière-plan
-                        Positioned.fill(
-                          child: Image.asset(
-                            'assets/images/french_plate.png',
-                            fit: BoxFit.fill,
-                          ),
+                Row(
+                  children: [
+                    // Carré bleu gauche avec symbole européen
+                    Container(
+                      width: 38,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryBlue,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          bottomLeft: Radius.circular(6),
                         ),
-                        // Contenu par-dessus
-                        Container(
-                          decoration: const BoxDecoration(
-                            // Complètement transparent pour voir l'image
-                            color: Colors.transparent,
-                          ),
-                          child: Row(
-                            children: [
-                              // Espace pour la bande bleue (invisible car dans l'image)
-                              const SizedBox(width: 50),
-                              // Zone de texte
-                              Expanded(
-                                child: TextField(
-                                  controller: widget.controller,
-                                  focusNode: _focusNode,
-                                  enabled: widget.enabled && !widget.isLoading,
-                                  textAlign: TextAlign.center,
-                                  textCapitalization:
-                                      TextCapitalization.characters,
-                                  style: const TextStyle(
-                                    fontFamily: 'Arial',
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 8,
-                                    color: Colors.black,
-                                    height: 1,
-                                  ),
-                                  inputFormatters: [
-                                    LengthLimitingTextInputFormatter(
-                                      15,
-                                    ), // Permet plus de caractères pour plaques collection
-                                    TextInputFormatter.withFunction((
-                                      oldValue,
-                                      newValue,
-                                    ) {
-                                      return TextEditingValue(
-                                        text: _formatPlateText(newValue.text),
-                                        selection: TextSelection.collapsed(
-                                          offset:
-                                              _formatPlateText(
-                                                newValue.text,
-                                              ).length,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Cercle d'étoiles dorées (symbole européen)
+                          SizedBox(
+                            width: 26,
+                            height: 26,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                for (int i = 0; i < 12; i++)
+                                  Transform.rotate(
+                                    angle: (i * 30) * 3.14159 / 180,
+                                    child: Transform.translate(
+                                      offset: const Offset(0, -10),
+                                      child: const Text(
+                                        '★',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFD700),
+                                          fontSize: 6,
+                                          height: 1,
                                         ),
-                                      );
-                                    }),
-                                  ],
-                                  decoration: const InputDecoration(
-                                    hintText: 'AA-123-BB',
-                                    hintStyle: TextStyle(
-                                      fontFamily: 'Arial',
-                                      fontSize: 29,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 4,
-                                      color: Color(0xFFAAAAAA),
-                                      height: 1,
-                                    ),
-                                    border: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    disabledBorder: InputBorder.none,
-                                    errorBorder: InputBorder.none,
-                                    focusedErrorBorder: InputBorder.none,
-                                    filled: false,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: -10,
+                                      ),
                                     ),
                                   ),
-                                  onChanged: widget.onChanged,
-                                  onSubmitted: widget.onSubmitted,
-                                ),
-                              ),
-                              // Espace pour le logo région
-                              const SizedBox(width: 20),
-                            ],
-                          ),
-                        ),
-                        // Indicateur de chargement
-                        if (widget.isLoading)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 30,
-                                  height: 30,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF003399),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              ],
                             ),
                           ),
-                      ],
+                          const SizedBox(height: 2),
+                          // Lettre F pour France
+                          const Text(
+                            'F',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Zone de texte
+                    Expanded(
+                      child: TextField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        enabled: widget.enabled && !widget.isLoading,
+                        textAlign: TextAlign.center,
+                        textCapitalization: TextCapitalization.characters,
+                        style: const TextStyle(
+                          fontFamily: 'Arial',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 3,
+                          color: Colors.black,
+                        ),
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(15),
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            return TextEditingValue(
+                              text: _formatPlateText(newValue.text),
+                              selection: TextSelection.collapsed(
+                                offset: _formatPlateText(newValue.text).length,
+                              ),
+                            );
+                          }),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: 'AA-123-BB',
+                          hintStyle: TextStyle(
+                            fontFamily: 'Arial',
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 3,
+                            color: Color(0xFFAAAAAA),
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          filled: false,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: widget.onChanged,
+                        onSubmitted: widget.onSubmitted,
+                      ),
+                    ),
+                    // Carré bleu droit
+                    Container(
+                      width: 38,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryBlue,
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(6),
+                          bottomRight: Radius.circular(6),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Indicateur de chargement
+                if (widget.isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -193,7 +210,10 @@ class _FrenchLicensePlateState extends State<FrenchLicensePlate> {
             padding: const EdgeInsets.only(left: 8),
             child: Text(
               widget.errorText!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
             ),
           ),
         ],

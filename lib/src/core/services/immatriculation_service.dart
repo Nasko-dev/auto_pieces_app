@@ -93,20 +93,31 @@ class ImmatriculationService {
     final vehicleInfo = vehicleData['vehicleInformation'] as Map<String, dynamic>? ?? {};
     final engines = vehicleData['engine'] as List<dynamic>? ?? [];
     final gearbox = vehicleData['gearbox'] as Map<String, dynamic>? ?? {};
-    
+
     // Extraire les données du moteur (prendre le premier)
     final engine = engines.isNotEmpty ? engines.first as Map<String, dynamic> : <String, dynamic>{};
     final environmental = engine['environmental'] as Map<String, dynamic>? ?? {};
-    
+
+    // Extraire le nom du modèle proprement
+    // fullModel peut contenir : "PEUGEOT 206+ (2L_, 2M_) 1.4 HDi eco 70"
+    // On veut juste : "206+"
+    String? modelName = vehicleInfo['model']?.toString(); // Ex: "206+ (2L_, 2M_)"
+
+    // Nettoyer le modèle : garder seulement ce qui est avant la parenthèse
+    if (modelName != null && modelName.contains('(')) {
+      modelName = modelName.split('(').first.trim();
+    }
+
     return VehicleInfo(
       registrationNumber: plate,
       make: vehicleInfo['make']?.toString(),
-      model: vehicleInfo['model']?.toString(),
+      model: modelName,
       fuelType: engine['fuel']?.toString(),
       bodyStyle: vehicleInfo['bodyName']?.toString(),
-      engineSize: engine['capacityLiters']?.toString() ?? 
+      engineSize: engine['capacityLiters']?.toString() ??
                   (engine['ccm'] != null ? '${engine['ccm']}cc' : null),
-      year: _extractYearFromDate(vehicleInfo['salesStartDate']?.toString()),
+      year: _extractYearFromDate(vehicleInfo['firstRegistrationDate']?.toString()) ??
+            _extractYearFromDate(vehicleInfo['salesStartDate']?.toString()),
       color: vehicleInfo['color']?.toString(),
       vin: vehicleInfo['vin']?.toString(),
       engineNumber: null, // Pas disponible dans TecAlliance

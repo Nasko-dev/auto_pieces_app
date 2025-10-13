@@ -22,10 +22,10 @@ class CongratsStepPage extends StatelessWidget {
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF1763FF), width: 6),
+              border: Border.all(color: AppTheme.primaryBlue, width: 6),
             ),
             child: const Center(
-              child: Icon(Icons.check, size: 64, color: Color(0xFF1763FF)),
+              child: Icon(Icons.check, size: 64, color: AppTheme.primaryBlue),
             ),
           ),
           const SizedBox(height: 24),

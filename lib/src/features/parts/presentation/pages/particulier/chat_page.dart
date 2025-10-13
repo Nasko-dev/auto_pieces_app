@@ -17,8 +17,10 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
+import '../../../../../core/theme/app_theme.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -67,7 +69,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _loadSellerInfo();
     });
   }
-  
+
   void _subscribeToRealtimeMessages() {
     debugPrint('🔔 [Particulier Realtime] Abonnement aux messages de conversation ${widget.conversationId}');
 
@@ -192,16 +194,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
+        backgroundColor: AppTheme.white,
+        foregroundColor: AppTheme.darkGray,
+        elevation: 0,
         title: _buildInstagramAppBarTitle(conversation),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
           onPressed: () {
+            HapticHelper.light();
             // Utiliser GoRouter au lieu de Navigator.pop pour compatibilité notifications
             if (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
@@ -212,11 +214,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.phone_outlined, color: Colors.black),
+            icon: const Icon(Icons.phone_outlined, color: AppTheme.darkGray),
             onPressed: () => _makePhoneCall(conversation),
           ),
           IconButton(
-            icon: const Icon(Icons.videocam_outlined, color: Colors.black),
+            icon: const Icon(Icons.videocam_outlined, color: AppTheme.darkGray),
             onPressed: () => _makeVideoCall(conversation),
           ),
           ContextMenu(
@@ -261,7 +263,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           Expanded(
             child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
           ),
-          
+
           // Zone de saisie
           ChatInputWidget(
             controller: _messageController,
@@ -277,8 +279,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
+    Widget content;
+
     if (isLoading && messages.isEmpty) {
-      return const Center(
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -288,17 +292,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       );
-    }
-
-    if (error != null && messages.isEmpty) {
-      return Center(
+    } else if (error != null && messages.isEmpty) {
+      content = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
               Icons.error_outline,
               size: 64,
-              color: Colors.red,
+              color: AppTheme.error,
             ),
             const SizedBox(height: 16),
             Text(
@@ -321,17 +323,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       );
-    }
-
-    if (messages.isEmpty) {
-      return const Center(
+    } else if (messages.isEmpty) {
+      content = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.chat_bubble_outline,
               size: 64,
-              color: Colors.grey,
+              color: AppTheme.gray,
             ),
             SizedBox(height: 16),
             Text(
@@ -345,14 +345,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             Text(
               'Commencez la conversation en envoyant un message.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppTheme.gray),
             ),
           ],
         ),
       );
-    }
-
-    return ListView.builder(
+    } else {
+      content = ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
       itemCount: messages.length,
@@ -381,26 +380,45 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         );
       },
     );
+    }
+
+    // Envelopper le contenu dans un Stack avec le logo en arrière-plan
+    return Stack(
+      children: [
+        // Logo en arrière-plan au centre
+        Center(
+          child: Image.asset(
+            'assets/Backgrund-message.png',
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+        // Contenu par-dessus
+        content,
+      ],
+    );
   }
 
   bool _shouldShowDateSeparator(List<Message> messages, int index) {
     if (index == 0) return true;
-    
+
     final currentMessage = messages[index];
     final previousMessage = messages[index - 1];
-    
+
     final currentDate = DateTime(
       currentMessage.createdAt.year,
       currentMessage.createdAt.month,
       currentMessage.createdAt.day,
     );
-    
+
     final previousDate = DateTime(
       previousMessage.createdAt.year,
       previousMessage.createdAt.month,
       previousMessage.createdAt.day,
     );
-    
+
     return !currentDate.isAtSameMomentAs(previousDate);
   }
 
@@ -408,7 +426,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final messageDate = DateTime(date.year, date.month, date.day);
-    
+
     String dateText;
     if (messageDate.isAtSameMomentAs(today)) {
       dateText = 'Aujourd\'hui';
@@ -421,14 +439,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: AppTheme.lightGray,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         dateText,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
-          color: Colors.grey[600],
+          color: AppTheme.gray,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -438,7 +456,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _sendMessage(String content) {
     if (content.trim().isEmpty) return;
 
-    
+
     ref.read(conversationsControllerProvider.notifier).sendMessage(
       conversationId: widget.conversationId,
       content: content.trim(),
@@ -466,11 +484,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _showDeleteDialog() async {
-    final result = await context.showIOSDialog(
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer la conversation',
       message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
-      type: DialogType.error,
-      confirmText: 'Supprimer',
+      destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 
@@ -528,10 +545,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _getSellerDisplayName(conversation),
-                style: const TextStyle(
-                  color: Colors.black,
+              const Text(
+                'En ligne',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -539,9 +556,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                'En ligne',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
+                _getSellerDisplayName(conversation),
+                style: const TextStyle(
+                  color: AppTheme.gray,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                 ),
@@ -564,7 +581,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.grey.shade300,
+            color: AppTheme.lightGray,
             width: 1,
           ),
         ),
@@ -594,19 +611,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFF405DE6), const Color(0xFF5851DB)], // Gradient Instagram bleu
+          colors: [Color(0xFF405DE6), Color(0xFF5851DB)], // Gradient Instagram bleu
         ),
         shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.white,
+          color: AppTheme.white,
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppTheme.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -614,7 +631,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ),
       child: const Icon(
         Icons.business,
-        color: Colors.white,
+        color: AppTheme.white,
         size: 16,
       ),
     );

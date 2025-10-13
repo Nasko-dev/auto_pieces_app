@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/particulier_auth_providers.dart';
 import '../../../core/providers/user_settings_providers.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../features/parts/domain/entities/user_settings.dart';
+import '../../../core/utils/haptic_helper.dart';
 import 'app_menu.dart';
 
 class AppHeader extends ConsumerStatefulWidget {
@@ -28,10 +31,6 @@ class AppHeader extends ConsumerStatefulWidget {
 }
 
 class _AppHeaderState extends ConsumerState<AppHeader> {
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-
   UserSettings? _userSettings;
 
   @override
@@ -73,7 +72,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
       width: double.infinity,
       padding: EdgeInsets.only(top: media.padding.top + 16, bottom: 30),
       margin: const EdgeInsets.only(bottom: 16),
-      color: widget.backgroundColor ?? Colors.white,
+      color: widget.backgroundColor ?? AppTheme.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: widget.title != null
@@ -160,17 +159,24 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
         // Bouton retour si demandé
         if (widget.showBackButton)
           GestureDetector(
-            onTap: widget.onBackPressed ?? () => Navigator.of(context).pop(),
+            onTap: () {
+              HapticHelper.light();
+              if (widget.onBackPressed != null) {
+                widget.onBackPressed!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
-                Icons.arrow_back_ios,
+                Icons.chevron_left,
                 size: 20,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -186,7 +192,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: _textDark,
+                  color: AppTheme.darkGray,
                 ),
               ),
             ),
@@ -198,7 +204,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: _textDark,
+                color: AppTheme.darkGray,
               ),
             ),
           ),
@@ -219,7 +225,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
         Text(
           greeting,
           style: const TextStyle(
-            color: _textGray,
+            color: AppTheme.gray,
             fontSize: 14,
             fontWeight: FontWeight.w400,
           ),
@@ -228,7 +234,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
         Text(
           displayName,
           style: const TextStyle(
-            color: _textDark,
+            color: AppTheme.darkGray,
             fontSize: 20,
             fontWeight: FontWeight.w600,
             height: 1.1,
@@ -245,8 +251,8 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _blue.withValues(alpha: 0.8),
-            _blue,
+            AppTheme.primaryBlue.withValues(alpha: 0.8),
+            AppTheme.primaryBlue,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -255,7 +261,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
       ),
       child: const Icon(
         Icons.person,
-        color: Colors.white,
+        color: AppTheme.white,
         size: 24,
       ),
     );

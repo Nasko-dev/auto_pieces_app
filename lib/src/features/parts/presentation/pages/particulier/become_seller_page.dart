@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 import 'become_seller/choice_step_page.dart';
 import 'become_seller/sell_part_step_page.dart';
+import '../Vendeur/add_advertisement/seller_parts_selection_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
@@ -60,7 +62,39 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     setState(() {
       _partName = partName;
       hasMultipleParts = hasMultiple;
-      _currentStep = 2;
+      // Si partName est vide, aller à la page de sélection des pièces (step 2)
+      // Sinon, passer directement à la plaque (step 3)
+      _currentStep = partName.isEmpty ? 2 : 3;
+    });
+  }
+
+  void _onPartsSelected(List<String> parts, String completeOption) {
+    setState(() {
+      // Construire le nom de la pièce selon la sélection
+      if (completeOption.isNotEmpty) {
+        // Options complètes
+        switch (completeOption) {
+          case 'moteur_complet':
+            _partName = 'Moteur complet';
+            break;
+          case 'carrosserie_complete':
+            _partName = 'Carrosserie complète';
+            break;
+          case 'vehicule_complet':
+            _partName = 'Véhicule complet';
+            break;
+        }
+      } else if (parts.isNotEmpty) {
+        if (hasMultipleParts) {
+          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
+          _partName = 'Toutes pièces sauf: ${parts.join(', ')}';
+        } else {
+          // -5 pièces : les pièces listées sont celles qu'on A
+          _partName = parts.join(', ');
+        }
+      }
+
+      _currentStep = 3; // Aller à la plaque
     });
   }
 
@@ -75,7 +109,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
       setState(() {
         _isSubmitting = false;
-        _currentStep = 3;
+        _currentStep = 4;
       });
     } catch (e) {
       setState(() {
@@ -167,7 +201,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     if (widget.mode == SellerMode.particulier) {
       context.go('/home');
     } else {
-      context.go('/seller');
+      context.go('/seller/home');
     }
   }
 
@@ -189,8 +223,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   actions: [
                     if (_currentStep > 0)
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.darkGray),
-                        onPressed: _goToPreviousStep,
+                        icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+                        onPressed: () {
+                          HapticHelper.light();
+                          _goToPreviousStep();
+                        },
                         tooltip: 'Retour',
                       ),
                     const AppMenu(),
@@ -223,7 +260,12 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   selectedCategory: _selectedChoice,
                   onPartSubmitted: _onPartSubmitted,
                 ),
-              2 => PlateStepPage(
+              2 => SellerPartsSelectionPage(
+                  selectedCategory: _selectedChoice,
+                  hasMultipleParts: hasMultipleParts,
+                  onSubmit: _onPartsSelected,
+                ),
+              3 => PlateStepPage(
                   onPlateSubmitted: _onPlateSubmitted,
                   isLoading: _isSubmitting,
                 ),

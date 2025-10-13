@@ -9,6 +9,7 @@ import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../../../core/services/notification_service.dart';
 
 part 'my_ads_page.freezed.dart';
 
@@ -21,7 +22,7 @@ class UnifiedItem with _$UnifiedItem {
 
 class MyAdsPage extends ConsumerStatefulWidget {
   const MyAdsPage({super.key});
-  
+
   @override
   ConsumerState<MyAdsPage> createState() => _MyAdsPageState();
 }
@@ -150,14 +151,14 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               builder: (context, ref, child) {
                 final state = ref.watch(partAdvertisementControllerProvider);
                 // Variable supprimée car non utilisée
-                
-                
+
+
                 if (state.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-                
+
                 if (state.error != null) {
                   return Center(
                     child: Column(
@@ -181,7 +182,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     ),
                   );
                 }
-                
+
                 // Check if both ads and requests are empty
                 if (filteredAds.isEmpty && sellerRequests.isEmpty) {
                   return Center(
@@ -198,7 +199,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     ),
                   );
                 }
-                
+
                 return RefreshIndicator(
                   onRefresh: () async {
                     await ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
@@ -217,7 +218,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                       // Section Annonces et Demandes
                       Text(
                         'Mes Annonces (${unifiedItems.length})',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.darkBlue,
@@ -273,9 +274,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
   }
 
   Widget _buildFilterChip(String label, String value, int count) {
-    const blue = Color(0xFF1976D2);
     final isSelected = _selectedFilter == value;
-    
+
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -287,10 +287,10 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? blue.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? blue : Colors.grey.shade300,
+            color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
             width: 1.5,
           ),
         ),
@@ -301,7 +301,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? blue : Colors.grey.shade600,
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade600,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 12,
               ),
@@ -310,7 +310,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? blue : Colors.grey.shade400,
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -348,40 +348,189 @@ class _UnifiedItemCard extends StatelessWidget {
 }
 
 // Widget pour afficher une annonce
-class _AdvertisementCard extends StatelessWidget {
+class _AdvertisementCard extends ConsumerWidget {
   final PartAdvertisement advertisement;
 
   const _AdvertisementCard({required this.advertisement});
 
-  @override
-  Widget build(BuildContext context) {
-    const blue = Color(0xFF1976D2);
-    const green = Color(0xFF00C853);
-    const orange = Color(0xFFFF9800);
-    const grey = Color(0xFF9E9E9E);
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
 
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160, // Aligner à droite du bouton
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer l\'annonce ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                // Appeler la méthode de suppression du controller
+                final success = await ref
+                    .read(partAdvertisementControllerProvider.notifier)
+                    .deleteAdvertisement(advertisement.id);
+
+                if (context.mounted) {
+                  if (success) {
+                    notificationService.success(
+                      context,
+                      'Annonce supprimée avec succès',
+                    );
+                  } else {
+                    final errorMsg = ref.read(partAdvertisementControllerProvider).error ??
+                        'Erreur lors de la suppression';
+                    notificationService.error(
+                      context,
+                      errorMsg,
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     Color statusColor;
     String statusText;
     IconData statusIcon;
 
     switch (advertisement.status) {
       case 'active':
-        statusColor = green;
+        statusColor = AppTheme.success;
         statusText = 'Active';
         statusIcon = Icons.visibility;
         break;
       case 'sold':
-        statusColor = blue;
+        statusColor = AppTheme.primaryBlue;
         statusText = 'Vendue';
         statusIcon = Icons.check_circle;
         break;
       case 'paused':
-        statusColor = orange;
+        statusColor = AppTheme.warning;
         statusText = 'Pausée';
         statusIcon = Icons.pause_circle;
         break;
       default:
-        statusColor = grey;
+        statusColor = AppTheme.gray;
         statusText = 'Inconnue';
         statusIcon = Icons.help;
     }
@@ -403,7 +552,7 @@ class _AdvertisementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge "ANNONCE" en haut à droite
+            // Badge "ANNONCE" en haut à droite avec menu 3 points
             Row(
               children: [
                 Expanded(
@@ -420,18 +569,18 @@ class _AdvertisementCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: blue.withValues(alpha: 0.1),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.store, color: blue, size: 12),
+                      Icon(Icons.store, color: AppTheme.primaryBlue, size: 12),
                       const SizedBox(width: 4),
                       Text(
                         'ANNONCE',
                         style: TextStyle(
-                          color: blue,
+                          color: AppTheme.primaryBlue,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                         ),
@@ -463,6 +612,23 @@ class _AdvertisementCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 4),
+                // Menu 3 points
+                Builder(
+                  builder: (BuildContext buttonContext) {
+                    return IconButton(
+                      icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        final button = buttonContext.findRenderObject() as RenderBox;
+                        _showOptionsMenu(context, ref, button);
+                      },
+                      tooltip: 'Options',
+                    );
+                  },
+                ),
               ],
             ),
 
@@ -473,10 +639,10 @@ class _AdvertisementCard extends StatelessWidget {
               children: [
                 Text(
                   '${advertisement.price?.toStringAsFixed(0) ?? '0'}€',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: blue,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
                 const Spacer(),
@@ -544,13 +710,150 @@ class _AdvertisementCard extends StatelessWidget {
 }
 
 // Widget pour afficher une demande vendeur
-class _RequestCard extends StatelessWidget {
+class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({required this.request});
 
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160,
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer la demande ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+
+                // Fonctionnalité en cours de développement
+                notificationService.info(
+                  context,
+                  'Fonctionnalité en cours de développement',
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -587,18 +890,18 @@ class _RequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: AppTheme.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.search, color: Colors.orange, size: 12),
+                    Icon(Icons.search, color: AppTheme.warning, size: 12),
                     const SizedBox(width: 4),
                     Text(
                       'DEMANDE',
                       style: TextStyle(
-                        color: Colors.orange,
+                        color: AppTheme.warning,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),
@@ -622,6 +925,23 @@ class _RequestCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+              const SizedBox(width: 4),
+              // Menu 3 points
+              Builder(
+                builder: (BuildContext buttonContext) {
+                  return IconButton(
+                    icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      final button = buttonContext.findRenderObject() as RenderBox;
+                      _showOptionsMenu(context, ref, button);
+                    },
+                    tooltip: 'Options',
+                  );
+                },
               ),
             ],
           ),

@@ -6,9 +6,14 @@ import '../../../../../shared/presentation/widgets/license_plate_input.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
+import '../../../../../core/providers/vehicle_catalog_providers.dart';
+import '../../../../../core/providers/engine_catalog_providers.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/haptic_helper.dart';
 
 // Provider pour le client Supabase
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -23,12 +28,12 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  // Couleurs calibrées pour matcher le screen
-  static const Color _blue = Color(0xFF1976D2);
-  static const Color _textDark = Color(0xFF1C1C1E);
-  static const Color _textGray = Color(0xFF6B7280);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  // Constantes de style iOS
+  static const double _radius = 10; // Standard iOS
+  static const Color _textGray = AppTheme.gray;
+  static const Color _textDark = AppTheme.darkGray;
+  static const Color _border = AppColors.grey200;
+  static const Color _blue = AppTheme.primaryBlue;
 
   String _selectedType = 'engine';
   bool _isManualMode = false;
@@ -36,10 +41,22 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   final _plate = TextEditingController();
   final _partController = TextEditingController();
-  final _marqueController = TextEditingController();
-  final _modeleController = TextEditingController();
-  final _anneeController = TextEditingController();
-  final _motorisationController = TextEditingController();
+
+  // Pour le mode manuel avec dropdowns
+  String? _selectedMarque;
+  String? _selectedModele;
+  int? _selectedAnnee;
+
+  // Pour les pièces moteur - mode manuel avec 2 dropdowns + chevaux optionnel
+  String? _selectedCylindree;
+  String? _selectedFuelType;
+  final _horsepowerController = TextEditingController();
+
+  // Pour les pièces de boîte de vitesse - mode manuel
+  String? _selectedTransmissionType; // manuelle, automatique, robotisée, etc.
+  String? _selectedGearCount; // nombre de rapports
+  String? _selectedDriveType; // traction, propulsion, 4x4 (optionnel)
+
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
 
@@ -59,7 +76,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     // Vérifier l'état d'authentification au démarrage et connecter si nécessaire
     Future.delayed(const Duration(milliseconds: 100), () async {
       if (mounted) {
-        final authController = ref.read(particulierAuthControllerProvider.notifier);
+        final authController =
+            ref.read(particulierAuthControllerProvider.notifier);
         await authController.checkAuthStatus();
 
         // Si pas connecté, faire une connexion anonyme
@@ -98,10 +116,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _plate.dispose();
     _partController.removeListener(_onTextChanged);
     _partController.dispose();
-    _marqueController.dispose();
-    _modeleController.dispose();
-    _anneeController.dispose();
-    _motorisationController.dispose();
+    _horsepowerController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -135,7 +150,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
-                      color: _textDark,
+                      color: AppTheme.darkGray,
                     ),
                   ),
                 ),
@@ -147,93 +162,108 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-
-                  // 2 CARTES (sélection)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _TypeCard(
-                          selected: _selectedType == 'engine',
-                          icon: Icons.settings,
-                          title: 'Pièces liées à la motorisation',
-                          onTap: () => setState(() => _selectedType = 'engine'),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _TypeCard(
-                          selected: _selectedType == 'body',
-                          icon: Icons.car_repair,
-                          title: 'Pièces liées à la carrosserie ou à l\'habitacle',
-                          onTap: () => setState(() => _selectedType = 'body'),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // Widget de recherche de plaque avec API
-                  if (!_isManualMode) ...[
-                    LicensePlateInput(
-                      initialPlate: _plate.text,
-                      onPlateValidated: (plate) {
-                        setState(() {
-                          _plate.text = plate;
-                          _showDescription = true;
-                        });
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        });
-                      },
-                      onManualMode: () {
-                        setState(() {
-                          _isManualMode = true;
-                          _showDescription = false;
-                        });
-                      },
-                      showManualOption: true,
-                      autoSearch: true,
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Champs manuels - Mode manuel
-                  if (_isManualMode) ..._buildManualFields(),
-
-                  // Section description et validation
-                  if (_canContinue()) ..._buildDescriptionSection(),
-
-                  // Bouton continuer
-                  if (!_showDescription) ...[
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed:
-                            _canContinue() ? _continueToDescription : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(_radius),
+                      // 2 CARTES EN HAUT (motorisation et carrosserie)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _TypeCard(
+                              selected: _selectedType == 'engine',
+                              icon: Icons.settings,
+                              title: 'Pièces liées à la motorisation',
+                              onTap: () =>
+                                  setState(() => _selectedType = 'engine'),
+                            ),
                           ),
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _TypeCard(
+                              selected: _selectedType == 'body',
+                              icon: Icons.directions_car,
+                              title:
+                                  'Pièces liées à la carrosserie ou à l\'habitacle',
+                              onTap: () =>
+                                  setState(() => _selectedType = 'body'),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 3ÈME CARTE PLEINE LARGEUR (boîte de vitesse)
+                      _TypeCard(
+                        selected: _selectedType == 'transmission',
+                        icon: Icons.settings_input_component,
+                        title: 'Pièces liées à la boîte de vitesse',
+                        onTap: () =>
+                            setState(() => _selectedType = 'transmission'),
+                        compact: true,
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // Widget de recherche de plaque avec API
+                      if (!_isManualMode) ...[
+                        LicensePlateInput(
+                          initialPlate: _plate.text,
+                          onPlateValidated: (plate) {
+                            setState(() {
+                              _plate.text = plate;
+                              _showDescription = true;
+                            });
+                            Future.delayed(const Duration(milliseconds: 100),
+                                () {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            });
+                          },
+                          onManualMode: () {
+                            setState(() {
+                              _isManualMode = true;
+                              _showDescription = false;
+                            });
+                          },
+                          showManualOption: true,
+                          autoSearch: true,
+                        ),
+                      ],
+
+                      const SizedBox(height: 24),
+
+                      // Champs manuels - Mode manuel
+                      if (_isManualMode) ..._buildManualFields(),
+
+                      // Section description et validation
+                      if (_canContinue()) ..._buildDescriptionSection(),
+
+                      // Bouton continuer
+                      if (!_showDescription) ...[
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed:
+                                _canContinue() ? _continueToDescription : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _blue,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(_radius),
+                              ),
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                            ),
+                            child: const Text('Continuer'),
                           ),
                         ),
-                        child: const Text('Continuer'),
-                      ),
-                    ),
-                  ],
+                      ],
 
                       // Espace bas pour resp. safe area
                       SizedBox(height: media.padding.bottom + 8),
@@ -250,7 +280,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   // Méthodes pour la logique de l'application
 
-
   List<Widget> _buildManualFields() {
     return [
       // Bouton pour revenir au mode plaque + titre
@@ -258,21 +287,22 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           GestureDetector(
             onTap: () {
+              HapticHelper.light();
               setState(() {
                 _isManualMode = false;
                 _showDescription = false;
               });
             },
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.arrow_back_ios, size: 16, color: _blue),
-                const SizedBox(width: 4),
+                Icon(Icons.chevron_left, size: 16, color: AppTheme.primaryBlue),
+                SizedBox(width: 4),
                 Text(
                   'Retour plaque d\'immatriculation',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: _blue,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
               ],
@@ -286,13 +316,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          _selectedType == 'engine' 
-            ? 'Informations de motorisation'
-            : 'Informations du véhicule',
+          _selectedType == 'engine'
+              ? 'Informations de motorisation'
+              : _selectedType == 'transmission'
+                  ? 'Informations de boîte de vitesse'
+                  : 'Informations du véhicule',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -300,54 +332,373 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       // Champs selon le type de pièce sélectionné
       if (_selectedType == 'engine') ...[
-        // Pièces moteur : uniquement motorisation
+        // Pièces moteur : 2 dropdowns (cylindrée, carburant)
+        // Dropdown Cylindrée
+        Consumer(
+          builder: (context, ref, child) {
+            final cylindersAsync = ref.watch(engineCylindersProvider);
+            return cylindersAsync.when(
+              data: (cylinders) => _buildDropdown<String>(
+                label: 'Cylindrée',
+                hint: 'Sélectionnez une cylindrée',
+                icon: Icons.speed,
+                value: _selectedCylindree,
+                items: cylinders,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCylindree = value;
+                    // Reset carburant quand cylindrée change
+                    _selectedFuelType = null;
+                  });
+                },
+                enabled: true,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Cylindrée',
+                hint: 'Chargement...',
+                icon: Icons.speed,
+              ),
+              error: (error, stackTrace) => _buildDropdown<String>(
+                label: 'Cylindrée',
+                hint: 'Erreur de chargement',
+                icon: Icons.speed,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // Dropdown Type de carburant
+        Consumer(
+          builder: (context, ref, child) {
+            final fuelTypesAsync = ref.watch(engineFuelTypesProvider);
+            return fuelTypesAsync.when(
+              data: (fuelTypes) => _buildDropdown<String>(
+                label: 'Type de carburant',
+                hint: 'Sélectionnez un type de carburant',
+                icon: Icons.local_gas_station,
+                value: _selectedFuelType,
+                items: fuelTypes,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedFuelType = value;
+                  });
+                },
+                enabled: _selectedCylindree != null &&
+                    _selectedCylindree!.isNotEmpty,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Type de carburant',
+                hint: 'Chargement...',
+                icon: Icons.local_gas_station,
+              ),
+              error: (_, __) => _buildDropdown<String>(
+                label: 'Type de carburant',
+                hint: 'Erreur de chargement',
+                icon: Icons.local_gas_station,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // Champ optionnel pour les chevaux
         _buildTextField(
-          controller: _motorisationController,
-          label: 'Motorisation',
-          hint: 'Ex: 1.6L Essence, 2.0 TDI, 1.4 TSI',
-          icon: Icons.speed,
+          label: 'Chevaux (optionnel)',
+          hint: 'Ex: 110',
+          icon: Icons.flash_on,
+          controller: _horsepowerController,
+          keyboardType: TextInputType.number,
+        ),
+      ] else if (_selectedType == 'transmission') ...[
+        // Pièces boîte de vitesse : type de boîte et nombre de rapports
+        _buildDropdown<String>(
+          label: 'Type de boîte de vitesse',
+          hint: 'Sélectionnez un type',
+          icon: Icons.settings_input_composite,
+          value: _selectedTransmissionType,
+          items: const [
+            'Manuelle',
+            'Automatique',
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedTransmissionType = value;
+            });
+          },
+          enabled: true,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<String>(
+          label: 'Nombre de rapports',
+          hint: 'Sélectionnez le nombre de vitesses',
+          icon: Icons.linear_scale,
+          value: _selectedGearCount,
+          items: const ['4', '5', '6', '7', '8', '9', '10', 'Je ne sais pas'],
+          onChanged: (value) {
+            setState(() {
+              _selectedGearCount = value;
+            });
+          },
+          enabled: _selectedTransmissionType != null &&
+              _selectedTransmissionType!.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<String>(
+          label: 'Type de transmission',
+          hint: 'Sélectionnez un type',
+          icon: Icons.sync_alt,
+          value: _selectedDriveType,
+          items: const [
+            'Traction',
+            'Propulsion',
+            '4 roues motrices',
+            'Je ne sais pas',
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedDriveType = value;
+            });
+          },
+          enabled: _selectedGearCount != null &&
+              _selectedGearCount!.isNotEmpty,
         ),
       ] else ...[
-        // Pièces carrosserie/intérieur : marque, modèle, année
+        // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
         Row(
           children: [
+            // Dropdown Marque
             Expanded(
-              child: _buildTextField(
-                controller: _marqueController,
-                label: 'Marque',
-                hint: 'Ex: Renault',
-                icon: Icons.directions_car,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final brandsAsync = ref.watch(vehicleBrandsProvider);
+                  return brandsAsync.when(
+                    data: (brands) => _buildDropdown<String>(
+                      label: 'Marque',
+                      hint: 'Sélectionnez une marque',
+                      icon: Icons.directions_car,
+                      value: _selectedMarque,
+                      items: brands,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedMarque = value;
+                          // Reset modèle et année quand marque change
+                          _selectedModele = null;
+                          _selectedAnnee = null;
+                        });
+                      },
+                      enabled: true,
+                    ),
+                    loading: () => _buildLoadingDropdown(
+                      label: 'Marque',
+                      hint: 'Chargement...',
+                      icon: Icons.directions_car,
+                    ),
+                    error: (_, __) => _buildDropdown<String>(
+                      label: 'Marque',
+                      hint: 'Erreur de chargement',
+                      icon: Icons.directions_car,
+                      value: null,
+                      items: const [],
+                      onChanged: null,
+                      enabled: false,
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 16),
+            // Dropdown Modèle
             Expanded(
-              child: _buildTextField(
-                controller: _modeleController,
-                label: 'Modèle',
-                hint: 'Ex: Clio',
-                icon: Icons.model_training,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final modelsAsync =
+                      ref.watch(vehicleModelsProvider(_selectedMarque ?? ''));
+                  return modelsAsync.when(
+                    data: (models) => _buildDropdown<String>(
+                      label: 'Modèle',
+                      hint: 'Sélectionnez un modèle',
+                      icon: Icons.model_training,
+                      value: _selectedModele,
+                      items: models,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedModele = value;
+                          // Reset année quand modèle change
+                          _selectedAnnee = null;
+                        });
+                      },
+                      enabled: _selectedMarque != null &&
+                          _selectedMarque!.isNotEmpty,
+                    ),
+                    loading: () => _buildLoadingDropdown(
+                      label: 'Modèle',
+                      hint: 'Chargement...',
+                      icon: Icons.model_training,
+                    ),
+                    error: (_, __) => _buildDropdown<String>(
+                      label: 'Modèle',
+                      hint: 'Erreur de chargement',
+                      icon: Icons.model_training,
+                      value: null,
+                      items: const [],
+                      onChanged: null,
+                      enabled: false,
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        _buildTextField(
-          controller: _anneeController,
-          label: 'Année',
-          hint: 'Ex: 2020',
-          icon: Icons.calendar_today,
-          keyboardType: TextInputType.number,
+        // Dropdown Année
+        Consumer(
+          builder: (context, ref, child) {
+            // Créer une clé stable : "brand|model"
+            final brandModel =
+                '${_selectedMarque ?? ''}|${_selectedModele ?? ''}';
+            final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
+            return yearsAsync.when(
+              data: (years) => _buildDropdown<int>(
+                label: 'Année',
+                hint: 'Sélectionnez une année',
+                icon: Icons.calendar_today,
+                value: _selectedAnnee,
+                items: years,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedAnnee = value;
+                  });
+                },
+                enabled: _selectedModele != null && _selectedModele!.isNotEmpty,
+              ),
+              loading: () => _buildLoadingDropdown(
+                label: 'Année',
+                hint: 'Chargement...',
+                icon: Icons.calendar_today,
+              ),
+              error: (_, __) => _buildDropdown<int>(
+                label: 'Année',
+                hint: 'Erreur de chargement',
+                icon: Icons.calendar_today,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
         ),
       ],
     ];
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
+  Widget _buildDropdown<T>({
     required String label,
     required String hint,
     required IconData icon,
-    TextInputType? keyboardType,
+    required T? value,
+    required List<T> items,
+    required void Function(T?)? onChanged,
+    required bool enabled,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: AppTheme.darkGray,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_radius),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownMenu<T>(
+            enabled: enabled,
+            enableFilter: true,
+            enableSearch: true,
+            requestFocusOnTap: true,
+            width: MediaQuery.of(context).size.width - 48, // padding horizontal
+            initialSelection: value,
+            hintText: hint,
+            leadingIcon: Icon(
+              icon,
+              color: enabled ? _blue : _textGray.withValues(alpha: 0.5),
+              size: 20,
+            ),
+            textStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: enabled ? _textDark : _textGray.withValues(alpha: 0.5),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor:
+                  enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide: const BorderSide(color: AppColors.grey200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide: const BorderSide(color: AppColors.grey200),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide: BorderSide(color: _textGray.withValues(alpha: 0.2)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_radius),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
+              ),
+            ),
+            dropdownMenuEntries: items
+                .map((item) => DropdownMenuEntry<T>(
+                      value: item,
+                      label: item.toString(),
+                      style: MenuItemButton.styleFrom(
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ))
+                .toList(),
+            onSelected: enabled ? onChanged : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingDropdown({
+    required String label,
+    required String hint,
+    required IconData icon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,6 +709,70 @@ class _HomePageState extends ConsumerState<HomePage> {
             fontWeight: FontWeight.w700,
             fontSize: 16,
             color: _textDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(_radius),
+            border: Border.all(color: _border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Icon(icon, color: _blue, size: 20),
+              ),
+              Expanded(
+                child: Text(
+                  hint,
+                  style: TextStyle(
+                    color: _textGray.withValues(alpha: 0.7),
+                    fontSize: 16,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: AppTheme.darkGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -375,14 +790,22 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: _textDark,
+            ),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
                 color: _textGray.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
-              prefixIcon: Icon(icon, color: _blue, size: 20),
+              prefixIcon: Icon(
+                icon,
+                color: _blue,
+                size: 20,
+              ),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
@@ -391,18 +814,18 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
-            onChanged: (value) => setState(() {}),
           ),
         ),
       ],
@@ -443,15 +866,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              _getVehicleInfo(),
-              style: const TextStyle(
-                color: _textDark,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
+            const SizedBox(height: 16),
+            ..._buildVehicleInfoRows(),
           ],
         ),
       ),
@@ -466,7 +882,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _textDark,
+            color: AppTheme.darkGray,
           ),
         ),
       ),
@@ -507,26 +923,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                   fontSize: 18,
                 ),
               ),
-              child:
-                  isLoading
-                      ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white,
                         ),
-                      )
-                      : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.send, size: 20),
-                          SizedBox(width: 8),
-                          Text('Poster ma demande'),
-                        ],
                       ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.send, size: 20),
+                        SizedBox(width: 8),
+                        Text('Poster ma demande'),
+                      ],
+                    ),
             );
           },
         ),
@@ -544,13 +959,26 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   bool _canContinueManual() {
     if (_selectedType == 'engine') {
-      // Pièces moteur : seulement motorisation requise
-      return _motorisationController.text.isNotEmpty;
+      // Pièces moteur : cylindrée et carburant requis
+      return _selectedCylindree != null &&
+          _selectedCylindree!.isNotEmpty &&
+          _selectedFuelType != null &&
+          _selectedFuelType!.isNotEmpty;
+    } else if (_selectedType == 'transmission') {
+      // Pièces boîte de vitesse : type, nombre de rapports et type transmission requis
+      return _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGearCount != null &&
+          _selectedGearCount!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
     } else {
       // Pièces carrosserie/intérieur : marque, modèle, année requises
-      return _marqueController.text.isNotEmpty &&
-          _modeleController.text.isNotEmpty &&
-          _anneeController.text.isNotEmpty;
+      return _selectedMarque != null &&
+          _selectedMarque!.isNotEmpty &&
+          _selectedModele != null &&
+          _selectedModele!.isNotEmpty &&
+          _selectedAnnee != null;
     }
   }
 
@@ -578,11 +1006,14 @@ class _HomePageState extends ConsumerState<HomePage> {
       categoryFilter = 'moteur';
     } else if (_selectedType == 'body') {
       categoryFilter = 'interieur'; // Pour les pièces carrosserie/intérieur
+    } else if (_selectedType == 'transmission') {
+      categoryFilter = 'transmission'; // Pour les pièces boîte de vitesse
     }
 
     try {
       // Recherche dans la base de données avec catégorie
-      final response = await ref.read(supabaseClientProvider).rpc('search_parts', params: {
+      final response =
+          await ref.read(supabaseClientProvider).rpc('search_parts', params: {
         'search_query': query,
         'filter_category': categoryFilter,
         'limit_results': 8,
@@ -666,13 +1097,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _submitRequest() async {
+    // ✅ SÉCURITÉ: Bloquer la soumission si une demande active existe déjà
+    final vehicleState = ref.read(vehicleSearchProvider);
+    if (vehicleState.hasActiveRequest) {
+      notificationService.error(
+        context,
+        'Vous avez déjà une demande active. Veuillez la supprimer avant d\'en créer une nouvelle.',
+      );
+      return;
+    }
 
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty &&
         !allParts.contains(_partController.text)) {
       allParts.add(_partController.text);
     }
-
 
     if (allParts.isEmpty) {
       notificationService.error(
@@ -695,12 +1134,31 @@ class _HomePageState extends ConsumerState<HomePage> {
       // Mode manuel : selon le type de pièce
       if (_selectedType == 'body') {
         // Carrosserie : marque + modèle + année seulement
-        vehicleBrand = _marqueController.text.isNotEmpty ? _marqueController.text : null;
-        vehicleModel = _modeleController.text.isNotEmpty ? _modeleController.text : null;
-        vehicleYear = _anneeController.text.isNotEmpty ? int.tryParse(_anneeController.text) : null;
+        vehicleBrand = _selectedMarque;
+        vehicleModel = _selectedModele;
+        vehicleYear = _selectedAnnee;
       } else if (_selectedType == 'engine') {
-        // Moteur : motorisation seulement
-        vehicleEngine = _motorisationController.text.isNotEmpty ? _motorisationController.text : null;
+        // Moteur : construire motorisation à partir des 2 champs + chevaux optionnel
+        final engineParts = <String>[];
+        if (_selectedCylindree != null) engineParts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          engineParts.add('${_horsepowerController.text}cv');
+        }
+        vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
+      } else if (_selectedType == 'transmission') {
+        // Boîte de vitesse : type + nombre de rapports + type transmission (optionnel)
+        final transmissionParts = <String>[];
+        if (_selectedTransmissionType != null) {
+          transmissionParts.add(_selectedTransmissionType!);
+        }
+        if (_selectedGearCount != null) {
+          transmissionParts.add('${_selectedGearCount!} vitesses');
+        }
+        if (_selectedDriveType != null && _selectedDriveType!.isNotEmpty) {
+          transmissionParts.add(_selectedDriveType!);
+        }
+        vehicleEngine = transmissionParts.isNotEmpty ? transmissionParts.join(' - ') : null;
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
@@ -708,21 +1166,20 @@ class _HomePageState extends ConsumerState<HomePage> {
       final vehicleState = ref.read(vehicleSearchProvider);
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
-        
+
         if (_selectedType == 'body') {
           // Carrosserie : marque + modèle + année depuis l'API
           vehicleBrand = info.make;
           vehicleModel = info.model;
           vehicleYear = info.year;
-          
         } else if (_selectedType == 'engine') {
           // Moteur : motorisation seulement depuis l'API
           final engineParts = <String>[];
           if (info.engineSize != null) engineParts.add(info.engineSize!);
           if (info.fuelType != null) engineParts.add(info.fuelType!);
           if (info.power != null) engineParts.add('${info.power}cv');
-          vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
-          
+          vehicleEngine =
+              engineParts.isNotEmpty ? engineParts.join(' - ') : null;
         }
       }
     }
@@ -738,7 +1195,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       additionalInfo: null,
       isAnonymous: true, // Pour l'instant, on reste en mode anonyme
     );
-
 
     // Envoyer la demande via le controller
     final controller = ref.read(partRequestControllerProvider.notifier);
@@ -766,10 +1222,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       _plate.clear();
       _partController.clear();
       _selectedParts.clear();
-      _marqueController.clear();
-      _modeleController.clear();
-      _anneeController.clear();
-      _motorisationController.clear();
+      _selectedMarque = null;
+      _selectedModele = null;
+      _selectedAnnee = null;
+      _selectedCylindree = null;
+      _selectedFuelType = null;
+      _horsepowerController.clear();
+      _selectedTransmissionType = null;
+      _selectedGearCount = null;
+      _selectedDriveType = null;
     });
   }
 
@@ -794,21 +1255,22 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
-              hintStyle: TextStyle(color: _textGray.withValues(alpha: 0.7)),
+              hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _border),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: _blue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -837,15 +1299,15 @@ class _HomePageState extends ConsumerState<HomePage> {
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         itemCount: _suggestions.length,
-        separatorBuilder:
-            (context, index) => const Divider(height: 1, color: _border),
+        separatorBuilder: (context, index) =>
+            const Divider(height: 1, color: _border),
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
           return ListTile(
             dense: true,
             title: Text(
               suggestion,
-              style: const TextStyle(fontSize: 14, color: _textDark),
+              style: const TextStyle(fontSize: 14, color: AppTheme.darkGray),
             ),
             onTap: () => _selectSuggestion(suggestion),
             contentPadding: const EdgeInsets.symmetric(
@@ -870,9 +1332,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _blue.withValues(alpha: 0.1),
+        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _blue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+            color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -881,7 +1344,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             part,
             style: TextStyle(
               fontSize: 14,
-              color: _blue,
+              color: AppTheme.primaryBlue,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -892,10 +1355,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: _blue.withValues(alpha: 0.2),
+                color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: _blue),
+              child: const Icon(Icons.close,
+                  size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -903,45 +1367,39 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  String _getVehicleInfo() {
+  String getVehicleInfo() {
     if (_isManualMode) {
-      return '${_marqueController.text} ${_modeleController.text} ${_anneeController.text} - ${_motorisationController.text}';
+      // Mode manuel : selon le type de pièce
+      if (_selectedType == 'engine') {
+        // Pièces moteur : cylindrée + carburant + chevaux
+        final parts = <String>[];
+        if (_selectedCylindree != null) parts.add(_selectedCylindree!);
+        if (_selectedFuelType != null) parts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          parts.add('${_horsepowerController.text}cv');
+        }
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      } else {
+        // Pièces carrosserie : marque + modèle + année
+        final parts = <String>[];
+        if (_selectedMarque != null) parts.add(_selectedMarque!);
+        if (_selectedModele != null) parts.add(_selectedModele!);
+        if (_selectedAnnee != null) parts.add(_selectedAnnee!.toString());
+        return parts.isNotEmpty ? parts.join(' - ') : '';
+      }
     } else {
       // Utiliser les données de l'API si disponibles
       final vehicleState = ref.read(vehicleSearchProvider);
       if (vehicleState.vehicleInfo != null) {
         final info = vehicleState.vehicleInfo!;
         final parts = <String>[];
-
-        // Afficher toujours : Marque, Modèle, Année (date1erCir_fr), Motorisation
+        // Affichage identique pour TOUS les types : marque + modèle + année + motorisation
         if (info.make != null) parts.add(info.make!);
         if (info.model != null) parts.add(info.model!);
-
-        // Récupérer l'année depuis date1erCir_fr (format: DD-MM-YYYY)
-        if (info.rawData != null) {
-          final date1erCirFr = info.rawData!['date1erCir_fr']?.toString();
-          if (date1erCirFr != null && date1erCirFr.isNotEmpty) {
-            // Extraire l'année depuis le format DD-MM-YYYY
-            final dateParts = date1erCirFr.split('-');
-            if (dateParts.length == 3) {
-              parts.add(dateParts[2]); // Année = dernier élément
-            } else {
-              parts.add(date1erCirFr);
-            }
-          } else if (info.year != null) {
-            parts.add(info.year.toString());
-          }
-        } else if (info.year != null) {
-          parts.add(info.year.toString());
-        }
-
-        // Motorisation (cylindrée + carburant)
-        final motorParts = <String>[];
-        if (info.engineSize != null) motorParts.add(info.engineSize!);
-        if (info.fuelType != null) motorParts.add(info.fuelType!);
-        if (motorParts.isNotEmpty) {
-          parts.add(motorParts.join(' '));
-        }
+        if (info.year != null) parts.add(info.year.toString());
+        if (info.engineSize != null) parts.add(info.engineSize!);
+        if (info.fuelType != null) parts.add(info.fuelType!);
+        if (info.engineCode != null) parts.add(info.engineCode!);
 
         if (parts.isNotEmpty) {
           return parts.join(' - ');
@@ -949,6 +1407,95 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
       return 'Plaque: ${_plate.text}';
     }
+  }
+
+  List<Widget> _buildVehicleInfoRows() {
+    if (_isManualMode) {
+      // Mode manuel
+      if (_selectedType == 'engine') {
+        // Pièces moteur : afficher cylindrée, carburant et chevaux
+        return [
+          if (_selectedCylindree != null && _selectedCylindree!.isNotEmpty)
+            _buildInfoRow('Cylindrée', _selectedCylindree!),
+          if (_selectedFuelType != null && _selectedFuelType!.isNotEmpty)
+            _buildInfoRow('Carburant', _selectedFuelType!),
+          if (_horsepowerController.text.isNotEmpty)
+            _buildInfoRow('Puissance', '${_horsepowerController.text}cv'),
+        ];
+      } else if (_selectedType == 'transmission') {
+        // Pièces boîte de vitesse : afficher type, nombre de rapports et type transmission
+        return [
+          if (_selectedTransmissionType != null && _selectedTransmissionType!.isNotEmpty)
+            _buildInfoRow('Type', _selectedTransmissionType!),
+          if (_selectedGearCount != null && _selectedGearCount!.isNotEmpty)
+            _buildInfoRow('Nombre de vitesses', _selectedGearCount!),
+          if (_selectedDriveType != null && _selectedDriveType!.isNotEmpty)
+            _buildInfoRow('Transmission', _selectedDriveType!),
+        ];
+      } else {
+        // Pièces carrosserie : afficher marque, modèle, année
+        return [
+          if (_selectedMarque != null && _selectedMarque!.isNotEmpty)
+            _buildInfoRow('Marque', _selectedMarque!),
+          if (_selectedModele != null && _selectedModele!.isNotEmpty)
+            _buildInfoRow('Modèle', _selectedModele!),
+          if (_selectedAnnee != null)
+            _buildInfoRow('Année', _selectedAnnee!.toString()),
+        ];
+      }
+    } else {
+      // Mode API
+      final vehicleState = ref.read(vehicleSearchProvider);
+      if (vehicleState.vehicleInfo != null) {
+        final info = vehicleState.vehicleInfo!;
+
+        // Construire la motorisation
+        final motorisationParts = <String>[];
+        if (info.engineSize != null) motorisationParts.add(info.engineSize!);
+        if (info.fuelType != null) motorisationParts.add(info.fuelType!);
+        if (info.engineCode != null) motorisationParts.add(info.engineCode!);
+
+        return [
+          if (info.make != null) _buildInfoRow('Marque', info.make!),
+          if (info.model != null) _buildInfoRow('Modèle', info.model!),
+          if (info.year != null) _buildInfoRow('Année', info.year.toString()),
+          if (motorisationParts.isNotEmpty)
+            _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
+        ];
+      }
+    }
+    return [];
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppTheme.darkGray,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -959,17 +1506,17 @@ class _TypeCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    this.compact = false,
   });
 
   final bool selected;
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final bool compact;
 
-  static const Color _blue = Color(0xFF1976D2);
   static const Color _bgSelected = Color(0xFFEAF2FF);
-  static const Color _border = Color(0xFFE5E7EB);
-  static const double _radius = 16;
+  static const double _radius = 10;
 
   @override
   Widget build(BuildContext context) {
@@ -980,51 +1527,88 @@ class _TypeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         onTap: onTap,
         child: Container(
-          height: 150,
-          padding: const EdgeInsets.all(12),
+          height: compact ? 80 : 150,
+          padding: compact ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12) : const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(
-              color: selected ? _blue : _border,
+              color: selected ? AppTheme.primaryBlue : AppColors.grey200,
               width: selected ? 2 : 1,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color:
-                      selected
-                          ? _blue.withValues(alpha: 0.12)
-                          : _blue.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 24, color: selected ? _blue : _blue),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 64,
-                child: Center(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
-                      color: Color(0xFF1C1C1E),
+          child: compact
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                            : AppTheme.primaryBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon,
+                          size: 24,
+                          color: selected
+                              ? AppTheme.primaryBlue
+                              : AppTheme.primaryBlue),
                     ),
-                  ),
+                    const SizedBox(width: 16),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                        color: Color(0xFF1C1C1E),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppTheme.primaryBlue.withValues(alpha: 0.12)
+                            : AppTheme.primaryBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon,
+                          size: 24,
+                          color: selected
+                              ? AppTheme.primaryBlue
+                              : AppTheme.primaryBlue),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 64,
+                      child: Center(
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: Color(0xFF1C1C1E),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -105,7 +105,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune demande',
+                    'Aucune recherches',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -114,7 +114,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Vous n\'avez pas encore posté de demande de pièces.',
+                    'Ici vous trouverez vos recherches en cours. Pour le moment, aucune recherche n\'est en cours.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey[600],
@@ -122,9 +122,9 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: () => context.go('/'),
+                    onPressed: () => context.go('/home'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Poster une demande'),
+                    label: const Text('Lancer une recherche'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryBlue,
                       foregroundColor: Colors.white,
@@ -277,11 +277,10 @@ class _RequestCard extends ConsumerWidget {
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
-    final result = await context.showIOSDialog(
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer la demande',
       message: 'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
-      type: DialogType.error,
-      confirmText: 'Supprimer',
+      destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 

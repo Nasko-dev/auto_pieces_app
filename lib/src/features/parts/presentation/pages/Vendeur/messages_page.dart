@@ -6,6 +6,7 @@ import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../providers/conversations_providers.dart';
 import '../../widgets/conversation_group_card.dart';
 import '../../../domain/entities/conversation_group.dart';
+import '../../../../../core/theme/app_theme.dart';
 
 class SellerMessagesPage extends ConsumerStatefulWidget {
   const SellerMessagesPage({super.key});
@@ -23,7 +24,7 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = ref.read(conversationsControllerProvider.notifier);
       controller.loadConversations();
-      
+
       // Initialiser le realtime pour actualisation automatique
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId != null) {
@@ -40,7 +41,7 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     final error = ref.watch(conversationsErrorProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
+      backgroundColor: AppTheme.lightGray,
       body: Column(
         children: [
           const SellerHeader(title: 'Messages'),
@@ -56,7 +57,7 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     if (isLoading && conversationGroups.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E66F5)),
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
         ),
       );
     }
@@ -66,7 +67,7 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(Icons.error_outline, size: 64, color: AppTheme.error),
             const SizedBox(height: 16),
             Text('Erreur: $error'),
           ],
@@ -104,4 +105,3 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
   }
 
 }
-

@@ -18,23 +18,38 @@ class YannkoWelcomePage extends StatelessWidget {
     final s = size.width / 390.0;
 
     TextStyle h1(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w800,
-      height: 1.0,
-      color: _textPrimary,
-      letterSpacing: -0.5 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w800,
+          height: 1.0,
+          color: _textPrimary,
+          letterSpacing: -0.5 * s,
+        );
     TextStyle h2(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w700,
-      color: _textPrimary,
-      letterSpacing: -0.2 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w700,
+          color: _textPrimary,
+          letterSpacing: -0.2 * s,
+        );
 
     return Scaffold(
       backgroundColor: _bg,
       body: Stack(
         children: [
+          // Image du bas en arrière-plan
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Center(
+              child: Image.asset(
+                'assets/image2.png',
+                height: 250 * s,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+
           // Contenu principal
           SafeArea(
             child: Padding(
@@ -44,18 +59,17 @@ class YannkoWelcomePage extends StatelessWidget {
                 children: [
                   SizedBox(height: 32 * s),
 
-                  // Logo tête guépard
+                  // Image principale
                   Center(
                     child: Image.asset(
-                      'assets/images/cheetah_head.png',
+                      'assets/image.png',
                       height: 112 * s,
                       fit: BoxFit.contain,
-                      errorBuilder:
-                          (_, __, ___) => Icon(
-                            Icons.pets_rounded,
-                            color: Colors.amber.shade300,
-                            size: 96 * s,
-                          ),
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.image_outlined,
+                        color: Colors.white.withValues(alpha: 0.5),
+                        size: 96 * s,
+                      ),
                     ),
                   ),
 
@@ -69,60 +83,61 @@ class YannkoWelcomePage extends StatelessWidget {
                   // "Bienvenue"
                   Text('Bienvenue', style: h1(56)),
 
+                  SizedBox(height: 16 * s),
+
+                  // Description
+                  Text(
+                    'Rechercher vos pièces Auto en quelques clics',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 19 * s,
+                      fontWeight: FontWeight.w400,
+                      color: _textPrimary.withValues(alpha: 0.8),
+                      height: 1.4,
+                    ),
+                  ),
+
                   const Spacer(),
 
-                  // Boutons centrés au milieu de l'écran
-                  Center(
-                    child: Column(
-                      children: [
-                        // Bouton "Pièce neuve"
-                        _YButton(
-                          color: _green,
-                          label: 'Pièce neuve',
-                          icon: Icons.inventory_2_rounded,
-                          scale: s,
-                          onTap: () {
-                            // Naviguer vers la page de connexion pour les pièces neuves
-                            context.go('/under-development');
-                          },
-                        ),
+                  // Boutons centrés au milieu de l'écran, remontés
+                  Padding(
+                    padding:
+                        EdgeInsets.only(bottom: 180 * s), // Remonté beaucoup
+                    child: Center(
+                      child: Column(
+                        children: [
+                          // Bouton "Pièce neuve"
+                          _YButton(
+                            color: _green,
+                            label: 'Pièce neuve',
+                            icon: Icons.inventory_2_rounded,
+                            scale: s,
+                            onTap: () {
+                              // Naviguer vers la page de connexion pour les pièces neuves
+                              context.go('/under-development');
+                            },
+                          ),
 
-                        SizedBox(height: 12 * s),
+                          SizedBox(height: 12 * s),
 
-                        // Bouton "Pièce occasion"
-                        _YButton(
-                          color: _orange,
-                          label: 'Pièce occasion',
-                          icon: Icons.settings,
-                          scale: s,
-                          onTap: () {
-                            // Naviguer vers la page de connexion pour les pièces d'occasion
-                            context.go('/welcome');
-                          },
-                        ),
-                      ],
+                          // Bouton "Pièce occasion"
+                          _YButton(
+                            color: _orange,
+                            label: 'Pièce occasion',
+                            icon: Icons.settings,
+                            scale: s,
+                            onTap: () {
+                              // Naviguer vers la page de connexion pour les pièces d'occasion
+                              context.go('/welcome');
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
                   const Spacer(),
                 ],
-              ),
-            ),
-          ),
-
-          // Illustration scooter, ancrée en bas
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 8 * s,
-            child: IgnorePointer(
-              child: Center(
-                child: Image.asset(
-                  'assets/images/cheetah_delivery.png',
-                  height: 270 * s,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
               ),
             ),
           ),

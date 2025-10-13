@@ -206,11 +206,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   }
 
   void _showDeleteDialog(String conversationId) async {
-    final result = await context.showIOSDialog(
+    final result = await context.showDestructiveDialog(
       title: 'Supprimer la conversation',
       message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
-      type: DialogType.error,
-      confirmText: 'Supprimer',
+      destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 
