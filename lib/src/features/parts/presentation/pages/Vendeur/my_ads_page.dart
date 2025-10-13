@@ -352,78 +352,80 @@ class _AdvertisementCard extends ConsumerWidget {
 
   const _AdvertisementCard({required this.advertisement});
 
-  void _showOptionsMenu(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
+
+    showMenu(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160, // Aligner à droite du bouton
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Fonctionnalité à venir'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 8),
-                // Barre de défilement
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
                 ),
-                const SizedBox(height: 20),
-                // Bouton Modifier (fictif)
-                ListTile(
-                  leading: const Icon(Icons.edit_outlined, color: AppTheme.primaryBlue),
-                  title: const Text(
-                    'Modifier',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Fonctionnalité à implémenter plus tard
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fonctionnalité à venir'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                // Bouton Supprimer
-                ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.red),
-                  title: const Text(
-                    'Supprimer',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.red,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showDeleteConfirmation(context, ref);
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -620,15 +622,20 @@ class _AdvertisementCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 // Menu 3 points
-                IconButton(
-                  icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    _showOptionsMenu(context, ref);
+                Builder(
+                  builder: (BuildContext buttonContext) {
+                    return IconButton(
+                      icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        final button = buttonContext.findRenderObject() as RenderBox;
+                        _showOptionsMenu(context, ref, button);
+                      },
+                      tooltip: 'Options',
+                    );
                   },
-                  tooltip: 'Options',
                 ),
               ],
             ),
