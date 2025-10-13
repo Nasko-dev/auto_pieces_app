@@ -710,13 +710,165 @@ class _AdvertisementCard extends ConsumerWidget {
 }
 
 // Widget pour afficher une demande vendeur
-class _RequestCard extends StatelessWidget {
+class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({required this.request});
 
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160,
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer la demande ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                // Appeler la méthode de suppression du controller
+                final success = await ref
+                    .read(partRequestControllerProvider.notifier)
+                    .deletePartRequest(request.id);
+
+                if (context.mounted) {
+                  if (success) {
+                    notificationService.success(
+                      context,
+                      'Demande supprimée avec succès',
+                    );
+                  } else {
+                    final errorMsg = ref.read(partRequestControllerProvider).error ??
+                        'Erreur lors de la suppression';
+                    notificationService.error(
+                      context,
+                      errorMsg,
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -788,6 +940,23 @@ class _RequestCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+              const SizedBox(width: 4),
+              // Menu 3 points
+              Builder(
+                builder: (BuildContext buttonContext) {
+                  return IconButton(
+                    icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      final button = buttonContext.findRenderObject() as RenderBox;
+                      _showOptionsMenu(context, ref, button);
+                    },
+                    tooltip: 'Options',
+                  );
+                },
               ),
             ],
           ),
