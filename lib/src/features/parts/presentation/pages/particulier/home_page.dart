@@ -1097,6 +1097,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _submitRequest() async {
+    // ✅ SÉCURITÉ: Bloquer la soumission si une demande active existe déjà
+    final vehicleState = ref.read(vehicleSearchProvider);
+    if (vehicleState.hasActiveRequest) {
+      notificationService.error(
+        context,
+        'Vous avez déjà une demande active. Veuillez la supprimer avant d\'en créer une nouvelle.',
+      );
+      return;
+    }
+
     final allParts = _selectedParts.toList();
     if (_partController.text.isNotEmpty &&
         !allParts.contains(_partController.text)) {
