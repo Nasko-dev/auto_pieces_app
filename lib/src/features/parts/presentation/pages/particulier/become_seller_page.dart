@@ -35,8 +35,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   String _selectedChoice = '';
   String _partName = '';
   bool hasMultipleParts = false;
-  bool _isCompleteMotor = false;
-  List<String> _selectedParts = [];
   String _vehiclePlate = '';
   bool _isSubmitting = false;
 
@@ -72,27 +70,21 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
   void _onPartsSelected(List<String> parts, String completeOption) {
     setState(() {
-      _selectedParts = parts;
-
       // Construire le nom de la pièce selon la sélection
       if (completeOption.isNotEmpty) {
         // Options complètes
         switch (completeOption) {
           case 'moteur_complet':
             _partName = 'Moteur complet';
-            _isCompleteMotor = true;
             break;
           case 'carrosserie_complete':
             _partName = 'Carrosserie complète';
-            _isCompleteMotor = false;
             break;
           case 'vehicule_complet':
             _partName = 'Véhicule complet';
-            _isCompleteMotor = false;
             break;
         }
       } else if (parts.isNotEmpty) {
-        _isCompleteMotor = false;
         if (hasMultipleParts) {
           // +5 pièces : les pièces listées sont celles qu'on N'A PAS
           _partName = 'Toutes pièces sauf: ${parts.join(', ')}';
