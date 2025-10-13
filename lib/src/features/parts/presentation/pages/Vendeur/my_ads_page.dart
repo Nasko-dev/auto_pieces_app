@@ -347,13 +347,174 @@ class _UnifiedItemCard extends StatelessWidget {
 }
 
 // Widget pour afficher une annonce
-class _AdvertisementCard extends StatelessWidget {
+class _AdvertisementCard extends ConsumerWidget {
   final PartAdvertisement advertisement;
 
   const _AdvertisementCard({required this.advertisement});
 
+  void _showOptionsMenu(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 8),
+                // Barre de défilement
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Bouton Modifier (fictif)
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined, color: AppTheme.primaryBlue),
+                  title: const Text(
+                    'Modifier',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Fonctionnalité à implémenter plus tard
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Fonctionnalité à venir'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                // Bouton Supprimer
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    'Supprimer',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showDeleteConfirmation(context, ref);
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer l\'annonce ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                // Appeler la méthode de suppression du controller
+                final success = await ref
+                    .read(partAdvertisementControllerProvider.notifier)
+                    .deleteAdvertisement(advertisement.id);
+
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Annonce supprimée avec succès'),
+                        backgroundColor: AppTheme.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ref.read(partAdvertisementControllerProvider).error ??
+                              'Erreur lors de la suppression',
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     Color statusColor;
     String statusText;
     IconData statusIcon;
@@ -397,7 +558,7 @@ class _AdvertisementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge "ANNONCE" en haut à droite
+            // Badge "ANNONCE" en haut à droite avec menu 3 points
             Row(
               children: [
                 Expanded(
@@ -456,6 +617,18 @@ class _AdvertisementCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 4),
+                // Menu 3 points
+                IconButton(
+                  icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _showOptionsMenu(context, ref);
+                  },
+                  tooltip: 'Options',
                 ),
               ],
             ),
