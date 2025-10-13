@@ -186,7 +186,7 @@ void main() {
 
     group('vehicleInfo getter', () {
       group('when partType is body', () {
-        test('should return brand + model + year when all are present', () {
+        test('should return brand + model + year + engine when all are present', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'body',
             vehicleBrand: 'Peugeot',
@@ -195,7 +195,7 @@ void main() {
             vehicleEngine: '1.2L',
           );
 
-          expect(partRequest.vehicleInfo, 'Peugeot 208 2019');
+          expect(partRequest.vehicleInfo, 'Peugeot - 208 - 2019 - 1.2L');
         });
 
         test('should return only available info for body parts', () {
@@ -207,10 +207,10 @@ void main() {
             vehicleEngine: '1.5L',
           );
 
-          expect(partRequest.vehicleInfo, 'Citroën 2021');
+          expect(partRequest.vehicleInfo, 'Citroën - 2021 - 1.5L');
         });
 
-        test('should return only brand when only brand is available', () {
+        test('should return only brand and engine when available', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'body',
             vehicleBrand: 'Ford',
@@ -219,12 +219,12 @@ void main() {
             vehicleEngine: '2.0L',
           );
 
-          expect(partRequest.vehicleInfo, 'Ford');
+          expect(partRequest.vehicleInfo, 'Ford - 2.0L');
         });
       });
 
       group('when partType is engine', () {
-        test('should return engine info when available', () {
+        test('should return all info when available', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'engine',
             vehicleBrand: 'BMW',
@@ -233,10 +233,10 @@ void main() {
             vehicleEngine: '2.0 TDI',
           );
 
-          expect(partRequest.vehicleInfo, '2.0 TDI');
+          expect(partRequest.vehicleInfo, 'BMW - X3 - 2020 - 2.0 TDI');
         });
 
-        test('should fallback to brand + model + year when engine is null', () {
+        test('should return brand + model + year when engine is null', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'engine',
             vehicleBrand: 'Audi',
@@ -245,7 +245,7 @@ void main() {
             vehicleEngine: null,
           );
 
-          expect(partRequest.vehicleInfo, 'Audi A4 2018');
+          expect(partRequest.vehicleInfo, 'Audi - A4 - 2018');
         });
 
         test('should return engine when only engine is available', () {
@@ -262,7 +262,7 @@ void main() {
       });
 
       group('fallback behavior', () {
-        test('should return brand + model + year for unknown part types', () {
+        test('should return all available info for unknown part types', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'unknown',
             vehicleBrand: 'Mercedes',
@@ -271,7 +271,7 @@ void main() {
             vehicleEngine: '2.2L',
           );
 
-          expect(partRequest.vehicleInfo, 'Mercedes C-Class 2022');
+          expect(partRequest.vehicleInfo, 'Mercedes - C-Class - 2022 - 2.2L');
         });
 
         test('should return engine as fallback when no brand/model/year', () {
@@ -286,7 +286,7 @@ void main() {
           expect(partRequest.vehicleInfo, '3.0 V6');
         });
 
-        test('should return empty string when no vehicle info available', () {
+        test('should return default message when no vehicle info available', () {
           final partRequest = testPartRequest.copyWith(
             partType: 'unknown',
             vehicleBrand: null,
@@ -295,7 +295,7 @@ void main() {
             vehicleEngine: null,
           );
 
-          expect(partRequest.vehicleInfo, '');
+          expect(partRequest.vehicleInfo, 'Véhicule non spécifié');
         });
 
         test('should handle partial info correctly', () {
@@ -307,7 +307,7 @@ void main() {
             vehicleEngine: null,
           );
 
-          expect(partRequest.vehicleInfo, 'Volkswagen 2017');
+          expect(partRequest.vehicleInfo, 'Volkswagen - 2017');
         });
       });
     });
@@ -504,7 +504,7 @@ void main() {
         );
 
         expect(partRequest.vehicleYear, 1900);
-        expect(partRequest.vehicleInfo, '1.2 TCE'); // engine type, not year based
+        expect(partRequest.vehicleInfo, 'Renault - Clio - 1900 - 1.2 TCE'); // All available fields
       });
 
       test('should handle future years', () {

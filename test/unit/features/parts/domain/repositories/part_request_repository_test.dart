@@ -109,7 +109,7 @@ void main() {
           updatedAt: DateTime.now(),
         );
 
-        expect(bodyPartRequest.vehicleInfo, equals('Peugeot 308 2020'));
+        expect(bodyPartRequest.vehicleInfo, equals('Peugeot - 308 - 2020'));
       });
 
       test('devrait calculer vehicleInfo correctement pour les pièces moteur', () {
@@ -124,7 +124,7 @@ void main() {
           updatedAt: DateTime.now(),
         );
 
-        expect(enginePartRequest.vehicleInfo, equals('1.6 HDi 110'));
+        expect(enginePartRequest.vehicleInfo, equals('Peugeot - 308 - 1.6 HDi 110'));
       });
 
       test('devrait gérer les dates d\'expiration', () {

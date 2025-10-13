@@ -1259,7 +1259,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-
   String getVehicleInfo() {
     if (_isManualMode) {
       // Mode manuel : selon le type de pièce
