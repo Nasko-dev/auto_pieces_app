@@ -9,6 +9,7 @@ import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../../../core/services/notification_service.dart';
 
 part 'my_ads_page.freezed.dart';
 
@@ -376,11 +377,10 @@ class _AdvertisementCard extends ConsumerWidget {
             // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
             Future.delayed(Duration.zero, () {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Fonctionnalité à venir'),
-                    duration: Duration(seconds: 2),
-                  ),
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                  subtitle: 'La modification d\'annonce sera bientôt disponible',
                 );
               }
             });
@@ -475,23 +475,17 @@ class _AdvertisementCard extends ConsumerWidget {
 
                 if (context.mounted) {
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Annonce supprimée avec succès'),
-                        backgroundColor: AppTheme.success,
-                        duration: Duration(seconds: 2),
-                      ),
+                    notificationService.success(
+                      context,
+                      'Annonce supprimée',
+                      subtitle: 'L\'annonce a été retirée de votre liste',
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ref.read(partAdvertisementControllerProvider).error ??
-                              'Erreur lors de la suppression',
-                        ),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 3),
-                      ),
+                    notificationService.error(
+                      context,
+                      'Erreur de suppression',
+                      subtitle: ref.read(partAdvertisementControllerProvider).error ??
+                          'Impossible de supprimer l\'annonce',
                     );
                   }
                 }
