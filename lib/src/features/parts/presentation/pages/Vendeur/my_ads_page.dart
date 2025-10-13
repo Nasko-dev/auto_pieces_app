@@ -824,29 +824,14 @@ class _RequestCard extends ConsumerWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: () async {
+              onPressed: () {
                 Navigator.of(context).pop();
 
-                // Appeler la méthode de suppression du controller
-                final success = await ref
-                    .read(partRequestControllerProvider.notifier)
-                    .deletePartRequest(request.id);
-
-                if (context.mounted) {
-                  if (success) {
-                    notificationService.success(
-                      context,
-                      'Demande supprimée avec succès',
-                    );
-                  } else {
-                    final errorMsg = ref.read(partRequestControllerProvider).error ??
-                        'Erreur lors de la suppression';
-                    notificationService.error(
-                      context,
-                      errorMsg,
-                    );
-                  }
-                }
+                // Fonctionnalité en cours de développement
+                notificationService.info(
+                  context,
+                  'Fonctionnalité en cours de développement',
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
