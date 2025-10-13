@@ -380,7 +380,6 @@ class _AdvertisementCard extends ConsumerWidget {
                 notificationService.info(
                   context,
                   'Fonctionnalité à venir',
-                  subtitle: 'La modification d\'annonce sera bientôt disponible',
                 );
               }
             });
@@ -477,15 +476,14 @@ class _AdvertisementCard extends ConsumerWidget {
                   if (success) {
                     notificationService.success(
                       context,
-                      'Annonce supprimée',
-                      subtitle: 'L\'annonce a été retirée de votre liste',
+                      'Annonce supprimée avec succès',
                     );
                   } else {
+                    final errorMsg = ref.read(partAdvertisementControllerProvider).error ??
+                        'Erreur lors de la suppression';
                     notificationService.error(
                       context,
-                      'Erreur de suppression',
-                      subtitle: ref.read(partAdvertisementControllerProvider).error ??
-                          'Impossible de supprimer l\'annonce',
+                      errorMsg,
                     );
                   }
                 }
