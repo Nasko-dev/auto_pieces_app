@@ -21,6 +21,14 @@ class ConversationGroupingService {
     // Convertir en ConversationGroup et trier
     final groups = grouped.entries.map((entry) {
       final conversations = entry.value;
+
+      // Trier les conversations par date du dernier message (plus récent en premier)
+      conversations.sort((a, b) {
+        final aDate = a.lastMessageCreatedAt ?? a.lastMessageAt;
+        final bDate = b.lastMessageCreatedAt ?? b.lastMessageAt;
+        return bDate.compareTo(aDate);
+      });
+
       final firstConv = conversations.first;
 
       // Calculer le nombre total de messages non lus

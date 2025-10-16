@@ -31,6 +31,11 @@ class ParticulierConversationGroupingService {
       final groupKey = entry.key;
       final groupConversations = entry.value;
 
+      // Trier les conversations par date du dernier message (plus récent en premier)
+      groupConversations.sort((a, b) {
+        return b.lastMessageAt.compareTo(a.lastMessageAt);
+      });
+
       // Prendre les infos du premier élément du groupe (tous ont les mêmes infos véhicule)
       final firstConversation = groupConversations.first;
 
