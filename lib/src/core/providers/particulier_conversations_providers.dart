@@ -92,8 +92,9 @@ class ParticulierConversationsController
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
-    if (conversationId == null || senderId == null || senderType == null)
+    if (conversationId == null || senderId == null || senderType == null) {
       return;
+    }
 
     // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
     if (senderId == userId) {

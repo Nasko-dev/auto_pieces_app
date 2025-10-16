@@ -152,8 +152,21 @@ class _SellerPartsSelectionPageState
     if (widget.selectedCategory == 'both') {
       return _completeOptions.contains('moteur_complet') &&
           _completeOptions.contains('boite_complete');
+    } else if (widget.selectedCategory == 'engine_body') {
+      // Moteur + Carrosserie : il faut les 2 options
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('carrosserie_complete');
+    } else if (widget.selectedCategory == 'transmission_body') {
+      // Boîte + Carrosserie : il faut les 2 options
+      return _completeOptions.contains('boite_complete') &&
+          _completeOptions.contains('carrosserie_complete');
+    } else if (widget.selectedCategory == 'all_three') {
+      // Moteur + Boîte + Carrosserie : il faut les 3 options
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('boite_complete') &&
+          _completeOptions.contains('carrosserie_complete');
     }
-    // Pour les autres catégories, une seule option suffit
+    // Pour les autres catégories simples, une seule option suffit
     return _completeOptions.isNotEmpty;
   }
 
@@ -309,8 +322,8 @@ class _SellerPartsSelectionPageState
         description: 'Toutes les pièces de carrosserie sont disponibles',
         icon: Icons.car_repair_outlined,
       );
-    } else {
-      // Pour "both" (Les deux), afficher moteur ET boîte
+    } else if (widget.selectedCategory == 'both') {
+      // Moteur + Boîte
       return Column(
         children: [
           _buildCompleteOption(
@@ -330,6 +343,80 @@ class _SellerPartsSelectionPageState
           ),
         ],
       );
+    } else if (widget.selectedCategory == 'engine_body') {
+      // Moteur + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else if (widget.selectedCategory == 'transmission_body') {
+      // Boîte + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else if (widget.selectedCategory == 'all_three') {
+      // Moteur + Boîte + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else {
+      // Fallback: retourner un widget vide
+      return const SizedBox.shrink();
     }
   }
 
@@ -361,9 +448,8 @@ class _SellerPartsSelectionPageState
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected
-              ? displayColor.withValues(alpha: 0.08)
-              : Colors.white,
+          color:
+              isSelected ? displayColor.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? displayColor : AppColors.grey200,
@@ -397,8 +483,7 @@ class _SellerPartsSelectionPageState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color:
-                          isSelected ? displayColor : AppTheme.darkGray,
+                      color: isSelected ? displayColor : AppTheme.darkGray,
                     ),
                   ),
                   const SizedBox(height: 4),

@@ -58,6 +58,27 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
     super.dispose();
   }
 
+  String _getIntroText() {
+    switch (widget.selectedSubType) {
+      case 'engine_parts':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\nmotorisation (cylindrée, carburant, puissance).\nSi vous n'avez pas la plaque, vous pouvez\nrenseigner manuellement ces informations.";
+      case 'transmission_parts':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\ntransmission (type de boîte, nombre de\nrapports, type de transmission). Si vous n'avez\npas la plaque, vous pouvez renseigner\nmanuellement ces informations.";
+      case 'body_parts':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions identifier le véhicule (marque,\nmodèle, année). Si vous n'avez pas la plaque,\nvous pouvez renseigner manuellement ces\ninformations.";
+      case 'both':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\nmotorisation et sa transmission (type de boîte,\nnombre de rapports, type de transmission). Si\nvous n'avez pas la plaque, vous pouvez\nrenseigner manuellement ces informations.";
+      case 'engine_body':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\nmotorisation (cylindrée, carburant, puissance).\nSi vous n'avez pas la plaque, vous pouvez\nrenseigner manuellement ces informations.";
+      case 'transmission_body':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\ntransmission (type de boîte, nombre de\nrapports, type de transmission). Si vous n'avez\npas la plaque, vous pouvez renseigner\nmanuellement ces informations.";
+      case 'all_three':
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\nmotorisation et sa transmission. Si vous n'avez\npas la plaque, vous pouvez renseigner\nmanuellement ces informations.";
+      default:
+        return "Merci de renseigner la plaque\nd'immatriculation de votre véhicule. Si vous\nn'avez pas la plaque, vous pouvez renseigner\nmanuellement les informations nécessaires.";
+    }
+  }
+
   String _getInfoTitle() {
     if (_manual) {
       // Titre selon le sous-type en mode manuel
@@ -69,6 +90,9 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         case 'body_parts':
           return 'Véhicule renseigné';
         case 'both':
+        case 'all_three':
+        case 'engine_body':
+        case 'transmission_body':
           return 'Informations renseignées';
         default:
           return 'Informations renseignées';
@@ -113,7 +137,42 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         if (_selectedYear != null) parts.add(_selectedYear.toString());
         return parts.isNotEmpty ? parts.join(' ') : 'Véhicule manuel';
       } else if (widget.selectedSubType == 'both') {
-        // Les deux : afficher moteur ET véhicule
+        // Moteur + Boîte
+        final engineParts = <String>[];
+        if (_selectedCylinder != null) engineParts.add(_selectedCylinder!);
+        if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          engineParts.add('${_horsepowerController.text}cv');
+        }
+
+        final transmissionParts = <String>[];
+        if (_selectedTransmissionType != null) {
+          transmissionParts.add(_selectedTransmissionType!);
+        }
+        if (_selectedGears != null) {
+          if (_selectedGears == 'Je ne sais pas') {
+            transmissionParts.add(_selectedGears!);
+          } else {
+            transmissionParts.add('$_selectedGears vitesses');
+          }
+        }
+        if (_selectedDriveType != null) {
+          transmissionParts.add(_selectedDriveType!);
+        }
+
+        final allParts = <String>[];
+        if (engineParts.isNotEmpty) {
+          allParts.add(engineParts.join(' - '));
+        }
+        if (transmissionParts.isNotEmpty) {
+          allParts.add(transmissionParts.join(' - '));
+        }
+
+        return allParts.isNotEmpty
+            ? allParts.join(' • ')
+            : 'Information manuelle';
+      } else if (widget.selectedSubType == 'engine_body') {
+        // Moteur + Carrosserie : moteur + véhicule
         final engineParts = <String>[];
         if (_selectedCylinder != null) engineParts.add(_selectedCylinder!);
         if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
@@ -127,8 +186,96 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         if (_selectedYear != null) vehicleParts.add(_selectedYear.toString());
 
         final allParts = <String>[];
-        if (engineParts.isNotEmpty) allParts.add(engineParts.join(' - '));
         if (vehicleParts.isNotEmpty) allParts.add(vehicleParts.join(' '));
+        if (engineParts.isNotEmpty) allParts.add(engineParts.join(' - '));
+
+        return allParts.isNotEmpty
+            ? allParts.join(' • ')
+            : 'Information manuelle';
+      } else if (widget.selectedSubType == 'transmission_body') {
+        // Boîte + Carrosserie : boîte + véhicule
+        final transmissionParts = <String>[];
+        if (_selectedTransmissionType != null) {
+          transmissionParts.add(_selectedTransmissionType!);
+        }
+        if (_selectedGears != null) {
+          if (_selectedGears == 'Je ne sais pas') {
+            transmissionParts.add(_selectedGears!);
+          } else {
+            transmissionParts.add('$_selectedGears vitesses');
+          }
+        }
+        if (_selectedDriveType != null) {
+          transmissionParts.add(_selectedDriveType!);
+        }
+
+        final vehicleParts = <String>[];
+        if (_selectedBrand != null) {
+          vehicleParts.add(_selectedBrand!);
+        }
+        if (_selectedModel != null) {
+          vehicleParts.add(_selectedModel!);
+        }
+        if (_selectedYear != null) {
+          vehicleParts.add(_selectedYear.toString());
+        }
+
+        final allParts = <String>[];
+        if (vehicleParts.isNotEmpty) {
+          allParts.add(vehicleParts.join(' '));
+        }
+        if (transmissionParts.isNotEmpty) {
+          allParts.add(transmissionParts.join(' - '));
+        }
+
+        return allParts.isNotEmpty
+            ? allParts.join(' • ')
+            : 'Information manuelle';
+      } else if (widget.selectedSubType == 'all_three') {
+        // Moteur + Boîte + Carrosserie : moteur + boîte + véhicule
+        final engineParts = <String>[];
+        if (_selectedCylinder != null) engineParts.add(_selectedCylinder!);
+        if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          engineParts.add('${_horsepowerController.text}cv');
+        }
+
+        final transmissionParts = <String>[];
+        if (_selectedTransmissionType != null) {
+          transmissionParts.add(_selectedTransmissionType!);
+        }
+        if (_selectedGears != null) {
+          if (_selectedGears == 'Je ne sais pas') {
+            transmissionParts.add(_selectedGears!);
+          } else {
+            transmissionParts.add('$_selectedGears vitesses');
+          }
+        }
+        if (_selectedDriveType != null) {
+          transmissionParts.add(_selectedDriveType!);
+        }
+
+        final vehicleParts = <String>[];
+        if (_selectedBrand != null) {
+          vehicleParts.add(_selectedBrand!);
+        }
+        if (_selectedModel != null) {
+          vehicleParts.add(_selectedModel!);
+        }
+        if (_selectedYear != null) {
+          vehicleParts.add(_selectedYear.toString());
+        }
+
+        final allParts = <String>[];
+        if (vehicleParts.isNotEmpty) {
+          allParts.add(vehicleParts.join(' '));
+        }
+        if (engineParts.isNotEmpty) {
+          allParts.add(engineParts.join(' - '));
+        }
+        if (transmissionParts.isNotEmpty) {
+          allParts.add(transmissionParts.join(' - '));
+        }
 
         return allParts.isNotEmpty
             ? allParts.join(' • ')
@@ -177,9 +324,9 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              "Merci de renseigner la plaque\nd'immatriculation de votre véhicule afin que\nnous puissions prendre en compte sa\nmotorisation. Si vous n'avez pas la plaque\nd'immatriculation, vous pouvez renseigner\nmanuellement les informations de votre\nvéhicule.",
-              style: TextStyle(
+            Text(
+              _getIntroText(),
+              style: const TextStyle(
                 fontSize: 16,
                 height: 1.35,
                 color: AppTheme.darkGray,
@@ -227,8 +374,25 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               ] else if (widget.selectedSubType == 'body_parts') ...[
                 _buildVehicleDropdowns(),
               ] else if (widget.selectedSubType == 'both') ...[
-                // Pour "Les deux" : afficher moteur ET véhicule
+                // Moteur + Boîte
                 ..._buildEngineDropdowns(),
+                const SizedBox(height: 24),
+                ..._buildTransmissionDropdowns(),
+              ] else if (widget.selectedSubType == 'engine_body') ...[
+                // Moteur + Carrosserie : moteur + véhicule
+                ..._buildEngineDropdowns(),
+                const SizedBox(height: 24),
+                _buildVehicleDropdowns(),
+              ] else if (widget.selectedSubType == 'transmission_body') ...[
+                // Boîte + Carrosserie : boîte + véhicule
+                ..._buildTransmissionDropdowns(),
+                const SizedBox(height: 24),
+                _buildVehicleDropdowns(),
+              ] else if (widget.selectedSubType == 'all_three') ...[
+                // Moteur + Boîte + Carrosserie : moteur + boîte + véhicule
+                ..._buildEngineDropdowns(),
+                const SizedBox(height: 24),
+                ..._buildTransmissionDropdowns(),
                 const SizedBox(height: 24),
                 _buildVehicleDropdowns(),
               ],
@@ -542,8 +706,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
             _selectedDriveType = value;
           });
         },
-        enabled: _selectedGears != null &&
-            _selectedGears!.isNotEmpty,
+        enabled: _selectedGears != null && _selectedGears!.isNotEmpty,
       ),
     ];
   }
@@ -944,7 +1107,22 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedModel!.isNotEmpty &&
           _selectedYear != null;
     } else if (widget.selectedSubType == 'both') {
-      // Pour "Les deux" : TOUS les champs requis (moteur ET véhicule)
+      // Moteur + Boîte : TOUS les champs requis
+      final engineValid = _selectedCylinder != null &&
+          _selectedCylinder!.isNotEmpty &&
+          _selectedFuelType != null &&
+          _selectedFuelType!.isNotEmpty;
+
+      final transmissionValid = _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGears != null &&
+          _selectedGears!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
+
+      return engineValid && transmissionValid;
+    } else if (widget.selectedSubType == 'engine_body') {
+      // Moteur + Carrosserie : moteur + véhicule requis
       final engineValid = _selectedCylinder != null &&
           _selectedCylinder!.isNotEmpty &&
           _selectedFuelType != null &&
@@ -957,6 +1135,43 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedYear != null;
 
       return engineValid && vehicleValid;
+    } else if (widget.selectedSubType == 'transmission_body') {
+      // Boîte + Carrosserie : boîte + véhicule requis
+      final transmissionValid = _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGears != null &&
+          _selectedGears!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
+
+      final vehicleValid = _selectedBrand != null &&
+          _selectedBrand!.isNotEmpty &&
+          _selectedModel != null &&
+          _selectedModel!.isNotEmpty &&
+          _selectedYear != null;
+
+      return transmissionValid && vehicleValid;
+    } else if (widget.selectedSubType == 'all_three') {
+      // Moteur + Boîte + Carrosserie : moteur + boîte + véhicule requis
+      final engineValid = _selectedCylinder != null &&
+          _selectedCylinder!.isNotEmpty &&
+          _selectedFuelType != null &&
+          _selectedFuelType!.isNotEmpty;
+
+      final transmissionValid = _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGears != null &&
+          _selectedGears!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty;
+
+      final vehicleValid = _selectedBrand != null &&
+          _selectedBrand!.isNotEmpty &&
+          _selectedModel != null &&
+          _selectedModel!.isNotEmpty &&
+          _selectedYear != null;
+
+      return engineValid && transmissionValid && vehicleValid;
     }
 
     return false;

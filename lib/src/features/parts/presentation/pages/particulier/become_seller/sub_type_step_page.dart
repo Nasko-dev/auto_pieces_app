@@ -18,6 +18,7 @@ class SubTypeStepPage extends StatefulWidget {
 
 class _SubTypeStepPageState extends State<SubTypeStepPage> {
   String _selectedSubType = '';
+  final Set<String> _selectedSubTypes = {};
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +62,40 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _selectedSubType.isNotEmpty
-                      ? () => widget.onSubTypeSelected(_selectedSubType)
+                  onPressed: _isValidSelection()
+                      ? () {
+                          if (widget.selectedCategory == 'lesdeux') {
+                            // Mapper intelligemment les sélections multiples
+                            final selected = _selectedSubTypes.toList()..sort();
+                            String result;
+
+                            // Créer un code unique pour chaque combinaison
+                            if (selected.length == 3) {
+                              // Les 3 sélectionnés
+                              result = 'all_three';
+                            } else if (selected.contains('engine_parts') &&
+                                selected.contains('transmission_parts')) {
+                              // Moteur + Boîte
+                              result = 'both';
+                            } else if (selected.contains('engine_parts') &&
+                                selected.contains('body_parts')) {
+                              // Moteur + Carrosserie
+                              result = 'engine_body';
+                            } else if (selected
+                                    .contains('transmission_parts') &&
+                                selected.contains('body_parts')) {
+                              // Boîte + Carrosserie
+                              result = 'transmission_body';
+                            } else {
+                              // Fallback (ne devrait pas arriver avec validation >= 2)
+                              result = selected.first;
+                            }
+
+                            widget.onSubTypeSelected(result);
+                          } else {
+                            widget.onSubTypeSelected(_selectedSubType);
+                          }
+                        }
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryBlue,
@@ -93,8 +126,20 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
   String _getDescription() {
     if (widget.selectedCategory == 'moteur') {
       return 'Sélectionnez le type de pièces que vous souhaitez vendre';
+    } else if (widget.selectedCategory == 'lesdeux') {
+      return 'Sélectionnez au moins 2 types de pièces que vous souhaitez vendre';
     } else {
       return 'Sélectionnez le type de pièces que vous souhaitez vendre';
+    }
+  }
+
+  bool _isValidSelection() {
+    if (widget.selectedCategory == 'lesdeux') {
+      // Pour 'lesdeux' : au moins 2 sélections requises
+      return _selectedSubTypes.length >= 2;
+    } else {
+      // Pour les autres : au moins 1 sélection
+      return _selectedSubType.isNotEmpty;
     }
   }
 
@@ -148,7 +193,7 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
           title: 'Pièces carrosserie',
           subtitle: 'Portière, pare-choc, phare, capot...',
           icon: Icons.directions_car,
-          color: const Color(0xFF4CAF50),
+          color: const Color(0xFFFF9800),
         ),
       ];
     } else {
@@ -164,12 +209,26 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
     required IconData icon,
     required Color color,
   }) {
-    final isSelected = _selectedSubType == subType;
+    // Pour 'lesdeux', mode multi-sélection, sinon single
+    final isMultiSelect = widget.selectedCategory == 'lesdeux';
+    final isSelected = isMultiSelect
+        ? _selectedSubTypes.contains(subType)
+        : _selectedSubType == subType;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedSubType = subType;
+          if (isMultiSelect) {
+            // Mode multi-sélection : toggle
+            if (_selectedSubTypes.contains(subType)) {
+              _selectedSubTypes.remove(subType);
+            } else {
+              _selectedSubTypes.add(subType);
+            }
+          } else {
+            // Mode single : remplacer
+            _selectedSubType = subType;
+          }
         });
       },
       child: AnimatedContainer(

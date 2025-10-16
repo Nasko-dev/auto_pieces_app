@@ -401,8 +401,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   Future<Map<String, int>> getPartRequestStats() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null)
+      if (userId == null) {
         throw const UnauthorizedException('User not authenticated');
+      }
 
       // Récupérer toutes les demandes et compter côté client
       final allRequests = await _supabase

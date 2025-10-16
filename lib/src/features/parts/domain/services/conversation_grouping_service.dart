@@ -109,12 +109,15 @@ class ConversationGroupingService {
     } else {
       // Pour les pièces carrosserie : afficher marque + modèle + année
       final parts = <String>[];
-      if (conversation.vehicleBrand != null)
+      if (conversation.vehicleBrand != null) {
         parts.add(conversation.vehicleBrand!);
-      if (conversation.vehicleModel != null)
+      }
+      if (conversation.vehicleModel != null) {
         parts.add(conversation.vehicleModel!);
-      if (conversation.vehicleYear != null)
+      }
+      if (conversation.vehicleYear != null) {
         parts.add(conversation.vehicleYear.toString());
+      }
 
       if (parts.isNotEmpty) {
         return parts.join(' ');
@@ -123,12 +126,15 @@ class ConversationGroupingService {
 
     // Fallback : toutes les infos disponibles
     final parts = <String>[];
-    if (conversation.vehicleBrand != null)
+    if (conversation.vehicleBrand != null) {
       parts.add(conversation.vehicleBrand!);
-    if (conversation.vehicleModel != null)
+    }
+    if (conversation.vehicleModel != null) {
       parts.add(conversation.vehicleModel!);
-    if (conversation.vehicleYear != null)
+    }
+    if (conversation.vehicleYear != null) {
       parts.add(conversation.vehicleYear.toString());
+    }
 
     if (parts.isEmpty && conversation.vehicleEngine != null) {
       return conversation.vehicleEngine!;

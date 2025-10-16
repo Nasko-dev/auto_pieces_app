@@ -128,8 +128,9 @@ class ConversationsController
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
-    if (conversationId == null || senderId == null || senderType == null)
+    if (conversationId == null || senderId == null || senderType == null) {
       return;
+    }
 
     // ✅ CRITICAL: Vérifications multiples pour être sûr que ce n'est pas notre message
     final isOwnMessage = senderId == userId ||

@@ -51,10 +51,8 @@ class PartAdvertisementRemoteDataSourceImpl
   ) async {
     try {
       // Si pas de particulierId fourni, récupérer l'ID stable via device_id
-      String? particulierId = params.particulierId;
-      if (particulierId == null) {
-        particulierId = await getParticulierIdFromDeviceId();
-      }
+      String? particulierId =
+          params.particulierId ?? await getParticulierIdFromDeviceId();
 
       // Utiliser la fonction SQL create_part_advertisement
       final response = await client.rpc('create_part_advertisement', params: {
@@ -135,10 +133,7 @@ class PartAdvertisementRemoteDataSourceImpl
   }) async {
     try {
       // Si pas de particulierId fourni, essayer de le récupérer via device_id
-      String? userId = particulierId;
-      if (userId == null) {
-        userId = await getParticulierIdFromDeviceId();
-      }
+      String? userId = particulierId ?? await getParticulierIdFromDeviceId();
       // Si toujours null, utiliser auth.uid()
       userId ??= client.auth.currentUser?.id;
 

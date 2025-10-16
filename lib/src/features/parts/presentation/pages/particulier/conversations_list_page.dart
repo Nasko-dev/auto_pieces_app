@@ -9,8 +9,6 @@ import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../widgets/particulier/particulier_conversation_group_card.dart';
-import '../../../../../core/services/notification_service.dart';
-import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -205,45 +203,5 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         );
       },
     );
-  }
-
-  void _showDeleteDialog(String conversationId) async {
-    final result = await context.showDestructiveDialog(
-      title: 'Supprimer la conversation',
-      message:
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
-      destructiveText: 'Supprimer',
-      cancelText: 'Annuler',
-    );
-
-    if (result == true && mounted) {
-      ref
-          .read(particulierConversationsControllerProvider.notifier)
-          .deleteConversation(conversationId);
-
-      if (mounted) {
-        notificationService.success(context, 'Conversation supprimée');
-      }
-    }
-  }
-
-  void _showBlockDialog(String conversationId) async {
-    final result = await context.showWarningDialog(
-      title: 'Bloquer le vendeur',
-      message:
-          'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
-      confirmText: 'Bloquer',
-      cancelText: 'Annuler',
-    );
-
-    if (result == true && mounted) {
-      ref
-          .read(particulierConversationsControllerProvider.notifier)
-          .blockConversation(conversationId);
-
-      if (mounted) {
-        notificationService.warning(context, 'Vendeur bloqué');
-      }
-    }
   }
 }
