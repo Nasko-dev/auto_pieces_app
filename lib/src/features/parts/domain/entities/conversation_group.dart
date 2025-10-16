@@ -24,14 +24,11 @@ class ConversationGroup with _$ConversationGroup {
   bool get hasUnreadMessages => totalUnreadCount > 0;
 
   String get displayTitle {
-    if (partName.isNotEmpty && vehicleInfo.isNotEmpty) {
-      return '$partName - $vehicleInfo';
-    } else if (partName.isNotEmpty) {
-      return partName;
-    } else if (vehicleInfo.isNotEmpty) {
+    // Afficher uniquement les informations du véhicule
+    if (vehicleInfo.isNotEmpty) {
       return vehicleInfo;
     }
-    return 'Demande pièces';
+    return 'Véhicule non spécifié';
   }
 
   DateTime? get lastMessageAt {
