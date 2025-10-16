@@ -66,7 +66,9 @@ void main() {
   final tPartRequestsList = [tPartRequest1, tPartRequest2, tPartRequest3];
 
   group('GetSellerNotifications', () {
-    test('doit retourner une liste de PartRequest quand la récupération réussit', () async {
+    test(
+        'doit retourner une liste de PartRequest quand la récupération réussit',
+        () async {
       // arrange
       when(mockRepository.getActivePartRequestsForSellerWithRejections())
           .thenAnswer((_) async => Right(tPartRequestsList));
@@ -80,7 +82,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner une liste vide quand aucune notification n\'existe', () async {
+    test('doit retourner une liste vide quand aucune notification n\'existe',
+        () async {
       // arrange
       when(mockRepository.getActivePartRequestsForSellerWithRejections())
           .thenAnswer((_) async => const Right([]));
@@ -97,10 +100,12 @@ void main() {
       verify(mockRepository.getActivePartRequestsForSellerWithRejections());
     });
 
-    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté',
+        () async {
       // arrange
       when(mockRepository.getActivePartRequestsForSellerWithRejections())
-          .thenAnswer((_) async => const Left(AuthFailure('Vendeur non connecté')));
+          .thenAnswer(
+              (_) async => const Left(AuthFailure('Vendeur non connecté')));
 
       // act
       final result = await usecase(NoParams());
@@ -123,10 +128,12 @@ void main() {
       verify(mockRepository.getActivePartRequestsForSellerWithRejections());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
       when(mockRepository.getActivePartRequestsForSellerWithRejections())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+          .thenAnswer((_) async =>
+              const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -158,7 +165,8 @@ void main() {
       await usecase(NoParams());
 
       // assert
-      verify(mockRepository.getActivePartRequestsForSellerWithRejections()).called(1);
+      verify(mockRepository.getActivePartRequestsForSellerWithRejections())
+          .called(1);
     });
 
     test('doit propager les échecs du repository', () async {
@@ -186,7 +194,9 @@ void main() {
       );
     });
 
-    test('doit retourner les notifications avec toutes les propriétés correctes', () async {
+    test(
+        'doit retourner les notifications avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getActivePartRequestsForSellerWithRejections())
           .thenAnswer((_) async => Right(tPartRequestsList));
@@ -302,7 +312,8 @@ void main() {
       // assert
       expect(result1, Right(tPartRequestsList));
       expect(result2, Right(tPartRequestsList));
-      verify(mockRepository.getActivePartRequestsForSellerWithRejections()).called(2);
+      verify(mockRepository.getActivePartRequestsForSellerWithRejections())
+          .called(2);
     });
 
     test('doit retourner la même liste à chaque appel (cohérence)', () async {
@@ -316,10 +327,12 @@ void main() {
 
       // assert
       expect(result1, equals(result2));
-      verify(mockRepository.getActivePartRequestsForSellerWithRejections()).called(2);
+      verify(mockRepository.getActivePartRequestsForSellerWithRejections())
+          .called(2);
     });
 
-    test('doit gérer les demandes avec informations véhicule partielles', () async {
+    test('doit gérer les demandes avec informations véhicule partielles',
+        () async {
       // arrange
       final minimalRequest = PartRequest(
         id: '7',
@@ -367,7 +380,8 @@ void main() {
       );
     });
 
-    test('doit gérer les demandes avec différents nombres de réponses', () async {
+    test('doit gérer les demandes avec différents nombres de réponses',
+        () async {
       // arrange
       final noResponseRequest = PartRequest(
         id: '9',
@@ -485,7 +499,8 @@ void main() {
       );
 
       // act
-      final notification = SellerNotification.fromPartRequest(unknownVehicleRequest);
+      final notification =
+          SellerNotification.fromPartRequest(unknownVehicleRequest);
 
       // assert
       expect(notification.vehicleModel, 'Véhicule ');

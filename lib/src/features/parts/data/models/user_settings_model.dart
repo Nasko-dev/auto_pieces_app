@@ -4,7 +4,6 @@ import '../../domain/entities/user_settings.dart';
 part 'user_settings_model.freezed.dart';
 part 'user_settings_model.g.dart';
 
-
 @freezed
 class UserSettingsModel with _$UserSettingsModel {
   const UserSettingsModel._();
@@ -42,7 +41,8 @@ class UserSettingsModel with _$UserSettingsModel {
         updatedAt: updatedAt,
       );
 
-  factory UserSettingsModel.fromEntity(UserSettings entity) => UserSettingsModel(
+  factory UserSettingsModel.fromEntity(UserSettings entity) =>
+      UserSettingsModel(
         userId: entity.userId,
         displayName: entity.displayName,
         address: entity.address,

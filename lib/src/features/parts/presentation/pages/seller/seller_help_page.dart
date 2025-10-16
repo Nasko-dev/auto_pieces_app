@@ -42,7 +42,8 @@ class SellerHelpPage extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // FAQ Sections
-            _buildFAQSection('Gestion des commandes', Icons.inventory_2_outlined, [
+            _buildFAQSection(
+                'Gestion des commandes', Icons.inventory_2_outlined, [
               _buildFAQItem(
                 'Comment recevoir les demandes clients ?',
                 'Vous recevrez automatiquement les demandes correspondant à votre zone géographique et à vos spécialités. Activez les notifications push pour être alerté immédiatement.',
@@ -59,7 +60,8 @@ class SellerHelpPage extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            _buildFAQSection('Optimiser mes ventes', Icons.trending_up_outlined, [
+            _buildFAQSection(
+                'Optimiser mes ventes', Icons.trending_up_outlined, [
               _buildFAQItem(
                 'Comment améliorer ma visibilité ?',
                 'Complétez votre profil professionnel, ajoutez des photos de votre établissement, maintenez des évaluations positives et répondez rapidement aux demandes.',
@@ -76,7 +78,8 @@ class SellerHelpPage extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            _buildFAQSection('Communication client', Icons.chat_bubble_outline, [
+            _buildFAQSection(
+                'Communication client', Icons.chat_bubble_outline, [
               _buildFAQItem(
                 'Bonnes pratiques de communication',
                 'Soyez professionnel, réactif et précis. Fournissez tous les détails techniques nécessaires et soyez transparent sur l\'état des pièces.',
@@ -114,7 +117,8 @@ class SellerHelpPage extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            _buildFAQSection('Mon profil professionnel', Icons.business_outlined, [
+            _buildFAQSection(
+                'Mon profil professionnel', Icons.business_outlined, [
               _buildFAQItem(
                 'Comment optimiser mon profil ?',
                 'Ajoutez une description détaillée de votre activité, vos spécialités, vos certifications et des photos de votre établissement. Un profil complet inspire confiance.',
@@ -148,7 +152,10 @@ class SellerHelpPage extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppTheme.primaryBlue, AppTheme.primaryBlue.withValues(alpha: 0.8)],
+          colors: [
+            AppTheme.primaryBlue,
+            AppTheme.primaryBlue.withValues(alpha: 0.8)
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

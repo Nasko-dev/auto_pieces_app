@@ -16,13 +16,15 @@ class RejectPartRequestParams {
   });
 }
 
-class RejectPartRequestUseCase implements UseCase<SellerRejection, RejectPartRequestParams> {
+class RejectPartRequestUseCase
+    implements UseCase<SellerRejection, RejectPartRequestParams> {
   final PartRequestRepository repository;
 
   const RejectPartRequestUseCase({required this.repository});
 
   @override
-  Future<Either<Failure, SellerRejection>> call(RejectPartRequestParams params) async {
+  Future<Either<Failure, SellerRejection>> call(
+      RejectPartRequestParams params) async {
     try {
       // Créer l'objet de refus
       final rejection = SellerRejection.create(
@@ -33,7 +35,7 @@ class RejectPartRequestUseCase implements UseCase<SellerRejection, RejectPartReq
 
       // Enregistrer le refus en base
       final result = await repository.rejectPartRequest(rejection);
-      
+
       return result.fold(
         (failure) => Left(failure),
         (savedRejection) => Right(savedRejection),

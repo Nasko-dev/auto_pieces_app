@@ -25,7 +25,8 @@ void main() {
     late GetCurrentSeller getCurrentSeller;
 
     // Données de test
-    final testEmail = 'test_${DateTime.now().millisecondsSinceEpoch}@example.com';
+    final testEmail =
+        'test_${DateTime.now().millisecondsSinceEpoch}@example.com';
     const testPassword = 'TestPassword123!';
     const testFirstName = 'Test';
     const testLastName = 'Integration';
@@ -52,7 +53,8 @@ void main() {
     });
 
     group('Cycle complet d\'authentification', () {
-      testWidgets('Inscription → Connexion → Vérification → Déconnexion', (WidgetTester tester) async {
+      testWidgets('Inscription → Connexion → Vérification → Déconnexion',
+          (WidgetTester tester) async {
         // 🔶 ÉTAPE 1: Inscription d'un nouveau vendeur
 
         // ignore: unused_local_variable
@@ -120,7 +122,8 @@ void main() {
         expect(true, true);
       });
 
-      testWidgets('Tentative de connexion avec identifiants invalides', (WidgetTester tester) async {
+      testWidgets('Tentative de connexion avec identifiants invalides',
+          (WidgetTester tester) async {
         // ignore: unused_local_variable
         final invalidLoginParams = SellerLoginParams(
           email: 'inexistant@example.com',
@@ -152,7 +155,8 @@ void main() {
     });
 
     group('Validation des données en conditions réelles', () {
-      testWidgets('Email déjà utilisé lors de l\'inscription', (WidgetTester tester) async {
+      testWidgets('Email déjà utilisé lors de l\'inscription',
+          (WidgetTester tester) async {
         // Test avec un email qui existe déjà en base
         const existingEmail = 'admin@cente-pice.com'; // Email supposé existant
 
@@ -193,7 +197,8 @@ void main() {
     });
 
     group('Performance et timeouts', () {
-      testWidgets('Connexion doit se faire en moins de 5 secondes', (WidgetTester tester) async {
+      testWidgets('Connexion doit se faire en moins de 5 secondes',
+          (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
         // ignore: unused_local_variable
@@ -240,12 +245,14 @@ class IntegrationTestConfig {
   /// Créé un vendeur de test et retourne ses informations
   static Future<Seller> createTestSeller() async {
     // Création d'un vendeur de test en base
-    throw UnimplementedError('À implémenter lors de la configuration des vrais tests');
+    throw UnimplementedError(
+        'À implémenter lors de la configuration des vrais tests');
   }
 
   /// Supprime un vendeur de test
   static Future<void> deleteTestSeller(String sellerId) async {
     // Suppression du vendeur de test
-    throw UnimplementedError('À implémenter lors de la configuration des vrais tests');
+    throw UnimplementedError(
+        'À implémenter lors de la configuration des vrais tests');
   }
 }

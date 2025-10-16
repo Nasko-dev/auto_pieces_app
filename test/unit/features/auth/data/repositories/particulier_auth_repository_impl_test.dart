@@ -47,7 +47,8 @@ void main() {
 
   group('ParticulierAuthRepositoryImpl', () {
     group('signInAnonymously', () {
-      test('doit retourner un Particulier quand la connexion anonyme réussit', () async {
+      test('doit retourner un Particulier quand la connexion anonyme réussit',
+          () async {
         // arrange
         when(mockRemoteDataSource.signInAnonymously())
             .thenAnswer((_) async => tParticulierModel);
@@ -102,7 +103,10 @@ void main() {
         final result = await repository.signInAnonymously();
 
         // assert
-        expect(result, const Left(ServerFailure('Erreur lors de la connexion anonyme: Exception: Erreur inattendue')));
+        expect(
+            result,
+            const Left(ServerFailure(
+                'Erreur lors de la connexion anonyme: Exception: Erreur inattendue')));
       });
     });
 
@@ -121,7 +125,8 @@ void main() {
         expect(result, const Right(null));
       });
 
-      test('doit retourner ServerFailure si la déconnexion remote échoue', () async {
+      test('doit retourner ServerFailure si la déconnexion remote échoue',
+          () async {
         // arrange
         when(mockRemoteDataSource.logout())
             .thenThrow(const ServerException('Erreur déconnexion'));
@@ -135,7 +140,8 @@ void main() {
         expect(result, const Left(ServerFailure('Erreur déconnexion')));
       });
 
-      test('doit retourner CacheFailure si le nettoyage du cache échoue', () async {
+      test('doit retourner CacheFailure si le nettoyage du cache échoue',
+          () async {
         // arrange
         when(mockRemoteDataSource.logout()).thenAnswer((_) async => {});
         when(mockLocalDataSource.clearCache())
@@ -159,7 +165,10 @@ void main() {
         final result = await repository.logout();
 
         // assert
-        expect(result, const Left(ServerFailure('Erreur lors de la déconnexion: Exception: Erreur inattendue')));
+        expect(
+            result,
+            const Left(ServerFailure(
+                'Erreur lors de la déconnexion: Exception: Erreur inattendue')));
       });
     });
 
@@ -197,7 +206,8 @@ void main() {
         expect(result, Right(tParticulierModel));
       });
 
-      test('doit retourner ServerFailure si la récupération serveur échoue', () async {
+      test('doit retourner ServerFailure si la récupération serveur échoue',
+          () async {
         // arrange
         when(mockLocalDataSource.getCachedParticulier())
             .thenAnswer((_) async => null);
@@ -227,7 +237,8 @@ void main() {
         expect(result, Right(tParticulierModel));
       });
 
-      test('doit retourner ServerFailure si cache et serveur échouent', () async {
+      test('doit retourner ServerFailure si cache et serveur échouent',
+          () async {
         // arrange
         when(mockLocalDataSource.getCachedParticulier())
             .thenThrow(const CacheException('Erreur cache'));
@@ -245,8 +256,7 @@ void main() {
     group('isLoggedIn', () {
       test('doit retourner true si l\'utilisateur est connecté', () async {
         // arrange
-        when(mockRemoteDataSource.isLoggedIn())
-            .thenAnswer((_) async => true);
+        when(mockRemoteDataSource.isLoggedIn()).thenAnswer((_) async => true);
 
         // act
         final result = await repository.isLoggedIn();
@@ -256,10 +266,10 @@ void main() {
         expect(result, const Right(true));
       });
 
-      test('doit retourner false si l\'utilisateur n\'est pas connecté', () async {
+      test('doit retourner false si l\'utilisateur n\'est pas connecté',
+          () async {
         // arrange
-        when(mockRemoteDataSource.isLoggedIn())
-            .thenAnswer((_) async => false);
+        when(mockRemoteDataSource.isLoggedIn()).thenAnswer((_) async => false);
 
         // act
         final result = await repository.isLoggedIn();
@@ -271,8 +281,7 @@ void main() {
 
       test('doit retourner false en cas d\'exception', () async {
         // arrange
-        when(mockRemoteDataSource.isLoggedIn())
-            .thenThrow(Exception('Erreur'));
+        when(mockRemoteDataSource.isLoggedIn()).thenThrow(Exception('Erreur'));
 
         // act
         final result = await repository.isLoggedIn();
@@ -320,7 +329,10 @@ void main() {
         final result = await repository.updateParticulier(tParticulier);
 
         // assert
-        expect(result, const Left(ServerFailure('Erreur lors de la mise à jour: Exception: Erreur inattendue')));
+        expect(
+            result,
+            const Left(ServerFailure(
+                'Erreur lors de la mise à jour: Exception: Erreur inattendue')));
       });
     });
   });

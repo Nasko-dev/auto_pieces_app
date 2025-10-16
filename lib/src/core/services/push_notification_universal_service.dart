@@ -38,20 +38,20 @@ class PushNotificationUniversalService {
 
       // Vérifier dans particuliers
       final isParticulier = await _supabase
-        .from('particuliers')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+          .from('particuliers')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
 
       if (isParticulier != null) {
         userType = 'particulier';
       } else {
         // Vérifier dans sellers
         final isSeller = await _supabase
-          .from('sellers')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+            .from('sellers')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
 
         if (isSeller != null) {
           userType = 'seller';
@@ -62,43 +62,37 @@ class PushNotificationUniversalService {
 
       // Créer ou mettre à jour dans la table user_push_tokens
       final existingToken = await _supabase
-        .from('user_push_tokens')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
+          .from('user_push_tokens')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
 
       if (existingToken != null) {
         // Mettre à jour
-        await _supabase
-          .from('user_push_tokens')
-          .update({
-            'onesignal_player_id': playerId,
-            'user_type': userType,
-            'platform': 'android',
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('user_id', userId);
+        await _supabase.from('user_push_tokens').update({
+          'onesignal_player_id': playerId,
+          'user_type': userType,
+          'platform': 'android',
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('user_id', userId);
 
         debugPrint('✅ Player ID mis à jour dans user_push_tokens');
       } else {
         // Créer
-        await _supabase
-          .from('user_push_tokens')
-          .insert({
-            'user_id': userId,
-            'onesignal_player_id': playerId,
-            'user_type': userType,
-            'platform': 'android',
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          });
+        await _supabase.from('user_push_tokens').insert({
+          'user_id': userId,
+          'onesignal_player_id': playerId,
+          'user_type': userType,
+          'platform': 'android',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
 
         debugPrint('✅ Player ID créé dans user_push_tokens');
       }
 
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('✅ Sauvegarde universelle réussie');
-
     } catch (e) {
       debugPrint('❌ Erreur dans le service universel: $e');
 
@@ -140,10 +134,10 @@ CREATE POLICY "Users can manage own push tokens"
   Future<String?> getPlayerIdForUser(String userId) async {
     try {
       final result = await _supabase
-        .from('user_push_tokens')
-        .select('onesignal_player_id')
-        .eq('user_id', userId)
-        .maybeSingle();
+          .from('user_push_tokens')
+          .select('onesignal_player_id')
+          .eq('user_id', userId)
+          .maybeSingle();
 
       return result?['onesignal_player_id'];
     } catch (e) {
@@ -155,10 +149,7 @@ CREATE POLICY "Users can manage own push tokens"
   /// Supprime le Player ID (déconnexion)
   Future<void> clearPlayerIdForUser(String userId) async {
     try {
-      await _supabase
-        .from('user_push_tokens')
-        .delete()
-        .eq('user_id', userId);
+      await _supabase.from('user_push_tokens').delete().eq('user_id', userId);
 
       debugPrint('✅ Player ID supprimé pour l\'utilisateur');
     } catch (e) {

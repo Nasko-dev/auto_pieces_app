@@ -13,12 +13,15 @@ import '../../features/parts/domain/usecases/delete_part_request.dart';
 // ========================================
 // DataSources
 // ========================================
-final partRequestRemoteDataSourceProvider = Provider<PartRequestRemoteDataSource>((ref) {
+final partRequestRemoteDataSourceProvider =
+    Provider<PartRequestRemoteDataSource>((ref) {
   return PartRequestRemoteDataSourceImpl(Supabase.instance.client);
 });
 
-final conversationsRemoteDataSourceProvider = Provider<ConversationsRemoteDataSource>((ref) {
-  return ConversationsRemoteDataSourceImpl(supabaseClient: Supabase.instance.client);
+final conversationsRemoteDataSourceProvider =
+    Provider<ConversationsRemoteDataSource>((ref) {
+  return ConversationsRemoteDataSourceImpl(
+      supabaseClient: Supabase.instance.client);
 });
 
 // ========================================
@@ -27,7 +30,8 @@ final conversationsRemoteDataSourceProvider = Provider<ConversationsRemoteDataSo
 final partRequestRepositoryProvider = Provider<PartRequestRepository>((ref) {
   return PartRequestRepositoryImpl(
     remoteDataSource: ref.read(partRequestRemoteDataSourceProvider),
-    conversationsRemoteDataSource: ref.read(conversationsRemoteDataSourceProvider),
+    conversationsRemoteDataSource:
+        ref.read(conversationsRemoteDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
   );
 });
@@ -43,7 +47,8 @@ final getUserPartRequestsProvider = Provider<GetUserPartRequests>((ref) {
   return GetUserPartRequests(ref.read(partRequestRepositoryProvider));
 });
 
-final getPartRequestResponsesProvider = Provider<GetPartRequestResponses>((ref) {
+final getPartRequestResponsesProvider =
+    Provider<GetPartRequestResponses>((ref) {
   return GetPartRequestResponses(ref.read(partRequestRepositoryProvider));
 });
 

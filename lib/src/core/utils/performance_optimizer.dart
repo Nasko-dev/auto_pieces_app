@@ -25,7 +25,8 @@ class CacheStats {
 
 /// Système de cache et optimisation pour supporter 500k+ utilisateurs
 class PerformanceOptimizer {
-  static final PerformanceOptimizer _instance = PerformanceOptimizer._internal();
+  static final PerformanceOptimizer _instance =
+      PerformanceOptimizer._internal();
   factory PerformanceOptimizer() => _instance;
   PerformanceOptimizer._internal();
 
@@ -61,12 +62,13 @@ class PerformanceOptimizer {
     // Mettre en fin de cache (LRU)
     _cache.remove(key);
     _cache[key] = entry;
-    
+
     return entry.data as T?;
   }
 
   /// Exécute une requête avec déduplication (évite les requêtes identiques simultanées)
-  Future<T> executeWithDeduplication<T>(String key, Future<T> Function() operation) async {
+  Future<T> executeWithDeduplication<T>(
+      String key, Future<T> Function() operation) async {
     // Si une requête identique est déjà en cours, attendre le résultat
     if (_requestPool.containsKey(key)) {
       return await _requestPool[key] as T;
@@ -85,21 +87,18 @@ class PerformanceOptimizer {
   }
 
   /// Cache intelligent : vérifie le cache puis exécute si nécessaire
-  Future<T> smartCache<T>(
-    String key, 
-    Future<T> Function() operation, 
-    {Duration? ttl}
-  ) async {
+  Future<T> smartCache<T>(String key, Future<T> Function() operation,
+      {Duration? ttl}) async {
     // 1. Vérifier le cache
     final cached = getCachedData<T>(key);
     if (cached != null) return cached;
 
     // 2. Exécuter avec déduplication
     final result = await executeWithDeduplication(key, operation);
-    
+
     // 3. Mettre en cache
     cacheData(key, result, ttl: ttl);
-    
+
     return result;
   }
 
@@ -118,7 +117,7 @@ class PerformanceOptimizer {
   CacheStats getStats() {
     final now = DateTime.now();
     final expired = _cache.values.where((e) => now.isAfter(e.expiry)).length;
-    
+
     return CacheStats(
       totalEntries: _cache.length,
       expiredEntries: expired,
@@ -131,11 +130,10 @@ class PerformanceOptimizer {
   final int _cacheHits = 0;
   final int _cacheMisses = 0;
 
-
   @override
   String toString() {
     final stats = getStats();
     return 'CacheStats(entries: ${stats.totalEntries}, expired: ${stats.expiredEntries}, '
-           'requests: ${stats.activeRequests}, hitRate: ${(stats.cacheHitRate * 100).toStringAsFixed(1)}%)';
+        'requests: ${stats.activeRequests}, hitRate: ${(stats.cacheHitRate * 100).toStringAsFixed(1)}%)';
   }
 }

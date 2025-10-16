@@ -5,7 +5,6 @@ class ConversationGroupingService {
   static List<ConversationGroup> groupConversations(
     List<Conversation> conversations,
   ) {
-
     // Map pour regrouper par clé unique
     final Map<String, List<Conversation>> grouped = {};
 
@@ -19,10 +18,17 @@ class ConversationGroupingService {
       }
     }
 
-
     // Convertir en ConversationGroup et trier
     final groups = grouped.entries.map((entry) {
       final conversations = entry.value;
+
+      // Trier les conversations par date du dernier message (plus récent en premier)
+      conversations.sort((a, b) {
+        final aDate = a.lastMessageCreatedAt ?? a.lastMessageAt;
+        final bDate = b.lastMessageCreatedAt ?? b.lastMessageAt;
+        return bDate.compareTo(aDate);
+      });
+
       final firstConv = conversations.first;
 
       // Calculer le nombre total de messages non lus
@@ -60,40 +66,34 @@ class ConversationGroupingService {
   }
 
   static String _generateGroupKey(Conversation conversation) {
-    // Créer une clé unique basée sur : pièce + véhicule
+    // Créer une clé unique basée sur : véhicule uniquement (marque + modèle + année)
     final parts = <String>[];
-
-    // Ajouter les informations de la pièce
-    if (conversation.requestTitle != null && conversation.requestTitle!.isNotEmpty) {
-      // Nettoyer le titre (enlever caractères spéciaux, mettre en minuscules)
-      final cleanTitle = conversation.requestTitle!
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
-          .replaceAll(RegExp(r'\s+'), '-');
-      parts.add(cleanTitle);
-    }
 
     // Ajouter les informations du véhicule
     if (conversation.vehicleBrand != null) {
-      parts.add(conversation.vehicleBrand!.toLowerCase());
-    }
-    if (conversation.vehicleModel != null) {
-      parts.add(conversation.vehicleModel!.toLowerCase());
-    }
-    if (conversation.vehicleYear != null) {
-      parts.add(conversation.vehicleYear.toString());
+      parts.add(conversation.vehicleBrand!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
     }
 
-    // Si pas d'infos, utiliser l'ID de la demande
-    if (parts.isEmpty) {
-      parts.add('demande-${conversation.requestId}');
+    if (conversation.vehicleModel != null) {
+      parts.add(conversation.vehicleModel!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
+    }
+
+    if (conversation.vehicleYear != null) {
+      parts.add(conversation.vehicleYear.toString());
+    } else {
+      parts.add('inconnu');
     }
 
     return parts.join('_');
   }
 
   static String _extractPartName(Conversation conversation) {
-    if (conversation.requestTitle != null && conversation.requestTitle!.isNotEmpty) {
+    if (conversation.requestTitle != null &&
+        conversation.requestTitle!.isNotEmpty) {
       return conversation.requestTitle!;
     }
     return 'Pièce demandée';
@@ -102,15 +102,22 @@ class ConversationGroupingService {
   static String _extractVehicleInfo(Conversation conversation) {
     if (conversation.partType == 'engine') {
       // Pour les pièces moteur : afficher seulement la motorisation
-      if (conversation.vehicleEngine != null && conversation.vehicleEngine!.isNotEmpty) {
+      if (conversation.vehicleEngine != null &&
+          conversation.vehicleEngine!.isNotEmpty) {
         return conversation.vehicleEngine!;
       }
     } else {
       // Pour les pièces carrosserie : afficher marque + modèle + année
       final parts = <String>[];
-      if (conversation.vehicleBrand != null) parts.add(conversation.vehicleBrand!);
-      if (conversation.vehicleModel != null) parts.add(conversation.vehicleModel!);
-      if (conversation.vehicleYear != null) parts.add(conversation.vehicleYear.toString());
+      if (conversation.vehicleBrand != null) {
+        parts.add(conversation.vehicleBrand!);
+      }
+      if (conversation.vehicleModel != null) {
+        parts.add(conversation.vehicleModel!);
+      }
+      if (conversation.vehicleYear != null) {
+        parts.add(conversation.vehicleYear.toString());
+      }
 
       if (parts.isNotEmpty) {
         return parts.join(' ');
@@ -119,9 +126,15 @@ class ConversationGroupingService {
 
     // Fallback : toutes les infos disponibles
     final parts = <String>[];
-    if (conversation.vehicleBrand != null) parts.add(conversation.vehicleBrand!);
-    if (conversation.vehicleModel != null) parts.add(conversation.vehicleModel!);
-    if (conversation.vehicleYear != null) parts.add(conversation.vehicleYear.toString());
+    if (conversation.vehicleBrand != null) {
+      parts.add(conversation.vehicleBrand!);
+    }
+    if (conversation.vehicleModel != null) {
+      parts.add(conversation.vehicleModel!);
+    }
+    if (conversation.vehicleYear != null) {
+      parts.add(conversation.vehicleYear.toString());
+    }
 
     if (parts.isEmpty && conversation.vehicleEngine != null) {
       return conversation.vehicleEngine!;

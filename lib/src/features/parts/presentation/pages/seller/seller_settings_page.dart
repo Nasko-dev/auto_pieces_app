@@ -110,35 +110,35 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
         centerTitle: true,
       ),
       body: _isLoadingSettings
-        ? const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryBlue,
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryBlue,
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Section Entreprise
+                  _buildCompanySection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Adresse professionnelle
+                  _buildAddressSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Notifications
+                  _buildNotificationsSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Bouton Sauvegarder
+                  _buildSaveButton(),
+                ],
+              ),
             ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // Section Entreprise
-                _buildCompanySection(),
-
-                const SizedBox(height: 24),
-
-                // Section Adresse professionnelle
-                _buildAddressSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Notifications
-                _buildNotificationsSection(),
-
-                const SizedBox(height: 24),
-
-                // Bouton Sauvegarder
-                _buildSaveButton(),
-              ],
-            ),
-          ),
     );
   }
 
@@ -221,7 +221,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
@@ -251,7 +252,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
@@ -340,14 +342,17 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppTheme.primaryBlue),
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppTheme.primaryBlue),
                             ),
                           )
                         : const Icon(Icons.my_location, size: 16),
-                    label: Text(_isLoadingLocation ? 'Localisation...' : 'Ma position'),
+                    label: Text(
+                        _isLoadingLocation ? 'Localisation...' : 'Ma position'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppTheme.primaryBlue,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                     ),
                   ),
                 ],
@@ -360,7 +365,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
@@ -392,7 +398,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                   ],
@@ -420,7 +427,8 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                   ],
@@ -618,7 +626,9 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
     }
 
     // Validation basique
-    if (_companyNameController.text.isEmpty && _phoneController.text.isEmpty && _addressController.text.isEmpty) {
+    if (_companyNameController.text.isEmpty &&
+        _phoneController.text.isEmpty &&
+        _addressController.text.isEmpty) {
       notificationService.warning(context, 'Aucune information à sauvegarder');
       return;
     }
@@ -628,11 +638,21 @@ class _SellerSettingsPageState extends ConsumerState<SellerSettingsPage> {
       final sellerSettings = SellerSettings(
         sellerId: currentUser.id,
         email: currentUser.email ?? '',
-        companyName: _companyNameController.text.trim().isEmpty ? null : _companyNameController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-        city: _cityController.text.trim().isEmpty ? null : _cityController.text.trim(),
-        postalCode: _postalCodeController.text.trim().isEmpty ? null : _postalCodeController.text.trim(),
+        companyName: _companyNameController.text.trim().isEmpty
+            ? null
+            : _companyNameController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
+        address: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
+        city: _cityController.text.trim().isEmpty
+            ? null
+            : _cityController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty
+            ? null
+            : _postalCodeController.text.trim(),
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
         updatedAt: DateTime.now(),

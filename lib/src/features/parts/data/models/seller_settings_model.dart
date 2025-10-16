@@ -4,7 +4,6 @@ import '../../domain/entities/seller_settings.dart';
 part 'seller_settings_model.freezed.dart';
 part 'seller_settings_model.g.dart';
 
-
 @freezed
 class SellerSettingsModel with _$SellerSettingsModel {
   const SellerSettingsModel._();
@@ -54,7 +53,8 @@ class SellerSettingsModel with _$SellerSettingsModel {
         updatedAt: updatedAt,
       );
 
-  factory SellerSettingsModel.fromEntity(SellerSettings entity) => SellerSettingsModel(
+  factory SellerSettingsModel.fromEntity(SellerSettings entity) =>
+      SellerSettingsModel(
         sellerId: entity.sellerId,
         email: entity.email,
         firstName: entity.firstName,

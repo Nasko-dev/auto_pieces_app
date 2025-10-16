@@ -33,7 +33,8 @@ class NotificationTestService {
     final optedIn = OneSignal.User.pushSubscription.optedIn;
 
     debugPrint('   Player ID: ${playerId ?? "NON DISPONIBLE"}');
-    debugPrint('   Token: ${token != null ? 'Présent (${token.length} caractères)' : 'ABSENT'}');
+    debugPrint(
+        '   Token: ${token != null ? 'Présent (${token.length} caractères)' : 'ABSENT'}');
     debugPrint('   Opted In: $optedIn');
 
     // 4. Vérifier l'utilisateur connecté
@@ -52,7 +53,8 @@ class NotificationTestService {
             .maybeSingle();
 
         debugPrint('\n5️⃣ SAUVEGARDE SUPABASE');
-        debugPrint('   Player ID dans DB: ${result?['onesignal_player_id'] ?? "NON SAUVEGARDÉ"}');
+        debugPrint(
+            '   Player ID dans DB: ${result?['onesignal_player_id'] ?? "NON SAUVEGARDÉ"}');
 
         if (playerId != null && result?['onesignal_player_id'] != playerId) {
           debugPrint('   ⚠️ Player ID différent dans la DB, mise à jour...');
@@ -77,7 +79,8 @@ class NotificationTestService {
         await OneSignal.InAppMessages.addTrigger("test_notification", "true");
 
         debugPrint('   ✅ Notification de test déclenchée');
-        debugPrint('   ℹ️  Vous devriez recevoir une notification dans quelques secondes');
+        debugPrint(
+            '   ℹ️  Vous devriez recevoir une notification dans quelques secondes');
       } catch (e) {
         debugPrint('   ❌ Erreur lors de l\'envoi: $e');
       }
@@ -104,8 +107,8 @@ class NotificationTestService {
         SnackBar(
           content: Text(
             playerId != null
-              ? 'Notifications configurées ✅\nPlayer ID: ${playerId.substring(0, 8)}...'
-              : 'Notifications non configurées ❌',
+                ? 'Notifications configurées ✅\nPlayer ID: ${playerId.substring(0, 8)}...'
+                : 'Notifications non configurées ❌',
           ),
           duration: const Duration(seconds: 5),
           backgroundColor: playerId != null ? Colors.green : Colors.red,
@@ -153,7 +156,8 @@ class NotificationTestService {
 
       if (playerIdInDb == null) {
         debugPrint('❌ Aucun Player ID trouvé dans Supabase');
-        debugPrint('   💡 Conseil: Vérifiez que le Player ID a été sauvegardé lors de l\'initialisation');
+        debugPrint(
+            '   💡 Conseil: Vérifiez que le Player ID a été sauvegardé lors de l\'initialisation');
 
         // Afficher aussi le Player ID actuel pour comparaison
         final currentPlayerId = OneSignal.User.pushSubscription.id;
@@ -175,7 +179,6 @@ class NotificationTestService {
       //   'title': 'Test de notification',
       //   'message': 'Ceci est un test',
       // });
-
     } catch (e) {
       debugPrint('❌ Erreur: $e');
     }

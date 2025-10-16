@@ -16,16 +16,21 @@ class TestableImmatriculationService extends ImmatriculationService {
   });
 
   @override
-  Future<Either<Failure, VehicleInfo>> getVehicleInfoFromPlate(String plate) async {
+  Future<Either<Failure, VehicleInfo>> getVehicleInfoFromPlate(
+      String plate) async {
     // Validation du format de plaque - vérifier s'il y a des caractères invalides
     if (plate.contains('@') || plate.contains('#') || plate.contains('*')) {
-      return const Left(ValidationFailure('Format de plaque invalide - caractères interdits'));
+      return const Left(ValidationFailure(
+          'Format de plaque invalide - caractères interdits'));
     }
 
     // Nettoyage de la plaque
-    final cleanedPlate = plate.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
+    final cleanedPlate =
+        plate.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
 
-    if (cleanedPlate.isEmpty || cleanedPlate.length < 6 || cleanedPlate.length > 9) {
+    if (cleanedPlate.isEmpty ||
+        cleanedPlate.length < 6 ||
+        cleanedPlate.length > 9) {
       return const Left(ValidationFailure('Format de plaque invalide'));
     }
 
@@ -73,8 +78,8 @@ class MockHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    final response = onRequest?.call(request) ??
-        http.Response('{"vehicles": []}', 200);
+    final response =
+        onRequest?.call(request) ?? http.Response('{"vehicles": []}', 200);
 
     return http.StreamedResponse(
       Stream.fromIterable([response.bodyBytes]),
@@ -127,7 +132,8 @@ void main() {
     });
 
     group('getVehicleInfoFromPlate', () {
-      test('devrait retourner les informations du véhicule pour AB123CD', () async {
+      test('devrait retourner les informations du véhicule pour AB123CD',
+          () async {
         // Act
         final result = await service.getVehicleInfoFromPlate('AB123CD');
 
@@ -160,7 +166,8 @@ void main() {
         );
       });
 
-      test('devrait retourner une erreur pour un format de plaque invalide', () async {
+      test('devrait retourner une erreur pour un format de plaque invalide',
+          () async {
         // Act
         final result = await service.getVehicleInfoFromPlate('123');
 
@@ -207,7 +214,7 @@ void main() {
         for (final plate in testPlates) {
           final result = await service.getVehicleInfoFromPlate(plate);
           expect(result, isA<Right<Failure, VehicleInfo>>(),
-                 reason: 'Plaque $plate devrait être valide');
+              reason: 'Plaque $plate devrait être valide');
         }
       });
 
@@ -224,7 +231,7 @@ void main() {
         for (final plate in invalidPlates) {
           final result = await service.getVehicleInfoFromPlate(plate);
           expect(result, isA<Left<Failure, VehicleInfo>>(),
-                 reason: 'Plaque $plate devrait être invalide');
+              reason: 'Plaque $plate devrait être invalide');
         }
       });
     });
@@ -255,7 +262,7 @@ void main() {
         for (final plate in validPlates) {
           final result = await service.getVehicleInfoFromPlate(plate);
           expect(result, isA<Right<Failure, VehicleInfo>>(),
-                 reason: 'Plaque $plate devrait être valide');
+              reason: 'Plaque $plate devrait être valide');
         }
       });
 
@@ -271,13 +278,14 @@ void main() {
         for (final plate in invalidPlates) {
           final result = await service.getVehicleInfoFromPlate(plate);
           expect(result, isA<Left<Failure, VehicleInfo>>(),
-                 reason: 'Plaque $plate devrait être invalide');
+              reason: 'Plaque $plate devrait être invalide');
         }
       });
     });
 
     group('Gestion d\'erreur et robustesse', () {
-      test('devrait construire une description pour le véhicule trouvé', () async {
+      test('devrait construire une description pour le véhicule trouvé',
+          () async {
         // Act
         final result = await service.getVehicleInfoFromPlate('AB123CD');
 

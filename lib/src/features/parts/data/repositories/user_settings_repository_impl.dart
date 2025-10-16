@@ -32,11 +32,13 @@ class UserSettingsRepositoryImpl implements UserSettingsRepository {
   }
 
   @override
-  Future<Either<Failure, UserSettings>> saveUserSettings(UserSettings settings) async {
+  Future<Either<Failure, UserSettings>> saveUserSettings(
+      UserSettings settings) async {
     if (await networkInfo.isConnected) {
       try {
         final settingsModel = UserSettingsModel.fromEntity(settings);
-        final savedModel = await remoteDataSource.saveUserSettings(settingsModel);
+        final savedModel =
+            await remoteDataSource.saveUserSettings(settingsModel);
         return Right(savedModel.toEntity());
       } on ServerFailure catch (failure) {
         return Left(failure);

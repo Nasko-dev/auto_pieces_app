@@ -31,7 +31,8 @@ class ConversationsState with _$ConversationsState {
   }) = _ConversationsState;
 }
 
-class ConversationsController extends BaseConversationController<ConversationsState> {
+class ConversationsController
+    extends BaseConversationController<ConversationsState> {
   final GetConversations _getConversations;
   final GetConversationMessages _getConversationMessages;
   final SendMessage _sendMessage;
@@ -82,10 +83,10 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // S'abonner à tous les messages de l'utilisateur
   void _subscribeToAllUserMessages(String userId) {
-    
     // S'abonner aux changements de conversations
     _realtimeService.subscribeToConversationsForUser(userId);
-    _conversationsSubscription = _realtimeService.conversationStream.listen((event) {
+    _conversationsSubscription =
+        _realtimeService.conversationStream.listen((event) {
       // Recharger les conversations lors de changements
       loadConversations();
     });
@@ -97,7 +98,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // S'abonner globalement aux messages de toutes les conversations de l'utilisateur
   void _subscribeToGlobalMessages(String userId) async {
-    
     // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
     final channel = Supabase.instance.client
         .channel('global_messages_$userId')
@@ -118,7 +118,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
             loadConversations();
           },
         );
-    
+
     channel.subscribe();
   }
 
@@ -128,16 +128,17 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
-    if (conversationId == null || senderId == null || senderType == null) return;
-
+    if (conversationId == null || senderId == null || senderType == null) {
+      return;
+    }
 
     // ✅ CRITICAL: Vérifications multiples pour être sûr que ce n'est pas notre message
     final isOwnMessage = senderId == userId ||
-                        senderId.toString() == userId.toString() ||
-                        senderId.toString() == userId;
+        senderId.toString() == userId.toString() ||
+        senderId.toString() == userId;
 
     if (isOwnMessage) {
-      return;  // SORTIR IMMÉDIATEMENT
+      return; // SORTIR IMMÉDIATEMENT
     }
 
     // ✅ DB-BASED: Déterminer si ce message nous est destiné en utilisant notre logique intelligente
@@ -160,10 +161,11 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // ✅ OPTIMISÉ: Méthode publique simplifiée pour les pages de chat
   void handleIncomingMessage(Message newMessage) {
-
     // Ajouter le message localement aux messages de la conversation
-    final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
-    final conversationMessages = currentMessages[newMessage.conversationId] ?? [];
+    final currentMessages =
+        Map<String, List<Message>>.from(state.conversationMessages);
+    final conversationMessages =
+        currentMessages[newMessage.conversationId] ?? [];
 
     if (!conversationMessages.any((m) => m.id == newMessage.id)) {
       final updatedMessages = [...conversationMessages, newMessage];
@@ -189,13 +191,15 @@ class ConversationsController extends BaseConversationController<ConversationsSt
   Future<void> _refreshConversationsQuietly() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId != null) {
-      final result = await _getConversations(GetConversationsParams(userId: userId));
+      final result =
+          await _getConversations(GetConversationsParams(userId: userId));
       result.fold(
         (failure) {
           // Ignorer l'erreur pour refresh silencieux
         },
         (conversations) {
-          state = state.copyWith(conversations: conversations); // Déjà triées en DB
+          state =
+              state.copyWith(conversations: conversations); // Déjà triées en DB
           // Plus besoin de recalculer - compteurs locaux gérés en temps réel
         },
       );
@@ -205,14 +209,14 @@ class ConversationsController extends BaseConversationController<ConversationsSt
   // ✅ FIX SYNC: Rafraîchir une seule conversation pour mettre à jour lastMessage et réordonner
   Future<void> _refreshSingleConversation(String conversationId) async {
     try {
-      debugPrint('🔄 [ConversationsController] Rafraîchissement de la conversation $conversationId');
+      debugPrint(
+          '🔄 [ConversationsController] Rafraîchissement de la conversation $conversationId');
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
 
       // Récupérer UNIQUEMENT cette conversation depuis la DB (sans joins complexes)
-      final response = await Supabase.instance.client
-          .from('conversations')
-          .select('''
+      final response =
+          await Supabase.instance.client.from('conversations').select('''
             id,
             request_id,
             user_id,
@@ -230,12 +234,11 @@ class ConversationsController extends BaseConversationController<ConversationsSt
             unread_count_for_user,
             unread_count_for_seller,
             total_messages
-          ''')
-          .eq('id', conversationId)
-          .maybeSingle();
+          ''').eq('id', conversationId).maybeSingle();
 
       if (response == null) {
-        debugPrint('⚠️ [ConversationsController] Conversation non trouvée en DB');
+        debugPrint(
+            '⚠️ [ConversationsController] Conversation non trouvée en DB');
         return;
       }
 
@@ -266,7 +269,8 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
       // ✅ FIX AVATARS: Au lieu de remplacer TOUTE la conversation,
       // on met à jour UNIQUEMENT les champs qui ont changé avec copyWith
-      debugPrint('✅ [ConversationsController] Mise à jour: lastMessage="${response['last_message_content']}", unreadCount=$unreadCount');
+      debugPrint(
+          '✅ [ConversationsController] Mise à jour: lastMessage="${response['last_message_content']}", unreadCount=$unreadCount');
 
       // Mettre à jour UNIQUEMENT les champs nécessaires dans la liste locale
       final updatedConversations = state.conversations.map((conv) {
@@ -293,11 +297,13 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
       // ✅ IMPORTANT: Réordonner par lastMessageAt DESC (le plus récent en premier)
       updatedConversations.sort((a, b) {
-        return b.lastMessageAt.compareTo(a.lastMessageAt); // DESC: plus récent en premier
+        return b.lastMessageAt
+            .compareTo(a.lastMessageAt); // DESC: plus récent en premier
       });
 
       // Recalculer le total unread
-      final newTotal = updatedConversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+      final newTotal = updatedConversations.fold<int>(
+          0, (sum, conv) => sum + conv.unreadCount);
 
       // Mettre à jour le state
       state = state.copyWith(
@@ -305,9 +311,11 @@ class ConversationsController extends BaseConversationController<ConversationsSt
         totalUnreadCount: newTotal,
       );
 
-      debugPrint('✅ [ConversationsController] Liste réordonnée, totalUnread=$newTotal');
+      debugPrint(
+          '✅ [ConversationsController] Liste réordonnée, totalUnread=$newTotal');
     } catch (e) {
-      debugPrint('❌ [ConversationsController] Erreur refresh single conversation: $e');
+      debugPrint(
+          '❌ [ConversationsController] Erreur refresh single conversation: $e');
       // Ignorer l'erreur silencieusement
     }
   }
@@ -321,8 +329,9 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
     state = state.copyWith(isLoading: true, error: null);
 
-    final result = await _getConversations(GetConversationsParams(userId: userId));
-    
+    final result =
+        await _getConversations(GetConversationsParams(userId: userId));
+
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -331,12 +340,13 @@ class ConversationsController extends BaseConversationController<ConversationsSt
         );
       },
       (conversations) {
-
         // ✅ DB-BASED: Utiliser directement les compteurs de la DB
-        final totalUnread = conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+        final totalUnread =
+            conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
 
         state = state.copyWith(
-          conversations: conversations, // Triées en DB par last_message_at DESC avec unreadCount
+          conversations:
+              conversations, // Triées en DB par last_message_at DESC avec unreadCount
           isLoading: false,
           error: null,
           totalUnreadCount: totalUnread,
@@ -352,16 +362,14 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // Charger les messages d'une conversation
   Future<void> loadConversationMessages(String conversationId) async {
-    
     state = state.copyWith(
       isLoadingMessages: true,
       activeConversationId: conversationId,
     );
 
     final result = await _getConversationMessages(
-      GetConversationMessagesParams(conversationId: conversationId)
-    );
-    
+        GetConversationMessagesParams(conversationId: conversationId));
+
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -370,20 +378,20 @@ class ConversationsController extends BaseConversationController<ConversationsSt
         );
       },
       (messages) {
-        final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
+        final updatedMessages =
+            Map<String, List<Message>>.from(state.conversationMessages);
         updatedMessages[conversationId] = messages;
-        
+
         state = state.copyWith(
           conversationMessages: updatedMessages,
           isLoadingMessages: false,
           error: null,
         );
-        
+
         // Plus besoin de calculs - compteurs locaux gérés en temps réel
       },
     );
   }
-
 
   // Envoyer un message
   Future<void> sendMessage({
@@ -414,7 +422,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       offerAvailability: offerAvailability,
       offerDeliveryDays: offerDeliveryDays,
     ));
-    
+
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -424,19 +432,18 @@ class ConversationsController extends BaseConversationController<ConversationsSt
       },
       (message) {
         try {
-          
           // Ajouter le message localement pour l'expéditeur immédiatement
           // Le RealtimeService le recevra aussi mais _handleNewMessage évite la duplication
-          final currentMessages = Map<String, List<Message>>.from(state.conversationMessages);
+          final currentMessages =
+              Map<String, List<Message>>.from(state.conversationMessages);
           final conversationMessages = currentMessages[conversationId] ?? [];
-          
+
           if (!conversationMessages.any((m) => m.id == message.id)) {
             final updatedMessages = [...conversationMessages, message];
             // Tri par timestamp Supabase (UTC) - fiable car généré côté serveur
             updatedMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
             currentMessages[conversationId] = updatedMessages;
-            
-            
+
             state = state.copyWith(
               conversationMessages: currentMessages,
               isSendingMessage: false,
@@ -448,7 +455,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
               error: null,
             );
           }
-          
+
           // ✅ OPTIMISATION: Pas de refresh automatique, les triggers realtime s'en chargent
           // _refreshConversationsQuietly(); // SUPPRIMÉ pour éviter double refresh
         } catch (e) {
@@ -461,18 +468,16 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     );
   }
 
-  
   // Marquer comme lu
   Future<void> markAsRead(String conversationId) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
-
     final result = await _markMessagesAsRead(MarkMessagesAsReadParams(
       conversationId: conversationId,
       userId: userId,
     ));
-    
+
     result.fold(
       (failure) {
         // Ignorer l'erreur de marquage
@@ -492,16 +497,18 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     if (currentUserId == null) return;
 
-    final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
+    final updatedMessages =
+        Map<String, List<Message>>.from(state.conversationMessages);
     final messages = updatedMessages[conversationId];
     if (messages != null) {
-      updatedMessages[conversationId] = messages.map((msg) =>
-        // ✅ CORRECTION: Ne marquer comme lus QUE les messages reçus par cet utilisateur
-        // ET qui ne sont pas déjà lus
-        (msg.senderId != currentUserId && !msg.isRead)
-            ? msg.copyWith(isRead: true, readAt: DateTime.now())
-            : msg
-      ).toList();
+      updatedMessages[conversationId] = messages
+          .map((msg) =>
+              // ✅ CORRECTION: Ne marquer comme lus QUE les messages reçus par cet utilisateur
+              // ET qui ne sont pas déjà lus
+              (msg.senderId != currentUserId && !msg.isRead)
+                  ? msg.copyWith(isRead: true, readAt: DateTime.now())
+                  : msg)
+          .toList();
 
       state = state.copyWith(conversationMessages: updatedMessages);
     }
@@ -511,25 +518,23 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // Supprimer une conversation
   Future<void> deleteConversation(String conversationId) async {
-
     final result = await _deleteConversation(ConversationParams(
       conversationId: conversationId,
     ));
-    
+
     result.fold(
       (failure) {
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        
         // Retirer de la liste locale
-        final updatedConversations = state.conversations
-            .where((c) => c.id != conversationId)
-            .toList();
-        
-        final updatedMessages = Map<String, List<Message>>.from(state.conversationMessages);
+        final updatedConversations =
+            state.conversations.where((c) => c.id != conversationId).toList();
+
+        final updatedMessages =
+            Map<String, List<Message>>.from(state.conversationMessages);
         updatedMessages.remove(conversationId);
-        
+
         state = state.copyWith(
           conversations: updatedConversations,
           conversationMessages: updatedMessages,
@@ -542,22 +547,19 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // Bloquer une conversation
   Future<void> blockConversation(String conversationId) async {
-
     final result = await _blockConversation(ConversationParams(
       conversationId: conversationId,
     ));
-    
+
     result.fold(
       (failure) {
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        
         // Retirer de la liste locale (car bloquée)
-        final updatedConversations = state.conversations
-            .where((c) => c.id != conversationId)
-            .toList();
-        
+        final updatedConversations =
+            state.conversations.where((c) => c.id != conversationId).toList();
+
         state = state.copyWith(conversations: updatedConversations);
         // Plus besoin de recalculer - compteurs locaux gérés en temps réel
       },
@@ -566,24 +568,22 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // Fermer une conversation
   Future<void> closeConversation(String conversationId) async {
-
     final result = await _closeConversation(ConversationParams(
       conversationId: conversationId,
     ));
-    
+
     result.fold(
       (failure) {
         state = state.copyWith(error: failure.message);
       },
       (_) {
-        
         // Mettre à jour le statut localement
-        final updatedConversations = state.conversations.map((c) => 
-          c.id == conversationId 
-              ? c.copyWith(status: ConversationStatus.closed)
-              : c
-        ).toList();
-        
+        final updatedConversations = state.conversations
+            .map((c) => c.id == conversationId
+                ? c.copyWith(status: ConversationStatus.closed)
+                : c)
+            .toList();
+
         state = state.copyWith(conversations: updatedConversations);
       },
     );
@@ -591,7 +591,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
   // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
-
     // Marquer en DB et rafraîchir après
     _markConversationAsReadInDB(conversationId).then((_) {
       // ✅ FIX: Rafraîchir la conversation pour mettre à jour le badge
@@ -600,9 +599,7 @@ class ConversationsController extends BaseConversationController<ConversationsSt
 
     // Marquer comme conversation active immédiatement
     state = state.copyWith(activeConversationId: conversationId);
-
   }
-
 
   Future<void> _incrementUnreadCountForSellerOnly(String conversationId) async {
     try {
@@ -639,7 +636,6 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     }
   }
 
-
   // ✅ SIMPLE: Désactiver la conversation active
   void setConversationInactive() {
     // ✅ SIMPLE: Éviter setState during build en différant la mise à jour
@@ -648,13 +644,10 @@ class ConversationsController extends BaseConversationController<ConversationsSt
     });
   }
 
-
-
   // Helpers
   List<Message> getMessagesForConversation(String conversationId) {
     return state.conversationMessages[conversationId] ?? [];
   }
-
 
   @override
   void dispose() {

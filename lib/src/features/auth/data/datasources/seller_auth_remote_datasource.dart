@@ -12,33 +12,33 @@ abstract class SellerAuthRemoteDataSource {
     String? companyName,
     String? phone,
   });
-  
+
   Future<SellerModel> loginSeller({
     required String email,
     required String password,
   });
-  
+
   Future<void> logoutSeller();
-  
+
   Future<void> sendPasswordResetEmail(String email);
-  
+
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
   });
-  
+
   Future<SellerModel> getCurrentSeller();
-  
+
   Future<SellerModel> updateSellerProfile(SellerModel seller);
-  
+
   Future<void> sendEmailVerification();
-  
+
   Future<void> verifyEmail(String token);
 }
 
 class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
   final SupabaseClient _supabaseClient;
-  
+
   SellerAuthRemoteDataSourceImpl(this._supabaseClient);
 
   @override
@@ -50,18 +50,17 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
     String? companyName,
     String? phone,
   }) async {
-    
     try {
       // Validation des données
       if (password.length < 8) {
-        throw const AuthFailure('Le mot de passe doit contenir au moins 8 caractères');
+        throw const AuthFailure(
+            'Le mot de passe doit contenir au moins 8 caractères');
       }
-      
+
       if (!_isValidEmail(email)) {
         throw const AuthFailure('Format d\'email invalide');
       }
 
-      
       // 1. Créer l'utilisateur dans Supabase Auth
       final authResponse = await _supabaseClient.auth.signUp(
         email: email.toLowerCase().trim(),
@@ -75,13 +74,12 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         },
       );
 
-
       if (authResponse.user == null) {
         throw const AuthFailure('Erreur lors de la création du compte');
       }
 
       final user = authResponse.user!;
-      
+
       // Créer le profil vendeur dans la table sellers
       final sellerInsertData = {
         'id': user.id,
@@ -93,11 +91,9 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       };
-      
-      
+
       await _supabaseClient.from('sellers').insert(sellerInsertData);
-      
-      
+
       // Créer le SellerModel à partir des données insérées
       final sellerModel = SellerModel(
         id: user.id,
@@ -107,28 +103,27 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         companyName: companyName,
         phone: phone,
         createdAt: DateTime.parse(user.createdAt),
-        emailVerifiedAt: user.emailConfirmedAt != null 
-            ? DateTime.parse(user.emailConfirmedAt!) 
+        emailVerifiedAt: user.emailConfirmedAt != null
+            ? DateTime.parse(user.emailConfirmedAt!)
             : null,
         isVerified: user.emailConfirmedAt != null,
       );
-      
+
       return sellerModel;
-      
     } on AuthException catch (e) {
       throw AuthFailure(_mapSupabaseAuthError(e.message));
     } on PostgrestException catch (e) {
-      
       // Gestion des erreurs spécifiques
       if (e.code == '23505') {
         // Duplicate key violation
         if (e.message.contains('sellers_pkey')) {
-          throw const AuthFailure('Ce compte existe déjà. Essayez de vous connecter.');
+          throw const AuthFailure(
+              'Ce compte existe déjà. Essayez de vous connecter.');
         } else if (e.message.contains('sellers_email_key')) {
           throw const AuthFailure('Un compte avec cet email existe déjà.');
         }
       }
-      
+
       throw AuthFailure('Erreur de base de données: ${e.message}');
     } catch (e) {
       throw AuthFailure('Erreur inattendue: $e');
@@ -163,15 +158,15 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
           .single();
 
       final seller = SellerModel.fromJson(sellerData);
-      
+
       // 3. Vérifier que le compte est actif
       if (!seller.isActive) {
         await _supabaseClient.auth.signOut();
-        throw const AuthFailure('Votre compte a été désactivé. Contactez le support.');
+        throw const AuthFailure(
+            'Votre compte a été désactivé. Contactez le support.');
       }
 
       return seller;
-      
     } on AuthException catch (e) {
       throw AuthFailure(_mapSupabaseAuthError(e.message));
     } on PostgrestException catch (e) {
@@ -188,10 +183,8 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
   @override
   Future<void> logoutSeller() async {
     try {
-      
       // Déconnexion Supabase Auth (nettoie la session)
       await _supabaseClient.auth.signOut(scope: SignOutScope.global);
-      
     } catch (e) {
       throw const AuthFailure('Erreur lors de la déconnexion');
     }
@@ -222,7 +215,8 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
   }) async {
     try {
       if (newPassword.length < 8) {
-        throw const AuthFailure('Le nouveau mot de passe doit contenir au moins 8 caractères');
+        throw const AuthFailure(
+            'Le nouveau mot de passe doit contenir au moins 8 caractères');
       }
 
       // Vérifier le mot de passe actuel en tentant une re-authentification
@@ -245,7 +239,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
       await _supabaseClient.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-      
     } on AuthException catch (e) {
       throw AuthFailure(_mapSupabaseAuthError(e.message));
     } catch (e) {
@@ -262,18 +255,15 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         throw const AuthFailure('Aucun utilisateur connecté');
       }
 
-
       final sellerData = await _supabaseClient
           .from('sellers')
           .select()
           .eq('id', user.id)
           .single();
 
-
       final sellerModel = SellerModel.fromJson(sellerData);
 
       return sellerModel;
-      
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         throw const AuthFailure('Profil vendeur introuvable');
@@ -302,7 +292,6 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
           .eq('id', seller.id);
 
       return seller.copyWith(updatedAt: DateTime.now()) as SellerModel;
-      
     } on PostgrestException catch (e) {
       throw AuthFailure('Erreur de mise à jour: ${e.message}');
     } catch (e) {
@@ -325,7 +314,8 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
     } on AuthException catch (e) {
       throw AuthFailure(_mapSupabaseAuthError(e.message));
     } catch (e) {
-      throw AuthFailure('Erreur lors de l\'envoi de l\'email de vérification: $e');
+      throw AuthFailure(
+          'Erreur lors de l\'envoi de l\'email de vérification: $e');
     }
   }
 
@@ -336,17 +326,14 @@ class SellerAuthRemoteDataSourceImpl implements SellerAuthRemoteDataSource {
         type: OtpType.signup,
         token: token,
       );
-      
+
       // Mettre à jour le statut de vérification dans la table sellers
       final user = _supabaseClient.auth.currentUser;
       if (user != null) {
-        await _supabaseClient
-            .from('sellers')
-            .update({
-              'email_verified_at': DateTime.now().toIso8601String(),
-              'is_verified': true,
-            })
-            .eq('id', user.id);
+        await _supabaseClient.from('sellers').update({
+          'email_verified_at': DateTime.now().toIso8601String(),
+          'is_verified': true,
+        }).eq('id', user.id);
       }
     } on AuthException catch (e) {
       throw AuthFailure(_mapSupabaseAuthError(e.message));

@@ -162,11 +162,14 @@ void main() {
         );
 
         await dataSource.cacheParticulier(particulier1);
-        expect((await dataSource.getCachedParticulier())!.id, equals('particulier-1'));
+        expect((await dataSource.getCachedParticulier())!.id,
+            equals('particulier-1'));
 
         await dataSource.cacheParticulier(particulier2);
-        expect((await dataSource.getCachedParticulier())!.id, equals('particulier-2'));
-        expect((await dataSource.getCachedParticulier())!.firstName, equals('Marie'));
+        expect((await dataSource.getCachedParticulier())!.id,
+            equals('particulier-2'));
+        expect((await dataSource.getCachedParticulier())!.firstName,
+            equals('Marie'));
       });
     });
 
@@ -183,7 +186,8 @@ void main() {
         );
       });
 
-      test('devrait lever CacheException lors d\'erreur de sauvegarde', () async {
+      test('devrait lever CacheException lors d\'erreur de sauvegarde',
+          () async {
         // Mock qui simule une erreur
         final failingPrefs = MockSharedPreferences();
         failingPrefs._storage.clear();
@@ -234,7 +238,7 @@ void main() {
         expect(cached.lastName, equals(particulier.lastName));
         expect(cached.phone, equals(particulier.phone));
         expect(cached.createdAt.millisecondsSinceEpoch,
-               equals(originalDate.millisecondsSinceEpoch));
+            equals(originalDate.millisecondsSinceEpoch));
       });
 
       test('devrait gérer les champs optionnels null', () async {

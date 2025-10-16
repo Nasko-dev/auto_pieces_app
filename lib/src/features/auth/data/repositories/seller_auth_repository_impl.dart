@@ -73,17 +73,16 @@ class SellerAuthRepositoryImpl implements SellerAuthRepository {
   @override
   Future<Either<Failure, void>> logoutSeller() async {
     try {
-      
       // 1. Déconnexion vendeur (Supabase Auth)
       await remoteDataSource.logoutSeller();
-      
+
       // 2. Nettoyer le cache des particuliers pour éviter les conflits
       try {
         await particulierLocalDataSource.clearCache();
       } catch (e) {
         // Ne pas faire échouer la déconnexion pour ça
       }
-      
+
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure('Erreur lors de la déconnexion: $e'));
@@ -149,7 +148,8 @@ class SellerAuthRepositoryImpl implements SellerAuthRepository {
     if (await networkInfo.isConnected) {
       try {
         final sellerModel = SellerModel.fromEntity(seller);
-        final updatedSeller = await remoteDataSource.updateSellerProfile(sellerModel);
+        final updatedSeller =
+            await remoteDataSource.updateSellerProfile(sellerModel);
         return Right(updatedSeller);
       } on AuthFailure catch (failure) {
         return Left(failure);

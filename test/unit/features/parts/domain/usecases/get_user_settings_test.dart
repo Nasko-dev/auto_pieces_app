@@ -68,10 +68,11 @@ void main() {
       verify(mockRepository.getUserSettings(tUserId));
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.getUserSettings(tUserId))
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non connecté')));
+      when(mockRepository.getUserSettings(tUserId)).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non connecté')));
 
       // act
       final result = await usecase(tUserId);
@@ -81,10 +82,11 @@ void main() {
       verify(mockRepository.getUserSettings(tUserId));
     });
 
-    test('doit retourner ValidationFailure quand l\'utilisateur n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand l\'utilisateur n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.getUserSettings(tUserId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Utilisateur non trouvé')));
+      when(mockRepository.getUserSettings(tUserId)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Utilisateur non trouvé')));
 
       // act
       final result = await usecase(tUserId);
@@ -107,10 +109,11 @@ void main() {
       verify(mockRepository.getUserSettings(tUserId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getUserSettings(tUserId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getUserSettings(tUserId)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tUserId);
@@ -129,7 +132,8 @@ void main() {
       await usecase(tUserId);
 
       // assert
-      final captured = verify(mockRepository.getUserSettings(captureAny)).captured;
+      final captured =
+          verify(mockRepository.getUserSettings(captureAny)).captured;
       expect(captured.first, tUserId);
     });
 
@@ -158,7 +162,8 @@ void main() {
       );
     });
 
-    test('doit retourner les paramètres avec toutes les propriétés correctes', () async {
+    test('doit retourner les paramètres avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getUserSettings(tUserId))
           .thenAnswer((_) async => Right(tUserSettings));
@@ -283,7 +288,8 @@ void main() {
       );
     });
 
-    test('doit gérer les paramètres avec différents niveaux de notifications', () async {
+    test('doit gérer les paramètres avec différents niveaux de notifications',
+        () async {
       // arrange
       final allNotificationsSettings = UserSettings(
         userId: tUserId,
@@ -380,8 +386,10 @@ void main() {
       const user1Id = 'user1';
       const user2Id = 'user2';
 
-      final settings1 = UserSettings(userId: user1Id, displayName: 'Utilisateur 1');
-      final settings2 = UserSettings(userId: user2Id, displayName: 'Utilisateur 2');
+      final settings1 =
+          UserSettings(userId: user1Id, displayName: 'Utilisateur 1');
+      final settings2 =
+          UserSettings(userId: user2Id, displayName: 'Utilisateur 2');
 
       when(mockRepository.getUserSettings(user1Id))
           .thenAnswer((_) async => Right(settings1));
@@ -399,7 +407,8 @@ void main() {
       verify(mockRepository.getUserSettings(user2Id));
     });
 
-    test('doit retourner les mêmes paramètres à chaque appel (cohérence)', () async {
+    test('doit retourner les mêmes paramètres à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.getUserSettings(tUserId))
           .thenAnswer((_) async => Right(tUserSettings));
@@ -424,7 +433,8 @@ void main() {
       ];
 
       for (final validId in validIds) {
-        final settings = UserSettings(userId: validId, displayName: 'Utilisateur $validId');
+        final settings =
+            UserSettings(userId: validId, displayName: 'Utilisateur $validId');
         when(mockRepository.getUserSettings(validId))
             .thenAnswer((_) async => Right(settings));
 
@@ -461,7 +471,8 @@ void main() {
       result1.fold(
         (failure) => fail('Ne devrait pas échouer'),
         (settings) {
-          expect(settings!.avatarUrl, 'https://cdn.example.com/avatars/user123.png');
+          expect(settings!.avatarUrl,
+              'https://cdn.example.com/avatars/user123.png');
         },
       );
 
@@ -473,7 +484,8 @@ void main() {
       );
     });
 
-    test('doit gérer les paramètres avec dates de création et mise à jour', () async {
+    test('doit gérer les paramètres avec dates de création et mise à jour',
+        () async {
       // arrange
       final createdDate = DateTime.now().subtract(const Duration(days: 100));
       final updatedDate = DateTime.now().subtract(const Duration(hours: 6));

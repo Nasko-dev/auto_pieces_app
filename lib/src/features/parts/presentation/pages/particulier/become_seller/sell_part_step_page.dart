@@ -6,12 +6,14 @@ import '../../../../../../core/providers/providers.dart';
 
 class SellPartStepPage extends ConsumerStatefulWidget {
   final String selectedCategory;
-  final Function(String partName, bool hasMultiple) onPartSubmitted;
+  final bool hasMultiple;
+  final Function(String partName) onPartSubmitted;
   final VoidCallback? onClose;
 
   const SellPartStepPage({
     super.key,
     required this.selectedCategory,
+    required this.hasMultiple,
     required this.onPartSubmitted,
     this.onClose,
   });
@@ -23,7 +25,6 @@ class SellPartStepPage extends ConsumerStatefulWidget {
 class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   final TextEditingController _partController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  bool? _hasMultiple; // null = aucun choix, true = +5 pièces, false = -5 pièces
   List<String> _suggestions = [];
   bool _showSuggestions = false;
   final List<String> _selectedParts = [];
@@ -61,22 +62,16 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
       // Déterminer la catégorie selon le type sélectionné
       String? categoryFilter;
 
-      // Mapping pour la compatibilité avec l'ancien système
       if (widget.selectedCategory == 'engine' ||
           widget.selectedCategory == 'moteur') {
-        // Filtrer seulement les pièces moteur
         categoryFilter = 'moteur';
       } else if (widget.selectedCategory == 'body' ||
           widget.selectedCategory == 'carrosserie') {
-        // Pour "carrosserie", on veut toutes les catégories SAUF moteur
-        categoryFilter = 'NOT_MOTEUR'; // Valeur spéciale pour gérer côté client
+        categoryFilter = 'NOT_MOTEUR';
       } else if (widget.selectedCategory == 'lesdeux') {
-        // Pour "lesdeux", on ne filtre pas - toutes les catégories
         categoryFilter = null;
       }
-      // Si autre choix, on ne filtre pas (null)
 
-      // Appeler la fonction sans filtre si on veut exclure moteur
       final actualCategoryFilter =
           categoryFilter == 'NOT_MOTEUR' ? null : categoryFilter;
 
@@ -85,19 +80,15 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         params: {
           'search_query': query,
           'filter_category': actualCategoryFilter,
-          'limit_results': categoryFilter == 'NOT_MOTEUR'
-              ? 20
-              : 8, // Plus de résultats pour filtrer ensuite
+          'limit_results': categoryFilter == 'NOT_MOTEUR' ? 20 : 8,
         },
       );
 
       if (response != null && mounted) {
-        // Filtrer côté client si nécessaire
         List<Map<String, dynamic>> filteredData =
             (response as List).cast<Map<String, dynamic>>();
 
         if (categoryFilter == 'NOT_MOTEUR') {
-          // Excluer les pièces moteur
           filteredData = filteredData
               .where((data) => data['category'] != 'moteur')
               .toList();
@@ -134,7 +125,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   }
 
   void _selectSuggestion(String suggestion) {
-    if (_hasMultiple == true) {
+    if (widget.hasMultiple) {
       // Mode multiple : ajouter à la liste des tags
       if (!_selectedParts.contains(suggestion)) {
         setState(() {
@@ -143,7 +134,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           _showSuggestions = false;
         });
       }
-      _focusNode.requestFocus(); // Garder le focus pour continuer la saisie
+      _focusNode.requestFocus();
     } else {
       // Mode simple : remplacer le texte
       _partController.text = suggestion;
@@ -161,40 +152,34 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   }
 
   bool _isFormValid() {
-    // L'utilisateur doit d'abord choisir une option (plus ou moins de 5 pièces)
-    // Dès qu'une option est sélectionnée, le bouton Continuer est actif
-    return _hasMultiple != null;
+    // Toujours valide, on peut passer avec ou sans pièces saisies
+    return true;
   }
 
   void _handleSubmit() {
-    // Si aucun texte n'a été saisi, envoyer une chaîne vide
-    // Cela permettra à la page suivante de gérer la saisie des pièces
     final hasText = _partController.text.trim().isNotEmpty;
     final hasParts = _selectedParts.isNotEmpty;
 
-    if (_hasMultiple == true) {
+    if (widget.hasMultiple) {
       // Mode multiple (+5 pièces)
       if (hasParts || hasText) {
-        // Si l'utilisateur a déjà commencé à saisir des pièces
         final allParts = _selectedParts.toList();
         if (_partController.text.isNotEmpty &&
             !allParts.contains(_partController.text)) {
           allParts.add(_partController.text);
         }
         final partsString = allParts.join(', ');
-        widget.onPartSubmitted(partsString, true);
+        widget.onPartSubmitted(partsString);
       } else {
-        // Aucune pièce saisie, passer à la page suivante pour la saisie
-        widget.onPartSubmitted('', true);
+        // Aucune pièce saisie, passer à la page suivante
+        widget.onPartSubmitted('');
       }
     } else {
       // Mode simple (-5 pièces)
       if (hasText) {
-        // Si l'utilisateur a déjà saisi une pièce
-        widget.onPartSubmitted(_partController.text, false);
+        widget.onPartSubmitted(_partController.text);
       } else {
-        // Aucune pièce saisie, passer à la page suivante pour la saisie
-        widget.onPartSubmitted('', false);
+        widget.onPartSubmitted('');
       }
     }
   }
@@ -209,46 +194,46 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête avec badge de catégorie
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getCategoryColor().withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _getCategoryColor().withValues(alpha: 0.3),
-                        width: 1.5,
+              // Badge avec info quantité
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getCategoryColor().withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _getCategoryColor().withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      widget.hasMultiple
+                          ? Icons.inventory_outlined
+                          : Icons.settings_outlined,
+                      size: 16,
+                      color: _getCategoryColor(),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      widget.hasMultiple ? '+5 pièces' : '-5 pièces',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _getCategoryColor(),
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getCategoryIcon(),
-                          size: 16,
-                          color: _getCategoryColor(),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _getCategoryLabel(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: _getCategoryColor(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Quelle pièce\nvendez-vous ?',
-                style: TextStyle(
+              Text(
+                widget.hasMultiple
+                    ? 'Quelles pièces\nvendez-vous ?'
+                    : 'Quelle pièce\nvendez-vous ?',
+                style: const TextStyle(
                   fontSize: 32,
                   height: 1.15,
                   fontWeight: FontWeight.w800,
@@ -258,7 +243,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                _getCategoryDescription(),
+                widget.hasMultiple
+                    ? 'Vous pouvez ajouter plusieurs pièces. Laissez vide pour sélectionner à l\'étape suivante.'
+                    : 'Entrez le nom de la pièce que vous souhaitez vendre',
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.4,
@@ -271,19 +258,11 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Champ de recherche de pièce (sauf pour catégorie moteur)
-                      if (widget.selectedCategory != 'moteur' &&
-                          widget.selectedCategory != 'engine') ...[
-                        _buildPartSearchField(),
-                        if (_hasMultiple == true && _selectedParts.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _buildSelectedPartsTags(),
-                        ],
-                        const SizedBox(height: 24),
+                      _buildPartSearchField(),
+                      if (widget.hasMultiple && _selectedParts.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildSelectedPartsTags(),
                       ],
-
-                      // Options spécifiques à la catégorie
-                      _buildCategoryOptions(),
                     ],
                   ),
                 ),
@@ -323,48 +302,12 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
   Color _getCategoryColor() {
     if (widget.selectedCategory == 'moteur' ||
         widget.selectedCategory == 'engine') {
-      return const Color(0xFF2196F3); // Bleu
+      return const Color(0xFF2196F3);
     } else if (widget.selectedCategory == 'carrosserie' ||
         widget.selectedCategory == 'body') {
-      return const Color(0xFF4CAF50); // Vert
+      return const Color(0xFF4CAF50);
     } else {
-      return const Color(0xFFFF9800); // Orange
-    }
-  }
-
-  IconData _getCategoryIcon() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
-      return Icons.settings;
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
-      return Icons.directions_car;
-    } else {
-      return Icons.dashboard_customize;
-    }
-  }
-
-  String _getCategoryLabel() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
-      return 'Pièces moteur';
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
-      return 'Carrosserie / Habitacle';
-    } else {
-      return 'Les deux';
-    }
-  }
-
-  String _getCategoryDescription() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
-      return 'Moteur, turbo, boîte de vitesses, embrayage, démarreur...';
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
-      return 'Portière, pare-choc, capot, siège, volant, tableau de bord...';
-    } else {
-      return 'Vous pouvez vendre des pièces moteur et carrosserie';
+      return const Color(0xFFFF9800);
     }
   }
 
@@ -419,11 +362,11 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: AppColors.grey200),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: AppColors.grey200),
+                borderSide: const BorderSide(color: AppColors.grey200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -446,35 +389,6 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
     );
   }
 
-  Widget _buildCategoryOptions() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.grey200,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Options',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.darkGray,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildMultipleCheckbox(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSuggestionsList() {
     return Container(
       margin: const EdgeInsets.only(top: 4),
@@ -494,7 +408,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
         padding: EdgeInsets.zero,
         itemCount: _suggestions.length,
         separatorBuilder: (context, index) =>
-            Divider(height: 1, color: AppColors.grey200),
+            const Divider(height: 1, color: AppColors.grey200),
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
           return ListTile(
@@ -562,199 +476,6 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMultipleCheckbox() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Pour catégorie MOTEUR : options de quantité
-        if (widget.selectedCategory == 'moteur' ||
-            widget.selectedCategory == 'engine') ...[
-          _buildOptionCheckbox(
-            value: _hasMultiple == true,
-            label: 'J\'ai plus que 5 pièces',
-            description:
-                'Vous avez plusieurs pièces moteur à vendre (plus de 5)',
-            icon: Icons.inventory_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = true;
-                _selectedParts.clear();
-              });
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildOptionCheckbox(
-            value: _hasMultiple == false,
-            label: 'J\'ai moins de 5 pièces',
-            description:
-                'Vous avez quelques pièces moteur à vendre (moins de 5)',
-            icon: Icons.settings_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = false;
-                _selectedParts.clear();
-              });
-            },
-          ),
-        ],
-
-        // Pour catégorie CARROSSERIE : options de quantité
-        if (widget.selectedCategory == 'carrosserie' ||
-            widget.selectedCategory == 'body') ...[
-          _buildOptionCheckbox(
-            value: _hasMultiple == true,
-            label: 'J\'ai plus que 5 pièces',
-            description:
-                'Vous avez plusieurs pièces de carrosserie à vendre (plus de 5)',
-            icon: Icons.inventory_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = true;
-                _selectedParts.clear();
-              });
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildOptionCheckbox(
-            value: _hasMultiple == false,
-            label: 'J\'ai moins de 5 pièces',
-            description:
-                'Vous avez quelques pièces de carrosserie à vendre (moins de 5)',
-            icon: Icons.directions_car_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = false;
-                _selectedParts.clear();
-              });
-            },
-          ),
-        ],
-
-        // Pour catégorie LES DEUX : options de quantité
-        if (widget.selectedCategory == 'lesdeux') ...[
-          _buildOptionCheckbox(
-            value: _hasMultiple == true,
-            label: 'J\'ai plus que 5 pièces',
-            description:
-                'Vous avez plusieurs pièces à vendre (plus de 5)',
-            icon: Icons.inventory_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = true;
-                _selectedParts.clear();
-              });
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildOptionCheckbox(
-            value: _hasMultiple == false,
-            label: 'J\'ai moins de 5 pièces',
-            description:
-                'Vous avez quelques pièces à vendre (moins de 5)',
-            icon: Icons.dashboard_customize_outlined,
-            onChanged: (value) {
-              setState(() {
-                _hasMultiple = false;
-                _selectedParts.clear();
-              });
-            },
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildOptionCheckbox({
-    required bool value,
-    required String label,
-    required String description,
-    required IconData icon,
-    required Function(bool?) onChanged,
-  }) {
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: value
-              ? _getCategoryColor().withValues(alpha: 0.08)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: value
-                ? _getCategoryColor().withValues(alpha: 0.3)
-                : AppColors.grey200,
-            width: value ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Icône
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: value
-                    ? _getCategoryColor().withValues(alpha: 0.15)
-                    : AppTheme.lightGray,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: value ? _getCategoryColor() : AppTheme.gray,
-              ),
-            ),
-            const SizedBox(width: 14),
-            // Texte
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: value ? _getCategoryColor() : AppTheme.darkGray,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.gray.withValues(alpha: 0.8),
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Checkbox
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                onChanged: onChanged,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                side: BorderSide(
-                  color: value ? _getCategoryColor() : AppTheme.gray,
-                  width: 2,
-                ),
-                activeColor: _getCategoryColor(),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

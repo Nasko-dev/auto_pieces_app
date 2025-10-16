@@ -20,13 +20,16 @@ class PartAdvertisementState with _$PartAdvertisementState {
   }) = _PartAdvertisementState;
 }
 
-class PartAdvertisementController extends StateNotifier<PartAdvertisementState> {
+class PartAdvertisementController
+    extends StateNotifier<PartAdvertisementState> {
   final PartAdvertisementRepository _repository;
 
-  PartAdvertisementController(this._repository) : super(const PartAdvertisementState());
+  PartAdvertisementController(this._repository)
+      : super(const PartAdvertisementState());
 
   // Créer une nouvelle annonce
-  Future<bool> createPartAdvertisement(CreatePartAdvertisementParams params) async {
+  Future<bool> createPartAdvertisement(
+      CreatePartAdvertisementParams params) async {
     try {
       state = state.copyWith(isCreating: true, error: null);
 
@@ -87,14 +90,16 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
   }
 
   // Obtenir mes annonces
-  Future<void> getMyAdvertisements() async {
+  Future<void> getMyAdvertisements({String? particulierId}) async {
     try {
       // Vérifier si le controller n'a pas été dispose
       if (!mounted) return;
 
       state = state.copyWith(isLoading: true, error: null);
 
-      final result = await _repository.getMyPartAdvertisements();
+      final result = await _repository.getMyPartAdvertisements(
+        particulierId: particulierId,
+      );
 
       // Vérifier si le controller n'a pas été dispose après l'appel async
       if (!mounted) return;
@@ -126,7 +131,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
   }
 
   // Rechercher des annonces
-  Future<List<PartAdvertisement>> searchAdvertisements(SearchPartAdvertisementsParams params) async {
+  Future<List<PartAdvertisement>> searchAdvertisements(
+      SearchPartAdvertisementsParams params) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
@@ -158,7 +164,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
   }
 
   // Mettre à jour une annonce
-  Future<bool> updateAdvertisement(String id, Map<String, dynamic> updates) async {
+  Future<bool> updateAdvertisement(
+      String id, Map<String, dynamic> updates) async {
     try {
       state = state.copyWith(isUpdating: true, error: null);
 
@@ -284,7 +291,8 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
 }
 
 // Provider pour le controller
-final partAdvertisementControllerProvider = StateNotifierProvider<PartAdvertisementController, PartAdvertisementState>(
+final partAdvertisementControllerProvider =
+    StateNotifierProvider<PartAdvertisementController, PartAdvertisementState>(
   (ref) {
     final repository = ref.watch(partAdvertisementRepositoryProvider);
     return PartAdvertisementController(repository);

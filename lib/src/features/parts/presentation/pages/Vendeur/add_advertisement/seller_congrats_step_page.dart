@@ -28,7 +28,7 @@ class SellerCongratsStepPage extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-                  
+
                   // Icône de succès
                   Container(
                     width: 120,
@@ -43,9 +43,9 @@ class SellerCongratsStepPage extends StatelessWidget {
                       color: AppTheme.success,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   const Text(
                     'Félicitations !',
                     style: TextStyle(
@@ -62,8 +62,8 @@ class SellerCongratsStepPage extends StatelessWidget {
 
                   Text(
                     isRequest
-                      ? 'Votre demande a été enregistrée\navec succès !'
-                      : 'Votre annonce a été publiée\navec succès !',
+                        ? 'Votre demande a été enregistrée\navec succès !'
+                        : 'Votre annonce a été publiée\navec succès !',
                     style: const TextStyle(
                       fontSize: 18,
                       height: 1.35,
@@ -72,9 +72,9 @@ class SellerCongratsStepPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Détails de l'annonce ou de la demande
                   if (partName != null)
                     Container(
@@ -83,7 +83,8 @@ class SellerCongratsStepPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppTheme.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: AppTheme.success.withValues(alpha: 0.3)),
                         boxShadow: [
                           BoxShadow(
                             color: AppTheme.success.withValues(alpha: 0.1),
@@ -99,7 +100,8 @@ class SellerCongratsStepPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.success.withValues(alpha: 0.1),
+                                  color:
+                                      AppTheme.success.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
@@ -121,7 +123,6 @@ class SellerCongratsStepPage extends StatelessWidget {
                               ),
                             ],
                           ),
-
                           if (price != null && !isRequest) ...[
                             const SizedBox(height: 16),
                             Row(
@@ -129,7 +130,8 @@ class SellerCongratsStepPage extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.success.withValues(alpha: 0.1),
+                                    color:
+                                        AppTheme.success.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
@@ -153,16 +155,17 @@ class SellerCongratsStepPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Messages informatifs
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryBlue.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
+                      border: Border.all(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,13 +189,13 @@ class SellerCongratsStepPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-
                         if (isRequest) ...[
                           _buildStep('Votre demande est maintenant visible'),
                           const SizedBox(height: 8),
                           _buildStep('Les vendeurs pourront vous contacter'),
                           const SizedBox(height: 8),
-                          _buildStep('Vous recevrez des notifications pour les réponses'),
+                          _buildStep(
+                              'Vous recevrez des notifications pour les réponses'),
                           const SizedBox(height: 8),
                           _buildStep('Gérez vos demandes dans "Mes demandes"'),
                         ] else ...[
@@ -200,7 +203,8 @@ class SellerCongratsStepPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           _buildStep('Les acheteurs pourront vous contacter'),
                           const SizedBox(height: 8),
-                          _buildStep('Vous recevrez des notifications pour les messages'),
+                          _buildStep(
+                              'Vous recevrez des notifications pour les messages'),
                           const SizedBox(height: 8),
                           _buildStep('Gérez vos annonces dans "Mes annonces"'),
                         ],
@@ -211,9 +215,9 @@ class SellerCongratsStepPage extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Boutons d'action
           Column(
             children: [
@@ -224,9 +228,7 @@ class SellerCongratsStepPage extends StatelessWidget {
                   onFinish();
                 },
               ),
-              
               const SizedBox(height: 12),
-              
               SellerSharedWidgets.buildGhostButton(
                 label: 'Retour à l\'accueil',
                 onPressed: () {

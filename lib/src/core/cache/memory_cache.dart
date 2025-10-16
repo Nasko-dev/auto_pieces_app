@@ -8,7 +8,8 @@ class MemoryCache<T> {
 
   MemoryCache({Duration ttl = const Duration(minutes: 5)}) : _ttl = ttl {
     // Nettoyer le cache toutes les minutes
-    _cleanupTimer = Timer.periodic(const Duration(minutes: 1), (_) => _cleanup());
+    _cleanupTimer =
+        Timer.periodic(const Duration(minutes: 1), (_) => _cleanup());
   }
 
   /// Récupère une valeur du cache ou appelle le loader si absent/expiré

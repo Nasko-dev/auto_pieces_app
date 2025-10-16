@@ -12,11 +12,15 @@ class MockConversationsRepository implements ConversationsRepository {
   final List<Conversation> _conversations = [];
   final Map<String, List<Message>> _messages = {};
   final Map<String, int> _unreadCounts = {};
-  final StreamController<Either<Failure, Message>> _messageStreamController = StreamController<Either<Failure, Message>>.broadcast();
-  final StreamController<Either<Failure, List<Conversation>>> _conversationStreamController = StreamController<Either<Failure, List<Conversation>>>.broadcast();
+  final StreamController<Either<Failure, Message>> _messageStreamController =
+      StreamController<Either<Failure, Message>>.broadcast();
+  final StreamController<Either<Failure, List<Conversation>>>
+      _conversationStreamController =
+      StreamController<Either<Failure, List<Conversation>>>.broadcast();
 
   @override
-  Future<Either<Failure, List<Conversation>>> getConversations({required String userId}) async {
+  Future<Either<Failure, List<Conversation>>> getConversations(
+      {required String userId}) async {
     try {
       final userConversations = _conversations
           .where((conv) => conv.userId == userId || conv.sellerId == userId)
@@ -24,14 +28,14 @@ class MockConversationsRepository implements ConversationsRepository {
 
       return Right(userConversations);
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de la récupération des conversations'));
+      return Left(
+          ServerFailure('Erreur lors de la récupération des conversations'));
     }
   }
 
   @override
-  Future<Either<Failure, List<Message>>> getConversationMessages({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, List<Message>>> getConversationMessages(
+      {required String conversationId}) async {
     try {
       final messages = _messages[conversationId] ?? [];
       return Right(messages);
@@ -54,7 +58,8 @@ class MockConversationsRepository implements ConversationsRepository {
   }) async {
     try {
       if (content.isEmpty) {
-        return Left(ValidationFailure('Le contenu du message ne peut pas être vide'));
+        return Left(
+            ValidationFailure('Le contenu du message ne peut pas être vide'));
       }
 
       final message = Message(
@@ -117,7 +122,8 @@ class MockConversationsRepository implements ConversationsRepository {
       _unreadCounts[conversationId] = (_unreadCounts[conversationId] ?? 0) + 1;
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur'));
+      return Left(
+          ServerFailure('Erreur lors de l\'incrémentation du compteur'));
     }
   }
 
@@ -144,9 +150,8 @@ class MockConversationsRepository implements ConversationsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> deleteConversation(
+      {required String conversationId}) async {
     try {
       _conversations.removeWhere((conv) => conv.id == conversationId);
       _messages.remove(conversationId);
@@ -158,11 +163,11 @@ class MockConversationsRepository implements ConversationsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> blockConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> blockConversation(
+      {required String conversationId}) async {
     try {
-      final index = _conversations.indexWhere((conv) => conv.id == conversationId);
+      final index =
+          _conversations.indexWhere((conv) => conv.id == conversationId);
       if (index != -1) {
         _conversations[index] = _conversations[index].copyWith(
           status: ConversationStatus.blockedByUser,
@@ -175,11 +180,11 @@ class MockConversationsRepository implements ConversationsRepository {
   }
 
   @override
-  Future<Either<Failure, void>> closeConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> closeConversation(
+      {required String conversationId}) async {
     try {
-      final index = _conversations.indexWhere((conv) => conv.id == conversationId);
+      final index =
+          _conversations.indexWhere((conv) => conv.id == conversationId);
       if (index != -1) {
         _conversations[index] = _conversations[index].copyWith(
           status: ConversationStatus.closed,
@@ -192,16 +197,14 @@ class MockConversationsRepository implements ConversationsRepository {
   }
 
   @override
-  Stream<Either<Failure, Message>> subscribeToNewMessages({
-    required String conversationId
-  }) {
+  Stream<Either<Failure, Message>> subscribeToNewMessages(
+      {required String conversationId}) {
     return _messageStreamController.stream;
   }
 
   @override
-  Stream<Either<Failure, List<Conversation>>> subscribeToConversationUpdates({
-    required String userId
-  }) {
+  Stream<Either<Failure, List<Conversation>>> subscribeToConversationUpdates(
+      {required String userId}) {
     return _conversationStreamController.stream;
   }
 
@@ -278,8 +281,10 @@ void main() {
         );
       });
 
-      test('devrait retourner une liste vide s\'il n\'y a pas de conversations', () async {
-        final result = await repository.getConversations(userId: 'user-inexistant');
+      test('devrait retourner une liste vide s\'il n\'y a pas de conversations',
+          () async {
+        final result =
+            await repository.getConversations(userId: 'user-inexistant');
 
         expect(result, isA<Right<Failure, List<Conversation>>>());
         result.fold(
@@ -303,7 +308,8 @@ void main() {
           (message) {
             expect(message.conversationId, equals('conv-1'));
             expect(message.senderId, equals('user-123'));
-            expect(message.content, equals('Bonjour, avez-vous cette pièce en stock ?'));
+            expect(message.content,
+                equals('Bonjour, avez-vous cette pièce en stock ?'));
             expect(message.messageType, equals(MessageType.text));
             expect(message.id, isNotEmpty);
           },
@@ -347,7 +353,8 @@ void main() {
         );
       });
 
-      test('devrait ajouter le message aux messages de la conversation', () async {
+      test('devrait ajouter le message aux messages de la conversation',
+          () async {
         await repository.sendMessage(
           conversationId: 'conv-test',
           senderId: 'user-123',
@@ -397,7 +404,8 @@ void main() {
         );
       });
 
-      test('devrait retourner une liste vide pour une conversation inexistante', () async {
+      test('devrait retourner une liste vide pour une conversation inexistante',
+          () async {
         final result = await repository.getConversationMessages(
           conversationId: 'conv-inexistante',
         );
@@ -447,7 +455,8 @@ void main() {
       });
 
       test('devrait incrémenter pour un vendeur', () async {
-        await repository.incrementUnreadCountForSeller(conversationId: 'conv-1');
+        await repository.incrementUnreadCountForSeller(
+            conversationId: 'conv-1');
 
         expect(repository.getUnreadCount('conv-1'), equals(1));
       });
@@ -482,7 +491,8 @@ void main() {
         expect(result, isA<Right<Failure, void>>());
 
         // Vérifier que la conversation n'existe plus
-        final conversationsResult = await repository.getConversations(userId: 'user-123');
+        final conversationsResult =
+            await repository.getConversations(userId: 'user-123');
         conversationsResult.fold(
           (failure) => fail('Ne devrait pas retourner d\'erreur'),
           (conversations) => expect(conversations, isEmpty),
@@ -509,11 +519,13 @@ void main() {
         expect(result, isA<Right<Failure, void>>());
 
         // Vérifier que le statut a changé
-        final conversationsResult = await repository.getConversations(userId: 'user-123');
+        final conversationsResult =
+            await repository.getConversations(userId: 'user-123');
         conversationsResult.fold(
           (failure) => fail('Ne devrait pas retourner d\'erreur'),
           (conversations) {
-            expect(conversations.first.status, equals(ConversationStatus.blockedByUser));
+            expect(conversations.first.status,
+                equals(ConversationStatus.blockedByUser));
           },
         );
       });
@@ -538,11 +550,13 @@ void main() {
         expect(result, isA<Right<Failure, void>>());
 
         // Vérifier que le statut a changé
-        final conversationsResult = await repository.getConversations(userId: 'user-123');
+        final conversationsResult =
+            await repository.getConversations(userId: 'user-123');
         conversationsResult.fold(
           (failure) => fail('Ne devrait pas retourner d\'erreur'),
           (conversations) {
-            expect(conversations.first.status, equals(ConversationStatus.closed));
+            expect(
+                conversations.first.status, equals(ConversationStatus.closed));
           },
         );
       });
@@ -550,7 +564,8 @@ void main() {
 
     group('Streams', () {
       test('devrait émettre les nouveaux messages dans le stream', () async {
-        final stream = repository.subscribeToNewMessages(conversationId: 'conv-1');
+        final stream =
+            repository.subscribeToNewMessages(conversationId: 'conv-1');
 
         // Écouter le stream
         final completer = Completer<Message>();
@@ -574,8 +589,10 @@ void main() {
         await subscription.cancel();
       });
 
-      test('devrait fournir un stream pour les mises à jour de conversations', () async {
-        final stream = repository.subscribeToConversationUpdates(userId: 'user-123');
+      test('devrait fournir un stream pour les mises à jour de conversations',
+          () async {
+        final stream =
+            repository.subscribeToConversationUpdates(userId: 'user-123');
         expect(stream, isA<Stream<Either<Failure, List<Conversation>>>>());
       });
     });

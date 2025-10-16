@@ -72,7 +72,8 @@ class VehicleSearchState {
       timeUntilReset: timeUntilReset ?? this.timeUntilReset,
       isRateLimited: isRateLimited ?? this.isRateLimited,
       hasActiveRequest: hasActiveRequest ?? this.hasActiveRequest,
-      isCheckingActiveRequest: isCheckingActiveRequest ?? this.isCheckingActiveRequest,
+      isCheckingActiveRequest:
+          isCheckingActiveRequest ?? this.isCheckingActiveRequest,
     );
   }
 }
@@ -83,43 +84,47 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
   final Ref _ref;
   final Map<String, VehicleInfo> _cache = {};
 
-  VehicleSearchNotifier(this._service, this._rateLimiter, this._ref) : super(const VehicleSearchState()) {
+  VehicleSearchNotifier(this._service, this._rateLimiter, this._ref)
+      : super(const VehicleSearchState()) {
     _updateRateLimitStatus();
     // Ne pas appeler _checkActiveRequest dans le constructeur pour éviter les blocages
     // Elle sera appelée par les pages qui en ont besoin
   }
 
-  Future<void> searchVehicle(String plate, {bool allowWithActiveRequest = false}) async {
-
+  Future<void> searchVehicle(String plate,
+      {bool allowWithActiveRequest = false}) async {
     // ✅ CORRECTION: Ne bloquer QUE les particuliers avec une demande active (sauf annonces)
     // Les vendeurs peuvent créer des annonces sans limite
-    final currentSeller = await _ref.read(seller_auth.currentSellerProvider.future);
+    final currentSeller =
+        await _ref.read(seller_auth.currentSellerProvider.future);
     final isSeller = currentSeller != null;
 
     // Bloquer UNIQUEMENT les particuliers ayant une demande active (sauf si annonce)
     if (!isSeller && state.hasActiveRequest && !allowWithActiveRequest) {
       state = state.copyWith(
-        error: 'Une demande est déjà en cours. Veuillez attendre sa clôture avant d\'en créer une nouvelle.',
+        error:
+            'Une demande est déjà en cours. Veuillez attendre sa clôture avant d\'en créer une nouvelle.',
         clearVehicleInfo: true,
       );
       return;
     }
-    
+
     // Mise à jour du status de limitation
     await _updateRateLimitStatus();
-    
+
     // Vérification de la limitation de taux
     final canSearch = await _rateLimiter.canMakeSearch();
     if (!canSearch) {
       final timeUntilReset = await _rateLimiter.getTimeUntilReset();
       state = state.copyWith(
-        error: 'Limite de 3 recherches atteinte. Attendez ${timeUntilReset}min avant de réessayer.',
+        error:
+            'Limite de 3 recherches atteinte. Attendez ${timeUntilReset}min avant de réessayer.',
         clearVehicleInfo: true,
         isRateLimited: true,
       );
       return;
     }
-    
+
     final cleanPlate = plate.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
     if (cleanPlate.isEmpty || cleanPlate.length < 6) {
@@ -175,7 +180,6 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
         );
       },
       (vehicleInfo) {
-
         _cache[cleanPlate] = vehicleInfo;
 
         state = state.copyWith(
@@ -232,7 +236,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
     final remainingAttempts = await _rateLimiter.getRemainingAttempts();
     final timeUntilReset = await _rateLimiter.getTimeUntilReset();
     final canSearch = await _rateLimiter.canMakeSearch();
-    
+
     state = state.copyWith(
       remainingAttempts: remainingAttempts,
       timeUntilReset: timeUntilReset,
@@ -247,30 +251,28 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   /// Vérifie s'il y a une demande active
   Future<void> _checkActiveRequest() async {
-    
     // Ne pas bloquer l'UI pendant la vérification
     if (state.isCheckingActiveRequest) {
       return;
     }
-    
+
     state = state.copyWith(isCheckingActiveRequest: true);
-    
+
     try {
       // Méthode simple et directe : vérifier dans Supabase si l'utilisateur a un profil vendeur
-      
+
       bool isSeller = false;
       try {
         final supabaseClient = _ref.read(seller_auth.supabaseClientProvider);
         final userId = supabaseClient.auth.currentUser?.id;
-        
+
         if (userId != null) {
-          
           // SOLUTION TEMPORAIRE : Forcer certains utilisateurs à être vendeurs
           final forceSellerIds = [
             '82392786-b854-40b4-90c1-605636804164', // User ID supposé
             '27ff3e11-647a-4edb-878b-62a8f24009b0', // User ID de session actuel
           ];
-          
+
           if (forceSellerIds.contains(userId)) {
             isSeller = true;
           } else {
@@ -280,28 +282,27 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
                 .select('id')
                 .eq('id', userId)
                 .maybeSingle();
-            
+
             isSeller = response != null;
           }
-          
+
           if (isSeller) {
-          } else {
-          }
+          } else {}
         } else {
           isSeller = false;
         }
       } catch (e) {
         isSeller = false;
       }
-      
+
       if (isSeller) {
         // VENDEUR : Vérifier les annonces (AUCUNE LIMITE)
         await _checkSellerAdvertisements();
       } else {
-        // PARTICULIER : Vérifier les demandes (limite 1)  
+        // PARTICULIER : Vérifier les demandes (limite 1)
         await _checkParticulierRequests();
       }
-      
+
       // ✅ CORRECTION: Suppression de la logique temporaire incorrecte
       // La vérification vendeur/particulier est maintenant propre
     } catch (e) {
@@ -311,7 +312,7 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
       );
     }
   }
-  
+
   /// Vérifie les annonces pour les vendeurs (AUCUNE LIMITE)
   Future<void> _checkSellerAdvertisements() async {
     try {
@@ -331,7 +332,6 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   /// Vérifie les demandes pour les particuliers (limite 1)
   Future<void> _checkParticulierRequests() async {
-
     try {
       final repository = _ref.read(partRequestRepositoryProvider);
       final allRequestsResult = await repository.getUserPartRequests();
@@ -344,11 +344,11 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
           );
         },
         (requests) {
-          final activeRequests = requests.where((r) => r.status == 'active').toList();
+          final activeRequests =
+              requests.where((r) => r.status == 'active').toList();
 
           // Limite de 1 pour les particuliers
           if (activeRequests.isNotEmpty) {
-
             state = state.copyWith(
               hasActiveRequest: true,
               isCheckingActiveRequest: false,
@@ -376,13 +376,12 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
   /// Méthode utilitaire pour debug - force le reset et re-check
   Future<void> forceRefreshActiveRequestCheck() async {
-    
     // Reset temporaire de l'état
     state = state.copyWith(
       hasActiveRequest: false,
       isCheckingActiveRequest: true,
     );
-    
+
     // Re-check complet
     await _checkActiveRequest();
   }
@@ -390,10 +389,10 @@ class VehicleSearchNotifier extends StateNotifier<VehicleSearchState> {
 
 final vehicleSearchProvider =
     StateNotifierProvider<VehicleSearchNotifier, VehicleSearchState>((ref) {
-      final service = ref.watch(immatriculationServiceProvider);
-      final rateLimiter = ref.watch(rateLimiterServiceProvider);
-      return VehicleSearchNotifier(service, rateLimiter, ref);
-    });
+  final service = ref.watch(immatriculationServiceProvider);
+  final rateLimiter = ref.watch(rateLimiterServiceProvider);
+  return VehicleSearchNotifier(service, rateLimiter, ref);
+});
 
 final remainingCreditsProvider = FutureProvider<int>((ref) async {
   final service = ref.watch(immatriculationServiceProvider);

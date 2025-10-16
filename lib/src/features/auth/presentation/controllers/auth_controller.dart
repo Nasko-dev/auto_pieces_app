@@ -30,7 +30,8 @@ final loginAsParticulierProvider = Provider((ref) {
 });
 
 // State providers
-final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
+final authStateProvider =
+    StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
   return AuthNotifier(
     loginAsParticulier: ref.read(loginAsParticulierProvider),
     repository: ref.read(authRepositoryProvider),
@@ -45,7 +46,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     required this.loginAsParticulier,
     required this.repository,
   }) : super(const AsyncValue.data(null));
-
 
   Future<void> loginParticulier() async {
     state = const AsyncValue.loading();

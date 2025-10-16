@@ -45,14 +45,17 @@ class ContextMenu extends StatelessWidget {
                 children: [
                   Icon(
                     item.icon,
-                    color: item.isDestructive ? AppTheme.error : AppTheme.darkGray,
+                    color:
+                        item.isDestructive ? AppTheme.error : AppTheme.darkGray,
                     size: 20,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     item.label,
                     style: TextStyle(
-                      color: item.isDestructive ? AppTheme.error : AppTheme.darkGray,
+                      color: item.isDestructive
+                          ? AppTheme.error
+                          : AppTheme.darkGray,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

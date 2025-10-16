@@ -58,7 +58,9 @@ void main() {
   final tSellerResponsesList = [tSellerResponse1, tSellerResponse2];
 
   group('GetPartRequestResponses', () {
-    test('doit retourner une liste de SellerResponse quand la récupération réussit', () async {
+    test(
+        'doit retourner une liste de SellerResponse quand la récupération réussit',
+        () async {
       // arrange
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(tSellerResponsesList));
@@ -72,7 +74,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner une liste vide quand aucune réponse n\'existe', () async {
+    test('doit retourner une liste vide quand aucune réponse n\'existe',
+        () async {
       // arrange
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => const Right([]));
@@ -94,23 +97,28 @@ void main() {
       final result = await usecase('');
 
       // assert
-      expect(result, const Left(ValidationFailure('L\'ID de la demande est requis')));
+      expect(result,
+          const Left(ValidationFailure('L\'ID de la demande est requis')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure quand requestId est une chaîne d\'espaces', () async {
+    test(
+        'doit retourner ValidationFailure quand requestId est une chaîne d\'espaces',
+        () async {
       // act
       final result = await usecase('   ');
 
       // assert
-      expect(result, const Left(ValidationFailure('L\'ID de la demande est requis')));
+      expect(result,
+          const Left(ValidationFailure('L\'ID de la demande est requis')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.getPartRequestResponses(tRequestId))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé')));
+      when(mockRepository.getPartRequestResponses(tRequestId)).thenAnswer(
+          (_) async => const Left(AuthFailure('Accès non autorisé')));
 
       // act
       final result = await usecase(tRequestId);
@@ -133,10 +141,11 @@ void main() {
       verify(mockRepository.getPartRequestResponses(tRequestId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getPartRequestResponses(tRequestId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getPartRequestResponses(tRequestId)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tRequestId);
@@ -146,10 +155,11 @@ void main() {
       verify(mockRepository.getPartRequestResponses(tRequestId));
     });
 
-    test('doit retourner ValidationFailure quand la demande n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la demande n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.getPartRequestResponses(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Demande non trouvée')));
+      when(mockRepository.getPartRequestResponses(tRequestId)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Demande non trouvée')));
 
       // act
       final result = await usecase(tRequestId);
@@ -168,7 +178,8 @@ void main() {
       await usecase(tRequestId);
 
       // assert
-      final captured = verify(mockRepository.getPartRequestResponses(captureAny)).captured;
+      final captured =
+          verify(mockRepository.getPartRequestResponses(captureAny)).captured;
       expect(captured.first, tRequestId);
     });
 
@@ -197,7 +208,8 @@ void main() {
       );
     });
 
-    test('doit retourner les réponses avec toutes les propriétés correctes', () async {
+    test('doit retourner les réponses avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(tSellerResponsesList));
@@ -264,7 +276,11 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final mixedStatusList = [pendingResponse, acceptedResponse, rejectedResponse];
+      final mixedStatusList = [
+        pendingResponse,
+        acceptedResponse,
+        rejectedResponse
+      ];
 
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(mixedStatusList));
@@ -326,7 +342,11 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final availabilityList = [availableResponse, orderNeededResponse, unavailableResponse];
+      final availabilityList = [
+        availableResponse,
+        orderNeededResponse,
+        unavailableResponse
+      ];
 
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(availabilityList));
@@ -384,7 +404,11 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final priceVariationsList = [withPriceResponse, withoutPriceResponse, zeroPriceResponse];
+      final priceVariationsList = [
+        withPriceResponse,
+        withoutPriceResponse,
+        zeroPriceResponse
+      ];
 
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(priceVariationsList));
@@ -431,7 +455,8 @@ void main() {
       verify(mockRepository.getPartRequestResponses(anotherRequestId));
     });
 
-    test('doit retourner les mêmes réponses à chaque appel (cohérence)', () async {
+    test('doit retourner les mêmes réponses à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.getPartRequestResponses(tRequestId))
           .thenAnswer((_) async => Right(tSellerResponsesList));
@@ -445,7 +470,8 @@ void main() {
       verify(mockRepository.getPartRequestResponses(tRequestId)).called(2);
     });
 
-    test('doit valider les IDs de demande avec des formats différents', () async {
+    test('doit valider les IDs de demande avec des formats différents',
+        () async {
       // arrange & act & assert
       final validIds = [
         'req123',

@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 /// Liste paginée optimisée pour de gros volumes de données
 class PaginatedList<T> {
   final List<T> _items = [];
-  final StreamController<List<T>> _controller = StreamController<List<T>>.broadcast();
-  
+  final StreamController<List<T>> _controller =
+      StreamController<List<T>>.broadcast();
+
   // Configuration de pagination
   final int pageSize;
   final Future<List<T>> Function(int offset, int limit) _fetchPage;
-  
+
   // État interne
   int _currentOffset = 0;
   bool _isLoading = false;
@@ -23,16 +24,16 @@ class PaginatedList<T> {
 
   /// Stream des éléments
   Stream<List<T>> get stream => _controller.stream;
-  
+
   /// Éléments actuellement chargés
   List<T> get items => List.unmodifiable(_items);
-  
+
   /// Indique si plus de données sont disponibles
   bool get hasMoreData => _hasMoreData;
-  
+
   /// Indique si un chargement est en cours
   bool get isLoading => _isLoading;
-  
+
   /// Dernière erreur rencontrée
   String? get lastError => _lastError;
 
@@ -42,7 +43,7 @@ class PaginatedList<T> {
     _currentOffset = 0;
     _hasMoreData = true;
     _lastError = null;
-    
+
     await _loadPage();
   }
 
@@ -59,25 +60,25 @@ class PaginatedList<T> {
 
   Future<void> _loadPage() async {
     if (_isLoading) return;
-    
+
     _isLoading = true;
     _lastError = null;
-    
+
     try {
       final newItems = await _fetchPage(_currentOffset, pageSize);
-      
+
       if (newItems.isEmpty) {
         _hasMoreData = false;
       } else {
         _items.addAll(newItems);
         _currentOffset += newItems.length;
-        
+
         // Si moins d'éléments que demandé, probablement fin de données
         if (newItems.length < pageSize) {
           _hasMoreData = false;
         }
       }
-      
+
       _controller.add(_items);
     } catch (e) {
       _lastError = e.toString();
@@ -121,14 +122,14 @@ class _PaginatedListViewState<T> extends State<PaginatedListView<T>> {
   @override
   void initState() {
     super.initState();
-    
+
     _scrollController.addListener(_onScroll);
-    
+
     // Écouter les changements de la liste
     _subscription = widget.paginatedList.stream.listen((_) {
       if (mounted) setState(() {});
     });
-    
+
     // Charger les données initiales
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.paginatedList.loadInitial();
@@ -136,7 +137,7 @@ class _PaginatedListViewState<T> extends State<PaginatedListView<T>> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - widget.loadMoreThreshold) {
       widget.paginatedList.loadMore();
     }
@@ -152,35 +153,38 @@ class _PaginatedListViewState<T> extends State<PaginatedListView<T>> {
   @override
   Widget build(BuildContext context) {
     final items = widget.paginatedList.items;
-    
+
     if (items.isEmpty && widget.paginatedList.isLoading) {
-      return widget.loadingWidget ?? const Center(
-        child: CircularProgressIndicator(),
-      );
+      return widget.loadingWidget ??
+          const Center(
+            child: CircularProgressIndicator(),
+          );
     }
-    
+
     if (items.isEmpty && widget.paginatedList.lastError != null) {
-      return widget.errorWidget ?? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Erreur: ${widget.paginatedList.lastError}'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => widget.paginatedList.refresh(),
-              child: const Text('Réessayer'),
+      return widget.errorWidget ??
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Erreur: ${widget.paginatedList.lastError}'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => widget.paginatedList.refresh(),
+                  child: const Text('Réessayer'),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
+          );
     }
-    
+
     if (items.isEmpty) {
-      return widget.emptyWidget ?? const Center(
-        child: Text('Aucun élément'),
-      );
+      return widget.emptyWidget ??
+          const Center(
+            child: Text('Aucun élément'),
+          );
     }
 
     return RefreshIndicator(
@@ -196,7 +200,7 @@ class _PaginatedListViewState<T> extends State<PaginatedListView<T>> {
               child: Center(child: CircularProgressIndicator()),
             );
           }
-          
+
           return widget.itemBuilder(context, items[index], index);
         },
       ),

@@ -22,13 +22,15 @@ class CreateSellerResponseParams {
   });
 }
 
-class CreateSellerResponse implements UseCase<SellerResponse, CreateSellerResponseParams> {
+class CreateSellerResponse
+    implements UseCase<SellerResponse, CreateSellerResponseParams> {
   final PartRequestRepository repository;
 
   CreateSellerResponse(this.repository);
 
   @override
-  Future<Either<Failure, SellerResponse>> call(CreateSellerResponseParams params) async {
+  Future<Either<Failure, SellerResponse>> call(
+      CreateSellerResponseParams params) async {
     // Validation requestId
     if (params.requestId.trim().isEmpty) {
       return const Left(ValidationFailure('L\'ID de la demande est requis'));
@@ -40,7 +42,8 @@ class CreateSellerResponse implements UseCase<SellerResponse, CreateSellerRespon
     }
 
     if (params.message.trim().length < 10) {
-      return const Left(ValidationFailure('Le message doit contenir au moins 10 caractères'));
+      return const Left(
+          ValidationFailure('Le message doit contenir au moins 10 caractères'));
     }
 
     // Validation prix
@@ -49,8 +52,10 @@ class CreateSellerResponse implements UseCase<SellerResponse, CreateSellerRespon
     }
 
     // Validation jours de livraison
-    if (params.estimatedDeliveryDays != null && params.estimatedDeliveryDays! < 0) {
-      return const Left(ValidationFailure('Les jours de livraison ne peuvent pas être négatifs'));
+    if (params.estimatedDeliveryDays != null &&
+        params.estimatedDeliveryDays! < 0) {
+      return const Left(ValidationFailure(
+          'Les jours de livraison ne peuvent pas être négatifs'));
     }
 
     // Validation disponibilité

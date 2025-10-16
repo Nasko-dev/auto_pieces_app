@@ -13,30 +13,31 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   ConversationsRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<Conversation>>> getConversations({required String userId}) async {
+  Future<Either<Failure, List<Conversation>>> getConversations(
+      {required String userId}) async {
     try {
-      final conversations = await remoteDataSource.getConversations(userId: userId);
+      final conversations =
+          await remoteDataSource.getConversations(userId: userId);
       return Right(conversations);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de la récupération des conversations'));
+      return Left(
+          ServerFailure('Erreur lors de la récupération des conversations'));
     }
   }
 
   @override
-  Future<Either<Failure, List<Message>>> getConversationMessages({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, List<Message>>> getConversationMessages(
+      {required String conversationId}) async {
     try {
       final messages = await remoteDataSource.getConversationMessages(
-        conversationId: conversationId
-      );
+          conversationId: conversationId);
       return Right(messages);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de la récupération des messages'));
+      return Left(ServerFailure('Erreur lors de la récupération des messages'));
     }
   }
 
@@ -68,7 +69,7 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de l\'envoi du message'));
+      return Left(ServerFailure('Erreur lors de l\'envoi du message'));
     }
   }
 
@@ -86,7 +87,7 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors du marquage des messages'));
+      return Left(ServerFailure('Erreur lors du marquage des messages'));
     }
   }
 
@@ -102,7 +103,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de l\'incrémentation du compteur'));
+      return Left(
+          ServerFailure('Erreur lors de l\'incrémentation du compteur'));
     }
   }
 
@@ -118,7 +120,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur particulier'));
+      return Left(ServerFailure(
+          'Erreur lors de l\'incrémentation du compteur particulier'));
     }
   }
 
@@ -134,7 +137,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de l\'incrémentation du compteur vendeur'));
+      return Left(ServerFailure(
+          'Erreur lors de l\'incrémentation du compteur vendeur'));
     }
   }
 
@@ -152,42 +156,41 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur lors de l\'incrémentation intelligente du compteur'));
+      return Left(ServerFailure(
+          'Erreur lors de l\'incrémentation intelligente du compteur'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> deleteConversation(
+      {required String conversationId}) async {
     try {
       await remoteDataSource.deleteConversation(conversationId: conversationId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de la suppression de la conversation'));
+      return Left(
+          ServerFailure('Erreur lors de la suppression de la conversation'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> blockConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> blockConversation(
+      {required String conversationId}) async {
     try {
       await remoteDataSource.blockConversation(conversationId: conversationId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors du blocage de la conversation'));
+      return Left(ServerFailure('Erreur lors du blocage de la conversation'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> closeConversation({
-    required String conversationId
-  }) async {
+  Future<Either<Failure, void>> closeConversation(
+      {required String conversationId}) async {
     try {
       await remoteDataSource.updateConversationStatus(
         conversationId: conversationId,
@@ -197,51 +200,45 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure( 'Erreur lors de la fermeture de la conversation'));
+      return Left(
+          ServerFailure('Erreur lors de la fermeture de la conversation'));
     }
   }
 
   @override
-  Stream<Either<Failure, Message>> subscribeToNewMessages({
-    required String conversationId
-  }) {
+  Stream<Either<Failure, Message>> subscribeToNewMessages(
+      {required String conversationId}) {
     try {
       return remoteDataSource
           .subscribeToNewMessages(conversationId: conversationId)
           .map((message) => Right<Failure, Message>(message))
           .handleError((error) {
-            return Left<Failure, Message>(
-              ServerFailure( 'Erreur de connexion realtime')
-            );
-          });
+        return Left<Failure, Message>(
+            ServerFailure('Erreur de connexion realtime'));
+      });
     } catch (e) {
       return Stream.value(
-        Left(ServerFailure( 'Erreur lors de la création du stream'))
-      );
+          Left(ServerFailure('Erreur lors de la création du stream')));
     }
   }
 
   @override
-  Stream<Either<Failure, List<Conversation>>> subscribeToConversationUpdates({
-    required String userId
-  }) {
+  Stream<Either<Failure, List<Conversation>>> subscribeToConversationUpdates(
+      {required String userId}) {
     try {
       return remoteDataSource
           .subscribeToConversationUpdates(userId: userId)
           .asyncMap((conversation) async {
-            // Récupérer la liste complète des conversations
-            final result = await getConversations(userId: userId);
-            return result;
-          })
-          .handleError((error) {
-            return Left<Failure, List<Conversation>>(
-              ServerFailure( 'Erreur de connexion realtime')
-            );
-          });
+        // Récupérer la liste complète des conversations
+        final result = await getConversations(userId: userId);
+        return result;
+      }).handleError((error) {
+        return Left<Failure, List<Conversation>>(
+            ServerFailure('Erreur de connexion realtime'));
+      });
     } catch (e) {
       return Stream.value(
-        Left(ServerFailure( 'Erreur lors de la création du stream'))
-      );
+          Left(ServerFailure('Erreur lors de la création du stream')));
     }
   }
 }

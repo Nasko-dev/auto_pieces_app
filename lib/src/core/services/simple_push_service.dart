@@ -35,20 +35,20 @@ class SimplePushService {
       if (userId != null) {
         // Vérifier dans particuliers
         final isParticulier = await _supabase
-          .from('particuliers')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+            .from('particuliers')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
 
         if (isParticulier != null) {
           userType = 'particulier';
         } else {
           // Vérifier dans sellers
           final isSeller = await _supabase
-            .from('sellers')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
+              .from('sellers')
+              .select('id')
+              .eq('id', userId)
+              .maybeSingle();
 
           if (isSeller != null) {
             userType = 'seller';
@@ -57,22 +57,18 @@ class SimplePushService {
       }
 
       // Utiliser upsert basé sur onesignal_player_id
-      await _supabase
-        .from('push_tokens')
-        .upsert({
-          'onesignal_player_id': playerId,
-          'user_id': userId,
-          'user_email': userEmail,
-          'user_type': userType,
-          'platform': 'android',
-          'last_active': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'onesignal_player_id');
+      await _supabase.from('push_tokens').upsert({
+        'onesignal_player_id': playerId,
+        'user_id': userId,
+        'user_email': userEmail,
+        'user_type': userType,
+        'platform': 'android',
+        'last_active': DateTime.now().toIso8601String(),
+      }, onConflict: 'onesignal_player_id');
 
       debugPrint('✅ Token push sauvegardé avec succès');
       debugPrint('   Type: $userType');
       return true;
-
     } catch (e) {
       debugPrint('❌ Erreur lors de la sauvegarde: $e');
       return false;
@@ -83,12 +79,12 @@ class SimplePushService {
   Future<String?> getPlayerIdForUser(String userId) async {
     try {
       final result = await _supabase
-        .from('push_tokens')
-        .select('onesignal_player_id')
-        .eq('user_id', userId)
-        .order('last_active', ascending: false)
-        .limit(1)
-        .maybeSingle();
+          .from('push_tokens')
+          .select('onesignal_player_id')
+          .eq('user_id', userId)
+          .order('last_active', ascending: false)
+          .limit(1)
+          .maybeSingle();
 
       return result?['onesignal_player_id'];
     } catch (e) {
@@ -126,7 +122,8 @@ class SimplePushService {
     // Récupérer le Player ID
     final playerId = OneSignal.User.pushSubscription.id;
     debugPrint('✅ Player ID prêt: $playerId');
-    debugPrint('   Vous pouvez maintenant envoyer une notification à ce Player ID');
+    debugPrint(
+        '   Vous pouvez maintenant envoyer une notification à ce Player ID');
 
     // TODO: Appeler votre Edge Function pour envoyer la notification
     // Exemple:

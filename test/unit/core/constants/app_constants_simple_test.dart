@@ -49,12 +49,15 @@ void main() {
       });
 
       test('should have different user types', () {
-        expect(AppConstants.userTypeParticulier, isNot(equals(AppConstants.userTypeVendeur)));
-        expect(AppConstants.userTypeVendeur, isNot(equals(AppConstants.userTypeSeller)));
+        expect(AppConstants.userTypeParticulier,
+            isNot(equals(AppConstants.userTypeVendeur)));
+        expect(AppConstants.userTypeVendeur,
+            isNot(equals(AppConstants.userTypeSeller)));
       });
 
       test('should have different part types', () {
-        expect(AppConstants.partTypeMoteur, isNot(equals(AppConstants.partTypeCarrosserie)));
+        expect(AppConstants.partTypeMoteur,
+            isNot(equals(AppConstants.partTypeCarrosserie)));
       });
     });
 
@@ -65,9 +68,12 @@ void main() {
       });
 
       test('should have lowercase user types', () {
-        expect(AppConstants.userTypeParticulier, equals(AppConstants.userTypeParticulier.toLowerCase()));
-        expect(AppConstants.userTypeVendeur, equals(AppConstants.userTypeVendeur.toLowerCase()));
-        expect(AppConstants.userTypeSeller, equals(AppConstants.userTypeSeller.toLowerCase()));
+        expect(AppConstants.userTypeParticulier,
+            equals(AppConstants.userTypeParticulier.toLowerCase()));
+        expect(AppConstants.userTypeVendeur,
+            equals(AppConstants.userTypeVendeur.toLowerCase()));
+        expect(AppConstants.userTypeSeller,
+            equals(AppConstants.userTypeSeller.toLowerCase()));
       });
 
       test('should have valid app scheme format', () {

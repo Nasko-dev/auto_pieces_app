@@ -101,7 +101,8 @@ void main() {
   );
 
   group('SendMessage', () {
-    test('doit retourner Message quand l\'envoi d\'un message texte réussit', () async {
+    test('doit retourner Message quand l\'envoi d\'un message texte réussit',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -134,7 +135,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner Message quand l\'envoi d\'un message image réussit', () async {
+    test('doit retourner Message quand l\'envoi d\'un message image réussit',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -166,7 +168,8 @@ void main() {
       ));
     });
 
-    test('doit retourner Message quand l\'envoi d\'une offre réussit', () async {
+    test('doit retourner Message quand l\'envoi d\'une offre réussit',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -198,7 +201,8 @@ void main() {
       ));
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -230,7 +234,8 @@ void main() {
       ));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -242,7 +247,8 @@ void main() {
         offerPrice: anyNamed('offerPrice'),
         offerAvailability: anyNamed('offerAvailability'),
         offerDeliveryDays: anyNamed('offerDeliveryDays'),
-      )).thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      )).thenAnswer((_) async =>
+          const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tTextParams);
@@ -251,7 +257,8 @@ void main() {
       expect(result, const Left(ValidationFailure('Conversation non trouvée')));
     });
 
-    test('doit retourner ValidationFailure quand la conversation est fermée', () async {
+    test('doit retourner ValidationFailure quand la conversation est fermée',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -263,13 +270,15 @@ void main() {
         offerPrice: anyNamed('offerPrice'),
         offerAvailability: anyNamed('offerAvailability'),
         offerDeliveryDays: anyNamed('offerDeliveryDays'),
-      )).thenAnswer((_) async => const Left(ValidationFailure('Cette conversation est fermée')));
+      )).thenAnswer((_) async =>
+          const Left(ValidationFailure('Cette conversation est fermée')));
 
       // act
       final result = await usecase(tTextParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Cette conversation est fermée')));
+      expect(result,
+          const Left(ValidationFailure('Cette conversation est fermée')));
     });
 
     test('doit retourner ServerFailure en cas d\'erreur serveur', () async {
@@ -293,7 +302,8 @@ void main() {
       expect(result, const Left(ServerFailure('Erreur serveur')));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -305,7 +315,8 @@ void main() {
         offerPrice: anyNamed('offerPrice'),
         offerAvailability: anyNamed('offerAvailability'),
         offerDeliveryDays: anyNamed('offerDeliveryDays'),
-      )).thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      )).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tTextParams);
@@ -314,7 +325,8 @@ void main() {
       expect(result, const Left(NetworkFailure('Pas de connexion internet')));
     });
 
-    test('doit passer tous les paramètres au repository correctement', () async {
+    test('doit passer tous les paramètres au repository correctement',
+        () async {
       // arrange
       when(mockRepository.sendMessage(
         conversationId: anyNamed('conversationId'),
@@ -393,7 +405,8 @@ void main() {
       final longContentParams = SendMessageParams(
         conversationId: tConversationId,
         senderId: tSenderId,
-        content: 'Très ' * 200 + 'long message avec beaucoup de contenu détaillé',
+        content:
+            'Très ' * 200 + 'long message avec beaucoup de contenu détaillé',
         messageType: MessageType.text,
       );
 
@@ -552,7 +565,8 @@ void main() {
       );
     });
 
-    test('doit gérer l\'envoi de messages pour différentes conversations', () async {
+    test('doit gérer l\'envoi de messages pour différentes conversations',
+        () async {
       // arrange
       final conversation1Params = SendMessageParams(
         conversationId: 'conv1',

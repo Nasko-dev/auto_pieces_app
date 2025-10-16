@@ -74,6 +74,7 @@ Map<String, dynamic> _$$PartAdvertisementModelImplToJson(
 _$CreatePartAdvertisementParamsImpl
     _$$CreatePartAdvertisementParamsImplFromJson(Map<String, dynamic> json) =>
         _$CreatePartAdvertisementParamsImpl(
+          particulierId: json['particulierId'] as String?,
           partType: json['partType'] as String,
           partName: json['partName'] as String,
           vehiclePlate: json['vehiclePlate'] as String?,
@@ -95,6 +96,7 @@ _$CreatePartAdvertisementParamsImpl
 Map<String, dynamic> _$$CreatePartAdvertisementParamsImplToJson(
         _$CreatePartAdvertisementParamsImpl instance) =>
     <String, dynamic>{
+      'particulierId': instance.particulierId,
       'partType': instance.partType,
       'partName': instance.partName,
       'vehiclePlate': instance.vehiclePlate,

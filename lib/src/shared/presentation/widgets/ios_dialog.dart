@@ -13,7 +13,6 @@ import '../../../core/utils/haptic_helper.dart';
 /// - Texte centré et épuré
 /// - Boutons horizontaux (2 actions) ou verticaux (3+ actions)
 extension CupertinoDialogExtension on BuildContext {
-
   // ============================================================================
   // DIALOG DE CONFIRMATION (2 boutons horizontaux)
   // ============================================================================

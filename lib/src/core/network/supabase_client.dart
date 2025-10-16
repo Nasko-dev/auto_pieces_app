@@ -8,6 +8,6 @@ class SupabaseConfig {
       anonKey: AppConstants.supabaseAnonKey,
     );
   }
-  
+
   static SupabaseClient get client => Supabase.instance.client;
 }

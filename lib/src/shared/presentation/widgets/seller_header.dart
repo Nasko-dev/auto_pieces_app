@@ -88,10 +88,7 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
         ),
 
         // Actions personnalisées ou menu
-        if (widget.actions != null)
-          ...widget.actions!
-        else
-          const SellerMenu(),
+        if (widget.actions != null) ...widget.actions! else const SellerMenu(),
       ],
     );
   }
@@ -160,7 +157,8 @@ class _SellerHeaderState extends ConsumerState<SellerHeader> {
   Widget _buildSellerAvatar() {
     // Utiliser l'avatar des paramètres vendeur ou fallback utilisateur auth
     final avatarUrl = _sellerSettings?.avatarUrl ??
-                     Supabase.instance.client.auth.currentUser?.userMetadata?['avatar_url'] as String?;
+        Supabase.instance.client.auth.currentUser?.userMetadata?['avatar_url']
+            as String?;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return ClipRRect(

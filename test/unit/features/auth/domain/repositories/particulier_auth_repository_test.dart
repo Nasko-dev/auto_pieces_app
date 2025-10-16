@@ -53,7 +53,8 @@ class MockParticulierAuthRepository implements ParticulierAuthRepository {
   }
 
   @override
-  Future<Either<Failure, Particulier>> updateParticulier(Particulier particulier) async {
+  Future<Either<Failure, Particulier>> updateParticulier(
+      Particulier particulier) async {
     if (!_isLoggedIn || _currentParticulier == null) {
       return Left(CacheFailure('Aucun particulier connecté'));
     }
@@ -245,7 +246,9 @@ void main() {
     });
 
     group('Flux complet d\'authentification', () {
-      test('devrait gérer un cycle complet connexion → mise à jour → déconnexion', () async {
+      test(
+          'devrait gérer un cycle complet connexion → mise à jour → déconnexion',
+          () async {
         // État initial - non connecté
         var isLoggedInResult = await repository.isLoggedIn();
         isLoggedInResult.fold(
@@ -275,7 +278,8 @@ void main() {
           createdAt: DateTime.now(),
         );
 
-        final updateResult = await repository.updateParticulier(updatedParticulier);
+        final updateResult =
+            await repository.updateParticulier(updatedParticulier);
         expect(updateResult, isA<Right<Failure, Particulier>>());
 
         // Déconnexion
@@ -294,11 +298,16 @@ void main() {
     group('Gestion d\'erreur', () {
       test('devrait respecter le contrat du repository', () {
         // Vérifier que toutes les méthodes retournent Either<Failure, T>
-        expect(repository.signInAnonymously(), isA<Future<Either<Failure, Particulier>>>());
-        expect(repository.getCurrentParticulier(), isA<Future<Either<Failure, Particulier>>>());
+        expect(repository.signInAnonymously(),
+            isA<Future<Either<Failure, Particulier>>>());
+        expect(repository.getCurrentParticulier(),
+            isA<Future<Either<Failure, Particulier>>>());
         expect(repository.logout(), isA<Future<Either<Failure, void>>>());
         expect(repository.isLoggedIn(), isA<Future<Either<Failure, bool>>>());
-        expect(repository.updateParticulier(Particulier(id: 'test', createdAt: DateTime.now())), isA<Future<Either<Failure, Particulier>>>());
+        expect(
+            repository.updateParticulier(
+                Particulier(id: 'test', createdAt: DateTime.now())),
+            isA<Future<Either<Failure, Particulier>>>());
       });
 
       test('devrait maintenir la cohérence d\'état', () async {

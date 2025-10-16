@@ -17,11 +17,13 @@ class AppStateManager {
   void setAppState(bool isInForeground) {
     final previousState = _isInForeground;
     _isInForeground = isInForeground;
-    debugPrint('📱 App State changed: $previousState -> ${isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
+    debugPrint(
+        '📱 App State changed: $previousState -> ${isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
   }
 
   void debugCurrentState() {
-    debugPrint('🔍 Current app state: ${_isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
+    debugPrint(
+        '🔍 Current app state: ${_isInForeground ? 'FOREGROUND' : 'BACKGROUND'}');
   }
 }
 
@@ -58,7 +60,8 @@ class PushNotificationService {
 
       debugPrint('✅ PushNotificationService initialisé avec succès');
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'initialisation PushNotificationService: $e');
+      debugPrint(
+          '❌ Erreur lors de l\'initialisation PushNotificationService: $e');
     }
   }
 
@@ -67,13 +70,15 @@ class PushNotificationService {
     const delayBetweenAttempts = Duration(seconds: 2);
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      debugPrint('🔄 Tentative $attempt/$maxAttempts de récupération du Player ID...');
+      debugPrint(
+          '🔄 Tentative $attempt/$maxAttempts de récupération du Player ID...');
 
       final playerId = OneSignal.User.pushSubscription.id;
       final token = OneSignal.User.pushSubscription.token;
 
       debugPrint('   Player ID: $playerId');
-      debugPrint('   Token: ${token != null ? 'Présent (${token.length} caractères)' : 'Absent'}');
+      debugPrint(
+          '   Token: ${token != null ? 'Présent (${token.length} caractères)' : 'Absent'}');
 
       if (playerId != null && playerId.isNotEmpty) {
         await _savePlayerIdToSupabase();
@@ -86,7 +91,8 @@ class PushNotificationService {
       }
     }
 
-    debugPrint('⚠️ Impossible de récupérer le Player ID après $maxAttempts tentatives');
+    debugPrint(
+        '⚠️ Impossible de récupérer le Player ID après $maxAttempts tentatives');
   }
 
   void _setupNotificationListeners() {
@@ -156,71 +162,69 @@ class PushNotificationService {
 
       // Vérifier d'abord dans la table particuliers
       final existingParticulier = await _supabase
-        .from('particuliers')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+          .from('particuliers')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
 
       // Vérifier ensuite dans la table sellers
       final existingVendeur = await _supabase
-        .from('sellers')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+          .from('sellers')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
 
       if (existingParticulier != null) {
-        debugPrint('✅ Utilisateur trouvé dans particuliers, mise à jour du Player ID...');
+        debugPrint(
+            '✅ Utilisateur trouvé dans particuliers, mise à jour du Player ID...');
 
         // Mettre à jour le Player ID dans particuliers
-        await _supabase
-          .from('particuliers')
-          .update({
-            'onesignal_player_id': playerId,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', userId);
+        await _supabase.from('particuliers').update({
+          'onesignal_player_id': playerId,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', userId);
 
         debugPrint('✅ Player ID mis à jour dans particuliers');
-
       } else if (existingVendeur != null) {
-        debugPrint('✅ Utilisateur trouvé dans sellers, mise à jour du Player ID...');
+        debugPrint(
+            '✅ Utilisateur trouvé dans sellers, mise à jour du Player ID...');
 
         try {
           // Mettre à jour le Player ID dans sellers
-          await _supabase
-            .from('sellers')
-            .update({
-              'onesignal_player_id': playerId,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', userId);
+          await _supabase.from('sellers').update({
+            'onesignal_player_id': playerId,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', userId);
 
           debugPrint('✅ Player ID mis à jour dans sellers');
         } catch (e) {
           debugPrint('⚠️ Impossible de mettre à jour dans sellers: $e');
-          debugPrint('   La colonne onesignal_player_id n\'existe peut-être pas dans la table sellers');
+          debugPrint(
+              '   La colonne onesignal_player_id n\'existe peut-être pas dans la table sellers');
 
           // Essayer de stocker dans une table de mapping ou créer la colonne
-          debugPrint('   💡 Solution: Demandez à votre admin de base de données d\'ajouter la colonne:');
-          debugPrint('      ALTER TABLE sellers ADD COLUMN onesignal_player_id TEXT;');
+          debugPrint(
+              '   💡 Solution: Demandez à votre admin de base de données d\'ajouter la colonne:');
+          debugPrint(
+              '      ALTER TABLE sellers ADD COLUMN onesignal_player_id TEXT;');
         }
-
       } else {
-        debugPrint('⚠️ Utilisateur non trouvé dans aucune table (particuliers ou sellers)');
+        debugPrint(
+            '⚠️ Utilisateur non trouvé dans aucune table (particuliers ou sellers)');
         debugPrint('   Création/mise à jour dans particuliers...');
 
         try {
           // Utiliser upsert pour créer ou mettre à jour basé sur l'ID
-          await _supabase
-            .from('particuliers')
-            .upsert({
-              'id': userId,
-              'email': userEmail ?? 'user_$userId@app.local',  // Email par défaut si absent
-              'onesignal_player_id': playerId,
-              'updated_at': DateTime.now().toIso8601String(),
-            }, onConflict: 'id');
+          await _supabase.from('particuliers').upsert({
+            'id': userId,
+            'email': userEmail ??
+                'user_$userId@app.local', // Email par défaut si absent
+            'onesignal_player_id': playerId,
+            'updated_at': DateTime.now().toIso8601String(),
+          }, onConflict: 'id');
 
-          debugPrint('✅ Utilisateur créé/mis à jour dans particuliers avec Player ID');
+          debugPrint(
+              '✅ Utilisateur créé/mis à jour dans particuliers avec Player ID');
         } catch (e) {
           debugPrint('❌ Erreur lors de l\'upsert: $e');
 
@@ -229,31 +233,25 @@ class PushNotificationService {
             // D'abord chercher si un utilisateur existe avec cet email généré
             final emailToSearch = userEmail ?? 'user_$userId@app.local';
             final existingByEmail = await _supabase
-              .from('particuliers')
-              .select('id')
-              .eq('email', emailToSearch)
-              .maybeSingle();
+                .from('particuliers')
+                .select('id')
+                .eq('email', emailToSearch)
+                .maybeSingle();
 
             if (existingByEmail != null) {
               // Mettre à jour par email
-              await _supabase
-                .from('particuliers')
-                .update({
-                  'onesignal_player_id': playerId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                })
-                .eq('email', emailToSearch);
+              await _supabase.from('particuliers').update({
+                'onesignal_player_id': playerId,
+                'updated_at': DateTime.now().toIso8601String(),
+              }).eq('email', emailToSearch);
 
               debugPrint('✅ Player ID mis à jour via email: $emailToSearch');
             } else {
               // Essayer de mettre à jour par ID
-              await _supabase
-                .from('particuliers')
-                .update({
-                  'onesignal_player_id': playerId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                })
-                .eq('id', userId);
+              await _supabase.from('particuliers').update({
+                'onesignal_player_id': playerId,
+                'updated_at': DateTime.now().toIso8601String(),
+              }).eq('id', userId);
 
               debugPrint('✅ Player ID mis à jour pour l\'utilisateur existant');
             }
@@ -275,17 +273,17 @@ class PushNotificationService {
 
       // Vérifier que la sauvegarde a bien fonctionné
       final verification = await _supabase
-        .from('particuliers')
-        .select('onesignal_player_id')
-        .eq('id', userId)
-        .maybeSingle();
+          .from('particuliers')
+          .select('onesignal_player_id')
+          .eq('id', userId)
+          .maybeSingle();
 
       if (verification != null) {
-        debugPrint('🔍 Vérification réussie: ${verification['onesignal_player_id']}');
+        debugPrint(
+            '🔍 Vérification réussie: ${verification['onesignal_player_id']}');
       } else {
         debugPrint('⚠️ Impossible de vérifier la sauvegarde');
       }
-
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de la sauvegarde du Player ID: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -300,7 +298,8 @@ class PushNotificationService {
 
         // Navigation asynchrone sans besoin de contexte
         Future.microtask(() async {
-          await navigationService.navigateFromNotificationGlobal(additionalData);
+          await navigationService
+              .navigateFromNotificationGlobal(additionalData);
         });
       }
     } catch (e) {
@@ -358,7 +357,8 @@ class PushNotificationService {
 
   /// Mettre à jour l'état de l'application
   void setAppState(bool isInForeground) {
-    debugPrint('📍 PushNotificationService.setAppState called with: $isInForeground');
+    debugPrint(
+        '📍 PushNotificationService.setAppState called with: $isInForeground');
     _appStateManager.setAppState(isInForeground);
     _appStateManager.debugCurrentState();
   }
@@ -391,19 +391,16 @@ class PushNotificationService {
       // Essayer dans particuliers
       try {
         final exists = await _supabase
-          .from('particuliers')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+            .from('particuliers')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
 
         if (exists != null) {
-          await _supabase
-            .from('particuliers')
-            .update({
-              'onesignal_player_id': playerId,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', userId);
+          await _supabase.from('particuliers').update({
+            'onesignal_player_id': playerId,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', userId);
 
           savedInParticuliers = true;
           debugPrint('✅ Synchronisé dans particuliers');
@@ -415,19 +412,16 @@ class PushNotificationService {
       // Essayer dans sellers
       try {
         final exists = await _supabase
-          .from('sellers')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+            .from('sellers')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
 
         if (exists != null) {
-          await _supabase
-            .from('sellers')
-            .update({
-              'onesignal_player_id': playerId,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', userId);
+          await _supabase.from('sellers').update({
+            'onesignal_player_id': playerId,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', userId);
 
           savedInSellers = true;
           debugPrint('✅ Synchronisé dans sellers');
@@ -447,15 +441,13 @@ class PushNotificationService {
         try {
           final userEmail = _supabase.auth.currentUser?.email;
 
-          await _supabase
-            .from('particuliers')
-            .insert({
-              'id': userId,
-              'email': userEmail ?? 'user_$userId@app.local',
-              'onesignal_player_id': playerId,
-              'created_at': DateTime.now().toIso8601String(),
-              'updated_at': DateTime.now().toIso8601String(),
-            });
+          await _supabase.from('particuliers').insert({
+            'id': userId,
+            'email': userEmail ?? 'user_$userId@app.local',
+            'onesignal_player_id': playerId,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          });
 
           debugPrint('✅ UTILISATEUR CRÉÉ ET SYNCHRONISÉ');
           return true;
@@ -464,13 +456,11 @@ class PushNotificationService {
 
           // En cas d'échec, essayer un upsert
           try {
-            await _supabase
-              .from('particuliers')
-              .upsert({
-                'id': userId,
-                'onesignal_player_id': playerId,
-                'updated_at': DateTime.now().toIso8601String(),
-              }, onConflict: 'id');
+            await _supabase.from('particuliers').upsert({
+              'id': userId,
+              'onesignal_player_id': playerId,
+              'updated_at': DateTime.now().toIso8601String(),
+            }, onConflict: 'id');
 
             debugPrint('✅ UPSERT RÉUSSI');
             return true;

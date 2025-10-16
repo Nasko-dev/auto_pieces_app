@@ -10,11 +10,11 @@ class PerformanceMonitor {
 
   final _metrics = <String, List<PerformanceMetric>>{};
   final _thresholds = <String, double>{};
-  
+
   // Configuration par défaut
   static const int maxMetricsPerType = 100;
   static const Duration cleanupInterval = Duration(minutes: 5);
-  
+
   Timer? _cleanupTimer;
 
   /// Démarre le monitoring
@@ -29,7 +29,8 @@ class PerformanceMonitor {
   }
 
   /// Enregistre une métrique de performance
-  void recordMetric(String type, double value, {Map<String, dynamic>? metadata}) {
+  void recordMetric(String type, double value,
+      {Map<String, dynamic>? metadata}) {
     final metric = PerformanceMetric(
       type: type,
       value: value,
@@ -49,14 +50,13 @@ class PerformanceMonitor {
     _checkThreshold(type, value);
 
     // Log en debug
-    if (kDebugMode) {
-    }
+    if (kDebugMode) {}
   }
 
   /// Mesure automatiquement le temps d'exécution
   Future<T> measureAsync<T>(String type, Future<T> Function() operation) async {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
       final result = await operation();
       return result;
@@ -69,7 +69,7 @@ class PerformanceMonitor {
   /// Mesure synchrone
   T measureSync<T>(String type, T Function() operation) {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
       final result = operation();
       return result;
@@ -107,40 +107,44 @@ class PerformanceMonitor {
   /// Obtient toutes les statistiques
   Map<String, PerformanceStats> getAllStats() {
     final stats = <String, PerformanceStats>{};
-    
+
     for (final type in _metrics.keys) {
       final stat = getStats(type);
       if (stat != null) {
         stats[type] = stat;
       }
     }
-    
+
     return stats;
   }
 
   /// Identifie les goulots d'étranglement
   List<PerformanceIssue> identifyIssues() {
     final issues = <PerformanceIssue>[];
-    
+
     for (final entry in _metrics.entries) {
       final type = entry.key;
       final stats = getStats(type);
-      
+
       if (stats == null) continue;
 
       // Temps de réponse élevé
-      if (stats.p95 > 2000) { // Plus de 2 secondes
+      if (stats.p95 > 2000) {
+        // Plus de 2 secondes
         issues.add(PerformanceIssue(
           type: type,
           severity: IssueSeverity.high,
-          description: 'Temps de réponse élevé (P95: ${stats.p95.toStringAsFixed(0)}ms)',
+          description:
+              'Temps de réponse élevé (P95: ${stats.p95.toStringAsFixed(0)}ms)',
           recommendation: 'Optimiser les requêtes ou ajouter du cache',
         ));
-      } else if (stats.p95 > 1000) { // Plus de 1 seconde
+      } else if (stats.p95 > 1000) {
+        // Plus de 1 seconde
         issues.add(PerformanceIssue(
           type: type,
           severity: IssueSeverity.medium,
-          description: 'Temps de réponse lent (P95: ${stats.p95.toStringAsFixed(0)}ms)',
+          description:
+              'Temps de réponse lent (P95: ${stats.p95.toStringAsFixed(0)}ms)',
           recommendation: 'Analyser et optimiser si possible',
         ));
       }
@@ -151,12 +155,13 @@ class PerformanceMonitor {
         issues.add(PerformanceIssue(
           type: type,
           severity: IssueSeverity.medium,
-          description: 'Performance inconsistante (variance: ${variance.toStringAsFixed(0)}ms)',
+          description:
+              'Performance inconsistante (variance: ${variance.toStringAsFixed(0)}ms)',
           recommendation: 'Vérifier les conditions réseau et serveur',
         ));
       }
     }
-    
+
     return issues;
   }
 
@@ -169,15 +174,16 @@ class PerformanceMonitor {
     final threshold = _thresholds[type];
     if (threshold != null && value > threshold) {
       if (kDebugMode) {
-        debugPrint('⚠️ Performance Alert: $type (${value.toStringAsFixed(2)}ms) '
-              'exceeded threshold (${threshold.toStringAsFixed(2)}ms)');
+        debugPrint(
+            '⚠️ Performance Alert: $type (${value.toStringAsFixed(2)}ms) '
+            'exceeded threshold (${threshold.toStringAsFixed(2)}ms)');
       }
     }
   }
 
   void _cleanup() {
     final cutoff = DateTime.now().subtract(const Duration(hours: 1));
-    
+
     for (final metrics in _metrics.values) {
       metrics.removeWhere((m) => m.timestamp.isBefore(cutoff));
     }
@@ -229,20 +235,20 @@ class PerformanceStats {
   });
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'count': count,
-    'average': average,
-    'min': min,
-    'max': max,
-    'p50': p50,
-    'p95': p95,
-    'p99': p99,
-  };
+        'type': type,
+        'count': count,
+        'average': average,
+        'min': min,
+        'max': max,
+        'p50': p50,
+        'p95': p95,
+        'p99': p99,
+      };
 
   @override
   String toString() {
     return '$type: avg=${average.toStringAsFixed(1)}ms, '
-           'p95=${p95.toStringAsFixed(1)}ms, count=$count';
+        'p95=${p95.toStringAsFixed(1)}ms, count=$count';
   }
 }
 
@@ -260,11 +266,11 @@ class PerformanceIssue {
   });
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'severity': severity.name,
-    'description': description,
-    'recommendation': recommendation,
-  };
+        'type': type,
+        'severity': severity.name,
+        'description': description,
+        'recommendation': recommendation,
+      };
 }
 
 enum IssueSeverity { low, medium, high, critical }
@@ -276,7 +282,8 @@ class PerformanceDebugOverlay extends StatefulWidget {
   const PerformanceDebugOverlay({super.key, required this.child});
 
   @override
-  State<PerformanceDebugOverlay> createState() => _PerformanceDebugOverlayState();
+  State<PerformanceDebugOverlay> createState() =>
+      _PerformanceDebugOverlayState();
 }
 
 class _PerformanceDebugOverlayState extends State<PerformanceDebugOverlay> {
@@ -351,16 +358,16 @@ class _PerformanceDebugOverlayState extends State<PerformanceDebugOverlay> {
             const Text('Aucune donnée', style: TextStyle(color: Colors.grey))
           else
             ...stats.values.take(5).map((stat) => Text(
-              stat.toString(),
-              style: const TextStyle(color: Colors.green, fontSize: 12),
-            )),
+                  stat.toString(),
+                  style: const TextStyle(color: Colors.green, fontSize: 12),
+                )),
           if (issues.isNotEmpty) ...[
             const SizedBox(height: 8),
             const Text('Issues:', style: TextStyle(color: Colors.red)),
             ...issues.take(3).map((issue) => Text(
-              '${issue.type}: ${issue.description}',
-              style: const TextStyle(color: Colors.orange, fontSize: 11),
-            )),
+                  '${issue.type}: ${issue.description}',
+                  style: const TextStyle(color: Colors.orange, fontSize: 11),
+                )),
           ],
         ],
       ),

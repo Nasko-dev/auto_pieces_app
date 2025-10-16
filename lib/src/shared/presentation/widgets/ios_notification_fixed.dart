@@ -324,7 +324,8 @@ class IOSNotification extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ] else if (showCloseButton || type == NotificationType.loading) ...[
+                  ] else if (showCloseButton ||
+                      type == NotificationType.loading) ...[
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: onDismiss,

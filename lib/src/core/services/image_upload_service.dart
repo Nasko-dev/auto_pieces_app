@@ -15,20 +15,17 @@ class ImageUploadService {
     required File imageFile,
   }) async {
     try {
-
       // Lire le fichier en bytes
       final bytes = await imageFile.readAsBytes();
       final fileExtension = _getFileExtension(imageFile.path);
 
       // Générer un nom de fichier unique
-      final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+      final fileName =
+          '${userId}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
       final filePath = '$userId/$fileName';
 
-
       // Upload vers Supabase Storage
-      await _supabaseClient.storage
-          .from(_bucketName)
-          .uploadBinary(
+      await _supabaseClient.storage.from(_bucketName).uploadBinary(
             filePath,
             bytes,
             fileOptions: FileOptions(
@@ -38,12 +35,10 @@ class ImageUploadService {
           );
 
       // Obtenir l'URL publique
-      final publicUrl = _supabaseClient.storage
-          .from(_bucketName)
-          .getPublicUrl(filePath);
+      final publicUrl =
+          _supabaseClient.storage.from(_bucketName).getPublicUrl(filePath);
 
       return publicUrl;
-
     } on StorageException catch (e) {
       throw ServerFailure('Erreur d\'upload: ${e.message}');
     } catch (e) {
@@ -68,12 +63,7 @@ class ImageUploadService {
 
       final filePath = pathSegments.sublist(avatarIndex + 1).join('/');
 
-
-      await _supabaseClient.storage
-          .from(_bucketName)
-          .remove([filePath]);
-
-
+      await _supabaseClient.storage.from(_bucketName).remove([filePath]);
     } on StorageException {
       // Ne pas throw d'erreur pour la suppression, continuer silencieusement
     } catch (_) {

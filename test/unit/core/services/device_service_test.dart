@@ -35,7 +35,8 @@ void main() {
       test('doit générer un nouvel ID si aucun n\'existe', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -51,7 +52,8 @@ void main() {
       test('doit générer un nouvel ID si l\'ID existant est vide', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn('');
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -67,7 +69,8 @@ void main() {
       test('doit sauvegarder le nouvel ID généré', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -96,7 +99,8 @@ void main() {
       test('doit générer des IDs avec le bon format', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -108,7 +112,8 @@ void main() {
       test('doit générer des IDs uniques', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId1 = await deviceService.getDeviceId();
@@ -125,7 +130,8 @@ void main() {
       test('doit inclure un timestamp dans l\'ID', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         final beforeTimestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -148,7 +154,8 @@ void main() {
       test('doit inclure une partie aléatoire de 8 caractères', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -173,11 +180,13 @@ void main() {
         verify(mockPrefs.remove('DEVICE_ID')).called(1);
       });
 
-      test('doit permettre la génération d\'un nouvel ID après suppression', () async {
+      test('doit permettre la génération d\'un nouvel ID après suppression',
+          () async {
         // arrange
         when(mockPrefs.remove('DEVICE_ID')).thenAnswer((_) async => true);
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         await deviceService.clearDeviceId();
@@ -195,8 +204,10 @@ void main() {
     group('Error Handling', () {
       test('doit gérer les erreurs de lecture des préférences', () async {
         // arrange
-        when(mockPrefs.getString('DEVICE_ID')).thenThrow(Exception('Read error'));
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.getString('DEVICE_ID'))
+            .thenThrow(Exception('Read error'));
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act & assert - doit lever l'exception
         expect(() => deviceService.getDeviceId(), throwsException);
@@ -205,7 +216,8 @@ void main() {
       test('doit gérer les erreurs d\'écriture des préférences', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenThrow(Exception('Write error'));
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenThrow(Exception('Write error'));
 
         // act & assert - doit lever l'exception
         expect(() => deviceService.getDeviceId(), throwsException);
@@ -213,7 +225,8 @@ void main() {
 
       test('doit gérer les erreurs de suppression des préférences', () async {
         // arrange
-        when(mockPrefs.remove('DEVICE_ID')).thenThrow(Exception('Remove error'));
+        when(mockPrefs.remove('DEVICE_ID'))
+            .thenThrow(Exception('Remove error'));
 
         // act & assert - doit lever l'exception
         expect(() => deviceService.clearDeviceId(), throwsException);
@@ -224,7 +237,8 @@ void main() {
       test('doit gérer les chaînes vides correctement', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn('');
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -237,7 +251,8 @@ void main() {
       test('doit gérer les espaces dans l\'ID existant', () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn('   ');
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         // act
         final deviceId = await deviceService.getDeviceId();
@@ -250,7 +265,8 @@ void main() {
     });
 
     group('Performance', () {
-      test('doit être rapide pour des appels multiples avec ID existant', () async {
+      test('doit être rapide pour des appels multiples avec ID existant',
+          () async {
         // arrange
         const existingId = 'device_1234567890_abcd1234';
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(existingId);
@@ -263,17 +279,20 @@ void main() {
         stopwatch.stop();
 
         // assert
-        expect(stopwatch.elapsedMilliseconds, lessThan(1000)); // Moins d'1 seconde pour 100 appels
+        expect(stopwatch.elapsedMilliseconds,
+            lessThan(1000)); // Moins d'1 seconde pour 100 appels
         verify(mockPrefs.getString('DEVICE_ID')).called(100);
         verifyNever(mockPrefs.setString(any, any));
       });
     });
 
     group('State Consistency', () {
-      test('doit maintenir la cohérence après des opérations multiples', () async {
+      test('doit maintenir la cohérence après des opérations multiples',
+          () async {
         // arrange
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
         when(mockPrefs.remove('DEVICE_ID')).thenAnswer((_) async => true);
 
         // act
@@ -288,7 +307,8 @@ void main() {
 
         // Simuler ID supprimé
         when(mockPrefs.getString('DEVICE_ID')).thenReturn(null);
-        when(mockPrefs.setString('DEVICE_ID', any)).thenAnswer((_) async => true);
+        when(mockPrefs.setString('DEVICE_ID', any))
+            .thenAnswer((_) async => true);
 
         final id3 = await deviceService.getDeviceId();
 

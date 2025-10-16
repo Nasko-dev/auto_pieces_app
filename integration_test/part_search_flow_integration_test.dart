@@ -286,8 +286,9 @@ void main() {
 
           // Chercher les indicateurs de contenu
           final hasList = find.byType(ListView).evaluate().isNotEmpty;
-          final hasEmptyState = find.text('Aucune demande').evaluate().isNotEmpty ||
-                                find.textContaining('Aucune').evaluate().isNotEmpty;
+          final hasEmptyState =
+              find.text('Aucune demande').evaluate().isNotEmpty ||
+                  find.textContaining('Aucune').evaluate().isNotEmpty;
 
           expect(
             hasList || hasEmptyState,

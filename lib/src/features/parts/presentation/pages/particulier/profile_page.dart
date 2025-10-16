@@ -103,35 +103,35 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         centerTitle: true,
       ),
       body: _isLoadingProfile
-        ? const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryBlue,
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryBlue,
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Section Profil
+                  _buildProfileSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Préférences
+                  _buildPreferencesSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Données
+                  _buildDataSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Actions
+                  _buildActionsSection(),
+                ],
+              ),
             ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // Section Profil
-                _buildProfileSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Préférences
-                _buildPreferencesSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Données
-                _buildDataSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Actions
-                _buildActionsSection(),
-              ],
-            ),
-          ),
     );
   }
 
@@ -157,9 +157,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               CircleAvatar(
                 radius: 50,
                 backgroundColor: AppTheme.lightGray,
-                backgroundImage: _avatarUrl != null
-                    ? NetworkImage(_avatarUrl!)
-                    : null,
+                backgroundImage:
+                    _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
                 child: _avatarUrl == null
                     ? Icon(
                         Icons.person,
@@ -186,7 +185,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppTheme.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppTheme.white),
                             ),
                           )
                         : const Icon(
@@ -214,7 +214,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                         autofocus: true,
                       )
@@ -270,7 +271,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     backgroundColor: AppTheme.primaryBlue,
                     foregroundColor: AppTheme.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -402,12 +404,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               Switch(
                 value: _emailNotificationsEnabled && _notificationsEnabled,
-                onChanged: _notificationsEnabled ? (value) {
-                  setState(() {
-                    _emailNotificationsEnabled = value;
-                  });
-                  _saveNotificationPreferences();
-                } : null,
+                onChanged: _notificationsEnabled
+                    ? (value) {
+                        setState(() {
+                          _emailNotificationsEnabled = value;
+                        });
+                        _saveNotificationPreferences();
+                      }
+                    : null,
                 thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
@@ -726,7 +730,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void _clearLocationData() async {
     final result = await context.showWarningDialog(
       title: 'Effacer les données de localisation',
-      message: 'Cette action supprimera définitivement votre adresse, ville et code postal. Vous pourrez les saisir à nouveau plus tard si nécessaire.',
+      message:
+          'Cette action supprimera définitivement votre adresse, ville et code postal. Vous pourrez les saisir à nouveau plus tard si nécessaire.',
       confirmText: 'Effacer',
       cancelText: 'Annuler',
     );
@@ -749,13 +754,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       await dataSource.deleteUserSettings(currentUser.id);
 
       if (mounted) {
-        notificationService.success(context, 'Données de localisation supprimées');
+        notificationService.success(
+            context, 'Données de localisation supprimées');
         // Recharger le profil pour refléter les changements
         _loadUserProfile();
       }
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+        notificationService.error(context, 'Erreur inattendue',
+            subtitle: e.toString());
       }
     }
   }
@@ -872,7 +879,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors de la sélection de l\'image', subtitle: e.toString());
+        notificationService.error(
+            context, 'Erreur lors de la sélection de l\'image',
+            subtitle: e.toString());
       }
       setState(() {
         _isUploadingImage = false;
@@ -898,7 +907,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         imageFile: imageFile,
       );
 
-
       // Sauvegarder l'URL dans les paramètres utilisateur
       final userSettings = UserSettings(
         userId: currentUser.id,
@@ -919,7 +927,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
+          notificationService.error(context, 'Erreur de sauvegarde',
+              subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
@@ -931,7 +940,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors de l\'upload', subtitle: e.toString());
+        notificationService.error(context, 'Erreur lors de l\'upload',
+            subtitle: e.toString());
       }
     } finally {
       setState(() {
@@ -975,7 +985,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur', subtitle: failure.message);
+          notificationService.error(context, 'Erreur',
+              subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
@@ -1000,7 +1011,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     // Utiliser le nouveau dialog destructive natif
     final result = await context.showDestructiveDialog(
       title: 'Supprimer le compte',
-      message: 'Cette action est irréversible. Toutes vos demandes et messages seront définitivement supprimés.\n\nÊtes-vous absolument sûr ?',
+      message:
+          'Cette action est irréversible. Toutes vos demandes et messages seront définitivement supprimés.\n\nÊtes-vous absolument sûr ?',
       destructiveText: 'Supprimer définitivement',
       cancelText: 'Annuler',
     );
@@ -1009,7 +1021,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final currentUser = Supabase.instance.client.auth.currentUser;
       if (currentUser == null) {
         if (mounted) {
-          notificationService.error(context, 'Erreur: utilisateur non connecté');
+          notificationService.error(
+              context, 'Erreur: utilisateur non connecté');
         }
         return;
       }
@@ -1017,7 +1030,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       try {
         // Afficher un loader
         if (mounted) {
-          notificationService.info(context, 'Suppression du compte en cours...');
+          notificationService.info(
+              context, 'Suppression du compte en cours...');
         }
 
         // 1. Supprimer les données du particulier dans la base de données

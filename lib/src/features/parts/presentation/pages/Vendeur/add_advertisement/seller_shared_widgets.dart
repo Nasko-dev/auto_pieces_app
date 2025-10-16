@@ -140,7 +140,8 @@ class SellerSharedWidgets {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hint,
-              prefixIcon: icon != null ? Icon(icon, color: AppTheme.darkGray) : null,
+              prefixIcon:
+                  icon != null ? Icon(icon, color: AppTheme.darkGray) : null,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
               hintStyle: const TextStyle(

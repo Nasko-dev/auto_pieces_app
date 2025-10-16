@@ -30,7 +30,6 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
 
   @override
   Future<Either<Failure, List<PartRequest>>> getUserPartRequests() async {
-
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -49,7 +48,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, PartRequest>> createPartRequest(CreatePartRequestParams params) async {
+  Future<Either<Failure, PartRequest>> createPartRequest(
+      CreatePartRequestParams params) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -83,7 +83,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, PartRequest>> updatePartRequestStatus(String id, String status) async {
+  Future<Either<Failure, PartRequest>> updatePartRequestStatus(
+      String id, String status) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -119,22 +120,25 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, List<SellerResponse>>> getPartRequestResponses(String requestId) async {
+  Future<Either<Failure, List<SellerResponse>>> getPartRequestResponses(
+      String requestId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      final responseData = await _remoteDataSource.getPartRequestResponses(requestId);
+      final responseData =
+          await _remoteDataSource.getPartRequestResponses(requestId);
       final responses = responseData.map((data) {
         final sellerData = data['sellers'] as Map<String, dynamic>?;
-        
+
         return SellerResponse(
           id: data['id'],
           requestId: data['request_id'],
           sellerId: data['seller_id'],
-          sellerName: sellerData != null 
-              ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
+          sellerName: sellerData != null
+              ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                  .trim()
               : null,
           sellerCompany: sellerData?['company_name'],
           sellerEmail: sellerData?['email'],
@@ -149,7 +153,7 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
           updatedAt: DateTime.parse(data['updated_at']),
         );
       }).toList();
-      
+
       return Right(responses);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -157,7 +161,6 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 
   @override
   Future<Either<Failure, List<PartRequest>>> searchPartRequests({
@@ -207,7 +210,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, List<PartRequest>>> getActivePartRequestsForSeller() async {
+  Future<Either<Failure, List<PartRequest>>>
+      getActivePartRequestsForSeller() async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -226,7 +230,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, SellerResponse>> createSellerResponse(CreateSellerResponseParams params) async {
+  Future<Either<Failure, SellerResponse>> createSellerResponse(
+      CreateSellerResponseParams params) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -269,13 +274,15 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, SellerResponse>> acceptSellerResponse(String responseId) async {
+  Future<Either<Failure, SellerResponse>> acceptSellerResponse(
+      String responseId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      final responseData = await _remoteDataSource.acceptSellerResponse(responseId);
+      final responseData =
+          await _remoteDataSource.acceptSellerResponse(responseId);
       // Créer une réponse SellerResponse simplifiée
       final sellerResponse = SellerResponse(
         id: responseData['id'],
@@ -305,13 +312,15 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, SellerResponse>> rejectSellerResponse(String responseId) async {
+  Future<Either<Failure, SellerResponse>> rejectSellerResponse(
+      String responseId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      final responseData = await _remoteDataSource.rejectSellerResponse(responseId);
+      final responseData =
+          await _remoteDataSource.rejectSellerResponse(responseId);
       // Créer une réponse SellerResponse simplifiée
       final sellerResponse = SellerResponse(
         id: responseData['id'],
@@ -340,15 +349,16 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
     }
   }
 
-
   @override
-  Future<Either<Failure, List<PartRequest>>> getActivePartRequestsForSellerWithRejections() async {
+  Future<Either<Failure, List<PartRequest>>>
+      getActivePartRequestsForSellerWithRejections() async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      final models = await _remoteDataSource.getActivePartRequestsForSellerWithRejections();
+      final models = await _remoteDataSource
+          .getActivePartRequestsForSellerWithRejections();
       final entities = models.map((model) => model.toEntity()).toList();
       return Right(entities);
     } on UnauthorizedException {
@@ -361,7 +371,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, SellerRejection>> rejectPartRequest(SellerRejection rejection) async {
+  Future<Either<Failure, SellerRejection>> rejectPartRequest(
+      SellerRejection rejection) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -372,7 +383,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
         return const Left(AuthFailure('User not authenticated'));
       }
 
-      final savedRejection = await _remoteDataSource.rejectPartRequest(rejection);
+      final savedRejection =
+          await _remoteDataSource.rejectPartRequest(rejection);
       return Right(savedRejection);
     } on UnauthorizedException {
       return const Left(AuthFailure('User not authenticated'));
@@ -384,7 +396,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, List<SellerRejection>>> getSellerRejections(String sellerId) async {
+  Future<Either<Failure, List<SellerRejection>>> getSellerRejections(
+      String sellerId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -403,14 +416,16 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
 
   // Particulier - Conversations et messages
   @override
-  Future<Either<Failure, List<ParticulierConversation>>> getParticulierConversations() async {
+  Future<Either<Failure, List<ParticulierConversation>>>
+      getParticulierConversations() async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
       // RETOUR AU SYSTÈME ORIGINAL : Utiliser l'ancien système particulier
-      final conversations = await _remoteDataSource.getParticulierConversations();
+      final conversations =
+          await _remoteDataSource.getParticulierConversations();
       return Right(conversations);
     } on UnauthorizedException {
       return const Left(AuthFailure('User not authenticated'));
@@ -422,13 +437,15 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, ParticulierConversation>> getParticulierConversationById(String conversationId) async {
+  Future<Either<Failure, ParticulierConversation>>
+      getParticulierConversationById(String conversationId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      final conversation = await _remoteDataSource.getParticulierConversationById(conversationId);
+      final conversation = await _remoteDataSource
+          .getParticulierConversationById(conversationId);
       return Right(conversation);
     } on UnauthorizedException {
       return const Left(AuthFailure('User not authenticated'));
@@ -464,7 +481,8 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, void>> markParticulierConversationAsRead(String conversationId) async {
+  Future<Either<Failure, void>> markParticulierConversationAsRead(
+      String conversationId) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
@@ -498,9 +516,11 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, void>> incrementUnreadCountForUser({required String conversationId}) async {
+  Future<Either<Failure, void>> incrementUnreadCountForUser(
+      {required String conversationId}) async {
     return ErrorHandler.handleVoidAsync(
-      () => _remoteDataSource.incrementUnreadCountForUser(conversationId: conversationId),
+      () => _remoteDataSource.incrementUnreadCountForUser(
+          conversationId: conversationId),
       checkNetwork: true,
       networkCheck: () => _networkInfo.isConnected,
       context: 'incrementUnreadCountForUser',
@@ -524,9 +544,11 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
-  Future<Either<Failure, void>> markParticulierMessagesAsRead({required String conversationId}) async {
+  Future<Either<Failure, void>> markParticulierMessagesAsRead(
+      {required String conversationId}) async {
     return ErrorHandler.handleVoidAsync(
-      () => _remoteDataSource.markParticulierMessagesAsRead(conversationId: conversationId),
+      () => _remoteDataSource.markParticulierMessagesAsRead(
+          conversationId: conversationId),
       checkNetwork: true,
       networkCheck: () => _networkInfo.isConnected,
       context: 'markParticulierMessagesAsRead',

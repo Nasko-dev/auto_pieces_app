@@ -75,7 +75,8 @@ void main() {
         expect(testVehicleInfo.power, 75);
         expect(testVehicleInfo.powerUnit, 'kW');
         expect(testVehicleInfo.description, 'Véhicule en bon état');
-        expect(testVehicleInfo.rawData, {'api_source': 'tecalliance', 'version': '1.0'});
+        expect(testVehicleInfo.rawData,
+            {'api_source': 'tecalliance', 'version': '1.0'});
       });
 
       test('should create VehicleInfo with minimal required parameters', () {
@@ -116,7 +117,8 @@ void main() {
         expect(vehicleInfo.power, 75);
         expect(vehicleInfo.powerUnit, 'kW');
         expect(vehicleInfo.description, 'Véhicule en bon état');
-        expect(vehicleInfo.rawData, {'api_source': 'tecalliance', 'version': '1.0'});
+        expect(vehicleInfo.rawData,
+            {'api_source': 'tecalliance', 'version': '1.0'});
       });
 
       test('should create VehicleInfo from minimal JSON', () {
@@ -158,10 +160,7 @@ void main() {
             'api_source': 'tecalliance',
             'response_time': '250ms',
             'confidence': 0.95,
-            'additional_info': {
-              'warranty': 'active',
-              'recalls': []
-            }
+            'additional_info': {'warranty': 'active', 'recalls': []}
           },
         };
 
@@ -171,7 +170,8 @@ void main() {
         expect(vehicleInfo.make, 'Peugeot');
         expect(vehicleInfo.rawData, isA<Map<String, dynamic>>());
         expect(vehicleInfo.rawData!['api_source'], 'tecalliance');
-        expect(vehicleInfo.rawData!['additional_info'], isA<Map<String, dynamic>>());
+        expect(vehicleInfo.rawData!['additional_info'],
+            isA<Map<String, dynamic>>());
       });
     });
 
@@ -184,7 +184,8 @@ void main() {
         expect(json['model'], 'Clio');
         expect(json['fuelType'], 'Essence');
         expect(json['year'], 2020);
-        expect(json['rawData'], {'api_source': 'tecalliance', 'version': '1.0'});
+        expect(
+            json['rawData'], {'api_source': 'tecalliance', 'version': '1.0'});
       });
 
       test('should handle null values in toJson', () {
@@ -225,7 +226,8 @@ void main() {
       test('should keep original values when no parameters provided', () {
         final copiedVehicleInfo = testVehicleInfo.copyWith();
 
-        expect(copiedVehicleInfo.registrationNumber, testVehicleInfo.registrationNumber);
+        expect(copiedVehicleInfo.registrationNumber,
+            testVehicleInfo.registrationNumber);
         expect(copiedVehicleInfo.make, testVehicleInfo.make);
         expect(copiedVehicleInfo.model, testVehicleInfo.model);
         expect(copiedVehicleInfo.year, testVehicleInfo.year);
@@ -382,7 +384,8 @@ void main() {
         final roundtripVehicleInfo = VehicleInfo.fromJson(json);
 
         expect(roundtripVehicleInfo, equals(testVehicleInfo));
-        expect(roundtripVehicleInfo.registrationNumber, testVehicleInfo.registrationNumber);
+        expect(roundtripVehicleInfo.registrationNumber,
+            testVehicleInfo.registrationNumber);
         expect(roundtripVehicleInfo.make, testVehicleInfo.make);
         expect(roundtripVehicleInfo.model, testVehicleInfo.model);
         expect(roundtripVehicleInfo.year, testVehicleInfo.year);

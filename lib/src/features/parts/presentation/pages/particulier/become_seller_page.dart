@@ -6,7 +6,8 @@ import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../core/utils/haptic_helper.dart';
 import 'become_seller/choice_step_page.dart';
-import 'become_seller/sell_part_step_page.dart';
+import 'become_seller/sub_type_step_page.dart';
+import 'become_seller/quantity_step_page.dart';
 import '../Vendeur/add_advertisement/seller_parts_selection_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
@@ -20,7 +21,7 @@ enum SellerMode { particulier, vendeur }
 
 class BecomeSellerPage extends ConsumerStatefulWidget {
   final SellerMode mode;
-  
+
   const BecomeSellerPage({
     super.key,
     this.mode = SellerMode.particulier,
@@ -33,16 +34,18 @@ class BecomeSellerPage extends ConsumerStatefulWidget {
 class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   int _currentStep = 0;
   String _selectedChoice = '';
+  String _selectedSubType =
+      ''; // engine_parts, transmission_parts, body_parts, both
+  String _quantityType =
+      ''; // multiple, few, complete_engine, complete_transmission
   String _partName = '';
-  bool hasMultipleParts = false;
   String _vehiclePlate = '';
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    
-    // Si c'est un vendeur, forcer la re-vérification des limitations
+
     if (widget.mode == SellerMode.vendeur) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final notifier = ref.read(vehicleSearchProvider.notifier);
@@ -54,47 +57,73 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onChoiceSelected(String choice) {
     setState(() {
       _selectedChoice = choice;
-      _currentStep = 1;
+      // Si moteur ou lesdeux, aller au sous-type (step 1)
+      // Sinon, aller direct à la quantité (step 2)
+      if (choice == 'moteur' || choice == 'lesdeux') {
+        _currentStep = 1; // SubTypeStepPage
+      } else {
+        _selectedSubType = 'body_parts'; // Par défaut pour carrosserie
+        _currentStep = 2; // QuantityStepPage
+      }
     });
   }
 
-  void _onPartSubmitted(String partName, bool hasMultiple) {
+  void _onSubTypeSelected(String subType) {
     setState(() {
-      _partName = partName;
-      hasMultipleParts = hasMultiple;
-      // Si partName est vide, aller à la page de sélection des pièces (step 2)
-      // Sinon, passer directement à la plaque (step 3)
-      _currentStep = partName.isEmpty ? 2 : 3;
+      _selectedSubType = subType;
+      _currentStep = 2; // QuantityStepPage
+    });
+  }
+
+  void _onQuantitySelected(String quantity) {
+    setState(() {
+      _quantityType = quantity;
+      // Toujours aller à la page de sélection des pièces
+      _currentStep = 3; // SellerPartsSelectionPage
     });
   }
 
   void _onPartsSelected(List<String> parts, String completeOption) {
     setState(() {
       // Construire le nom de la pièce selon la sélection
+      final partNames = <String>[];
+
+      // Traiter les options complètes (peuvent être multiples, séparées par virgule)
       if (completeOption.isNotEmpty) {
-        // Options complètes
-        switch (completeOption) {
-          case 'moteur_complet':
-            _partName = 'Moteur complet';
-            break;
-          case 'carrosserie_complete':
-            _partName = 'Carrosserie complète';
-            break;
-          case 'vehicule_complet':
-            _partName = 'Véhicule complet';
-            break;
-        }
-      } else if (parts.isNotEmpty) {
-        if (hasMultipleParts) {
-          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
-          _partName = 'Toutes pièces sauf: ${parts.join(', ')}';
-        } else {
-          // -5 pièces : les pièces listées sont celles qu'on A
-          _partName = parts.join(', ');
+        final completeOptions = completeOption.split(',');
+        for (final option in completeOptions) {
+          switch (option) {
+            case 'moteur_complet':
+              partNames.add('Moteur complet');
+              break;
+            case 'boite_complete':
+              partNames.add('Boîte complète');
+              break;
+            case 'carrosserie_complete':
+              partNames.add('Carrosserie complète');
+              break;
+            case 'vehicule_complet':
+              partNames.add('Véhicule complet');
+              break;
+          }
         }
       }
 
-      _currentStep = 3; // Aller à la plaque
+      // Traiter les pièces manquantes/présentes
+      if (parts.isNotEmpty) {
+        if (_quantityType == 'multiple') {
+          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
+          partNames.add('Pièces manquantes: ${parts.join(', ')}');
+        } else {
+          // -5 pièces : les pièces listées sont celles qu'on A
+          partNames.add(parts.join(', '));
+        }
+      }
+
+      // Combiner tous les noms
+      _partName = partNames.isNotEmpty ? partNames.join(' + ') : 'Pièces auto';
+
+      _currentStep = 4; // PlateStepPage
     });
   }
 
@@ -109,7 +138,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
       setState(() {
         _isSubmitting = false;
-        _currentStep = 4;
+        _currentStep = 5; // CongratsStepPage
       });
     } catch (e) {
       setState(() {
@@ -194,7 +223,28 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   void _goToPreviousStep() {
-    setState(() => _currentStep--);
+    setState(() {
+      // Gérer le retour selon le flow
+      if (_currentStep == 1) {
+        // Depuis SubTypeStep, retour à Choice
+        _currentStep = 0;
+      } else if (_currentStep == 2) {
+        // Depuis QuantityStep, retour selon le flow
+        if (_selectedChoice == 'moteur' || _selectedChoice == 'lesdeux') {
+          _currentStep = 1; // Retour à SubType
+        } else {
+          _currentStep = 0; // Retour à Choice
+        }
+      } else if (_currentStep == 3) {
+        // Depuis SellerPartsSelectionPage, retour à QuantityStep
+        _currentStep = 2;
+      } else if (_currentStep == 4) {
+        // Depuis PlateStep, retour à SellerPartsSelectionPage
+        _currentStep = 3;
+      } else {
+        _currentStep--;
+      }
+    });
   }
 
   void _finishFlow() {
@@ -204,12 +254,6 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
       context.go('/seller/home');
     }
   }
-
-  // Méthode de debug temporaire - Désactivée en production
-  // void _debugRefresh() async {
-  //   final notifier = ref.read(vehicleSearchProvider.notifier);
-  //   await notifier.forceRefreshActiveRequestCheck();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +267,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   actions: [
                     if (_currentStep > 0)
                       IconButton(
-                        icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+                        icon: const Icon(Icons.chevron_left,
+                            color: AppTheme.darkGray),
                         onPressed: () {
                           HapticHelper.light();
                           _goToPreviousStep();
@@ -237,8 +282,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   title: 'Déposer une annonce',
                   showBackButton: true,
                   onBackPressed: _currentStep > 0
-                    ? _goToPreviousStep
-                    : () => context.go('/seller/add'),
+                      ? _goToPreviousStep
+                      : () => context.go('/seller/add'),
                 ),
           Expanded(child: _buildBody()),
         ],
@@ -250,31 +295,38 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     return SafeArea(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
-          child: Container(
-            key: ValueKey(_currentStep),
-            child: switch (_currentStep) {
-              0 => ChoiceStepPage(
-                  onChoiceSelected: _onChoiceSelected,
-                ),
-              1 => SellPartStepPage(
-                  selectedCategory: _selectedChoice,
-                  onPartSubmitted: _onPartSubmitted,
-                ),
-              2 => SellerPartsSelectionPage(
-                  selectedCategory: _selectedChoice,
-                  hasMultipleParts: hasMultipleParts,
-                  onSubmit: _onPartsSelected,
-                ),
-              3 => PlateStepPage(
-                  onPlateSubmitted: _onPlateSubmitted,
-                  isLoading: _isSubmitting,
-                ),
-              _ => CongratsStepPage(
-                  onFinish: _finishFlow,
-                ),
-            },
-          ),
+        child: Container(
+          key: ValueKey(_currentStep),
+          child: switch (_currentStep) {
+            0 => ChoiceStepPage(
+                onChoiceSelected: _onChoiceSelected,
+              ),
+            1 => SubTypeStepPage(
+                selectedCategory: _selectedChoice,
+                onSubTypeSelected: _onSubTypeSelected,
+              ),
+            2 => QuantityStepPage(
+                selectedCategory: _selectedChoice,
+                selectedSubType: _selectedSubType,
+                onQuantitySelected: _onQuantitySelected,
+              ),
+            3 => SellerPartsSelectionPage(
+                selectedCategory: _selectedSubType,
+                hasMultipleParts: _quantityType == 'multiple',
+                onSubmit: _onPartsSelected,
+              ),
+            4 => PlateStepPage(
+                selectedChoice: _selectedChoice,
+                selectedSubType: _selectedSubType,
+                onPlateSubmitted: _onPlateSubmitted,
+                isLoading: _isSubmitting,
+              ),
+            _ => CongratsStepPage(
+                onFinish: _finishFlow,
+              ),
+          },
         ),
+      ),
     );
   }
 }

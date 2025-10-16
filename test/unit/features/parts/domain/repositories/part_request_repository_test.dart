@@ -97,7 +97,9 @@ void main() {
         expect(activeRequest.isExpired, isFalse);
       });
 
-      test('devrait calculer vehicleInfo correctement pour les pièces de carrosserie', () {
+      test(
+          'devrait calculer vehicleInfo correctement pour les pièces de carrosserie',
+          () {
         final bodyPartRequest = PartRequest(
           id: 'body-req',
           partType: 'body',
@@ -112,7 +114,8 @@ void main() {
         expect(bodyPartRequest.vehicleInfo, equals('Peugeot - 308 - 2020'));
       });
 
-      test('devrait calculer vehicleInfo correctement pour les pièces moteur', () {
+      test('devrait calculer vehicleInfo correctement pour les pièces moteur',
+          () {
         final enginePartRequest = PartRequest(
           id: 'engine-req',
           partType: 'engine',
@@ -124,7 +127,8 @@ void main() {
           updatedAt: DateTime.now(),
         );
 
-        expect(enginePartRequest.vehicleInfo, equals('Peugeot - 308 - 1.6 HDi 110'));
+        expect(enginePartRequest.vehicleInfo,
+            equals('Peugeot - 308 - 1.6 HDi 110'));
       });
 
       test('devrait gérer les dates d\'expiration', () {
@@ -212,13 +216,15 @@ void main() {
 
     group('Validation des champs requis', () {
       test('devrait accepter les champs requis minimum', () {
-        expect(() => PartRequest(
-          id: 'test-id',
-          partType: 'engine',
-          partNames: ['Test part'],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ), returnsNormally);
+        expect(
+            () => PartRequest(
+                  id: 'test-id',
+                  partType: 'engine',
+                  partNames: ['Test part'],
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                ),
+            returnsNormally);
       });
 
       test('devrait accepter les champs optionnels', () {
@@ -255,10 +261,12 @@ void main() {
 
     group('Validation CreatePartRequestParams', () {
       test('devrait accepter les paramètres requis minimum', () {
-        expect(() => CreatePartRequestParams(
-          partType: 'engine',
-          partNames: ['Alternateur'],
-        ), returnsNormally);
+        expect(
+            () => CreatePartRequestParams(
+                  partType: 'engine',
+                  partNames: ['Alternateur'],
+                ),
+            returnsNormally);
       });
 
       test('devrait accepter tous les paramètres optionnels', () {

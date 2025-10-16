@@ -24,7 +24,8 @@ void main() {
       expect(deviceId, startsWith('device_'));
     });
 
-    test('devrait retourner le même device ID lors des appels suivants', () async {
+    test('devrait retourner le même device ID lors des appels suivants',
+        () async {
       final deviceId1 = await deviceService.getDeviceId();
       final deviceId2 = await deviceService.getDeviceId();
       final deviceId3 = await deviceService.getDeviceId();
@@ -49,11 +50,14 @@ void main() {
 
       expect(parts.length, 3);
       expect(parts[0], 'device');
-      expect(int.tryParse(parts[1]), isNotNull); // Timestamp doit être un nombre
+      expect(
+          int.tryParse(parts[1]), isNotNull); // Timestamp doit être un nombre
       expect(parts[2].length, 8); // Partie aléatoire de 8 caractères
     });
 
-    test('la partie aléatoire devrait contenir uniquement des caractères valides', () async {
+    test(
+        'la partie aléatoire devrait contenir uniquement des caractères valides',
+        () async {
       final deviceId = await deviceService.getDeviceId();
       final randomPart = deviceId.split('_')[2];
 
@@ -85,7 +89,8 @@ void main() {
       expect(deviceId1, isNot(equals(deviceId2)));
     });
 
-    test('devrait gérer un device ID vide ou invalide dans SharedPreferences', () async {
+    test('devrait gérer un device ID vide ou invalide dans SharedPreferences',
+        () async {
       // Simuler un device ID vide
       await prefs.setString('DEVICE_ID', '');
 
@@ -104,7 +109,8 @@ void main() {
       expect(deviceId, startsWith('device_'));
     });
 
-    test('deux instances de DeviceService devraient utiliser le même ID', () async {
+    test('deux instances de DeviceService devraient utiliser le même ID',
+        () async {
       final deviceService1 = DeviceService(prefs);
       final deviceService2 = DeviceService(prefs);
 
@@ -114,7 +120,8 @@ void main() {
       expect(id1, equals(id2));
     });
 
-    test('devrait générer des IDs uniques pour chaque nouveau device', () async {
+    test('devrait générer des IDs uniques pour chaque nouveau device',
+        () async {
       final service1 = DeviceService(prefs);
       final id1 = await service1.getDeviceId();
 

@@ -80,13 +80,29 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   @override
   void initState() {
     super.initState();
-    // Charger les demandes ET les annonces au démarrage
+    _loadData();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _loadData();
+  }
+
+  void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
-      ref
-          .read(partAdvertisementControllerProvider.notifier)
-          .getMyAdvertisements();
+      if (mounted) {
+        _reloadAdvertisements();
+      }
     });
+  }
+
+  void _reloadAdvertisements() {
+    // Le datasource récupère automatiquement l'ID stable via device_id
+    ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+    ref
+        .read(partAdvertisementControllerProvider.notifier)
+        .getMyAdvertisements();
   }
 
   @override
@@ -158,14 +174,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(partRequestControllerProvider.notifier)
-                        .loadUserPartRequests();
-                    ref
-                        .read(partAdvertisementControllerProvider.notifier)
-                        .getMyAdvertisements();
-                  },
+                  onPressed: _reloadAdvertisements,
                   child: const Text('Réessayer'),
                 ),
               ],
@@ -217,12 +226,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            await ref
-                .read(partRequestControllerProvider.notifier)
-                .loadUserPartRequests();
-            await ref
-                .read(partAdvertisementControllerProvider.notifier)
-                .getMyAdvertisements();
+            _reloadAdvertisements();
           },
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -328,9 +332,16 @@ class _UnifiedItemCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      DeleteContextMenu(
-                        onDelete: () => _showDeleteDialog(context, ref),
-                      ),
+                      // Menu différent selon le type
+                      if (isAdvertisement)
+                        EditDeleteContextMenu(
+                          onEdit: () => _showEditDialog(context, ref),
+                          onDelete: () => _showDeleteDialog(context, ref),
+                        )
+                      else
+                        DeleteContextMenu(
+                          onDelete: () => _showDeleteDialog(context, ref),
+                        ),
                     ],
                   ),
                 ],
@@ -374,6 +385,16 @@ class _UnifiedItemCard extends ConsumerWidget {
     } else {
       return '${(difference.inDays / 7).floor()}sem';
     }
+  }
+
+  void _showEditDialog(BuildContext context, WidgetRef ref) {
+    // TODO: Navigation vers la page de modification de l'annonce
+    // Pour l'instant, afficher un message
+    notificationService.info(
+      context,
+      'Modification',
+      subtitle: 'La page de modification sera bientôt disponible',
+    );
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {

@@ -38,11 +38,11 @@ class RateLimiterService {
     final now = DateTime.now().millisecondsSinceEpoch;
     final elapsed = now - lastReset;
     final elapsedMinutes = elapsed / (1000 * 60);
-    
+
     if (elapsedMinutes >= _windowMinutes) {
       return 0;
     }
-    
+
     return (_windowMinutes - elapsedMinutes).ceil();
   }
 
@@ -51,7 +51,7 @@ class RateLimiterService {
     final lastReset = _prefs.getInt(_lastResetKey) ?? 0;
     final now = DateTime.now().millisecondsSinceEpoch;
     final elapsed = now - lastReset;
-    
+
     // Si plus de 5 minutes se sont écoulées, reset
     if (elapsed >= _windowMinutes * 60 * 1000) {
       await _prefs.setInt(_lastResetKey, now);
@@ -67,7 +67,8 @@ class RateLimiterService {
   /// Génère la clé pour stocker les tentatives
   String _getAttemptsKey() {
     final today = DateTime.now();
-    final dateKey = '${today.year}_${today.month}_${today.day}_${today.hour ~/ (_windowMinutes / 60).ceil()}';
+    final dateKey =
+        '${today.year}_${today.month}_${today.day}_${today.hour ~/ (_windowMinutes / 60).ceil()}';
     return '$_keyPrefix$dateKey';
   }
 

@@ -6,7 +6,8 @@ import '../../../../../../core/providers/providers.dart';
 import 'seller_shared_widgets.dart';
 
 class SellerPartsSelectionPage extends ConsumerStatefulWidget {
-  final String selectedCategory; // 'moteur', 'carrosserie', 'lesdeux'
+  final String
+      selectedCategory; // 'engine_parts', 'transmission_parts', 'body_parts', 'both'
   final bool hasMultipleParts; // true = +5 pièces, false = -5 pièces
   final Function(List<String> selectedParts, String completeOption) onSubmit;
 
@@ -29,7 +30,8 @@ class _SellerPartsSelectionPageState
   final List<String> _selectedParts = [];
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  String _completeOption = ''; // 'moteur_complet', 'carrosserie_complete', 'vehicule_complet' ou vide
+  final List<String> _completeOptions =
+      []; // 'moteur_complet', 'boite_complete', 'carrosserie_complete', etc.
 
   @override
   void initState() {
@@ -61,13 +63,13 @@ class _SellerPartsSelectionPageState
     try {
       String? categoryFilter;
 
-      if (widget.selectedCategory == 'engine' ||
-          widget.selectedCategory == 'moteur') {
+      if (widget.selectedCategory == 'engine_parts') {
         categoryFilter = 'moteur';
-      } else if (widget.selectedCategory == 'body' ||
-          widget.selectedCategory == 'carrosserie') {
+      } else if (widget.selectedCategory == 'transmission_parts') {
+        categoryFilter = 'transmission';
+      } else if (widget.selectedCategory == 'body_parts') {
         categoryFilter = 'NOT_MOTEUR';
-      } else if (widget.selectedCategory == 'lesdeux') {
+      } else if (widget.selectedCategory == 'both') {
         categoryFilter = null;
       }
 
@@ -141,26 +143,49 @@ class _SellerPartsSelectionPageState
   }
 
   bool _isFormValid() {
-    // Si une option complète est sélectionnée, toujours valide
-    if (_completeOption.isNotEmpty) {
-      return true;
+    // Si une option complète est sélectionnée OU au moins une pièce, valide
+    return _completeOptions.isNotEmpty || _selectedParts.isNotEmpty;
+  }
+
+  bool _isEverythingComplete() {
+    // Pour "both", il faut les 2 options (moteur_complet ET boite_complete)
+    if (widget.selectedCategory == 'both') {
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('boite_complete');
+    } else if (widget.selectedCategory == 'engine_body') {
+      // Moteur + Carrosserie : il faut les 2 options
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('carrosserie_complete');
+    } else if (widget.selectedCategory == 'transmission_body') {
+      // Boîte + Carrosserie : il faut les 2 options
+      return _completeOptions.contains('boite_complete') &&
+          _completeOptions.contains('carrosserie_complete');
+    } else if (widget.selectedCategory == 'all_three') {
+      // Moteur + Boîte + Carrosserie : il faut les 3 options
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('boite_complete') &&
+          _completeOptions.contains('carrosserie_complete');
     }
-    // Sinon, il faut au moins une pièce sélectionnée
-    return _selectedParts.isNotEmpty;
+    // Pour les autres catégories simples, une seule option suffit
+    return _completeOptions.isNotEmpty;
   }
 
   void _handleSubmit() {
-    widget.onSubmit(_selectedParts, _completeOption);
+    // Combiner les options complètes en une seule string séparée par ","
+    final completeOptionsString = _completeOptions.join(',');
+    widget.onSubmit(_selectedParts, completeOptionsString);
   }
 
   String _getSubtitleText() {
     if (widget.hasMultipleParts) {
-      if (widget.selectedCategory == 'moteur' || widget.selectedCategory == 'engine') {
+      if (widget.selectedCategory == 'engine_parts') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Moteur complet"';
-      } else if (widget.selectedCategory == 'carrosserie' || widget.selectedCategory == 'body') {
+      } else if (widget.selectedCategory == 'transmission_parts') {
+        return 'Sélectionnez les pièces manquantes ou choisissez "Boîte complète"';
+      } else if (widget.selectedCategory == 'body_parts') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Carrosserie complète"';
       } else {
-        return 'Sélectionnez les pièces manquantes ou choisissez "Véhicule complet"';
+        return 'Cochez ce qui est complet et/ou sélectionnez les pièces manquantes';
       }
     } else {
       return 'Sélectionnez les pièces que vous possédez';
@@ -168,14 +193,14 @@ class _SellerPartsSelectionPageState
   }
 
   Color _getCategoryColor() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
+    if (widget.selectedCategory == 'engine_parts') {
       return const Color(0xFF2196F3); // Bleu
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
+    } else if (widget.selectedCategory == 'transmission_parts') {
+      return const Color(0xFF4CAF50); // Vert
+    } else if (widget.selectedCategory == 'body_parts') {
       return const Color(0xFF4CAF50); // Vert
     } else {
-      return const Color(0xFFFF9800); // Orange
+      return const Color(0xFFFF9800); // Orange (pour "both")
     }
   }
 
@@ -221,29 +246,33 @@ class _SellerPartsSelectionPageState
                       // Options complètes pour +5 pièces
                       if (widget.hasMultipleParts) ...[
                         _buildCompleteOptions(),
-                        const SizedBox(height: 24),
-                        const Row(
-                          children: [
-                            Expanded(child: Divider()),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'OU',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.gray,
+
+                        // Afficher le divider et champ de recherche seulement si tout n'est pas complet
+                        if (!_isEverythingComplete()) ...[
+                          const SizedBox(height: 24),
+                          const Row(
+                            children: [
+                              Expanded(child: Divider()),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'ET/OU',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.gray,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Expanded(child: Divider()),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
+                              Expanded(child: Divider()),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ],
 
-                      // Champ de recherche
-                      if (_completeOption.isEmpty) ...[
+                      // Champ de recherche (masqué si tout est complet)
+                      if (!_isEverythingComplete()) ...[
                         _buildSearchField(),
                         if (_selectedParts.isNotEmpty) ...[
                           const SizedBox(height: 16),
@@ -271,28 +300,123 @@ class _SellerPartsSelectionPageState
   }
 
   Widget _buildCompleteOptions() {
-    // Déterminer quelle option afficher selon la catégorie
-    if (widget.selectedCategory == 'moteur' || widget.selectedCategory == 'engine') {
+    // Déterminer quelle option afficher selon le sous-type
+    if (widget.selectedCategory == 'engine_parts') {
       return _buildCompleteOption(
         optionKey: 'moteur_complet',
         title: 'Moteur complet',
         description: 'Toutes les pièces moteur sont disponibles',
         icon: Icons.engineering_outlined,
       );
-    } else if (widget.selectedCategory == 'carrosserie' || widget.selectedCategory == 'body') {
+    } else if (widget.selectedCategory == 'transmission_parts') {
+      return _buildCompleteOption(
+        optionKey: 'boite_complete',
+        title: 'Boîte complète',
+        description: 'Toutes les pièces de transmission sont disponibles',
+        icon: Icons.settings_input_component_outlined,
+      );
+    } else if (widget.selectedCategory == 'body_parts') {
       return _buildCompleteOption(
         optionKey: 'carrosserie_complete',
         title: 'Carrosserie complète',
         description: 'Toutes les pièces de carrosserie sont disponibles',
         icon: Icons.car_repair_outlined,
       );
-    } else {
-      return _buildCompleteOption(
-        optionKey: 'vehicule_complet',
-        title: 'Véhicule complet',
-        description: 'Toutes les pièces du véhicule sont disponibles',
-        icon: Icons.directions_car_outlined,
+    } else if (widget.selectedCategory == 'both') {
+      // Moteur + Boîte
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+        ],
       );
+    } else if (widget.selectedCategory == 'engine_body') {
+      // Moteur + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else if (widget.selectedCategory == 'transmission_body') {
+      // Boîte + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else if (widget.selectedCategory == 'all_three') {
+      // Moteur + Boîte + Carrosserie
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'carrosserie_complete',
+            title: 'Carrosserie complète',
+            description: 'Toutes les pièces de carrosserie sont disponibles',
+            icon: Icons.car_repair_outlined,
+            color: const Color(0xFFFF9800), // Orange pour carrosserie
+          ),
+        ],
+      );
+    } else {
+      // Fallback: retourner un widget vide
+      return const SizedBox.shrink();
     }
   }
 
@@ -301,30 +425,34 @@ class _SellerPartsSelectionPageState
     required String title,
     required String description,
     required IconData icon,
+    Color? color,
   }) {
-    final isSelected = _completeOption == optionKey;
+    final isSelected = _completeOptions.contains(optionKey);
+    final displayColor = color ?? _getCategoryColor();
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _completeOption = isSelected ? '' : optionKey;
-          if (_completeOption.isNotEmpty) {
-            _selectedParts.clear();
-            _searchController.clear();
+          if (isSelected) {
+            _completeOptions.remove(optionKey);
+          } else {
+            _completeOptions.add(optionKey);
+            // Si tout devient complet, effacer les pièces sélectionnées
+            if (_isEverythingComplete()) {
+              _selectedParts.clear();
+              _searchController.clear();
+            }
           }
         });
       },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected
-              ? _getCategoryColor().withValues(alpha: 0.08)
-              : Colors.white,
+          color:
+              isSelected ? displayColor.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? _getCategoryColor()
-                : AppColors.grey200,
+            color: isSelected ? displayColor : AppColors.grey200,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -335,14 +463,14 @@ class _SellerPartsSelectionPageState
               height: 48,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? _getCategoryColor().withValues(alpha: 0.15)
+                    ? displayColor.withValues(alpha: 0.15)
                     : AppTheme.lightGray,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
                 size: 24,
-                color: isSelected ? _getCategoryColor() : AppTheme.gray,
+                color: isSelected ? displayColor : AppTheme.gray,
               ),
             ),
             const SizedBox(width: 16),
@@ -355,9 +483,7 @@ class _SellerPartsSelectionPageState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? _getCategoryColor()
-                          : AppTheme.darkGray,
+                      color: isSelected ? displayColor : AppTheme.darkGray,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -379,17 +505,22 @@ class _SellerPartsSelectionPageState
                 value: isSelected,
                 onChanged: (value) {
                   setState(() {
-                    _completeOption = (value ?? false) ? optionKey : '';
-                    if (_completeOption.isNotEmpty) {
-                      _selectedParts.clear();
-                      _searchController.clear();
+                    if (value ?? false) {
+                      _completeOptions.add(optionKey);
+                      // Si tout devient complet, effacer les pièces sélectionnées
+                      if (_isEverythingComplete()) {
+                        _selectedParts.clear();
+                        _searchController.clear();
+                      }
+                    } else {
+                      _completeOptions.remove(optionKey);
                     }
                   });
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
-                activeColor: _getCategoryColor(),
+                activeColor: displayColor,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),

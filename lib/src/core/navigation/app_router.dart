@@ -48,18 +48,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     previousLocation = state.matchedLocation;
     return page;
   }
+
   // Utiliser try-catch pour éviter les erreurs au démarrage
   String getInitialLocation() {
     try {
       // Récupérer les infos de session depuis le cache
       final sessionService = ref.read(sessionServiceProvider);
       final supabase = ref.read(session.supabaseClientProvider);
-      
+
       // Vérifier d'abord si Supabase a une session active
       final hasSupabaseSession = supabase.auth.currentSession != null;
       final cachedUserType = sessionService.getCachedUserType();
-      
-      
+
       // Ne rediriger que si BOTH Supabase et le cache sont cohérents
       if (hasSupabaseSession && cachedUserType != null) {
         if (cachedUserType == 'vendeur') {
@@ -81,8 +81,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: getInitialLocation(),
     redirect: (context, state) {
-      
-      
       // Permettre la navigation normale sans re-direction forcée
       // Les pages géreront leur propre auth si nécessaire
       return null;
@@ -151,7 +149,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/:conversationId',
                 name: 'chat',
                 builder: (context, state) {
-                  final conversationId = state.pathParameters['conversationId']!;
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
                   return ChatPage(conversationId: conversationId);
                 },
               ),
@@ -199,7 +198,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      
+
       // Routes vendeurs avec SellerWrapper
       ShellRoute(
         builder: (context, state, child) => SellerWrapper(child: child),
@@ -223,7 +222,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/create-ad',
             name: 'seller-create-ad',
-            builder: (context, state) => const BecomeSellerPage(mode: SellerMode.vendeur),
+            builder: (context, state) =>
+                const BecomeSellerPage(mode: SellerMode.vendeur),
           ),
           GoRoute(
             path: '/seller/create-request',

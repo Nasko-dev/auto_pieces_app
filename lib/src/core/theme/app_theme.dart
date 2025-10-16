@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Couleurs principales
-  static const Color primaryBlue = Color.fromARGB(255, 33, 80, 223); // Bleu roi (Royal Blue)
+  static const Color primaryBlue =
+      Color.fromARGB(255, 33, 80, 223); // Bleu roi (Royal Blue)
   static const Color lightBlue = Color(0xFF5AC8FA);
   static const Color darkBlue = Color(0xFF0051D5);
-  
+
   // Couleurs neutres
   static const Color white = Colors.white;
   static const Color lightGray = Color(0xFFF2F2F7);
   static const Color gray = Color(0xFF8E8E93);
   static const Color darkGray = Color(0xFF48484A);
   static const Color black = Color(0xFF000000);
-  
+
   // Couleurs de statut
   static const Color success = Color(0xFF34C759);
   static const Color warning = Color(0xFFFF9500);
@@ -59,7 +60,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       cardTheme: const CardThemeData(
         elevation: 0,

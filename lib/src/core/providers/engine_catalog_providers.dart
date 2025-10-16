@@ -14,13 +14,15 @@ final engineCatalogServiceProvider = Provider<EngineCatalogService>((ref) {
 });
 
 /// Provider pour récupérer toutes les cylindrées disponibles
-final engineCylindersProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+final engineCylindersProvider =
+    FutureProvider.autoDispose<List<String>>((ref) async {
   final service = ref.watch(engineCatalogServiceProvider);
   return await service.getCylinders();
 });
 
 /// Provider pour récupérer tous les types de carburant disponibles
-final engineFuelTypesProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+final engineFuelTypesProvider =
+    FutureProvider.autoDispose<List<String>>((ref) async {
   final service = ref.watch(engineCatalogServiceProvider);
   return await service.getFuelTypes();
 });
@@ -33,7 +35,8 @@ final engineFuelTypesProvider = FutureProvider.autoDispose<List<String>>((ref) a
 /// - "1.6L|" -> filtre uniquement cylindrée 1.6L
 /// - "|Diesel" -> filtre uniquement diesel
 /// - "|" -> aucun filtre (tous les moteurs)
-final engineModelsProvider = FutureProvider.autoDispose.family<List<String>, String>((ref, filterKey) async {
+final engineModelsProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, filterKey) async {
   final service = ref.watch(engineCatalogServiceProvider);
 
   // Parser la clé composite

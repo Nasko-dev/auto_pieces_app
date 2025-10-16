@@ -41,16 +41,17 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
 
     return authState.when(
       initial: () => const Scaffold(
-        body: Center(child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
+        body: Center(
+            child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
       ),
       loading: () => const Scaffold(
-        body: Center(child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
+        body: Center(
+            child: CupertinoActivityIndicator(color: AppTheme.primaryBlue)),
       ),
       anonymousAuthenticated: (_) => widget.child,
       error: (message) => _buildErrorView(context, message),
     );
   }
-
 
   Widget _buildErrorView(BuildContext context, String message) {
     return Scaffold(
@@ -68,7 +69,6 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
                 color: AppTheme.error,
               ),
               const SizedBox(height: 32),
-
               const Text(
                 'Erreur de connexion',
                 style: TextStyle(
@@ -79,7 +79,6 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-
               Text(
                 message,
                 style: const TextStyle(
@@ -90,13 +89,14 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    ref.read(particulierAuthControllerProvider.notifier).resetState();
+                    ref
+                        .read(particulierAuthControllerProvider.notifier)
+                        .resetState();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryBlue,

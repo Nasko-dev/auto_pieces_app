@@ -36,7 +36,8 @@ class SellerNotification {
   factory SellerNotification.fromPartRequest(PartRequest request) {
     return SellerNotification(
       id: request.id,
-      vehicleModel: '${request.vehicleBrand ?? 'Véhicule'} ${request.vehicleModel ?? ''}',
+      vehicleModel:
+          '${request.vehicleBrand ?? 'Véhicule'} ${request.vehicleModel ?? ''}',
       partType: request.partType,
       partNames: request.partNames,
       createdAt: request.createdAt,

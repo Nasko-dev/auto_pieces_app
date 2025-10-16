@@ -18,48 +18,49 @@ class AllNotificationsPage extends ConsumerStatefulWidget {
   const AllNotificationsPage({super.key});
 
   @override
-  ConsumerState<AllNotificationsPage> createState() => _AllNotificationsPageState();
+  ConsumerState<AllNotificationsPage> createState() =>
+      _AllNotificationsPageState();
 }
 
 class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMore = false;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Charger les premières notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(sellerDashboardControllerProvider.notifier).loadNotifications();
     });
-    
+
     // Écouter le scroll pour charger plus
     _scrollController.addListener(_onScroll);
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   // Nombre initial d'items à afficher
   int _itemsLoaded = 10;
-  
+
   void _onScroll() {
     if (_isLoadingMore) return;
-    
+
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
-    
+
     // Charger plus quand on est à 80% du scroll
     if (currentScroll >= maxScroll * 0.8) {
       setState(() {
         _isLoadingMore = true;
       });
-      
+
       // Charger 10 items de plus après un délai
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
@@ -71,7 +72,7 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
       });
     }
   }
-  
+
   int _calculateItemsToShow(int totalItems) {
     // Afficher le minimum entre les items chargés et le total disponible
     return _itemsLoaded > totalItems ? totalItems : _itemsLoaded;
@@ -134,7 +135,7 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
 
         // Calculer combien d'items afficher (lazy loading)
         final itemsToShow = _calculateItemsToShow(notifications.length);
-        
+
         return RefreshIndicator(
           onRefresh: () async {
             setState(() {
@@ -145,7 +146,8 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
           child: ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: itemsToShow + (_isLoadingMore && itemsToShow < notifications.length ? 1 : 0),
+            itemCount: itemsToShow +
+                (_isLoadingMore && itemsToShow < notifications.length ? 1 : 0),
             itemBuilder: (context, index) {
               // Afficher l'indicateur de chargement en bas
               if (index >= itemsToShow) {
@@ -159,9 +161,9 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
                   ),
                 );
               }
-              
+
               final notification = notifications[index];
-              
+
               // Animation d'apparition pour les nouveaux éléments
               return AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
@@ -175,9 +177,12 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
                     child: _NotificationCard(
                       partRequest: notification.partRequest,
                       isNew: notification.isNew,
-                      onTap: () => _navigateToConversationDetail(notification.partRequest),
-                      onAccept: () => _acceptAndRespond(context, notification.partRequest),
-                      onReject: () => _rejectRequest(context, notification.partRequest),
+                      onTap: () => _navigateToConversationDetail(
+                          notification.partRequest),
+                      onAccept: () =>
+                          _acceptAndRespond(context, notification.partRequest),
+                      onReject: () =>
+                          _rejectRequest(context, notification.partRequest),
                     ),
                   ),
                 ),
@@ -308,7 +313,8 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
 
   void _navigateToConversationDetail(PartRequest partRequest) {
     HapticFeedback.lightImpact();
-    notificationService.info(context, 'Fonction conversation en cours de développement');
+    notificationService.info(
+        context, 'Fonction conversation en cours de développement');
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
@@ -344,7 +350,6 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
       context.push('/seller/conversation/${conversation.id}');
 
       ref.read(sellerDashboardControllerProvider.notifier).refresh();
-      
     } catch (e) {
       if (mounted) {
         if (context.mounted) {
@@ -383,7 +388,8 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur', subtitle: failure.toString());
+          notificationService.error(context, 'Erreur',
+              subtitle: failure.toString());
         },
         (rejection) {
           notificationService.success(context, 'Demande refusée avec succès');
@@ -391,7 +397,8 @@ class _AllNotificationsPageState extends ConsumerState<AllNotificationsPage> {
       );
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors du refus', subtitle: e.toString());
+        notificationService.error(context, 'Erreur lors du refus',
+            subtitle: e.toString());
       }
     }
 
@@ -421,7 +428,7 @@ class _NotificationCard extends StatelessWidget {
         color: AppTheme.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isNew 
+          color: isNew
               ? AppTheme.primaryBlue.withValues(alpha: 0.3)
               : AppTheme.gray.withValues(alpha: 0.2),
           width: isNew ? 2 : 1,
@@ -463,8 +470,8 @@ class _NotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          partRequest.vehicleInfo.isNotEmpty 
-                              ? partRequest.vehicleInfo 
+                          partRequest.vehicleInfo.isNotEmpty
+                              ? partRequest.vehicleInfo
                               : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,
@@ -507,8 +514,8 @@ class _NotificationCard extends StatelessWidget {
                     ),
                 ],
               ),
-
-              if (partRequest.additionalInfo != null && partRequest.additionalInfo!.isNotEmpty) ...[
+              if (partRequest.additionalInfo != null &&
+                  partRequest.additionalInfo!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -540,9 +547,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                 ),
               ],
-
               const SizedBox(height: 16),
-
               Row(
                 children: [
                   Expanded(
@@ -590,7 +595,6 @@ class _NotificationCard extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -604,7 +608,8 @@ class _NotificationCard extends StatelessWidget {
                   ),
                   if (partRequest.responseCount > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -630,7 +635,7 @@ class _NotificationCard extends StatelessWidget {
   String _getTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inMinutes < 1) {
       return 'À l\'instant';
     } else if (difference.inHours < 1) {

@@ -24,10 +24,9 @@ final sessionServiceProvider = Provider<SessionService>((ref) {
 final authStateListenerProvider = StreamProvider<AuthState>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   final sessionService = ref.watch(sessionServiceProvider);
-  
+
   // Écouter les changements d'état d'authentification
   return supabase.auth.onAuthStateChange.map((authState) {
-    
     // Mettre à jour le cache selon l'événement
     switch (authState.event) {
       case AuthChangeEvent.signedIn:
@@ -36,16 +35,16 @@ final authStateListenerProvider = StreamProvider<AuthState>((ref) {
         // Mettre à jour le cache de session
         sessionService.updateCachedSession();
         break;
-        
+
       case AuthChangeEvent.signedOut:
         // Nettoyer le cache
         sessionService.clearCache();
         break;
-        
+
       default:
         break;
     }
-    
+
     return authState;
   });
 });
@@ -77,14 +76,13 @@ final isAutoReconnectEnabledProvider = Provider<bool>((ref) {
 /// Provider pour gérer l'état initial de connexion
 final initialAuthCheckProvider = FutureProvider<bool>((ref) async {
   final sessionService = ref.watch(sessionServiceProvider);
-  
-  
+
   // Tenter l'auto-reconnexion
   final hasReconnected = await sessionService.autoReconnect();
-  
+
   if (hasReconnected) {
     return true;
   }
-  
+
   return false;
 });

@@ -72,7 +72,8 @@ class AppMenu extends ConsumerWidget {
             children: [
               Stack(
                 children: [
-                  const Icon(Icons.person_outline, color: AppTheme.darkGray, size: 20),
+                  const Icon(Icons.person_outline,
+                      color: AppTheme.darkGray, size: 20),
                   // Point rouge sur l'icône profil si nécessaire
                   profileStatusAsync.when(
                     data: (needsAction) => needsAction
@@ -111,7 +112,8 @@ class AppMenu extends ConsumerWidget {
             children: [
               Stack(
                 children: [
-                  const Icon(Icons.settings_outlined, color: AppTheme.darkGray, size: 20),
+                  const Icon(Icons.settings_outlined,
+                      color: AppTheme.darkGray, size: 20),
                   // Point rouge sur l'icône paramètres si nécessaire (localisation + téléphone)
                   settingsStatusAsync.when(
                     data: (needsAction) => needsAction
@@ -149,7 +151,8 @@ class AppMenu extends ConsumerWidget {
                       data: (needsAction) => needsAction
                           ? Container(
                               margin: const EdgeInsets.only(left: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.red,
                                 borderRadius: BorderRadius.circular(8),
@@ -238,12 +241,12 @@ class AppMenu extends ConsumerWidget {
   void _logout(BuildContext context, WidgetRef ref) {
     // Déconnexion via le contrôleur auth
     ref.read(particulierAuthControllerProvider.notifier).logout();
-    
+
     // Navigation vers la page d'accueil
     if (context.mounted) {
       context.go('/welcome');
     }
-    
+
     // Message de confirmation
     notificationService.success(context, 'Déconnexion réussie');
   }

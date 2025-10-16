@@ -34,7 +34,8 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Left(CacheFailure('Aucun utilisateur en cache'));
     } catch (e) {
-      return Left(CacheFailure('Erreur lors de la récupération du cache: ${e.toString()}'));
+      return Left(CacheFailure(
+          'Erreur lors de la récupération du cache: ${e.toString()}'));
     }
   }
 
@@ -44,7 +45,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.clearCache();
       return const Right(null);
     } catch (e) {
-      return Left(CacheFailure('Erreur lors de la suppression du cache: ${e.toString()}'));
+      return Left(CacheFailure(
+          'Erreur lors de la suppression du cache: ${e.toString()}'));
     }
   }
 

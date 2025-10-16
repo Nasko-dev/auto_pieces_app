@@ -14,14 +14,16 @@ final vehicleCatalogServiceProvider = Provider<VehicleCatalogService>((ref) {
 });
 
 /// Provider pour récupérer toutes les marques de véhicules
-final vehicleBrandsProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+final vehicleBrandsProvider =
+    FutureProvider.autoDispose<List<String>>((ref) async {
   final service = ref.watch(vehicleCatalogServiceProvider);
   return await service.getBrands();
 });
 
 /// Provider pour récupérer les modèles d'une marque spécifique
 /// Prend la marque en paramètre
-final vehicleModelsProvider = FutureProvider.autoDispose.family<List<String>, String>(
+final vehicleModelsProvider =
+    FutureProvider.autoDispose.family<List<String>, String>(
   (ref, brand) async {
     if (brand.isEmpty) return [];
     final service = ref.watch(vehicleCatalogServiceProvider);
@@ -31,7 +33,8 @@ final vehicleModelsProvider = FutureProvider.autoDispose.family<List<String>, St
 
 /// Provider pour récupérer les années d'un modèle spécifique
 /// Prend une String avec 'brand|model' en paramètre (séparateur |)
-final vehicleYearsProvider = FutureProvider.autoDispose.family<List<int>, String>(
+final vehicleYearsProvider =
+    FutureProvider.autoDispose.family<List<int>, String>(
   (ref, brandModel) async {
     final parts = brandModel.split('|');
     if (parts.length != 2) return [];

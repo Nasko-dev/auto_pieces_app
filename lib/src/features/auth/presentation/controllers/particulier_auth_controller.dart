@@ -14,7 +14,8 @@ part 'particulier_auth_controller.freezed.dart';
 class ParticulierAuthState with _$ParticulierAuthState {
   const factory ParticulierAuthState.initial() = _Initial;
   const factory ParticulierAuthState.loading() = _Loading;
-  const factory ParticulierAuthState.anonymousAuthenticated(Particulier particulier) = _AnonymousAuthenticated;
+  const factory ParticulierAuthState.anonymousAuthenticated(
+      Particulier particulier) = _AnonymousAuthenticated;
   const factory ParticulierAuthState.error(String message) = _Error;
 }
 
@@ -104,7 +105,6 @@ class ParticulierAuthController extends StateNotifier<ParticulierAuthState> {
     state = const ParticulierAuthState.initial();
   }
 
-
   // Utilitaire pour mapper les erreurs
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
@@ -130,12 +130,12 @@ extension ParticulierAuthStateX on ParticulierAuthState {
   bool get isAuthenticated => this is _AnonymousAuthenticated;
   bool get isError => this is _Error;
   bool get isInitial => this is _Initial;
-  
+
   Particulier? get particulier => mapOrNull(
-    anonymousAuthenticated: (state) => state.particulier,
-  );
-  
+        anonymousAuthenticated: (state) => state.particulier,
+      );
+
   String? get errorMessage => mapOrNull(
-    error: (state) => state.message,
-  );
+        error: (state) => state.message,
+      );
 }

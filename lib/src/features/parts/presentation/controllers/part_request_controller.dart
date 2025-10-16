@@ -49,7 +49,6 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
   // Créer une nouvelle demande
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
-
     // ✅ FIX: Vérifier si l'utilisateur est vendeur
     // Les vendeurs n'ont AUCUNE limite de demandes
     bool isSeller = false;
@@ -92,8 +91,7 @@ class PartRequestController extends StateNotifier<PartRequestState> {
         return false;
       }
     }
-    
-    
+
     state = state.copyWith(isCreating: true, error: null);
 
     final result = await _createPartRequest(params);
@@ -107,7 +105,6 @@ class PartRequestController extends StateNotifier<PartRequestState> {
         return false;
       },
       (request) {
-        
         // Ajouter la nouvelle demande à la liste
         final updatedRequests = <PartRequest>[request, ...state.requests];
         state = state.copyWith(
@@ -115,10 +112,10 @@ class PartRequestController extends StateNotifier<PartRequestState> {
           requests: updatedRequests,
           error: null,
         );
-        
+
         // Mettre à jour le statut des demandes actives dans le provider de recherche
         _ref.read(vehicleSearchProvider.notifier).checkActiveRequest();
-        
+
         return true;
       },
     );
@@ -126,21 +123,18 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 
   // Charger les demandes de l'utilisateur
   Future<void> loadUserPartRequests() async {
-    
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _getUserPartRequests(NoParams());
 
     result.fold(
       (failure) {
-        
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (requests) {
-        
         state = state.copyWith(
           isLoading: false,
           requests: requests,
@@ -176,7 +170,7 @@ class PartRequestController extends StateNotifier<PartRequestState> {
   // Sélectionner une demande
   void selectPartRequest(PartRequest? request) {
     state = state.copyWith(selectedRequest: request);
-    
+
     // Charger les réponses si une demande est sélectionnée
     if (request != null) {
       loadPartRequestResponses(request.id);
@@ -230,9 +224,8 @@ class PartRequestController extends StateNotifier<PartRequestState> {
       },
       (_) {
         // Supprimer la demande de la liste locale
-        final updatedRequests = state.requests
-            .where((request) => request.id != requestId)
-            .toList();
+        final updatedRequests =
+            state.requests.where((request) => request.id != requestId).toList();
 
         state = state.copyWith(
           isDeleting: false,
@@ -250,7 +243,8 @@ class PartRequestController extends StateNotifier<PartRequestState> {
 }
 
 // Provider pour le controller
-final partRequestControllerProvider = StateNotifierProvider<PartRequestController, PartRequestState>((ref) {
+final partRequestControllerProvider =
+    StateNotifierProvider<PartRequestController, PartRequestState>((ref) {
   return PartRequestController(
     createPartRequest: ref.read(createPartRequestProvider),
     getUserPartRequests: ref.read(getUserPartRequestsProvider),

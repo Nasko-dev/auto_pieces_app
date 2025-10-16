@@ -15,7 +15,6 @@ class MessageImageService {
     required File imageFile,
   }) async {
     try {
-
       // Vérifier et créer le bucket si nécessaire
       await _ensureBucketExists();
 
@@ -24,14 +23,12 @@ class MessageImageService {
       final fileExtension = _getFileExtension(imageFile.path);
 
       // Générer un nom de fichier unique
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
       final filePath = '$conversationId/$fileName';
 
-
       // Upload vers Supabase Storage
-      await _supabaseClient.storage
-          .from(_bucketName)
-          .uploadBinary(
+      await _supabaseClient.storage.from(_bucketName).uploadBinary(
             filePath,
             bytes,
             fileOptions: FileOptions(
@@ -41,12 +38,10 @@ class MessageImageService {
           );
 
       // Obtenir l'URL publique
-      final publicUrl = _supabaseClient.storage
-          .from(_bucketName)
-          .getPublicUrl(filePath);
+      final publicUrl =
+          _supabaseClient.storage.from(_bucketName).getPublicUrl(filePath);
 
       return publicUrl;
-
     } on StorageException catch (e) {
       throw ServerFailure('Erreur d\'upload: ${e.message}');
     } catch (e) {
@@ -71,12 +66,7 @@ class MessageImageService {
 
       final filePath = pathSegments.sublist(bucketIndex + 1).join('/');
 
-
-      await _supabaseClient.storage
-          .from(_bucketName)
-          .remove([filePath]);
-
-
+      await _supabaseClient.storage.from(_bucketName).remove([filePath]);
     } on StorageException {
       // Ne pas throw d'erreur pour la suppression
     } catch (_) {
@@ -134,14 +124,20 @@ class MessageImageService {
       // Tenter une opération sur le bucket pour vérifier son existence
       await _supabaseClient.storage.from(_bucketName).list();
     } catch (e) {
-
       try {
         // Créer le bucket
-        await _supabaseClient.storage.createBucket(_bucketName, const BucketOptions(
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-          fileSizeLimit: '5242880', // 5MB en string
-        ));
+        await _supabaseClient.storage.createBucket(
+            _bucketName,
+            const BucketOptions(
+              public: true,
+              allowedMimeTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/gif'
+              ],
+              fileSizeLimit: '5242880', // 5MB en string
+            ));
       } catch (createError) {
         // Si la création échoue, on continue quand même
         // Le bucket pourrait exister mais avoir des permissions restrictives

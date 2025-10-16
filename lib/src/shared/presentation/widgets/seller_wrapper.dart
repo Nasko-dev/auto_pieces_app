@@ -15,7 +15,8 @@ class SellerWrapper extends ConsumerStatefulWidget {
 }
 
 class _SellerWrapperState extends ConsumerState<SellerWrapper> {
-  final GlobalMessageNotificationService _globalNotificationService = GlobalMessageNotificationService();
+  final GlobalMessageNotificationService _globalNotificationService =
+      GlobalMessageNotificationService();
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
     _globalNotificationService.dispose();
     super.dispose();
   }
+
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     switch (location) {
@@ -146,7 +148,8 @@ class _SellerWrapperState extends ConsumerState<SellerWrapper> {
                     Icon(
                       isSelected ? selectedIcon : icon,
                       size: 24,
-                      color: isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
+                      color:
+                          isSelected ? const Color(0xFF1976D2) : AppTheme.gray,
                     ),
                     // Point rouge pour messages non lus
                     if (hasUnread)

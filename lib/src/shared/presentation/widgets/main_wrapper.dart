@@ -19,7 +19,8 @@ class MainWrapper extends ConsumerStatefulWidget {
 }
 
 class _MainWrapperState extends ConsumerState<MainWrapper> {
-  final GlobalMessageNotificationService _globalNotificationService = GlobalMessageNotificationService();
+  final GlobalMessageNotificationService _globalNotificationService =
+      GlobalMessageNotificationService();
 
   @override
   void initState() {

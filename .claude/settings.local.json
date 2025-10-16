@@ -14,7 +14,10 @@
       "Bash(cat:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\namélioration: ajout labels navigation bar et migrations pièces complètes\n\nNavigation:\n- Ajout des labels texte sous les icônes de navigation (particuliers et vendeurs)\n- Changement \"Demandes\" → \"Recherches\" dans nav particuliers\n- Augmentation hauteur nav bar de 56px à 68px pour accueillir le texte\n- Style: texte 11px, gras quand sélectionné, couleur primaire/gris\n- Labels particuliers: Accueil, Recherches, Messages, Vendeur\n- Labels vendeurs: Tableau, Déposer, Mes annonces, Messages\n\nMigrations Supabase (~1600+ pièces):\n- Ajout 17 migrations SQL complètes couvrant toutes catégories automobiles\n- Châssis/Structure, Suspension, Direction, Freinage, Transmission\n- Groupe moteur, Admission/Échappement, Carburant, Refroidissement\n- Électricité/Électronique, Habitacle, Portes/Ouvrants, Éclairage\n- Climatisation, ADAS/Sécurité, Véhicules électriques/hybrides\n- Fixations/Quincaillerie, Accessoires/Divers\n- Total base de données: 3212 pièces (objectif 3000+ atteint!)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(flutter run:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git log:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": [],
