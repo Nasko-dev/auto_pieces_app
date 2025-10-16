@@ -91,6 +91,9 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           case 'moteur_complet':
             _partName = 'Moteur complet';
             break;
+          case 'boite_complete':
+            _partName = 'Boîte complète';
+            break;
           case 'carrosserie_complete':
             _partName = 'Carrosserie complète';
             break;
@@ -296,7 +299,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                 onQuantitySelected: _onQuantitySelected,
               ),
             3 => SellerPartsSelectionPage(
-                selectedCategory: _selectedChoice,
+                selectedCategory: _selectedSubType,
                 hasMultipleParts: _quantityType == 'multiple',
                 onSubmit: _onPartsSelected,
               ),

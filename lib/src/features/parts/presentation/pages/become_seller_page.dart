@@ -62,6 +62,9 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
           case 'moteur_complet':
             partName = 'Moteur complet';
             break;
+          case 'boite_complete':
+            partName = 'Boîte complète';
+            break;
           case 'carrosserie_complete':
             partName = 'Carrosserie complète';
             break;
@@ -159,7 +162,7 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
               ),
             3 => SellerPartsSelectionPage(
                 key: const ValueKey(3),
-                selectedCategory: selectedChoice,
+                selectedCategory: selectedSubType,
                 hasMultipleParts: quantityType == 'multiple',
                 onSubmit: _onPartsSelected,
               ),

@@ -6,7 +6,8 @@ import '../../../../../../core/providers/providers.dart';
 import 'seller_shared_widgets.dart';
 
 class SellerPartsSelectionPage extends ConsumerStatefulWidget {
-  final String selectedCategory; // 'moteur', 'carrosserie', 'lesdeux'
+  final String
+      selectedCategory; // 'engine_parts', 'transmission_parts', 'body_parts', 'both'
   final bool hasMultipleParts; // true = +5 pièces, false = -5 pièces
   final Function(List<String> selectedParts, String completeOption) onSubmit;
 
@@ -62,13 +63,13 @@ class _SellerPartsSelectionPageState
     try {
       String? categoryFilter;
 
-      if (widget.selectedCategory == 'engine' ||
-          widget.selectedCategory == 'moteur') {
+      if (widget.selectedCategory == 'engine_parts') {
         categoryFilter = 'moteur';
-      } else if (widget.selectedCategory == 'body' ||
-          widget.selectedCategory == 'carrosserie') {
+      } else if (widget.selectedCategory == 'transmission_parts') {
+        categoryFilter = 'transmission';
+      } else if (widget.selectedCategory == 'body_parts') {
         categoryFilter = 'NOT_MOTEUR';
-      } else if (widget.selectedCategory == 'lesdeux') {
+      } else if (widget.selectedCategory == 'both') {
         categoryFilter = null;
       }
 
@@ -156,11 +157,11 @@ class _SellerPartsSelectionPageState
 
   String _getSubtitleText() {
     if (widget.hasMultipleParts) {
-      if (widget.selectedCategory == 'moteur' ||
-          widget.selectedCategory == 'engine') {
+      if (widget.selectedCategory == 'engine_parts') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Moteur complet"';
-      } else if (widget.selectedCategory == 'carrosserie' ||
-          widget.selectedCategory == 'body') {
+      } else if (widget.selectedCategory == 'transmission_parts') {
+        return 'Sélectionnez les pièces manquantes ou choisissez "Boîte complète"';
+      } else if (widget.selectedCategory == 'body_parts') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Carrosserie complète"';
       } else {
         return 'Sélectionnez les pièces manquantes ou choisissez "Véhicule complet"';
@@ -171,14 +172,14 @@ class _SellerPartsSelectionPageState
   }
 
   Color _getCategoryColor() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
+    if (widget.selectedCategory == 'engine_parts') {
       return const Color(0xFF2196F3); // Bleu
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
+    } else if (widget.selectedCategory == 'transmission_parts') {
       return const Color(0xFF4CAF50); // Vert
-    } else {
+    } else if (widget.selectedCategory == 'body_parts') {
       return const Color(0xFFFF9800); // Orange
+    } else {
+      return const Color(0xFFFF9800); // Orange (pour "both")
     }
   }
 
@@ -274,17 +275,22 @@ class _SellerPartsSelectionPageState
   }
 
   Widget _buildCompleteOptions() {
-    // Déterminer quelle option afficher selon la catégorie
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
+    // Déterminer quelle option afficher selon le sous-type
+    if (widget.selectedCategory == 'engine_parts') {
       return _buildCompleteOption(
         optionKey: 'moteur_complet',
         title: 'Moteur complet',
         description: 'Toutes les pièces moteur sont disponibles',
         icon: Icons.engineering_outlined,
       );
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
+    } else if (widget.selectedCategory == 'transmission_parts') {
+      return _buildCompleteOption(
+        optionKey: 'boite_complete',
+        title: 'Boîte complète',
+        description: 'Toutes les pièces de transmission sont disponibles',
+        icon: Icons.settings_input_component_outlined,
+      );
+    } else if (widget.selectedCategory == 'body_parts') {
       return _buildCompleteOption(
         optionKey: 'carrosserie_complete',
         title: 'Carrosserie complète',
