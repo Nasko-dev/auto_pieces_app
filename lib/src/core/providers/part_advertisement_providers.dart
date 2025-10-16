@@ -6,11 +6,16 @@ import '../../features/parts/domain/entities/part_advertisement.dart';
 import '../../features/parts/domain/repositories/part_advertisement_repository.dart';
 import '../../features/parts/data/models/part_advertisement_model.dart' as models;
 import '../network/network_info.dart';
+import 'particulier_auth_providers.dart' show deviceServiceProvider;
 
 // Providers de base
 final partAdvertisementRemoteDataSourceProvider = Provider<PartAdvertisementRemoteDataSource>((ref) {
   final client = Supabase.instance.client;
-  return PartAdvertisementRemoteDataSourceImpl(client: client);
+  final deviceService = ref.watch(deviceServiceProvider);
+  return PartAdvertisementRemoteDataSourceImpl(
+    client: client,
+    deviceService: deviceService,
+  );
 });
 
 final partAdvertisementRepositoryProvider = Provider<PartAdvertisementRepository>((ref) {

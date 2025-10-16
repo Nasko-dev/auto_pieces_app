@@ -13,7 +13,9 @@ abstract class PartAdvertisementRepository {
   Future<Either<Failure, PartAdvertisement>> getPartAdvertisementById(String id);
 
   /// Obtenir toutes les annonces de l'utilisateur connecté
-  Future<Either<Failure, List<PartAdvertisement>>> getMyPartAdvertisements();
+  Future<Either<Failure, List<PartAdvertisement>>> getMyPartAdvertisements({
+    String? particulierId,
+  });
 
   /// Rechercher des annonces avec filtres
   Future<Either<Failure, List<PartAdvertisement>>> searchPartAdvertisements(

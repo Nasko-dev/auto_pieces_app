@@ -171,6 +171,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
       }
 
       final params = CreatePartAdvertisementParams(
+        // particulierId: null par défaut, le datasource récupère l'ID stable
         partType: dbPartType,
         partName: _partName,
         vehiclePlate: _vehiclePlate.isNotEmpty ? _vehiclePlate : null,

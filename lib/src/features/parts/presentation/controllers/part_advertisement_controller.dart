@@ -87,14 +87,16 @@ class PartAdvertisementController extends StateNotifier<PartAdvertisementState> 
   }
 
   // Obtenir mes annonces
-  Future<void> getMyAdvertisements() async {
+  Future<void> getMyAdvertisements({String? particulierId}) async {
     try {
       // Vérifier si le controller n'a pas été dispose
       if (!mounted) return;
 
       state = state.copyWith(isLoading: true, error: null);
 
-      final result = await _repository.getMyPartAdvertisements();
+      final result = await _repository.getMyPartAdvertisements(
+        particulierId: particulierId,
+      );
 
       // Vérifier si le controller n'a pas été dispose après l'appel async
       if (!mounted) return;
