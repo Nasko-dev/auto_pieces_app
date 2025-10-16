@@ -4,7 +4,6 @@ import '../../../../core/utils/haptic_helper.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/choice_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/sub_type_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/quantity_step_page.dart';
-import '../../../../features/parts/presentation/pages/particulier/become_seller/sell_part_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/plate_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/congrats_step_page.dart';
 import '../../../../shared/presentation/widgets/app_menu.dart';
@@ -50,31 +49,35 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
     setState(() {
       quantityType = quantity;
 
-      // Si "complet", skip la sélection des pièces et définir le nom automatiquement
+      // Définir automatiquement le nom de la pièce selon la quantité
       if (quantity == 'complete_engine') {
         partName = 'Moteur complet';
-        _currentStep = 4; // Skip to PlateStepPage
       } else if (quantity == 'complete_transmission') {
         partName = 'Boîte complète';
-        _currentStep = 4; // Skip to PlateStepPage
-      } else {
-        // Sinon, aller à la sélection des pièces
-        _currentStep = 3; // SellPartStepPage
+      } else if (quantity == 'multiple') {
+        partName = _getPartNameFromSubType('Plusieurs pièces');
+      } else if (quantity == 'few') {
+        partName = _getPartNameFromSubType('Quelques pièces');
       }
+
+      // Aller directement à PlateStepPage
+      _currentStep = 3;
     });
   }
 
-  bool get _hasMultipleParts {
-    return quantityType == 'multiple' ||
-        quantityType == 'complete_engine' ||
-        quantityType == 'complete_transmission';
-  }
-
-  void _onPartSubmitted(String name) {
-    setState(() {
-      partName = name;
-      _currentStep = 4;
-    });
+  String _getPartNameFromSubType(String prefix) {
+    switch (selectedSubType) {
+      case 'engine_parts':
+        return '$prefix moteur';
+      case 'transmission_parts':
+        return '$prefix transmission';
+      case 'body_parts':
+        return '$prefix carrosserie';
+      case 'both':
+        return '$prefix moteur et transmission';
+      default:
+        return prefix;
+    }
   }
 
   void _goToNextStep() {
@@ -84,10 +87,16 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
   void _goToPreviousStep() {
     if (_currentStep > 0) {
       setState(() {
-        // Si on est au PlateStep (4) et qu'on a un "complet", retourner au QuantityStep (2)
-        if (_currentStep == 4 &&
-            (quantityType == 'complete_engine' ||
-                quantityType == 'complete_transmission')) {
+        // Gérer le retour selon le flow
+        if (_currentStep == 1) {
+          _currentStep = 0;
+        } else if (_currentStep == 2) {
+          if (selectedChoice == 'moteur' || selectedChoice == 'lesdeux') {
+            _currentStep = 1;
+          } else {
+            _currentStep = 0;
+          }
+        } else if (_currentStep == 3) {
           _currentStep = 2;
         } else {
           _currentStep--;
@@ -141,20 +150,14 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
                 selectedSubType: selectedSubType,
                 onQuantitySelected: _onQuantitySelected,
               ),
-            3 => SellPartStepPage(
+            3 => PlateStepPage(
                 key: const ValueKey(3),
-                selectedCategory: selectedChoice,
-                hasMultiple: _hasMultipleParts,
-                onPartSubmitted: _onPartSubmitted,
-              ),
-            4 => PlateStepPage(
-                key: const ValueKey(4),
                 selectedChoice: selectedChoice,
                 selectedSubType: selectedSubType,
                 onNext: _goToNextStep,
               ),
             _ => CongratsStepPage(
-                key: const ValueKey(5),
+                key: const ValueKey(4),
                 onFinish: _finishFlow,
               ),
           },
