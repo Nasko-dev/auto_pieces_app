@@ -268,6 +268,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                 onSubmit: _onPartsSelected,
               ),
             3 => PlateStepPage(
+                selectedChoice: _selectedChoice,
                 onPlateSubmitted: _onPlateSubmitted,
                 isLoading: _isSubmitting,
               ),

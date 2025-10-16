@@ -84,6 +84,7 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
               ),
             2 => PlateStepPage(
                 key: const ValueKey(2),
+                selectedChoice: selectedChoice,
                 onNext: _goToNextStep,
               ),
             _ => CongratsStepPage(
