@@ -58,6 +58,26 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
     super.dispose();
   }
 
+  String _getInfoTitle() {
+    if (_manual) {
+      // Titre selon le sous-type en mode manuel
+      switch (widget.selectedSubType) {
+        case 'engine_parts':
+          return 'Motorisation renseignée';
+        case 'transmission_parts':
+          return 'Transmission renseignée';
+        case 'body_parts':
+          return 'Véhicule renseigné';
+        case 'both':
+          return 'Informations renseignées';
+        default:
+          return 'Informations renseignées';
+      }
+    } else {
+      return 'Véhicule identifié';
+    }
+  }
+
   String _getVehicleInfo(WidgetRef ref) {
     if (_manual) {
       // Mode manuel : construire selon le sous-type
@@ -237,7 +257,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Véhicule identifié',
+                          _getInfoTitle(),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
@@ -283,7 +303,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Informations renseignées',
+                          _getInfoTitle(),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
