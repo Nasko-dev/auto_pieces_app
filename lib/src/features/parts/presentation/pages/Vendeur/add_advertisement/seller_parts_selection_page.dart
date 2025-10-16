@@ -147,6 +147,16 @@ class _SellerPartsSelectionPageState
     return _completeOptions.isNotEmpty || _selectedParts.isNotEmpty;
   }
 
+  bool _isEverythingComplete() {
+    // Pour "both", il faut les 2 options (moteur_complet ET boite_complete)
+    if (widget.selectedCategory == 'both') {
+      return _completeOptions.contains('moteur_complet') &&
+          _completeOptions.contains('boite_complete');
+    }
+    // Pour les autres catégories, une seule option suffit
+    return _completeOptions.isNotEmpty;
+  }
+
   void _handleSubmit() {
     // Combiner les options complètes en une seule string séparée par ","
     final completeOptionsString = _completeOptions.join(',');
@@ -223,32 +233,38 @@ class _SellerPartsSelectionPageState
                       // Options complètes pour +5 pièces
                       if (widget.hasMultipleParts) ...[
                         _buildCompleteOptions(),
-                        const SizedBox(height: 24),
-                        const Row(
-                          children: [
-                            Expanded(child: Divider()),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'ET/OU',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.gray,
+
+                        // Afficher le divider et champ de recherche seulement si tout n'est pas complet
+                        if (!_isEverythingComplete()) ...[
+                          const SizedBox(height: 24),
+                          const Row(
+                            children: [
+                              Expanded(child: Divider()),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'ET/OU',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.gray,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Expanded(child: Divider()),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
+                              Expanded(child: Divider()),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ],
 
-                      // Champ de recherche (toujours visible)
-                      _buildSearchField(),
-                      if (_selectedParts.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        _buildSelectedPartsTags(),
+                      // Champ de recherche (masqué si tout est complet)
+                      if (!_isEverythingComplete()) ...[
+                        _buildSearchField(),
+                        if (_selectedParts.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildSelectedPartsTags(),
+                        ],
                       ],
                     ],
                   ),
@@ -334,6 +350,11 @@ class _SellerPartsSelectionPageState
             _completeOptions.remove(optionKey);
           } else {
             _completeOptions.add(optionKey);
+            // Si tout devient complet, effacer les pièces sélectionnées
+            if (_isEverythingComplete()) {
+              _selectedParts.clear();
+              _searchController.clear();
+            }
           }
         });
       },
@@ -401,6 +422,11 @@ class _SellerPartsSelectionPageState
                   setState(() {
                     if (value ?? false) {
                       _completeOptions.add(optionKey);
+                      // Si tout devient complet, effacer les pièces sélectionnées
+                      if (_isEverythingComplete()) {
+                        _selectedParts.clear();
+                        _searchController.clear();
+                      }
                     } else {
                       _completeOptions.remove(optionKey);
                     }
