@@ -177,7 +177,7 @@ class _SellerPartsSelectionPageState
     } else if (widget.selectedCategory == 'transmission_parts') {
       return const Color(0xFF4CAF50); // Vert
     } else if (widget.selectedCategory == 'body_parts') {
-      return const Color(0xFFFF9800); // Orange
+      return const Color(0xFF4CAF50); // Vert
     } else {
       return const Color(0xFFFF9800); // Orange (pour "both")
     }

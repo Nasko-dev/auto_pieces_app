@@ -148,7 +148,7 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
           title: 'Pièces carrosserie',
           subtitle: 'Portière, pare-choc, phare, capot...',
           icon: Icons.directions_car,
-          color: const Color(0xFFFF9800),
+          color: const Color(0xFF4CAF50),
         ),
       ];
     } else {

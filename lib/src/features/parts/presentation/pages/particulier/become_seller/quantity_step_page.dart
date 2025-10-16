@@ -28,7 +28,7 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
     } else if (widget.selectedSubType == 'transmission_parts') {
       return const Color(0xFF4CAF50); // Vert
     } else if (widget.selectedSubType == 'body_parts') {
-      return const Color(0xFFFF9800); // Orange
+      return const Color(0xFF4CAF50); // Vert
     } else {
       return const Color(0xFFFF9800); // Orange (pour "both")
     }
