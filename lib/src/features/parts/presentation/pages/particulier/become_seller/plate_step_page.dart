@@ -10,6 +10,7 @@ import 'shared_widgets.dart';
 
 class PlateStepPage extends ConsumerStatefulWidget {
   final String selectedChoice;
+  final String selectedSubType;
   final Function(String plate)? onPlateSubmitted;
   final VoidCallback? onNext;
   final bool isLoading;
@@ -17,6 +18,7 @@ class PlateStepPage extends ConsumerStatefulWidget {
   const PlateStepPage({
     super.key,
     required this.selectedChoice,
+    required this.selectedSubType,
     this.onPlateSubmitted,
     this.onNext,
     this.isLoading = false,
@@ -33,10 +35,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   final ScrollController _scrollController = ScrollController();
   bool _showVehicleInfo = false;
 
-  // État pour le sous-type en mode manuel
-  String? _manualSubType; // 'engine_parts', 'transmission_parts', 'body_parts'
-
-  // Pour les dropdowns véhicule (carrosserie)
+  // Pour les dropdowns véhicule (carrosserie, transmission, body)
   String? _selectedBrand;
   String? _selectedModel;
   int? _selectedYear;
@@ -57,7 +56,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   String _getVehicleInfo(WidgetRef ref) {
     if (_manual) {
       // Mode manuel : construire selon le sous-type
-      if (_manualSubType == 'engine_parts') {
+      if (widget.selectedSubType == 'engine_parts') {
         // Motorisation
         final parts = <String>[];
         if (_selectedCylinder != null) parts.add(_selectedCylinder!);
@@ -66,8 +65,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           parts.add('${_horsepowerController.text}cv');
         }
         return parts.isNotEmpty ? parts.join(' - ') : 'Motorisation manuelle';
-      } else if (_manualSubType == 'transmission_parts' ||
-          _manualSubType == 'body_parts') {
+      } else if (widget.selectedSubType == 'transmission_parts' ||
+          widget.selectedSubType == 'body_parts') {
         // Véhicule complet
         final parts = <String>[];
         if (_selectedBrand != null) parts.add(_selectedBrand!);
@@ -157,90 +156,16 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 autoSearch: true,
               ),
 
-            // MODE MANUEL : Cards de sous-choix + dropdowns
+            // MODE MANUEL : Afficher directement les dropdowns selon le sous-type
             if (_manual) ...[
               const SizedBox(height: 12),
-
-              // Afficher les cards de sous-choix selon le choix initial
-              if (widget.selectedChoice == 'moteur') ...[
-                const Text(
-                  'Type de pièce moteur',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.darkGray,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildSubTypeCard(
-                  type: 'engine_parts',
-                  title: 'Pièces moteur',
-                  subtitle: 'Culasse, turbo, injecteurs...',
-                  icon: Icons.settings,
-                  color: const Color(0xFF2196F3),
-                ),
-                const SizedBox(height: 12),
-                _buildSubTypeCard(
-                  type: 'transmission_parts',
-                  title: 'Pièces boîte/transmission',
-                  subtitle: 'Boîte de vitesses, embrayage...',
-                  icon: Icons.settings_input_component,
-                  color: const Color(0xFF4CAF50),
-                ),
-              ] else if (widget.selectedChoice == 'carrosserie') ...[
-                const Text(
-                  'Informations du véhicule',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.darkGray,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Directement afficher les dropdowns véhicule pour carrosserie
-                _buildVehicleDropdowns(),
-              ] else if (widget.selectedChoice == 'lesdeux') ...[
-                const Text(
-                  'Type de pièce',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.darkGray,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildSubTypeCard(
-                  type: 'engine_parts',
-                  title: 'Pièces moteur',
-                  subtitle: 'Culasse, turbo, injecteurs...',
-                  icon: Icons.settings,
-                  color: const Color(0xFF2196F3),
-                ),
-                const SizedBox(height: 12),
-                _buildSubTypeCard(
-                  type: 'transmission_parts',
-                  title: 'Pièces boîte/transmission',
-                  subtitle: 'Boîte de vitesses, embrayage...',
-                  icon: Icons.settings_input_component,
-                  color: const Color(0xFF4CAF50),
-                ),
-                const SizedBox(height: 12),
-                _buildSubTypeCard(
-                  type: 'body_parts',
-                  title: 'Pièces carrosserie',
-                  subtitle: 'Portière, pare-choc, phare...',
-                  icon: Icons.directions_car,
-                  color: const Color(0xFFFF9800),
-                ),
-              ],
-
-              const SizedBox(height: 24),
-
               // Afficher les dropdowns selon le sous-type sélectionné
-              if (_manualSubType == 'engine_parts') ..._buildEngineDropdowns(),
-              if (_manualSubType == 'transmission_parts' ||
-                  _manualSubType == 'body_parts')
+              if (widget.selectedSubType == 'engine_parts') ...[
+                ..._buildEngineDropdowns(),
+              ] else if (widget.selectedSubType == 'transmission_parts' ||
+                  widget.selectedSubType == 'body_parts') ...[
                 _buildVehicleDropdowns(),
+              ],
             ],
 
             // Affichage des informations véhicule après validation
@@ -341,7 +266,6 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               onPressed: () => setState(() {
                 _manual = !_manual;
                 _showVehicleInfo = false;
-                _manualSubType = null;
                 // Reset des champs manuels
                 _selectedBrand = null;
                 _selectedModel = null;
@@ -378,126 +302,6 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                         widget.onNext!();
                       }
                     },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubTypeCard({
-    required String type,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-  }) {
-    final isSelected = _manualSubType == type;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _manualSubType = type;
-          // Reset des champs lors du changement de sous-type
-          _selectedBrand = null;
-          _selectedModel = null;
-          _selectedYear = null;
-          _selectedCylinder = null;
-          _selectedFuelType = null;
-          _horsepowerController.clear();
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? color : AppColors.grey200,
-            width: isSelected ? 2.5 : 1.5,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [
-                  const BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Row(
-          children: [
-            // Icône avec fond coloré
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? color.withValues(alpha: 0.15)
-                    : color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 26,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 14),
-            // Texte
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? color : AppTheme.darkBlue,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.darkGray.withValues(alpha: 0.8),
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Indicateur de sélection
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? color : Colors.transparent,
-                border: Border.all(
-                  color: isSelected ? color : AppTheme.gray,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 14,
-                      color: Colors.white,
-                    )
-                  : null,
             ),
           ],
         ),
@@ -975,16 +779,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   }
 
   bool _isManualFormValid() {
-    if (_manualSubType == null) return false;
-
-    if (_manualSubType == 'engine_parts') {
+    if (widget.selectedSubType == 'engine_parts') {
       // Pour les pièces moteur : cylindrée + carburant requis
       return _selectedCylinder != null &&
           _selectedCylinder!.isNotEmpty &&
           _selectedFuelType != null &&
           _selectedFuelType!.isNotEmpty;
-    } else if (_manualSubType == 'transmission_parts' ||
-        _manualSubType == 'body_parts') {
+    } else if (widget.selectedSubType == 'transmission_parts' ||
+        widget.selectedSubType == 'body_parts') {
       // Pour les pièces boîte/transmission et carrosserie : marque + modèle + année requis
       return _selectedBrand != null &&
           _selectedBrand!.isNotEmpty &&

@@ -1,0 +1,234 @@
+import 'package:flutter/material.dart';
+import '../../../../../../core/theme/app_theme.dart';
+import '../../../../../../core/theme/app_colors.dart';
+
+class QuantityStepPage extends StatefulWidget {
+  final String selectedCategory;
+  final Function(bool hasMultiple) onQuantitySelected;
+
+  const QuantityStepPage({
+    super.key,
+    required this.selectedCategory,
+    required this.onQuantitySelected,
+  });
+
+  @override
+  State<QuantityStepPage> createState() => _QuantityStepPageState();
+}
+
+class _QuantityStepPageState extends State<QuantityStepPage> {
+  bool? _hasMultiple; // null = aucun choix, true = +5 pièces, false = -5 pièces
+
+  Color _getCategoryColor() {
+    if (widget.selectedCategory == 'moteur' ||
+        widget.selectedCategory == 'engine') {
+      return const Color(0xFF2196F3);
+    } else if (widget.selectedCategory == 'carrosserie' ||
+        widget.selectedCategory == 'body') {
+      return const Color(0xFF4CAF50);
+    } else {
+      return const Color(0xFFFF9800);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Combien de pièces\navez-vous ?',
+                style: TextStyle(
+                  fontSize: 32,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.darkBlue,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Sélectionnez l\'option qui correspond à votre situation',
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  color: AppTheme.darkGray,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildQuantityCard(
+                        hasMultiple: true,
+                        title: 'J\'ai plus de 5 pièces',
+                        subtitle:
+                            'Vous avez plusieurs pièces à vendre (plus de 5)',
+                        icon: Icons.inventory_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildQuantityCard(
+                        hasMultiple: false,
+                        title: 'J\'ai moins de 5 pièces',
+                        subtitle:
+                            'Vous avez quelques pièces à vendre (moins de 5)',
+                        icon: Icons.settings_outlined,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _hasMultiple != null
+                      ? () => widget.onQuantitySelected(_hasMultiple!)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _getCategoryColor(),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        AppTheme.gray.withValues(alpha: 0.3),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continuer',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityCard({
+    required bool hasMultiple,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    final isSelected = _hasMultiple == hasMultiple;
+    final color = _getCategoryColor();
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _hasMultiple = hasMultiple;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.08) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color:
+                isSelected ? color.withValues(alpha: 0.3) : AppColors.grey200,
+            width: isSelected ? 3 : 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.2),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [
+                  const BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Row(
+          children: [
+            // Icône avec fond coloré
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color.withValues(alpha: 0.15)
+                    : color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Texte
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? color : AppTheme.darkBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.darkGray.withValues(alpha: 0.8),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Indicateur de sélection
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? color : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? color : AppTheme.gray,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: 16,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
