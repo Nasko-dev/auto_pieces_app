@@ -466,8 +466,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               _selectedDriveType = value;
             });
           },
-          enabled: _selectedGearCount != null &&
-              _selectedGearCount!.isNotEmpty,
+          enabled: _selectedGearCount != null && _selectedGearCount!.isNotEmpty,
         ),
       ] else ...[
         // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
@@ -1158,7 +1157,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (_selectedDriveType != null && _selectedDriveType!.isNotEmpty) {
           transmissionParts.add(_selectedDriveType!);
         }
-        vehicleEngine = transmissionParts.isNotEmpty ? transmissionParts.join(' - ') : null;
+        vehicleEngine =
+            transmissionParts.isNotEmpty ? transmissionParts.join(' - ') : null;
       }
     } else {
       // Mode automatique : utiliser les données de l'API selon le type de pièce
@@ -1425,7 +1425,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       } else if (_selectedType == 'transmission') {
         // Pièces boîte de vitesse : afficher type, nombre de rapports et type transmission
         return [
-          if (_selectedTransmissionType != null && _selectedTransmissionType!.isNotEmpty)
+          if (_selectedTransmissionType != null &&
+              _selectedTransmissionType!.isNotEmpty)
             _buildInfoRow('Type', _selectedTransmissionType!),
           if (_selectedGearCount != null && _selectedGearCount!.isNotEmpty)
             _buildInfoRow('Nombre de vitesses', _selectedGearCount!),
@@ -1528,7 +1529,9 @@ class _TypeCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: compact ? 80 : 150,
-          padding: compact ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12) : const EdgeInsets.all(12),
+          padding: compact
+              ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
+              : const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
             border: Border.all(

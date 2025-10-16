@@ -76,7 +76,8 @@ class SellerResponseModel {
       'message': message,
       if (price != null) 'price': price,
       if (availability != null) 'availability': availability,
-      if (estimatedDeliveryDays != null) 'estimated_delivery_days': estimatedDeliveryDays,
+      if (estimatedDeliveryDays != null)
+        'estimated_delivery_days': estimatedDeliveryDays,
       if (attachments != null) 'attachments': attachments,
       'status': 'pending',
     };

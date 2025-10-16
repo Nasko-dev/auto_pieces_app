@@ -34,16 +34,14 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
       decoration: BoxDecoration(
         color: hasUnread ? const Color(0xFFF0F8FF) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:
-            hasUnread
-                ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
-                : Border.all(color: Colors.grey.shade200),
+        border: hasUnread
+            ? Border.all(color: const Color(0xFF007AFF), width: 1.5)
+            : Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color:
-                hasUnread
-                    ? const Color(0xFF007AFF).withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.04),
+            color: hasUnread
+                ? const Color(0xFF007AFF).withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: hasUnread ? 8 : 4,
             offset: const Offset(0, 2),
           ),
@@ -151,10 +149,9 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
 
   Widget _buildConversationsList(List<Conversation> conversations) {
     return Column(
-      children:
-          conversations.map((conversation) {
-            return _buildConversationItem(conversation);
-          }).toList(),
+      children: conversations.map((conversation) {
+        return _buildConversationItem(conversation);
+      }).toList(),
     );
   }
 
@@ -196,10 +193,9 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                               fontSize: 14,
                               fontWeight:
                                   hasUnread ? FontWeight.w600 : FontWeight.w500,
-                              color:
-                                  hasUnread
-                                      ? const Color(0xFF007AFF)
-                                      : Colors.black87,
+                              color: hasUnread
+                                  ? const Color(0xFF007AFF)
+                                  : Colors.black87,
                             ),
                           ),
                         ),
@@ -213,19 +209,15 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
                           _formatMessageTime(lastMessageTime),
                           style: TextStyle(
                             fontSize: 11,
-                            color:
-                                hasUnread
-                                    ? const Color(0xFF007AFF)
-                                    : Colors.grey[500],
+                            color: hasUnread
+                                ? const Color(0xFF007AFF)
+                                : Colors.grey[500],
                             fontWeight:
-                                hasUnread
-                                    ? FontWeight.w500
-                                    : FontWeight.normal,
+                                hasUnread ? FontWeight.w500 : FontWeight.normal,
                           ),
                         ),
                       ],
                     ),
-
                     if (lastMessage != null) ...[
                       const SizedBox(height: 2),
                       Text(
@@ -390,12 +382,11 @@ class _ConversationGroupCardState extends ConsumerState<ConversationGroupCard> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color:
-            hasUnread
-                ? const Color(0xFF007AFF)
-                : (isFromSeller
-                    ? const Color(0xFF34C759)
-                    : const Color(0xFF9CA3AF)),
+        color: hasUnread
+            ? const Color(0xFF007AFF)
+            : (isFromSeller
+                ? const Color(0xFF34C759)
+                : const Color(0xFF9CA3AF)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(

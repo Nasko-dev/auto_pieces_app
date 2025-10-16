@@ -38,9 +38,9 @@ class HelpPage extends ConsumerWidget {
           children: [
             // Section principale
             _buildWelcomeCard(),
-            
+
             const SizedBox(height: 24),
-            
+
             // FAQ Sections
             _buildFAQSection(
               'Comment ça marche ?',
@@ -60,9 +60,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Gestion des demandes',
               Icons.description_outlined,
@@ -81,9 +81,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Messagerie',
               Icons.chat_bubble_outline,
@@ -98,9 +98,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Sécurité et paiement',
               Icons.security_outlined,
@@ -119,12 +119,12 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Contact Support
             _buildContactCard(),
-            
+
             const SizedBox(height: 20),
           ],
         ),

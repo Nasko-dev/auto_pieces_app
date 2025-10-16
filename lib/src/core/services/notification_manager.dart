@@ -36,7 +36,8 @@ class NotificationManager {
 
         if (!newPermission) {
           debugPrint('❌ ATTENTION: Notifications désactivées !');
-          debugPrint('💡 L\'utilisateur doit activer les notifications manuellement dans les paramètres Android');
+          debugPrint(
+              '💡 L\'utilisateur doit activer les notifications manuellement dans les paramètres Android');
         }
       } else {
         debugPrint('✅ Permissions notifications accordées');
@@ -49,7 +50,8 @@ class NotificationManager {
       _setupListeners();
 
       // 3. Sauvegarder le Player ID
-      await Future.delayed(const Duration(seconds: 2)); // Attendre que le Player ID soit prêt
+      await Future.delayed(
+          const Duration(seconds: 2)); // Attendre que le Player ID soit prêt
       await savePlayerIdToDatabase();
 
       debugPrint('✅ NotificationManager initialisé\n');
@@ -74,7 +76,8 @@ class NotificationManager {
   void _setupListeners() {
     // NE PAS configurer de listener ici !
     // Le PushNotificationService gère déjà les notifications
-    debugPrint('⚠️ NotificationManager: Les listeners sont gérés par PushNotificationService');
+    debugPrint(
+        '⚠️ NotificationManager: Les listeners sont gérés par PushNotificationService');
 
     // S'assurer que le PushNotificationService est initialisé
     // (il sera initialisé automatiquement lors du premier accès)
@@ -92,7 +95,8 @@ class NotificationManager {
       debugPrint('   📱 Player ID OneSignal: $playerId');
       debugPrint('   👤 User ID Supabase: $userId');
       debugPrint('   📧 Email Supabase: $userEmail');
-      debugPrint('   🔐 Auth State: ${_supabase.auth.currentUser != null ? "Connecté" : "Déconnecté"}');
+      debugPrint(
+          '   🔐 Auth State: ${_supabase.auth.currentUser != null ? "Connecté" : "Déconnecté"}');
 
       if (playerId == null) {
         debugPrint('   ⚠️ Player ID pas encore disponible');
@@ -128,16 +132,19 @@ class NotificationManager {
       if (userId != null) {
         try {
           await _supabase
-            .from('push_tokens')
-            .delete()
-            .eq('user_id', userId)
-            .neq('onesignal_player_id', playerId); // Garder celui avec le bon Player ID
+              .from('push_tokens')
+              .delete()
+              .eq('user_id', userId)
+              .neq('onesignal_player_id',
+                  playerId); // Garder celui avec le bon Player ID
         } catch (e) {
           debugPrint('   ⚠️ Nettoyage doublons: $e');
         }
       }
 
-      await _supabase.from('push_tokens').upsert(insertData, onConflict: 'onesignal_player_id');
+      await _supabase
+          .from('push_tokens')
+          .upsert(insertData, onConflict: 'onesignal_player_id');
 
       debugPrint('   ✅ Sauvegardé dans push_tokens - Résultat: OK');
 
@@ -158,9 +165,8 @@ class NotificationManager {
     // Essayer particuliers
     try {
       await _supabase
-        .from('particuliers')
-        .update({'onesignal_player_id': playerId})
-        .eq('id', userId);
+          .from('particuliers')
+          .update({'onesignal_player_id': playerId}).eq('id', userId);
       debugPrint('   ✅ Mis à jour dans particuliers');
       return;
     } catch (e) {
@@ -170,9 +176,8 @@ class NotificationManager {
     // Essayer sellers
     try {
       await _supabase
-        .from('sellers')
-        .update({'onesignal_player_id': playerId})
-        .eq('id', userId);
+          .from('sellers')
+          .update({'onesignal_player_id': playerId}).eq('id', userId);
       debugPrint('   ✅ Mis à jour dans sellers');
     } catch (e) {
       // Pas grave si ça échoue
@@ -206,12 +211,12 @@ class NotificationManager {
 
       // Vérifier que ça a bien été sauvegardé (prendre le plus récent en cas de doublon)
       final result = await _supabase
-        .from('push_tokens')
-        .select('onesignal_player_id')
-        .eq('user_id', userId)
-        .order('updated_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
+          .from('push_tokens')
+          .select('onesignal_player_id')
+          .eq('user_id', userId)
+          .order('updated_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
 
       if (result != null) {
         debugPrint('   ✅ Player ID synchronisé avec succès');
@@ -231,9 +236,9 @@ class NotificationManager {
     try {
       // Récupérer tous les tokens
       final result = await _supabase
-        .from('push_tokens')
-        .select('user_id, onesignal_player_id, platform, last_active')
-        .order('last_active', ascending: false);
+          .from('push_tokens')
+          .select('user_id, onesignal_player_id, platform, last_active')
+          .order('last_active', ascending: false);
 
       debugPrint('📊 Nombre de tokens: ${result.length}');
 
@@ -249,15 +254,15 @@ class NotificationManager {
       // Vérifier le User ID spécifique qui pose problème
       final targetUserId = 'dfcc814d-85ba-46df-ab2f-bb4a2c00c95e';
       final targetResult = await _supabase
-        .from('push_tokens')
-        .select('onesignal_player_id')
-        .eq('user_id', targetUserId)
-        .maybeSingle();
+          .from('push_tokens')
+          .select('onesignal_player_id')
+          .eq('user_id', targetUserId)
+          .maybeSingle();
 
       debugPrint('🎯 RECHERCHE SPÉCIFIQUE:');
       debugPrint('   Target User ID: $targetUserId');
-      debugPrint('   Player ID trouvé: ${targetResult?['onesignal_player_id'] ?? 'AUCUN'}');
-
+      debugPrint(
+          '   Player ID trouvé: ${targetResult?['onesignal_player_id'] ?? 'AUCUN'}');
     } catch (e) {
       debugPrint('❌ Erreur debug DB: $e');
     }
@@ -278,12 +283,12 @@ class NotificationManager {
 
       // 1. Vérifier qu'il est bien dans la base (prendre le plus récent)
       final result = await _supabase
-        .from('push_tokens')
-        .select('onesignal_player_id')
-        .eq('user_id', userId2)
-        .order('updated_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
+          .from('push_tokens')
+          .select('onesignal_player_id')
+          .eq('user_id', userId2)
+          .order('updated_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
 
       debugPrint('📊 DB result: $result');
 
@@ -300,7 +305,8 @@ class NotificationManager {
 
       // Essayons d'appeler l'Edge Function directement avec des logs
       debugPrint('📞 Appel Edge Function...');
-      final response = await _supabase.functions.invoke('send-push-notification', body: {
+      final response =
+          await _supabase.functions.invoke('send-push-notification', body: {
         'user_ids': [userId2],
         'title': 'Test Direct',
         'message': 'Test depuis Dart directement',
@@ -309,7 +315,6 @@ class NotificationManager {
 
       debugPrint('📋 Response status: ${response.status}');
       debugPrint('📋 Response data: ${response.data}');
-
     } catch (e) {
       debugPrint('❌ Erreur test complet: $e');
     }
@@ -341,12 +346,12 @@ class NotificationManager {
     if (userId != null) {
       try {
         final result = await _supabase
-          .from('push_tokens')
-          .select('onesignal_player_id')
-          .eq('user_id', userId)
-          .order('updated_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
+            .from('push_tokens')
+            .select('onesignal_player_id')
+            .eq('user_id', userId)
+            .order('updated_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
 
         debugPrint('Dans push_tokens: ${result?['onesignal_player_id']}');
       } catch (e) {

@@ -34,23 +34,26 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner ServerFailure en cas d\'erreur de déconnexion', () async {
+    test('doit retourner ServerFailure en cas d\'erreur de déconnexion',
+        () async {
       // arrange
-      when(mockRepository.logoutSeller())
-          .thenAnswer((_) async => const Left(ServerFailure('Erreur lors de la déconnexion')));
+      when(mockRepository.logoutSeller()).thenAnswer((_) async =>
+          const Left(ServerFailure('Erreur lors de la déconnexion')));
 
       // act
       final result = await usecase(NoParams());
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur lors de la déconnexion')));
+      expect(
+          result, const Left(ServerFailure('Erreur lors de la déconnexion')));
       verify(mockRepository.logoutSeller());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.logoutSeller())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.logoutSeller()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -60,10 +63,11 @@ void main() {
       verify(mockRepository.logoutSeller());
     });
 
-    test('doit retourner AuthFailure si l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure si l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.logoutSeller())
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non connecté')));
+      when(mockRepository.logoutSeller()).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non connecté')));
 
       // act
       final result = await usecase(NoParams());

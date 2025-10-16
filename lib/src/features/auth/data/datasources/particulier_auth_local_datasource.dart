@@ -9,7 +9,8 @@ abstract class ParticulierAuthLocalDataSource {
   Future<void> clearCache();
 }
 
-class ParticulierAuthLocalDataSourceImpl implements ParticulierAuthLocalDataSource {
+class ParticulierAuthLocalDataSourceImpl
+    implements ParticulierAuthLocalDataSource {
   final SharedPreferences sharedPreferences;
   static const String cachedParticulierKey = 'CACHED_PARTICULIER';
 

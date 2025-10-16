@@ -20,7 +20,7 @@ class SellerNotification {
   factory SellerNotification.fromPartRequest(PartRequest partRequest) {
     // Considérer comme nouvelle si créée dans les dernières 24h
     final isNew = DateTime.now().difference(partRequest.createdAt).inHours < 24;
-    
+
     return SellerNotification(
       partRequest: partRequest,
       isNew: isNew,
@@ -45,7 +45,7 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
 
   SellerDashboardController({
     required GetSellerNotifications getSellerNotifications,
-  }) : _getSellerNotifications = getSellerNotifications,
+  })  : _getSellerNotifications = getSellerNotifications,
         super(const SellerDashboardState.initial());
 
   Future<void> loadNotifications() async {
@@ -61,10 +61,9 @@ class SellerDashboardController extends StateNotifier<SellerDashboardState> {
         final notifications = partRequests
             .map((request) => SellerNotification.fromPartRequest(request))
             .toList();
-        
+
         final unreadCount = notifications.where((n) => n.isNew).length;
-        
-        
+
         state = SellerDashboardState.loaded(
           notifications: notifications,
           unreadCount: unreadCount,
@@ -84,16 +83,16 @@ extension SellerDashboardStateX on SellerDashboardState {
   bool get isLoaded => this is _Loaded;
   bool get isError => this is _Error;
   bool get isInitial => this is _Initial;
-  
+
   List<SellerNotification>? get notifications => mapOrNull(
-    loaded: (state) => state.notifications,
-  );
-  
+        loaded: (state) => state.notifications,
+      );
+
   int? get unreadCount => mapOrNull(
-    loaded: (state) => state.unreadCount,
-  );
-  
+        loaded: (state) => state.unreadCount,
+      );
+
   String? get errorMessage => mapOrNull(
-    error: (state) => state.message,
-  );
+        error: (state) => state.message,
+      );
 }

@@ -190,7 +190,8 @@ void main() {
         expect(user1, equals(user2));
       });
 
-      test('should not be equal when one has null email and other has value', () {
+      test('should not be equal when one has null email and other has value',
+          () {
         final user1 = User(
           id: 'test-id',
           userType: 'particulier',
@@ -208,7 +209,9 @@ void main() {
         expect(user1, isNot(equals(user2)));
       });
 
-      test('should not be equal when one has null updatedAt and other has value', () {
+      test(
+          'should not be equal when one has null updatedAt and other has value',
+          () {
         final user1 = User(
           id: 'test-id',
           userType: 'particulier',

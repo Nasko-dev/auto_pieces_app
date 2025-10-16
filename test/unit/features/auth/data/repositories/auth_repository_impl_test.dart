@@ -44,8 +44,7 @@ void main() {
         // arrange
         when(mockRemoteDataSource.loginAsParticulier())
             .thenAnswer((_) async => tUserModel);
-        when(mockLocalDataSource.cacheUser(any))
-            .thenAnswer((_) async => {});
+        when(mockLocalDataSource.cacheUser(any)).thenAnswer((_) async => {});
 
         // act
         final result = await repository.loginAsParticulier();
@@ -56,7 +55,8 @@ void main() {
         expect(result, Right(tUserModel));
       });
 
-      test('doit retourner ServerFailure quand la connexion remote échoue', () async {
+      test('doit retourner ServerFailure quand la connexion remote échoue',
+          () async {
         // arrange
         when(mockRemoteDataSource.loginAsParticulier())
             .thenThrow(Exception('Erreur connexion'));
@@ -67,7 +67,8 @@ void main() {
         // assert
         verify(mockRemoteDataSource.loginAsParticulier());
         verifyZeroInteractions(mockLocalDataSource);
-        expect(result, const Left(ServerFailure('Exception: Erreur connexion')));
+        expect(
+            result, const Left(ServerFailure('Exception: Erreur connexion')));
       });
 
       test('doit retourner ServerFailure si la mise en cache échoue', () async {
@@ -86,18 +87,19 @@ void main() {
         expect(result, const Left(ServerFailure('Exception: Erreur cache')));
       });
 
-      test('doit mettre en cache l\'utilisateur après une connexion réussie', () async {
+      test('doit mettre en cache l\'utilisateur après une connexion réussie',
+          () async {
         // arrange
         when(mockRemoteDataSource.loginAsParticulier())
             .thenAnswer((_) async => tUserModel);
-        when(mockLocalDataSource.cacheUser(any))
-            .thenAnswer((_) async => {});
+        when(mockLocalDataSource.cacheUser(any)).thenAnswer((_) async => {});
 
         // act
         await repository.loginAsParticulier();
 
         // assert
-        final captured = verify(mockLocalDataSource.cacheUser(captureAny)).captured;
+        final captured =
+            verify(mockLocalDataSource.cacheUser(captureAny)).captured;
         expect(captured.first, tUserModel);
       });
     });
@@ -116,10 +118,10 @@ void main() {
         expect(result, Right(tUserModel));
       });
 
-      test('doit retourner CacheFailure si aucun utilisateur en cache', () async {
+      test('doit retourner CacheFailure si aucun utilisateur en cache',
+          () async {
         // arrange
-        when(mockLocalDataSource.getCachedUser())
-            .thenAnswer((_) async => null);
+        when(mockLocalDataSource.getCachedUser()).thenAnswer((_) async => null);
 
         // act
         final result = await repository.getCurrentUser();
@@ -139,7 +141,10 @@ void main() {
 
         // assert
         verify(mockLocalDataSource.getCachedUser());
-        expect(result, const Left(CacheFailure('Erreur lors de la récupération du cache: Exception: Erreur lecture cache')));
+        expect(
+            result,
+            const Left(CacheFailure(
+                'Erreur lors de la récupération du cache: Exception: Erreur lecture cache')));
       });
     });
 
@@ -156,7 +161,8 @@ void main() {
         expect(result, const Right(null));
       });
 
-      test('doit retourner CacheFailure si le nettoyage du cache échoue', () async {
+      test('doit retourner CacheFailure si le nettoyage du cache échoue',
+          () async {
         // arrange
         when(mockLocalDataSource.clearCache())
             .thenThrow(Exception('Erreur nettoyage'));
@@ -166,7 +172,10 @@ void main() {
 
         // assert
         verify(mockLocalDataSource.clearCache());
-        expect(result, const Left(CacheFailure('Erreur lors de la suppression du cache: Exception: Erreur nettoyage')));
+        expect(
+            result,
+            const Left(CacheFailure(
+                'Erreur lors de la suppression du cache: Exception: Erreur nettoyage')));
       });
     });
 
@@ -186,8 +195,7 @@ void main() {
 
       test('doit retourner false si aucun utilisateur en cache', () async {
         // arrange
-        when(mockLocalDataSource.getCachedUser())
-            .thenAnswer((_) async => null);
+        when(mockLocalDataSource.getCachedUser()).thenAnswer((_) async => null);
 
         // act
         final result = await repository.isLoggedIn();
@@ -212,16 +220,15 @@ void main() {
     });
 
     group('Gestion des états', () {
-      test('doit gérer une séquence complète login -> isLoggedIn -> logout', () async {
+      test('doit gérer une séquence complète login -> isLoggedIn -> logout',
+          () async {
         // arrange
         when(mockRemoteDataSource.loginAsParticulier())
             .thenAnswer((_) async => tUserModel);
-        when(mockLocalDataSource.cacheUser(any))
-            .thenAnswer((_) async => {});
+        when(mockLocalDataSource.cacheUser(any)).thenAnswer((_) async => {});
         when(mockLocalDataSource.getCachedUser())
             .thenAnswer((_) async => tUserModel);
-        when(mockLocalDataSource.clearCache())
-            .thenAnswer((_) async => {});
+        when(mockLocalDataSource.clearCache()).thenAnswer((_) async => {});
 
         // act & assert - login
         final loginResult = await repository.loginAsParticulier();
@@ -246,7 +253,8 @@ void main() {
         verify(mockLocalDataSource.clearCache());
       });
 
-      test('doit maintenir la cohérence après plusieurs appels getCurrentUser', () async {
+      test('doit maintenir la cohérence après plusieurs appels getCurrentUser',
+          () async {
         // arrange
         when(mockLocalDataSource.getCachedUser())
             .thenAnswer((_) async => tUserModel);
@@ -277,10 +285,8 @@ void main() {
         expect(statusResult1, const Right(true));
 
         // arrange - déconnexion
-        when(mockLocalDataSource.clearCache())
-            .thenAnswer((_) async => {});
-        when(mockLocalDataSource.getCachedUser())
-            .thenAnswer((_) async => null);
+        when(mockLocalDataSource.clearCache()).thenAnswer((_) async => {});
+        when(mockLocalDataSource.getCachedUser()).thenAnswer((_) async => null);
 
         // act & assert - déconnexion
         final logoutResult = await repository.logout();
@@ -293,7 +299,8 @@ void main() {
     });
 
     group('Gestion des erreurs avancées', () {
-      test('doit gérer les erreurs de réseau avec des messages appropriés', () async {
+      test('doit gérer les erreurs de réseau avec des messages appropriés',
+          () async {
         // arrange
         when(mockRemoteDataSource.loginAsParticulier())
             .thenThrow(Exception('Network timeout'));
@@ -305,7 +312,8 @@ void main() {
         expect(result, const Left(ServerFailure('Exception: Network timeout')));
       });
 
-      test('doit préserver les données utilisateur existantes lors d\'erreurs', () async {
+      test('doit préserver les données utilisateur existantes lors d\'erreurs',
+          () async {
         // arrange - utilisateur déjà en cache
         when(mockLocalDataSource.getCachedUser())
             .thenAnswer((_) async => tUserModel);
@@ -338,8 +346,7 @@ void main() {
 
         when(mockRemoteDataSource.loginAsParticulier())
             .thenAnswer((_) async => particulierUser);
-        when(mockLocalDataSource.cacheUser(any))
-            .thenAnswer((_) async => {});
+        when(mockLocalDataSource.cacheUser(any)).thenAnswer((_) async => {});
 
         // act
         final result = await repository.loginAsParticulier();

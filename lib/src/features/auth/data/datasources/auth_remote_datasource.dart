@@ -13,7 +13,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       // Simulation d'authentification pour les particuliers (sans Supabase)
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       return UserModel(
         id: 'demo_user_${DateTime.now().millisecondsSinceEpoch}',
         email: null,

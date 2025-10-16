@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:cente_pice/main.dart' as app;
 import 'package:cente_pice/src/features/auth/presentation/pages/seller_login_page.dart';
 import 'package:cente_pice/src/features/auth/presentation/pages/seller_register_page.dart';
+
 /// Test d'intégration pour le flux vendeur
 ///
 /// Ce test vérifie le parcours complet d'un vendeur :
@@ -48,7 +49,7 @@ void main() {
           // Vérifier les éléments de la page de connexion
           expect(
             find.text('Connexion Vendeur').evaluate().isNotEmpty ||
-            find.text('Se connecter').evaluate().isNotEmpty,
+                find.text('Se connecter').evaluate().isNotEmpty,
             true,
             reason: 'La page de connexion devrait avoir un titre',
           );
@@ -220,10 +221,12 @@ void main() {
               await tester.enterText(textFields.at(2), testEmail); // Email
               await tester.pumpAndSettle();
 
-              await tester.enterText(textFields.at(3), '0612345678'); // Téléphone
+              await tester.enterText(
+                  textFields.at(3), '0612345678'); // Téléphone
               await tester.pumpAndSettle();
 
-              await tester.enterText(textFields.at(4), 'Test Auto Parts'); // Entreprise
+              await tester.enterText(
+                  textFields.at(4), 'Test Auto Parts'); // Entreprise
               await tester.pumpAndSettle();
 
               // Note : Les champs de mot de passe peuvent être plus loin

@@ -143,7 +143,8 @@ void main() {
         expect(batchProcessor.pendingItems, contains('item1'));
       });
 
-      test('should trigger immediate processing when max size reached', () async {
+      test('should trigger immediate processing when max size reached',
+          () async {
         batchProcessor.add('item1');
         batchProcessor.add('item2');
         batchProcessor.add('item3'); // Should trigger processing
@@ -163,7 +164,8 @@ void main() {
         expect(batchProcessor.pendingItemsCount, equals(1));
       });
 
-      test('should reset timer when adding multiple items below max size', () async {
+      test('should reset timer when adding multiple items below max size',
+          () async {
         batchProcessor.add('item1');
         await Future.delayed(const Duration(milliseconds: 50));
         batchProcessor.add('item2');
@@ -183,13 +185,15 @@ void main() {
         expect(batchProcessor.pendingItems, containsAll(['item1', 'item2']));
       });
 
-      test('should trigger immediate processing when max size exceeded', () async {
+      test('should trigger immediate processing when max size exceeded',
+          () async {
         batchProcessor.addAll(['item1', 'item2', 'item3', 'item4']);
 
         await Future.delayed(const Duration(milliseconds: 10));
 
         expect(processedBatches.length, equals(1));
-        expect(processedBatches.first, equals(['item1', 'item2', 'item3', 'item4']));
+        expect(processedBatches.first,
+            equals(['item1', 'item2', 'item3', 'item4']));
         expect(batchProcessor.pendingItemsCount, equals(0));
       });
 
@@ -261,7 +265,8 @@ void main() {
 
         // Items should be re-queued after error
         expect(errorProcessor.pendingItemsCount, equals(3));
-        expect(errorProcessor.pendingItems, containsAll(['item1', 'item2', 'item3']));
+        expect(errorProcessor.pendingItems,
+            containsAll(['item1', 'item2', 'item3']));
 
         errorProcessor.dispose();
       });

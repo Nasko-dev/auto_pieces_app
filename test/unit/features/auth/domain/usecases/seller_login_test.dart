@@ -93,7 +93,8 @@ void main() {
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure quand le mot de passe est vide', () async {
+    test('doit retourner ValidationFailure quand le mot de passe est vide',
+        () async {
       // act
       final result = await usecase(const SellerLoginParams(
         email: tEmail,
@@ -101,11 +102,13 @@ void main() {
       ));
 
       // assert
-      expect(result, const Left(ValidationFailure('Le mot de passe est requis')));
+      expect(
+          result, const Left(ValidationFailure('Le mot de passe est requis')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure pour un format d\'email invalide', () async {
+    test('doit retourner ValidationFailure pour un format d\'email invalide',
+        () async {
       // arrange
       const String invalidEmail = 'invalid-email';
 
@@ -120,12 +123,14 @@ void main() {
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand les identifiants sont incorrects', () async {
+    test('doit retourner AuthFailure quand les identifiants sont incorrects',
+        () async {
       // arrange
       when(mockRepository.loginSeller(
         email: anyNamed('email'),
         password: anyNamed('password'),
-      )).thenAnswer((_) async => const Left(AuthFailure('Identifiants incorrects')));
+      )).thenAnswer(
+          (_) async => const Left(AuthFailure('Identifiants incorrects')));
 
       // act
       final result = await usecase(const SellerLoginParams(
@@ -141,12 +146,14 @@ void main() {
       ));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
       when(mockRepository.loginSeller(
         email: anyNamed('email'),
         password: anyNamed('password'),
-      )).thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      )).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(const SellerLoginParams(

@@ -27,7 +27,8 @@ void main() {
   );
 
   group('LoginAsParticulier', () {
-    test('doit retourner un User quand la connexion particulier réussit', () async {
+    test('doit retourner un User quand la connexion particulier réussit',
+        () async {
       // arrange
       when(mockRepository.loginAsParticulier())
           .thenAnswer((_) async => Right(tUser));
@@ -43,8 +44,8 @@ void main() {
 
     test('doit retourner AuthFailure quand la connexion échoue', () async {
       // arrange
-      when(mockRepository.loginAsParticulier())
-          .thenAnswer((_) async => const Left(AuthFailure('Connexion échouée')));
+      when(mockRepository.loginAsParticulier()).thenAnswer(
+          (_) async => const Left(AuthFailure('Connexion échouée')));
 
       // act
       final result = await usecase();
@@ -54,10 +55,11 @@ void main() {
       verify(mockRepository.loginAsParticulier());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.loginAsParticulier())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.loginAsParticulier()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase();
@@ -117,7 +119,8 @@ void main() {
       );
     });
 
-    test('doit retourner le même utilisateur à chaque appel (cohérence)', () async {
+    test('doit retourner le même utilisateur à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.loginAsParticulier())
           .thenAnswer((_) async => Right(tUser));
@@ -131,7 +134,8 @@ void main() {
       verify(mockRepository.loginAsParticulier()).called(2);
     });
 
-    test('doit retourner un utilisateur avec toutes les propriétés correctes', () async {
+    test('doit retourner un utilisateur avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.loginAsParticulier())
           .thenAnswer((_) async => Right(tUser));

@@ -16,7 +16,6 @@ class SellerMessagesPage extends ConsumerStatefulWidget {
 }
 
 class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
-
   @override
   void initState() {
     super.initState();
@@ -53,7 +52,8 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
     );
   }
 
-  Widget _buildBody(List<ConversationGroup> conversationGroups, bool isLoading, String? error) {
+  Widget _buildBody(List<ConversationGroup> conversationGroups, bool isLoading,
+      String? error) {
     if (isLoading && conversationGroups.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
@@ -81,11 +81,12 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       );
     }
 
-
     // Utiliser RefreshIndicator pour permettre l'actualisation manuelle
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(conversationsControllerProvider.notifier).loadConversations();
+        await ref
+            .read(conversationsControllerProvider.notifier)
+            .loadConversations();
       },
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -103,5 +104,4 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
       ),
     );
   }
-
 }

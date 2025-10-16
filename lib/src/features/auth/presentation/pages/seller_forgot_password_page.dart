@@ -10,10 +10,12 @@ class SellerForgotPasswordPage extends ConsumerStatefulWidget {
   const SellerForgotPasswordPage({super.key});
 
   @override
-  ConsumerState<SellerForgotPasswordPage> createState() => _SellerForgotPasswordPageState();
+  ConsumerState<SellerForgotPasswordPage> createState() =>
+      _SellerForgotPasswordPageState();
 }
 
-class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordPage> {
+class _SellerForgotPasswordPageState
+    extends ConsumerState<SellerForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _emailSent = false;
@@ -36,9 +38,9 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final s = size.width / 390.0;
-    
+
     final authState = ref.watch(sellerAuthControllerProvider);
-    
+
     // Écouter les changements d'état pour gérer les réponses
     ref.listen<SellerAuthState>(sellerAuthControllerProvider, (previous, next) {
       next.when(
@@ -69,14 +71,14 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
           color: _textPrimary,
           letterSpacing: -0.5 * s,
         );
-    
+
     TextStyle h2(double f) => GoogleFonts.inter(
           fontSize: f * s,
           fontWeight: FontWeight.w700,
           color: _textPrimary,
           letterSpacing: -0.2 * s,
         );
-    
+
     TextStyle body(double f) => GoogleFonts.inter(
           fontSize: f * s,
           fontWeight: FontWeight.w500,
@@ -108,13 +110,15 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 40 * s),
-              
+
               // Logo et titre
               Center(
                 child: Column(
                   children: [
                     Icon(
-                      _emailSent ? Icons.email_outlined : Icons.lock_reset_rounded,
+                      _emailSent
+                          ? Icons.email_outlined
+                          : Icons.lock_reset_rounded,
                       color: _primaryBlue,
                       size: 80 * s,
                     ),
@@ -125,18 +129,18 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                     ),
                     SizedBox(height: 8 * s),
                     Text(
-                      _emailSent 
-                        ? 'Vérifiez votre boîte mail pour réinitialiser votre mot de passe'
-                        : 'Saisissez votre email pour recevoir un lien de réinitialisation',
+                      _emailSent
+                          ? 'Vérifiez votre boîte mail pour réinitialiser votre mot de passe'
+                          : 'Saisissez votre email pour recevoir un lien de réinitialisation',
                       style: body(16),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 40 * s),
-              
+
               if (!_emailSent) ...[
                 // Formulaire
                 Form(
@@ -156,21 +160,23 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                           if (value == null || value.isEmpty) {
                             return 'Veuillez saisir votre email';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value)) {
                             return 'Email non valide';
                           }
                           return null;
                         },
                       ),
-                      
+
                       SizedBox(height: 32 * s),
-                      
+
                       // Bouton d'envoi
                       SizedBox(
                         width: double.infinity,
                         height: 56 * s,
                         child: ElevatedButton(
-                          onPressed: authState.isLoading ? null : _handleResetPassword,
+                          onPressed:
+                              authState.isLoading ? null : _handleResetPassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _primaryBlue,
                             foregroundColor: Colors.white,
@@ -178,7 +184,8 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16 * s),
                             ),
-                            disabledBackgroundColor: _primaryBlue.withValues(alpha: 0.6),
+                            disabledBackgroundColor:
+                                _primaryBlue.withValues(alpha: 0.6),
                           ),
                           child: authState.isLoading
                               ? SizedBox(
@@ -186,7 +193,8 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                                   height: 24 * s,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
                                 )
                               : Text(
@@ -207,7 +215,7 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                   child: Column(
                     children: [
                       SizedBox(height: 20 * s),
-                      
+
                       // Instructions
                       Container(
                         padding: EdgeInsets.all(20 * s),
@@ -239,9 +247,9 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                           ],
                         ),
                       ),
-                      
+
                       SizedBox(height: 32 * s),
-                      
+
                       // Bouton retour à la connexion
                       SizedBox(
                         width: double.infinity,
@@ -271,9 +279,9 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                   ),
                 ),
               ],
-              
+
               SizedBox(height: 32 * s),
-              
+
               // Lien pour renvoyer l'email
               if (_emailSent) ...[
                 Center(
@@ -311,7 +319,7 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
                   ),
                 ),
               ],
-              
+
               SizedBox(height: 40 * s),
             ],
           ),
@@ -319,7 +327,7 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
       ),
     );
   }
-  
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
@@ -381,7 +389,7 @@ class _SellerForgotPasswordPageState extends ConsumerState<SellerForgotPasswordP
     if (!_formKey.currentState!.validate()) return;
 
     final authController = ref.read(sellerAuthControllerProvider.notifier);
-    
+
     await authController.forgotPassword(_emailController.text.trim());
   }
 }

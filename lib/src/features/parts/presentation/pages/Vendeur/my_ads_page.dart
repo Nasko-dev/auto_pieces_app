@@ -16,7 +16,8 @@ part 'my_ads_page.freezed.dart';
 // Classe pour unifier les annonces et les demandes
 @freezed
 class UnifiedItem with _$UnifiedItem {
-  const factory UnifiedItem.advertisement(PartAdvertisement advertisement) = _Advertisement;
+  const factory UnifiedItem.advertisement(PartAdvertisement advertisement) =
+      _Advertisement;
   const factory UnifiedItem.request(PartRequest request) = _Request;
 }
 
@@ -28,13 +29,14 @@ class MyAdsPage extends ConsumerStatefulWidget {
 }
 
 class _MyAdsPageState extends ConsumerState<MyAdsPage> {
-
   @override
   void initState() {
     super.initState();
     // Charger les annonces et demandes au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
+      ref
+          .read(partAdvertisementControllerProvider.notifier)
+          .getMyAdvertisements();
       ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
     });
   }
@@ -43,7 +45,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
   // Variable supprimée car non utilisée
 
   List<PartAdvertisement> get filteredAds {
-    final advertisements = ref.watch(partAdvertisementControllerProvider).advertisements;
+    final advertisements =
+        ref.watch(partAdvertisementControllerProvider).advertisements;
 
     final filtered = switch (_selectedFilter) {
       'active' => advertisements.where((ad) => ad.status == 'active').toList(),
@@ -57,7 +60,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
   List<PartRequest> get sellerRequests {
     final allRequests = ref.watch(partRequestControllerProvider).requests;
-    final sellerRequests = allRequests.where((request) => request.isSellerRequest).toList();
+    final sellerRequests =
+        allRequests.where((request) => request.isSellerRequest).toList();
     return sellerRequests;
   }
 
@@ -107,13 +111,18 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-                  ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+                  ref
+                      .read(partAdvertisementControllerProvider.notifier)
+                      .getMyAdvertisements();
+                  ref
+                      .read(partRequestControllerProvider.notifier)
+                      .loadUserPartRequests();
                 },
                 tooltip: 'Actualiser',
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: AppTheme.darkGray),
+                icon: const Icon(Icons.add_circle_outline,
+                    color: AppTheme.darkGray),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   // Navigation vers déposer une annonce
@@ -132,13 +141,40 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               child: Row(
                 children: [
                   const SizedBox(width: 4),
-                  _buildFilterChip('Toutes', 'all', ref.watch(partAdvertisementControllerProvider).advertisements.length),
+                  _buildFilterChip(
+                      'Toutes',
+                      'all',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .length),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Actives', 'active', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'active').length),
+                  _buildFilterChip(
+                      'Actives',
+                      'active',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'active')
+                          .length),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Vendues', 'sold', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'sold').length),
+                  _buildFilterChip(
+                      'Vendues',
+                      'sold',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'sold')
+                          .length),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Pausées', 'paused', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'paused').length),
+                  _buildFilterChip(
+                      'Pausées',
+                      'paused',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'paused')
+                          .length),
                   const SizedBox(width: 4),
                 ],
               ),
@@ -152,7 +188,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 final state = ref.watch(partAdvertisementControllerProvider);
                 // Variable supprimée car non utilisée
 
-
                 if (state.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
@@ -164,7 +199,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                        Icon(Icons.error_outline,
+                            size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
                           'Erreur: ${state.error}',
@@ -174,7 +210,10 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
+                            ref
+                                .read(partAdvertisementControllerProvider
+                                    .notifier)
+                                .getMyAdvertisements();
                           },
                           child: const Text('Réessayer'),
                         ),
@@ -189,7 +228,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
+                        Icon(Icons.inventory_2_outlined,
+                            size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
                           'Aucune annonce ou demande',
@@ -202,8 +242,12 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    await ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-                    await ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+                    await ref
+                        .read(partAdvertisementControllerProvider.notifier)
+                        .getMyAdvertisements();
+                    await ref
+                        .read(partRequestControllerProvider.notifier)
+                        .loadUserPartRequests();
                   },
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -215,51 +259,52 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      // Section Annonces et Demandes
-                      Text(
-                        'Mes Annonces (${unifiedItems.length})',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.darkBlue,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                          // Section Annonces et Demandes
+                          Text(
+                            'Mes Annonces (${unifiedItems.length})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.darkBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
-                      // Liste unifiée des annonces et demandes
-                      if (unifiedItems.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Aucune annonce',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[600],
-                                ),
+                          // Liste unifiée des annonces et demandes
+                          if (unifiedItems.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Vos annonces et demandes apparaîtront ici',
-                                style: TextStyle(color: Colors.grey[500]),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.inventory_2_outlined,
+                                      size: 48, color: Colors.grey[400]),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucune annonce',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Vos annonces et demandes apparaîtront ici',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        )
-                      else
-                        ...unifiedItems.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _UnifiedItemCard(item: item),
-                        )),
+                            )
+                          else
+                            ...unifiedItems.map((item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: _UnifiedItemCard(item: item),
+                                )),
                         ],
                       ),
                     ),
@@ -287,7 +332,9 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected
+              ? AppTheme.primaryBlue.withValues(alpha: 0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
@@ -328,7 +375,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     );
   }
 
-
   // Méthodes supprimées car non utilisées (toggleAdStatus, markAsSold, showDeleteConfirmation, deleteAdvertisement)
 }
 
@@ -341,7 +387,8 @@ class _UnifiedItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return item.when(
-      advertisement: (advertisement) => _AdvertisementCard(advertisement: advertisement),
+      advertisement: (advertisement) =>
+          _AdvertisementCard(advertisement: advertisement),
       request: (request) => _RequestCard(request: request),
     );
   }
@@ -479,8 +526,9 @@ class _AdvertisementCard extends ConsumerWidget {
                       'Annonce supprimée avec succès',
                     );
                   } else {
-                    final errorMsg = ref.read(partAdvertisementControllerProvider).error ??
-                        'Erreur lors de la suppression';
+                    final errorMsg =
+                        ref.read(partAdvertisementControllerProvider).error ??
+                            'Erreur lors de la suppression';
                     notificationService.error(
                       context,
                       errorMsg,
@@ -567,7 +615,8 @@ class _AdvertisementCard extends ConsumerWidget {
                 ),
                 // Badge ANNONCE
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -591,7 +640,8 @@ class _AdvertisementCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 // Statut
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -617,12 +667,14 @@ class _AdvertisementCard extends ConsumerWidget {
                 Builder(
                   builder: (BuildContext buttonContext) {
                     return IconButton(
-                      icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                      icon: Icon(Icons.more_vert,
+                          color: AppTheme.darkGray, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: () {
                         HapticFeedback.lightImpact();
-                        final button = buttonContext.findRenderObject() as RenderBox;
+                        final button =
+                            buttonContext.findRenderObject() as RenderBox;
                         _showOptionsMenu(context, ref, button);
                       },
                       tooltip: 'Options',
@@ -931,12 +983,14 @@ class _RequestCard extends ConsumerWidget {
               Builder(
                 builder: (BuildContext buttonContext) {
                   return IconButton(
-                    icon: Icon(Icons.more_vert, color: AppTheme.darkGray, size: 20),
+                    icon: Icon(Icons.more_vert,
+                        color: AppTheme.darkGray, size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      final button = buttonContext.findRenderObject() as RenderBox;
+                      final button =
+                          buttonContext.findRenderObject() as RenderBox;
                       _showOptionsMenu(context, ref, button);
                     },
                     tooltip: 'Options',

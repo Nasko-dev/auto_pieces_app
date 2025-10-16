@@ -19,7 +19,8 @@ void main() {
 
   setUp(() {
     mockRemoteDataSource = MockConversationsRemoteDataSource();
-    repository = ConversationsRepositoryImpl(remoteDataSource: mockRemoteDataSource);
+    repository =
+        ConversationsRepositoryImpl(remoteDataSource: mockRemoteDataSource);
   });
 
   const tUserId = 'user123';
@@ -59,7 +60,8 @@ void main() {
   );
 
   group('getConversations', () {
-    test('doit retourner une liste de conversations quand l\'appel réussit', () async {
+    test('doit retourner une liste de conversations quand l\'appel réussit',
+        () async {
       // arrange
       final conversations = [tConversation];
       when(mockRemoteDataSource.getConversations(userId: tUserId))
@@ -74,7 +76,8 @@ void main() {
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockRemoteDataSource.getConversations(userId: tUserId))
           .thenThrow(const ServerException('Erreur serveur'));
@@ -87,7 +90,9 @@ void main() {
       verify(mockRemoteDataSource.getConversations(userId: tUserId));
     });
 
-    test('doit retourner ServerFailure avec message générique pour une exception générale', () async {
+    test(
+        'doit retourner ServerFailure avec message générique pour une exception générale',
+        () async {
       // arrange
       when(mockRemoteDataSource.getConversations(userId: tUserId))
           .thenThrow(Exception('Erreur inattendue'));
@@ -96,7 +101,10 @@ void main() {
       final result = await repository.getConversations(userId: tUserId);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur lors de la récupération des conversations')));
+      expect(
+          result,
+          const Left(ServerFailure(
+              'Erreur lors de la récupération des conversations')));
       verify(mockRemoteDataSource.getConversations(userId: tUserId));
     });
 
@@ -132,74 +140,95 @@ void main() {
   });
 
   group('getConversationMessages', () {
-    test('doit retourner une liste de messages quand l\'appel réussit', () async {
+    test('doit retourner une liste de messages quand l\'appel réussit',
+        () async {
       // arrange
       final List<Message> messages = [tMessage];
-      when(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId))
+      when(mockRemoteDataSource.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => messages);
 
       // act
-      final result = await repository.getConversationMessages(conversationId: tConversationId);
+      final result = await repository.getConversationMessages(
+          conversationId: tConversationId);
 
       // assert
       expect(result, Right(messages));
-      verify(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId));
+      verify(mockRemoteDataSource.getConversationMessages(
+          conversationId: tConversationId));
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
-      when(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId))
+      when(mockRemoteDataSource.getConversationMessages(
+              conversationId: tConversationId))
           .thenThrow(const ServerException('Erreur serveur'));
 
       // act
-      final result = await repository.getConversationMessages(conversationId: tConversationId);
+      final result = await repository.getConversationMessages(
+          conversationId: tConversationId);
 
       // assert
       expect(result, const Left(ServerFailure('Erreur serveur')));
-      verify(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId));
+      verify(mockRemoteDataSource.getConversationMessages(
+          conversationId: tConversationId));
     });
 
-    test('doit retourner ServerFailure avec message générique pour une exception générale', () async {
+    test(
+        'doit retourner ServerFailure avec message générique pour une exception générale',
+        () async {
       // arrange
-      when(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId))
+      when(mockRemoteDataSource.getConversationMessages(
+              conversationId: tConversationId))
           .thenThrow(Exception('Erreur inattendue'));
 
       // act
-      final result = await repository.getConversationMessages(conversationId: tConversationId);
+      final result = await repository.getConversationMessages(
+          conversationId: tConversationId);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur lors de la récupération des messages')));
-      verify(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId));
+      expect(
+          result,
+          const Left(
+              ServerFailure('Erreur lors de la récupération des messages')));
+      verify(mockRemoteDataSource.getConversationMessages(
+          conversationId: tConversationId));
     });
 
     test('doit gérer une conversation sans messages', () async {
       // arrange
-      when(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId))
+      when(mockRemoteDataSource.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => <Message>[]);
 
       // act
-      final result = await repository.getConversationMessages(conversationId: tConversationId);
+      final result = await repository.getConversationMessages(
+          conversationId: tConversationId);
 
       // assert
       result.fold(
         (failure) => fail('Ne devrait pas échouer'),
         (messages) => expect(messages, <Message>[]),
       );
-      verify(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId));
+      verify(mockRemoteDataSource.getConversationMessages(
+          conversationId: tConversationId));
     });
 
     test('doit déléguer entièrement au datasource', () async {
       // arrange
       final messages = [tMessage];
-      when(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId))
+      when(mockRemoteDataSource.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => messages);
 
       // act
       await repository.getConversationMessages(conversationId: tConversationId);
 
       // assert
-      verify(mockRemoteDataSource.getConversationMessages(conversationId: tConversationId));
+      verify(mockRemoteDataSource.getConversationMessages(
+          conversationId: tConversationId));
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
   });
@@ -337,7 +366,8 @@ void main() {
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockRemoteDataSource.markMessagesAsRead(
         conversationId: tConversationId,
@@ -396,7 +426,8 @@ void main() {
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockRemoteDataSource.deleteConversation(
         conversationId: tConversationId,
@@ -450,7 +481,8 @@ void main() {
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockRemoteDataSource.blockConversation(
         conversationId: tConversationId,
@@ -506,7 +538,8 @@ void main() {
       verifyNoMoreInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockRemoteDataSource.updateConversationStatus(
         conversationId: tConversationId,

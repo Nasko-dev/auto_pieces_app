@@ -36,7 +36,8 @@ class Throttler {
   void run(void Function() action) {
     final now = DateTime.now();
 
-    if (_lastRun == null || now.difference(_lastRun!).compareTo(interval) >= 0) {
+    if (_lastRun == null ||
+        now.difference(_lastRun!).compareTo(interval) >= 0) {
       _lastRun = now;
       action();
     }

@@ -4,7 +4,8 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/seller_auth_repository.dart';
 
-class SellerForgotPassword implements UseCase<void, SellerForgotPasswordParams> {
+class SellerForgotPassword
+    implements UseCase<void, SellerForgotPasswordParams> {
   final SellerAuthRepository repository;
 
   SellerForgotPassword(this.repository);

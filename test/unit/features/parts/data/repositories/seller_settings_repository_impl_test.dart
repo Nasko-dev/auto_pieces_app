@@ -52,7 +52,8 @@ void main() {
   final tSellerSettingsModel = SellerSettingsModel.fromEntity(tSellerSettings);
 
   group('getSellerSettings', () {
-    test('doit retourner SellerSettings quand l\'appel réussit avec connexion', () async {
+    test('doit retourner SellerSettings quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getSellerSettings(tSellerId))
@@ -86,7 +87,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner ServerFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner ServerFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -99,7 +101,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getSellerSettings(tSellerId))
@@ -132,7 +136,9 @@ void main() {
   });
 
   group('saveSellerSettings', () {
-    test('doit retourner SellerSettings sauvegardés quand l\'appel réussit avec connexion', () async {
+    test(
+        'doit retourner SellerSettings sauvegardés quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveSellerSettings(any))
@@ -149,7 +155,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner ServerFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner ServerFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -162,7 +169,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveSellerSettings(any))
@@ -177,7 +186,8 @@ void main() {
       verify(mockRemoteDataSource.saveSellerSettings(any));
     });
 
-    test('doit convertir l\'entité en modèle avant de l\'envoyer au datasource', () async {
+    test('doit convertir l\'entité en modèle avant de l\'envoyer au datasource',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveSellerSettings(any))
@@ -188,7 +198,8 @@ void main() {
 
       // assert
       verify(mockNetworkInfo.isConnected);
-      final captured = verify(mockRemoteDataSource.saveSellerSettings(captureAny)).captured;
+      final captured =
+          verify(mockRemoteDataSource.saveSellerSettings(captureAny)).captured;
       expect(captured.first, isA<SellerSettingsModel>());
       final capturedModel = captured.first as SellerSettingsModel;
       expect(capturedModel.sellerId, tSellerSettings.sellerId);
@@ -213,7 +224,8 @@ void main() {
   });
 
   group('deleteSellerSettings', () {
-    test('doit retourner Unit quand la suppression réussit avec connexion', () async {
+    test('doit retourner Unit quand la suppression réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deleteSellerSettings(tSellerId))
@@ -230,7 +242,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner ServerFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner ServerFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -243,7 +256,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deleteSellerSettings(tSellerId))

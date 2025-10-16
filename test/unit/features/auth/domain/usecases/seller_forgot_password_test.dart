@@ -33,7 +33,8 @@ void main() {
 
       // assert
       expect(result, const Right(null));
-      verify(mockRepository.sendPasswordResetEmail(tEmail.toLowerCase().trim()));
+      verify(
+          mockRepository.sendPasswordResetEmail(tEmail.toLowerCase().trim()));
       verifyNoMoreInteractions(mockRepository);
     });
 
@@ -63,7 +64,8 @@ void main() {
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure pour un format d\'email invalide', () async {
+    test('doit retourner ValidationFailure pour un format d\'email invalide',
+        () async {
       // arrange
       const String invalidEmail = 'invalid-email';
 
@@ -140,10 +142,11 @@ void main() {
       verify(mockRepository.sendPasswordResetEmail(tEmail));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.sendPasswordResetEmail(any))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.sendPasswordResetEmail(any)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(const SellerForgotPasswordParams(

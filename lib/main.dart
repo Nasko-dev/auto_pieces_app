@@ -49,7 +49,8 @@ void main() async {
     final sharedPreferences = await SharedPreferences.getInstance();
 
     // Initialiser le service de session et tenter l'auto-reconnexion
-    final sessionService = SessionService(sharedPreferences, Supabase.instance.client);
+    final sessionService =
+        SessionService(sharedPreferences, Supabase.instance.client);
 
     // Tenter l'auto-reconnexion si une session est en cache
     final hasReconnected = await sessionService.autoReconnect();
@@ -95,9 +96,11 @@ void main() async {
           // Override pour les providers de SharedPreferences dans tous les fichiers
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           // Override pour le provider de session_providers.dart
-          session_providers.sessionSharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          session_providers.sessionSharedPreferencesProvider
+              .overrideWithValue(sharedPreferences),
           // Override pour le DeviceService dans user_settings
-          user_settings.deviceServiceProvider.overrideWithValue(DeviceService(sharedPreferences)),
+          user_settings.deviceServiceProvider
+              .overrideWithValue(DeviceService(sharedPreferences)),
         ],
         child: const MyApp(),
       ),

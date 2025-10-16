@@ -38,7 +38,9 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         'userId': response['id'],
         'displayName': response['first_name']?.isNotEmpty == true
             ? response['first_name']
-            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
+            : (response['email']?.isNotEmpty == true
+                ? response['email']
+                : 'Utilisateur'),
         'address': response['address'],
         'city': response['city'],
         'postalCode': response['zip_code'],
@@ -47,11 +49,18 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         'phone': response['phone'],
         'avatarUrl': response['avatar_url'],
         'notificationsEnabled': response['notifications_enabled'] ?? true,
-        'emailNotificationsEnabled': response['email_notifications_enabled'] ?? true,
-        'createdAt': response['created_at'] != null ?
-            (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
-        'updatedAt': response['updated_at'] != null ?
-            (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
+        'emailNotificationsEnabled':
+            response['email_notifications_enabled'] ?? true,
+        'createdAt': response['created_at'] != null
+            ? (response['created_at'] is String
+                ? response['created_at']
+                : response['created_at'].toString())
+            : null,
+        'updatedAt': response['updated_at'] != null
+            ? (response['updated_at'] is String
+                ? response['updated_at']
+                : response['updated_at'].toString())
+            : null,
       };
 
       return UserSettingsModel.fromJson(adaptedData);
@@ -112,20 +121,31 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         final adaptedResponse = {
           'userId': response['id'],
           'displayName': response['first_name']?.isNotEmpty == true
-            ? response['first_name']
-            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
+              ? response['first_name']
+              : (response['email']?.isNotEmpty == true
+                  ? response['email']
+                  : 'Utilisateur'),
           'address': response['address'],
           'city': response['city'],
           'postalCode': response['zip_code'],
           'country': response['country'] ?? settings.country,
           'phone': response['phone'],
           'avatarUrl': response['avatar_url'],
-          'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
-          'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
-          'createdAt': response['created_at'] != null ?
-              (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
-          'updatedAt': response['updated_at'] != null ?
-              (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
+          'notificationsEnabled': response['notifications_enabled'] ??
+              settings.notificationsEnabled,
+          'emailNotificationsEnabled':
+              response['email_notifications_enabled'] ??
+                  settings.emailNotificationsEnabled,
+          'createdAt': response['created_at'] != null
+              ? (response['created_at'] is String
+                  ? response['created_at']
+                  : response['created_at'].toString())
+              : null,
+          'updatedAt': response['updated_at'] != null
+              ? (response['updated_at'] is String
+                  ? response['updated_at']
+                  : response['updated_at'].toString())
+              : null,
         };
 
         return UserSettingsModel.fromJson(adaptedResponse);
@@ -162,20 +182,31 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
         final adaptedResponse = {
           'userId': response['id'],
           'displayName': response['first_name']?.isNotEmpty == true
-            ? response['first_name']
-            : (response['email']?.isNotEmpty == true ? response['email'] : 'Utilisateur'),
+              ? response['first_name']
+              : (response['email']?.isNotEmpty == true
+                  ? response['email']
+                  : 'Utilisateur'),
           'address': response['address'],
           'city': response['city'],
           'postalCode': response['zip_code'],
           'country': response['country'] ?? settings.country,
           'phone': response['phone'],
           'avatarUrl': response['avatar_url'],
-          'notificationsEnabled': response['notifications_enabled'] ?? settings.notificationsEnabled,
-          'emailNotificationsEnabled': response['email_notifications_enabled'] ?? settings.emailNotificationsEnabled,
-          'createdAt': response['created_at'] != null ?
-              (response['created_at'] is String ? response['created_at'] : response['created_at'].toString()) : null,
-          'updatedAt': response['updated_at'] != null ?
-              (response['updated_at'] is String ? response['updated_at'] : response['updated_at'].toString()) : null,
+          'notificationsEnabled': response['notifications_enabled'] ??
+              settings.notificationsEnabled,
+          'emailNotificationsEnabled':
+              response['email_notifications_enabled'] ??
+                  settings.emailNotificationsEnabled,
+          'createdAt': response['created_at'] != null
+              ? (response['created_at'] is String
+                  ? response['created_at']
+                  : response['created_at'].toString())
+              : null,
+          'updatedAt': response['updated_at'] != null
+              ? (response['updated_at'] is String
+                  ? response['updated_at']
+                  : response['updated_at'].toString())
+              : null,
         };
 
         return UserSettingsModel.fromJson(adaptedResponse);
@@ -203,7 +234,6 @@ class UserSettingsRemoteDataSourceImpl implements UserSettingsRemoteDataSource {
           .from('particuliers')
           .update(dataToUpdate)
           .eq('id', userId);
-
     } on PostgrestException catch (e) {
       throw ServerFailure('Erreur de base de données: ${e.message}');
     } catch (e) {

@@ -133,7 +133,8 @@ void main() {
         // assert
         expect(result, false);
         expect(controller.state.isCreating, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -194,7 +195,8 @@ void main() {
 
         // assert
         expect(controller.state.isLoading, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -256,7 +258,8 @@ void main() {
 
         // assert
         expect(controller.state.isLoading, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -319,12 +322,16 @@ void main() {
         // assert
         expect(result, isEmpty);
         expect(controller.state.isLoading, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
     group('updateAdvertisement', () {
-      final updates = {'price': 1800.0, 'description': 'Description mise à jour'};
+      final updates = {
+        'price': 1800.0,
+        'description': 'Description mise à jour'
+      };
       final updatedAdvertisement = tPartAdvertisement.copyWith(
         price: 1800.0,
         description: 'Description mise à jour',
@@ -392,7 +399,8 @@ void main() {
         // assert
         expect(result, false);
         expect(controller.state.isUpdating, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -458,7 +466,8 @@ void main() {
         // assert
         expect(result, false);
         expect(controller.state.isUpdating, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -524,7 +533,8 @@ void main() {
         // assert
         expect(result, false);
         expect(controller.state.isDeleting, false);
-        expect(controller.state.error, 'Erreur inattendue: Exception: Exception inattendue');
+        expect(controller.state.error,
+            'Erreur inattendue: Exception: Exception inattendue');
       });
     });
 
@@ -625,7 +635,8 @@ void main() {
       });
     });
 
-    test('doit maintenir l\'état correct lors d\'opérations multiples', () async {
+    test('doit maintenir l\'état correct lors d\'opérations multiples',
+        () async {
       // arrange
       when(mockRepository.getMyPartAdvertisements())
           .thenAnswer((_) async => Right(tPartAdvertisementsList));

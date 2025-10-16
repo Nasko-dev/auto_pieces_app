@@ -14,8 +14,7 @@ class DeviceService {
     if (deviceId == null || deviceId.trim().isEmpty) {
       deviceId = _generateDeviceId();
       await _prefs.setString(_deviceIdKey, deviceId);
-    } else {
-    }
+    } else {}
 
     return deviceId;
   }
@@ -25,10 +24,11 @@ class DeviceService {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    
+
     // Générer une partie aléatoire
-    final randomPart = List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
-    
+    final randomPart =
+        List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
+
     // Combiner timestamp et partie aléatoire
     return 'device_${timestamp}_$randomPart';
   }

@@ -29,7 +29,7 @@ abstract class PartRequestRemoteDataSource {
   Future<List<PartRequestModel>> getActivePartRequestsForSeller();
   Future<List<PartRequestModel>> getActivePartRequestsForSellerWithRejections();
   Future<List<PartRequestModel>> getSellerOwnRequests();
-  
+
   // Seller Response methods
   Future<Map<String, dynamic>> createSellerResponse({
     required String requestId,
@@ -40,14 +40,15 @@ abstract class PartRequestRemoteDataSource {
     int? estimatedDeliveryDays,
     List<String>? attachments,
   });
-  
+
   Future<Map<String, dynamic>> acceptSellerResponse(String responseId);
   Future<Map<String, dynamic>> rejectSellerResponse(String responseId);
-  
+
   // Messaging methods
   Future<List<Map<String, dynamic>>> getSellerConversations(String sellerId);
   Future<Map<String, dynamic>> getConversationById(String conversationId);
-  Future<List<Map<String, dynamic>>> getConversationMessages(String conversationId);
+  Future<List<Map<String, dynamic>>> getConversationMessages(
+      String conversationId);
   Future<Map<String, dynamic>> sendMessage({
     required String conversationId,
     required String senderId,
@@ -59,14 +60,15 @@ abstract class PartRequestRemoteDataSource {
     int? offerDeliveryDays,
   });
   Future<void> markMessagesAsRead(String conversationId, String userId);
-  
+
   // Seller Rejections
   Future<SellerRejection> rejectPartRequest(SellerRejection rejection);
   Future<List<SellerRejection>> getSellerRejections(String sellerId);
-  
+
   // Particulier Conversations
   Future<List<ParticulierConversation>> getParticulierConversations();
-  Future<ParticulierConversation> getParticulierConversationById(String conversationId);
+  Future<ParticulierConversation> getParticulierConversationById(
+      String conversationId);
   Future<void> sendParticulierMessage({
     required String conversationId,
     required String content,
@@ -85,12 +87,11 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   Future<List<PartRequestModel>> getUserPartRequests() async {
     try {
       final currentAuthUserId = _supabase.auth.currentUser?.id;
-      
+
       if (currentAuthUserId == null) {
         throw const UnauthorizedException('User not authenticated');
       }
-      
-      
+
       // Pour les vendeurs, utiliser directement l'ID auth (stratégie 2)
       // Pour les particuliers, utiliser le device_id (stratégie 1)
 
@@ -99,36 +100,30 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         final prefs = await SharedPreferences.getInstance();
         final deviceService = DeviceService(prefs);
         final deviceId = await deviceService.getDeviceId();
-        
+
         // Récupérer tous les particuliers avec ce device_id
         final allParticuliersWithDevice = await _supabase
             .from('particuliers')
             .select('id')
             .eq('device_id', deviceId);
 
+        final allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
-        final allUserIds = allParticuliersWithDevice
-            .map((p) => p['id'] as String)
-            .toList();
-
-            
-        
         if (allUserIds.isNotEmpty) {
-
           // Récupérer les demandes pour TOUS ces user_id (SEULEMENT les demandes particuliers)
           final response = await _supabase
               .from('part_requests_with_responses')
               .select()
               .inFilter('user_id', allUserIds)
               .neq('status', 'deleted') // Exclure les demandes supprimées
-              .eq('is_seller_request', false) // SEULEMENT les demandes particuliers
+              .eq('is_seller_request',
+                  false) // SEULEMENT les demandes particuliers
               .order('created_at', ascending: false);
-
 
           final models = (response as List)
               .map((json) => PartRequestModel.fromJson(json))
               .toList();
-
 
           // Si on a trouvé des demandes particuliers, les retourner
           // Sinon, laisser continuer vers la stratégie 2 pour les demandes vendeur
@@ -140,11 +135,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         } else {
           // NE PAS retourner ici, laisser continuer vers la stratégie 2
         }
-
       } catch (particulierError) {
         // Passer à la stratégie 2
       }
-
 
       // Utiliser l'ID de l'utilisateur actuellement connecté
       final currentUserId = _supabase.auth.currentUser?.id;
@@ -152,7 +145,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       if (currentUserId == null) {
         throw ServerException('Utilisateur non connecté');
       }
-
 
       // Récupérer les demandes de l'utilisateur connecté
       final response = await _supabase
@@ -162,26 +154,24 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .neq('status', 'deleted') // Exclure les demandes supprimées
           .order('created_at', ascending: false);
 
-
       final models = (response as List)
           .map((json) => PartRequestModel.fromJson(json))
           .toList();
-          
-      
+
       return models;
-      
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<PartRequestModel> createPartRequest(CreatePartRequestParams params) async {
+  Future<PartRequestModel> createPartRequest(
+      CreatePartRequestParams params) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      
+
       final data = PartRequestModel.fromCreateParams(params);
-      
+
       // Pour les vendeurs, utiliser directement leur ID
       // Pour les particuliers, utiliser l'ID persistant du device
       if (userId != null) {
@@ -207,7 +197,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
             final persistantUserId = particulierPersistant['id'] as String;
             data['user_id'] = persistantUserId;
-
           } catch (e) {
             data['user_id'] = userId;
           }
@@ -216,13 +205,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw const UnauthorizedException('User not authenticated');
       }
 
-
-      final response = await _supabase
-          .from('part_requests')
-          .insert(data)
-          .select()
-          .single();
-
+      final response =
+          await _supabase.from('part_requests').insert(data).select().single();
 
       return PartRequestModel.fromJson(response);
     } catch (e) {
@@ -246,7 +230,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<PartRequestModel> updatePartRequestStatus(String id, String status) async {
+  Future<PartRequestModel> updatePartRequestStatus(
+      String id, String status) async {
     try {
       final response = await _supabase
           .from('part_requests')
@@ -285,7 +270,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             .single();
 
         persistantUserId = particulierPersistant['id'] as String;
-
       } catch (e) {
         // Fallback vers l'ID auth en cas d'erreur
         persistantUserId = currentAuthUser.id;
@@ -302,7 +286,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       if (response.isEmpty) {
         throw ServerException('Impossible de supprimer cette demande');
       }
-
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -317,19 +300,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         final prefs = await SharedPreferences.getInstance();
         final deviceService = DeviceService(prefs);
         final deviceId = await deviceService.getDeviceId();
-        
+
         // Récupérer les particuliers avec ce device_id
         final particuliersResponse = await _supabase
             .from('particuliers')
             .select('id')
             .eq('device_id', deviceId);
-            
-        final userIds = particuliersResponse
-            .map((p) => p['id'] as String)
-            .toList();
-            
+
+        final userIds =
+            particuliersResponse.map((p) => p['id'] as String).toList();
+
         if (userIds.isEmpty) return false;
-        
+
         // Vérifier s'il y a une demande active pour ces user_ids
         final response = await _supabase
             .from('part_requests')
@@ -337,7 +319,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             .inFilter('user_id', userIds)
             .eq('status', 'active')
             .limit(1);
-            
+
         return (response as List).isNotEmpty;
       } else {
         // Pour les utilisateurs authentifiés, vérifier par user_id
@@ -347,7 +329,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             .eq('user_id', currentUser.id)
             .eq('status', 'active')
             .limit(1);
-            
+
         return (response as List).isNotEmpty;
       }
     } catch (e) {
@@ -356,7 +338,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getPartRequestResponses(String requestId) async {
+  Future<List<Map<String, dynamic>>> getPartRequestResponses(
+      String requestId) async {
     try {
       final response = await _supabase
           .from('seller_responses')
@@ -418,21 +401,22 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   Future<Map<String, int>> getPartRequestStats() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) throw const UnauthorizedException('User not authenticated');
+      if (userId == null)
+        throw const UnauthorizedException('User not authenticated');
 
       // Récupérer toutes les demandes et compter côté client
       final allRequests = await _supabase
           .from('part_requests')
           .select('status')
           .eq('user_id', userId);
-      
+
       final stats = <String, int>{
         'active': 0,
         'closed': 0,
         'fulfilled': 0,
         'total': 0,
       };
-      
+
       for (final request in allRequests) {
         final status = request['status'] as String;
         if (stats.containsKey(status)) {
@@ -450,14 +434,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<List<PartRequestModel>> getActivePartRequestsForSeller() async {
     try {
-
       final response = await _supabase
           .from('part_requests_with_responses')
           .select()
           .eq('status', 'active')
           .order('created_at', ascending: false)
           .limit(20);
-
 
       return (response as List)
           .map((json) => PartRequestModel.fromJson(json))
@@ -478,7 +460,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
     List<String>? attachments,
   }) async {
     try {
-
       // D'abord créer la réponse
       final responseData = {
         'request_id': requestId,
@@ -486,7 +467,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         'message': message,
         if (price != null) 'price': price,
         if (availability != null) 'availability': availability,
-        if (estimatedDeliveryDays != null) 'estimated_delivery_days': estimatedDeliveryDays,
+        if (estimatedDeliveryDays != null)
+          'estimated_delivery_days': estimatedDeliveryDays,
         'attachments': attachments ?? [],
         'status': 'pending',
       };
@@ -496,7 +478,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .insert(responseData)
           .select()
           .single();
-
 
       // Ensuite créer ou récupérer la conversation
       await _createOrGetConversation(requestId, sellerId);
@@ -510,7 +491,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<Map<String, dynamic>> acceptSellerResponse(String responseId) async {
     try {
-
       final response = await _supabase
           .from('seller_responses')
           .update({'status': 'accepted'})
@@ -527,7 +507,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<Map<String, dynamic>> rejectSellerResponse(String responseId) async {
     try {
-
       final response = await _supabase
           .from('seller_responses')
           .update({'status': 'rejected'})
@@ -542,9 +521,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getSellerConversations(String sellerId) async {
+  Future<List<Map<String, dynamic>>> getSellerConversations(
+      String sellerId) async {
     try {
-
       final conversations = await _supabase
           .from('conversations')
           .select('''
@@ -568,12 +547,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getConversationById(String conversationId) async {
+  Future<Map<String, dynamic>> getConversationById(
+      String conversationId) async {
     try {
-
-      final conversation = await _supabase
-          .from('conversations')
-          .select('''
+      final conversation = await _supabase.from('conversations').select('''
             *,
             part_requests_with_responses!inner (
               id,
@@ -584,9 +561,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               user_id,
               created_at
             )
-          ''')
-          .eq('id', conversationId)
-          .single();
+          ''').eq('id', conversationId).single();
 
       return conversation;
     } catch (e) {
@@ -595,9 +570,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getConversationMessages(String conversationId) async {
+  Future<List<Map<String, dynamic>>> getConversationMessages(
+      String conversationId) async {
     try {
-
       final messages = await _supabase
           .from('messages')
           .select()
@@ -622,7 +597,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
     int? offerDeliveryDays,
   }) async {
     try {
-
       final messageData = {
         'conversation_id': conversationId,
         'sender_id': senderId,
@@ -650,7 +624,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<void> markMessagesAsRead(String conversationId, String userId) async {
     try {
-
       await _supabase
           .from('messages')
           .update({
@@ -659,16 +632,15 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           })
           .eq('conversation_id', conversationId)
           .neq('sender_id', userId);
-
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   // Helper method to create or get conversation
-  Future<String> _createOrGetConversation(String requestId, String sellerId) async {
+  Future<String> _createOrGetConversation(
+      String requestId, String sellerId) async {
     try {
-
       // Récupérer le client_id depuis la part_request (utiliser la vue pour avoir toutes les demandes)
       final partRequest = await _supabase
           .from('part_requests_with_responses')
@@ -697,7 +669,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         'status': 'active',
       };
 
-
       final conversation = await _supabase
           .from('conversations')
           .insert(conversationData)
@@ -713,7 +684,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<SellerRejection> rejectPartRequest(SellerRejection rejection) async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
@@ -721,7 +691,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       final rejectionModel = SellerRejectionModel.fromEntity(rejection);
       final insertData = rejectionModel.toInsertJson();
-      
+
       // S'assurer que seller_id correspond à l'utilisateur connecté
       insertData['seller_id'] = currentUser.id;
 
@@ -732,7 +702,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .single();
 
       final savedRejection = SellerRejectionModel.fromJson(result).toEntity();
-      
+
       return savedRejection;
     } catch (e) {
       throw ServerException(e.toString());
@@ -742,7 +712,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<List<SellerRejection>> getSellerRejections(String sellerId) async {
     try {
-
       final result = await _supabase
           .from('seller_rejections')
           .select()
@@ -760,9 +729,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<List<PartRequestModel>> getActivePartRequestsForSellerWithRejections() async {
+  Future<List<PartRequestModel>>
+      getActivePartRequestsForSellerWithRejections() async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
@@ -781,7 +750,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .select('part_request_id')
           .eq('seller_id', currentUser.id);
 
-      final rejectedIds = rejections.map((r) => r['part_request_id'] as String).toSet();
+      final rejectedIds =
+          rejections.map((r) => r['part_request_id'] as String).toSet();
 
       // Récupérer les conversations de ce vendeur pour filtrer les demandes déjà contactées
       final conversations = await _supabase
@@ -789,7 +759,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .select('request_id')
           .eq('seller_id', currentUser.id);
 
-      final contactedIds = conversations.map((c) => c['request_id'] as String).toSet();
+      final contactedIds =
+          conversations.map((c) => c['request_id'] as String).toSet();
 
       // Filtrer les demandes pour exclure celles refusées, contactées ET ses propres demandes
       final filteredResult = result.where((json) {
@@ -798,8 +769,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
         // Exclure si refusée, déjà contactée, ou si c'est sa propre demande
         return !rejectedIds.contains(requestId) &&
-               !contactedIds.contains(requestId) &&
-               requestUserId != currentUser.id;
+            !contactedIds.contains(requestId) &&
+            requestUserId != currentUser.id;
       }).toList();
 
       final models = filteredResult.map((json) {
@@ -843,7 +814,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   @override
   Future<List<ParticulierConversation>> getParticulierConversations() async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
@@ -851,23 +821,21 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       // Récupérer l'ID persistant du particulier comme dans getUserPartRequests
       List<String> allUserIds = [];
-      
+
       try {
         final prefs = await SharedPreferences.getInstance();
         final deviceService = DeviceService(prefs);
         final deviceId = await deviceService.getDeviceId();
-        
+
         // Récupérer tous les particuliers avec ce device_id
         final allParticuliersWithDevice = await _supabase
             .from('particuliers')
             .select('id')
             .eq('device_id', deviceId);
-            
-        allUserIds = allParticuliersWithDevice
-            .map((p) => p['id'] as String)
-            .toList();
-            
-        
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
         if (allUserIds.isEmpty) {
           allUserIds = [currentUser.id];
         }
@@ -900,7 +868,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           ''')
           .inFilter('user_id', allUserIds)
           .order('last_message_at', ascending: false);
-
 
       List<ParticulierConversation> result = [];
 
@@ -938,11 +905,11 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           final sellerData = convData['sellers'];
 
           final sellerName = sellerData != null
-              ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'.trim()
+              ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                  .trim()
               : 'Vendeur inconnu';
           final sellerCompanyName = sellerData?['company_name'];
           final sellerAvatarUrl = sellerData?['avatar_url'];
-
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
@@ -973,11 +940,13 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               orElse: () => ConversationStatus.active,
             ),
             hasUnreadMessages: () {
-              final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
+              final dbUnreadCount =
+                  convData['unread_count_for_user'] as int? ?? 0;
               return dbUnreadCount > 0;
             }(),
             unreadCount: () {
-              final dbUnreadCount = convData['unread_count_for_user'] as int? ?? 0;
+              final dbUnreadCount =
+                  convData['unread_count_for_user'] as int? ?? 0;
               return dbUnreadCount;
             }(),
             vehiclePlate: partRequestData['vehicle_plate'],
@@ -1002,9 +971,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   @override
-  Future<ParticulierConversation> getParticulierConversationById(String conversationId) async {
+  Future<ParticulierConversation> getParticulierConversationById(
+      String conversationId) async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
@@ -1042,7 +1011,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
     required String content,
   }) async {
     try {
-      
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
@@ -1052,7 +1020,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       final messageData = {
         'conversation_id': conversationId,
         'sender_id': currentUser.id,
-        'sender_type': 'user', // Le particulier envoie toujours en tant que 'user'
+        'sender_type':
+            'user', // Le particulier envoie toujours en tant que 'user'
         'content': content,
         'message_type': 'text',
         'is_read': false, // Message non lu par défaut
@@ -1066,20 +1035,14 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .select()
           .single();
 
-      
       // Mettre à jour la conversation avec le dernier message et incrémenter le compteur pour le vendeur
-      await _supabase
-          .from('conversations')
-          .update({
-            'last_message_content': content,
-            'last_message_sender_type': 'user',
-            'last_message_created_at': response['created_at'],
-            'updated_at': 'now()',
-            'unread_count_for_seller': 'unread_count_for_seller + 1',
-          })
-          .eq('id', conversationId);
-
-      
+      await _supabase.from('conversations').update({
+        'last_message_content': content,
+        'last_message_sender_type': 'user',
+        'last_message_created_at': response['created_at'],
+        'updated_at': 'now()',
+        'unread_count_for_seller': 'unread_count_for_seller + 1',
+      }).eq('id', conversationId);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -1092,7 +1055,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
       }
-
 
       // Vérifier si l'utilisateur actuel est un vendeur
       final isSeller = await _checkIfUserIsSeller(currentUser.id);
@@ -1111,32 +1073,29 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .from('conversations')
           .update(updateData)
           .eq('id', conversationId);
-
-
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<void> incrementUnreadCountForUser({required String conversationId}) async {
+  Future<void> incrementUnreadCountForUser(
+      {required String conversationId}) async {
     try {
-
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
         throw UnauthorizedException('User not authenticated');
       }
 
       // Incrémenter le compteur côté particulier (unread_count_for_user)
-
-
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<void> markParticulierMessagesAsRead({required String conversationId}) async {
+  Future<void> markParticulierMessagesAsRead(
+      {required String conversationId}) async {
     try {
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
@@ -1155,7 +1114,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       final clientId = conversation['user_id'];
       final sellerId = conversation['seller_id'];
       final requestId = conversation['request_id'];
-
 
       // Déterminer qui est le "particulier" (demandeur) et qui est le "vendeur" (répondeur)
       String particulierId = clientId;
@@ -1176,7 +1134,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           // L'auteur de la demande agit comme "particulier", l'autre comme "vendeur"
           particulierId = requestAuthorId;
           vendeurId = (requestAuthorId == clientId) ? sellerId : clientId;
-
         } catch (e) {
           // Garder les rôles par défaut si erreur récupération part_request
         }
@@ -1194,7 +1151,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               'read_at': 'now()',
             })
             .eq('conversation_id', conversationId)
-            .neq('sender_id', userId)  // Messages des autres (pas de lui)
+            .neq('sender_id', userId) // Messages des autres (pas de lui)
             .eq('is_read', false);
       } else if (isUserTheVendeur) {
         // L'utilisateur est le vendeur → marquer les messages du particulier comme lus
@@ -1205,7 +1162,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               'read_at': 'now()',
             })
             .eq('conversation_id', conversationId)
-            .neq('sender_id', userId)  // Messages des autres (pas de lui)
+            .neq('sender_id', userId) // Messages des autres (pas de lui)
             .eq('is_read', false);
       }
 
@@ -1215,8 +1172,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       } catch (e) {
         rethrow;
       }
-
-
     } catch (e) {
       throw ServerException(e.toString());
     }

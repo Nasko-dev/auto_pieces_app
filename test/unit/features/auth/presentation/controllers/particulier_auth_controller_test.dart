@@ -54,7 +54,9 @@ void main() {
     });
 
     group('signInAnonymously', () {
-      test('doit émettre [loading, anonymousAuthenticated] quand la connexion réussit', () async {
+      test(
+          'doit émettre [loading, anonymousAuthenticated] quand la connexion réussit',
+          () async {
         // arrange
         when(mockParticulierAnonymousAuth(any))
             .thenAnswer((_) async => Right(tParticulier));
@@ -66,14 +68,15 @@ void main() {
         expect(controller.state, const ParticulierAuthState.loading());
 
         await future;
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
         verify(mockParticulierAnonymousAuth(NoParams()));
       });
 
       test('doit émettre [loading, error] quand la connexion échoue', () async {
         // arrange
-        when(mockParticulierAnonymousAuth(any))
-            .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
+        when(mockParticulierAnonymousAuth(any)).thenAnswer(
+            (_) async => const Left(ServerFailure('Erreur serveur')));
 
         // act
         final future = controller.signInAnonymously();
@@ -82,37 +85,41 @@ void main() {
         expect(controller.state, const ParticulierAuthState.loading());
 
         await future;
-        expect(controller.state, const ParticulierAuthState.error('Erreur serveur'));
+        expect(controller.state,
+            const ParticulierAuthState.error('Erreur serveur'));
         verify(mockParticulierAnonymousAuth(NoParams()));
       });
 
       test('doit mapper correctement les NetworkFailure', () async {
         // arrange
-        when(mockParticulierAnonymousAuth(any))
-            .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion')));
+        when(mockParticulierAnonymousAuth(any)).thenAnswer(
+            (_) async => const Left(NetworkFailure('Pas de connexion')));
 
         // act
         await controller.signInAnonymously();
 
         // assert
-        expect(controller.state, const ParticulierAuthState.error('Pas de connexion'));
+        expect(controller.state,
+            const ParticulierAuthState.error('Pas de connexion'));
       });
 
       test('doit mapper correctement les AuthFailure', () async {
         // arrange
-        when(mockParticulierAnonymousAuth(any))
-            .thenAnswer((_) async => const Left(AuthFailure('Authentification refusée')));
+        when(mockParticulierAnonymousAuth(any)).thenAnswer(
+            (_) async => const Left(AuthFailure('Authentification refusée')));
 
         // act
         await controller.signInAnonymously();
 
         // assert
-        expect(controller.state, const ParticulierAuthState.error('Authentification refusée'));
+        expect(controller.state,
+            const ParticulierAuthState.error('Authentification refusée'));
       });
     });
 
     group('logout', () {
-      test('doit émettre [loading, initial] quand la déconnexion réussit', () async {
+      test('doit émettre [loading, initial] quand la déconnexion réussit',
+          () async {
         // arrange
         when(mockParticulierLogout(any))
             .thenAnswer((_) async => const Right(null));
@@ -128,10 +135,11 @@ void main() {
         verify(mockParticulierLogout(NoParams()));
       });
 
-      test('doit émettre [loading, error] quand la déconnexion échoue', () async {
+      test('doit émettre [loading, error] quand la déconnexion échoue',
+          () async {
         // arrange
-        when(mockParticulierLogout(any))
-            .thenAnswer((_) async => const Left(ServerFailure('Erreur déconnexion')));
+        when(mockParticulierLogout(any)).thenAnswer(
+            (_) async => const Left(ServerFailure('Erreur déconnexion')));
 
         // act
         final future = controller.logout();
@@ -140,13 +148,16 @@ void main() {
         expect(controller.state, const ParticulierAuthState.loading());
 
         await future;
-        expect(controller.state, const ParticulierAuthState.error('Erreur déconnexion'));
+        expect(controller.state,
+            const ParticulierAuthState.error('Erreur déconnexion'));
         verify(mockParticulierLogout(NoParams()));
       });
     });
 
     group('getCurrentParticulier', () {
-      test('doit émettre [loading, anonymousAuthenticated] quand la récupération réussit', () async {
+      test(
+          'doit émettre [loading, anonymousAuthenticated] quand la récupération réussit',
+          () async {
         // arrange
         when(mockGetCurrentParticulier(any))
             .thenAnswer((_) async => Right(tParticulier));
@@ -158,11 +169,13 @@ void main() {
         expect(controller.state, const ParticulierAuthState.loading());
 
         await future;
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
         verify(mockGetCurrentParticulier(NoParams()));
       });
 
-      test('doit émettre [loading, initial] quand la récupération échoue', () async {
+      test('doit émettre [loading, initial] quand la récupération échoue',
+          () async {
         // arrange
         when(mockGetCurrentParticulier(any))
             .thenAnswer((_) async => const Left(AuthFailure('Non connecté')));
@@ -180,7 +193,9 @@ void main() {
     });
 
     group('checkAuthStatus', () {
-      test('doit mettre l\'état à anonymousAuthenticated si un particulier existe', () async {
+      test(
+          'doit mettre l\'état à anonymousAuthenticated si un particulier existe',
+          () async {
         // arrange
         when(mockGetCurrentParticulier(any))
             .thenAnswer((_) async => Right(tParticulier));
@@ -189,11 +204,13 @@ void main() {
         await controller.checkAuthStatus();
 
         // assert
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
         verify(mockGetCurrentParticulier(NoParams()));
       });
 
-      test('doit mettre l\'état à initial si aucun particulier n\'existe', () async {
+      test('doit mettre l\'état à initial si aucun particulier n\'existe',
+          () async {
         // arrange
         when(mockGetCurrentParticulier(any))
             .thenAnswer((_) async => const Left(AuthFailure('Non connecté')));
@@ -222,7 +239,8 @@ void main() {
     group('resetState', () {
       test('doit remettre l\'état à initial', () {
         // arrange - mettre le controller dans un état différent
-        controller.state = ParticulierAuthState.anonymousAuthenticated(tParticulier);
+        controller.state =
+            ParticulierAuthState.anonymousAuthenticated(tParticulier);
 
         // act
         controller.resetState();
@@ -262,8 +280,11 @@ void main() {
         expect(controller.state.isInitial, false);
       });
 
-      test('isAuthenticated doit retourner true pour l\'état anonymousAuthenticated', () {
-        controller.state = ParticulierAuthState.anonymousAuthenticated(tParticulier);
+      test(
+          'isAuthenticated doit retourner true pour l\'état anonymousAuthenticated',
+          () {
+        controller.state =
+            ParticulierAuthState.anonymousAuthenticated(tParticulier);
         expect(controller.state.isAuthenticated, true);
         expect(controller.state.isLoading, false);
         expect(controller.state.isError, false);
@@ -286,8 +307,11 @@ void main() {
         expect(controller.state.isError, false);
       });
 
-      test('particulier doit retourner le particulier pour l\'état anonymousAuthenticated', () {
-        controller.state = ParticulierAuthState.anonymousAuthenticated(tParticulier);
+      test(
+          'particulier doit retourner le particulier pour l\'état anonymousAuthenticated',
+          () {
+        controller.state =
+            ParticulierAuthState.anonymousAuthenticated(tParticulier);
         expect(controller.state.particulier, tParticulier);
       });
 
@@ -315,13 +339,15 @@ void main() {
         controller.state = const ParticulierAuthState.loading();
         expect(controller.state.errorMessage, null);
 
-        controller.state = ParticulierAuthState.anonymousAuthenticated(tParticulier);
+        controller.state =
+            ParticulierAuthState.anonymousAuthenticated(tParticulier);
         expect(controller.state.errorMessage, null);
       });
     });
 
     group('Gestion des états complexes', () {
-      test('doit gérer une séquence complète connexion -> déconnexion', () async {
+      test('doit gérer une séquence complète connexion -> déconnexion',
+          () async {
         // arrange
         when(mockParticulierAnonymousAuth(any))
             .thenAnswer((_) async => Right(tParticulier));
@@ -330,36 +356,41 @@ void main() {
 
         // act & assert - connexion
         await controller.signInAnonymously();
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
 
         // act & assert - déconnexion
         await controller.logout();
         expect(controller.state, const ParticulierAuthState.initial());
       });
 
-      test('doit gérer plusieurs tentatives de connexion consécutives', () async {
+      test('doit gérer plusieurs tentatives de connexion consécutives',
+          () async {
         // arrange
         when(mockParticulierAnonymousAuth(any))
             .thenAnswer((_) async => Right(tParticulier));
 
         // act & assert
         await controller.signInAnonymously();
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
 
         await controller.signInAnonymously();
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
 
         verify(mockParticulierAnonymousAuth(NoParams())).called(2);
       });
 
       test('doit permettre une nouvelle connexion après une erreur', () async {
         // arrange - première tentative (échec)
-        when(mockParticulierAnonymousAuth(any))
-            .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
+        when(mockParticulierAnonymousAuth(any)).thenAnswer(
+            (_) async => const Left(ServerFailure('Erreur serveur')));
 
         // act & assert - première tentative (échec)
         await controller.signInAnonymously();
-        expect(controller.state, const ParticulierAuthState.error('Erreur serveur'));
+        expect(controller.state,
+            const ParticulierAuthState.error('Erreur serveur'));
 
         // arrange - deuxième tentative (succès)
         when(mockParticulierAnonymousAuth(any))
@@ -367,7 +398,8 @@ void main() {
 
         // act & assert - deuxième tentative (succès)
         await controller.signInAnonymously();
-        expect(controller.state, ParticulierAuthState.anonymousAuthenticated(tParticulier));
+        expect(controller.state,
+            ParticulierAuthState.anonymousAuthenticated(tParticulier));
       });
     });
   });

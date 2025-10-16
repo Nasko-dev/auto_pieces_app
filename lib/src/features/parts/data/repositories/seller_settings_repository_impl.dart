@@ -16,10 +16,12 @@ class SellerSettingsRepositoryImpl implements SellerSettingsRepository {
   });
 
   @override
-  Future<Either<Failure, SellerSettings?>> getSellerSettings(String sellerId) async {
+  Future<Either<Failure, SellerSettings?>> getSellerSettings(
+      String sellerId) async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteSettings = await remoteDataSource.getSellerSettings(sellerId);
+        final remoteSettings =
+            await remoteDataSource.getSellerSettings(sellerId);
         return Right(remoteSettings?.toEntity());
       } on ServerFailure catch (failure) {
         return Left(failure);
@@ -30,7 +32,8 @@ class SellerSettingsRepositoryImpl implements SellerSettingsRepository {
   }
 
   @override
-  Future<Either<Failure, SellerSettings>> saveSellerSettings(SellerSettings settings) async {
+  Future<Either<Failure, SellerSettings>> saveSellerSettings(
+      SellerSettings settings) async {
     if (await networkInfo.isConnected) {
       try {
         final settingsModel = SellerSettingsModel.fromEntity(settings);

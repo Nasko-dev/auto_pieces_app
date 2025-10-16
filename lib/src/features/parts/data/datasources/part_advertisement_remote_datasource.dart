@@ -14,7 +14,8 @@ abstract class PartAdvertisementRemoteDataSource {
     String? particulierId, // ID du particulier (si null, utilise auth.uid())
   });
 
-  Future<String?> getParticulierIdFromDeviceId(); // Récupère l'ID stable du particulier
+  Future<String?>
+      getParticulierIdFromDeviceId(); // Récupère l'ID stable du particulier
 
   Future<List<PartAdvertisementModel>> searchPartAdvertisements(
     SearchPartAdvertisementsParams params,
@@ -34,7 +35,8 @@ abstract class PartAdvertisementRemoteDataSource {
   Future<void> incrementContactCount(String id);
 }
 
-class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDataSource {
+class PartAdvertisementRemoteDataSourceImpl
+    implements PartAdvertisementRemoteDataSource {
   final SupabaseClient client;
   final DeviceService deviceService;
 
@@ -223,7 +225,8 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
       );
 
       if (response == false) {
-        throw ServerException('Vous n\'êtes pas autorisé à supprimer cette annonce');
+        throw ServerException(
+            'Vous n\'êtes pas autorisé à supprimer cette annonce');
       }
     } catch (e) {
       throw ServerException('Erreur lors de la suppression: $e');
@@ -233,13 +236,10 @@ class PartAdvertisementRemoteDataSourceImpl implements PartAdvertisementRemoteDa
   @override
   Future<void> markAsSold(String id) async {
     try {
-      await client
-          .from('part_advertisements')
-          .update({
-            'status': 'sold',
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', id);
+      await client.from('part_advertisements').update({
+        'status': 'sold',
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', id);
     } catch (e) {
       throw ServerException('Erreur lors du marquage: $e');
     }

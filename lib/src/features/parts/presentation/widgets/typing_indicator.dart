@@ -108,7 +108,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
         final delay = index * 0.2;
         final animationValue = _animationController.value - delay;
         final opacity = animationValue.clamp(0.3, 1.0);
-        
+
         return Container(
           width: 4,
           height: 4,

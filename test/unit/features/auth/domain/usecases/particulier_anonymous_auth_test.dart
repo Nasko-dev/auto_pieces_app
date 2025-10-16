@@ -34,7 +34,8 @@ void main() {
   );
 
   group('ParticulierAnonymousAuth', () {
-    test('doit retourner un Particulier quand la connexion anonyme réussit', () async {
+    test('doit retourner un Particulier quand la connexion anonyme réussit',
+        () async {
       // arrange
       when(mockRepository.signInAnonymously())
           .thenAnswer((_) async => Right(tParticulier));
@@ -48,23 +49,26 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner ServerFailure quand la connexion anonyme échoue', () async {
+    test('doit retourner ServerFailure quand la connexion anonyme échoue',
+        () async {
       // arrange
-      when(mockRepository.signInAnonymously())
-          .thenAnswer((_) async => const Left(ServerFailure('Échec de la connexion anonyme')));
+      when(mockRepository.signInAnonymously()).thenAnswer((_) async =>
+          const Left(ServerFailure('Échec de la connexion anonyme')));
 
       // act
       final result = await usecase(NoParams());
 
       // assert
-      expect(result, const Left(ServerFailure('Échec de la connexion anonyme')));
+      expect(
+          result, const Left(ServerFailure('Échec de la connexion anonyme')));
       verify(mockRepository.signInAnonymously());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.signInAnonymously())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.signInAnonymously()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -74,16 +78,18 @@ void main() {
       verify(mockRepository.signInAnonymously());
     });
 
-    test('doit retourner AuthFailure en cas d\'erreur d\'authentification', () async {
+    test('doit retourner AuthFailure en cas d\'erreur d\'authentification',
+        () async {
       // arrange
-      when(mockRepository.signInAnonymously())
-          .thenAnswer((_) async => const Left(AuthFailure('Authentification anonyme refusée')));
+      when(mockRepository.signInAnonymously()).thenAnswer((_) async =>
+          const Left(AuthFailure('Authentification anonyme refusée')));
 
       // act
       final result = await usecase(NoParams());
 
       // assert
-      expect(result, const Left(AuthFailure('Authentification anonyme refusée')));
+      expect(
+          result, const Left(AuthFailure('Authentification anonyme refusée')));
       verify(mockRepository.signInAnonymously());
     });
 
@@ -137,7 +143,8 @@ void main() {
       );
     });
 
-    test('doit retourner un particulier anonyme avec toutes les propriétés', () async {
+    test('doit retourner un particulier anonyme avec toutes les propriétés',
+        () async {
       // arrange
       when(mockRepository.signInAnonymously())
           .thenAnswer((_) async => Right(tParticulier));
@@ -206,7 +213,8 @@ void main() {
       verify(mockRepository.signInAnonymously()).called(2);
     });
 
-    test('doit permettre la connexion anonyme même sans données personnelles', () async {
+    test('doit permettre la connexion anonyme même sans données personnelles',
+        () async {
       // arrange
       final anonymousParticulier = Particulier(
         id: 'anonymous_minimal',
@@ -238,7 +246,8 @@ void main() {
       );
     });
 
-    test('doit fonctionner avec plusieurs tentatives de connexion anonyme', () async {
+    test('doit fonctionner avec plusieurs tentatives de connexion anonyme',
+        () async {
       // arrange
       when(mockRepository.signInAnonymously())
           .thenAnswer((_) async => Right(tParticulier));
@@ -255,10 +264,11 @@ void main() {
       verify(mockRepository.signInAnonymously()).called(3);
     });
 
-    test('doit gérer les limitations du serveur pour les connexions anonymes', () async {
+    test('doit gérer les limitations du serveur pour les connexions anonymes',
+        () async {
       // arrange
-      when(mockRepository.signInAnonymously())
-          .thenAnswer((_) async => const Left(ServerFailure('Trop de connexions anonymes')));
+      when(mockRepository.signInAnonymously()).thenAnswer((_) async =>
+          const Left(ServerFailure('Trop de connexions anonymes')));
 
       // act
       final result = await usecase(NoParams());

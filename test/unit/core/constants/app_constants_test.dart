@@ -105,7 +105,8 @@ void main() {
         for (final type in userTypes) {
           expect(type, isNotEmpty);
           expect(type, isA<String>());
-          expect(type, matches(RegExp(r'^[a-z]+$'))); // Lettres minuscules uniquement
+          expect(type,
+              matches(RegExp(r'^[a-z]+$'))); // Lettres minuscules uniquement
         }
       });
 
@@ -118,7 +119,8 @@ void main() {
         for (final type in partTypes) {
           expect(type, isNotEmpty);
           expect(type, isA<String>());
-          expect(type, matches(RegExp(r'^[a-z]+$'))); // Lettres minuscules uniquement
+          expect(type,
+              matches(RegExp(r'^[a-z]+$'))); // Lettres minuscules uniquement
         }
       });
 
@@ -186,7 +188,8 @@ void main() {
           AppConstants.partTypeCarrosserie,
         };
 
-        expect(allConstants, hasLength(7)); // Toutes les valeurs doivent être uniques
+        expect(allConstants,
+            hasLength(7)); // Toutes les valeurs doivent être uniques
       });
     });
   });

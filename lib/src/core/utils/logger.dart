@@ -24,7 +24,8 @@ class Logger {
   }
 
   static void warning(String message) {
-    DebugConfig.log('⚠️ WARNING: $message', module: DebugConfig.enableDebugLogs);
+    DebugConfig.log('⚠️ WARNING: $message',
+        module: DebugConfig.enableDebugLogs);
   }
 
   static void info(String message) {

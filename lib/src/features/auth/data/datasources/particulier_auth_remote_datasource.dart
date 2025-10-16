@@ -15,40 +15,40 @@ abstract class ParticulierAuthRemoteDataSource {
   Future<ParticulierModel> updateParticulier(ParticulierModel particulier);
 }
 
-class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSource {
+class ParticulierAuthRemoteDataSourceImpl
+    implements ParticulierAuthRemoteDataSource {
   final SupabaseClient supabaseClient;
   final DeviceService deviceService;
 
   ParticulierAuthRemoteDataSourceImpl({
-    required this.supabaseClient, 
+    required this.supabaseClient,
     required this.deviceService,
   });
 
   @override
   Future<ParticulierModel> signInAnonymously() async {
     try {
-
       // 1. Obtenir l'ID de l'appareil
       final deviceId = await deviceService.getDeviceId();
 
       // 2. Vérifier si un particulier existe déjà pour cet appareil
-      
+
       // D'abord, vérifier tous les utilisateurs avec ce device_id
       try {
         await supabaseClient
             .from('particuliers')
             .select()
             .eq('device_id', deviceId);
-            
+
         // Traitement des utilisateurs avec ce device_id si nécessaire
         // for (int i = 0; i < allUsersWithDeviceId.length; i++) {
         //   final user = allUsersWithDeviceId[i];
         //   // Traitement à implémenter
         // }
       } catch (e) {
-      // Ignorer l'erreur silencieusement
+        // Ignorer l'erreur silencieusement
       }
-      
+
       // Maintenant, recherche spécifique pour utilisateur anonyme
       try {
         final existingUser = await supabaseClient
@@ -58,25 +58,22 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
             .eq('is_anonymous', true)
             .maybeSingle();
 
-        
         if (existingUser != null) {
-          
           // Se connecter avec le compte existant via Supabase auth
           try {
             final authResponse = await supabaseClient.auth.signInAnonymously();
             if (authResponse.user != null) {
               // Retourner le particulier existant avec le nouvel auth ID
-              final existingParticulier = ParticulierModel.fromJson(existingUser).copyWith(
+              final existingParticulier =
+                  ParticulierModel.fromJson(existingUser).copyWith(
                 id: authResponse.user!.id, // Nouveau auth ID
               );
               return existingParticulier;
-            } else {
-            }
+            } else {}
           } catch (authError) {
-      // Ignorer l'erreur silencieusement
+            // Ignorer l'erreur silencieusement
           }
         } else {
-          
           // Essayer de trouver un utilisateur non-anonyme et le convertir
           try {
             final nonAnonymousUser = await supabaseClient
@@ -85,18 +82,18 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
                 .eq('device_id', deviceId)
                 .eq('is_anonymous', false)
                 .maybeSingle();
-                
+
             if (nonAnonymousUser != null) {
               // Mettre à jour pour le marquer comme anonyme
-              await supabaseClient
-                  .from('particuliers')
-                  .update({'is_anonymous': true})
-                  .eq('id', nonAnonymousUser['id']);
-              
+              await supabaseClient.from('particuliers').update(
+                  {'is_anonymous': true}).eq('id', nonAnonymousUser['id']);
+
               // Se connecter avec ce compte converti
-              final authResponse = await supabaseClient.auth.signInAnonymously();
+              final authResponse =
+                  await supabaseClient.auth.signInAnonymously();
               if (authResponse.user != null) {
-                final convertedUser = ParticulierModel.fromJson(nonAnonymousUser).copyWith(
+                final convertedUser =
+                    ParticulierModel.fromJson(nonAnonymousUser).copyWith(
                   id: authResponse.user!.id,
                   isAnonymous: true,
                 );
@@ -104,11 +101,11 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
               }
             }
           } catch (conversionError) {
-      // Ignorer l'erreur silencieusement
+            // Ignorer l'erreur silencieusement
           }
         }
       } catch (e) {
-      // Ignorer l'erreur silencieusement
+        // Ignorer l'erreur silencieusement
       }
 
       // 3. Créer un nouveau compte anonyme
@@ -117,7 +114,6 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
       if (authResponse.user == null) {
         throw const ServerException('Échec de la connexion anonyme');
       }
-
 
       // 4. Créer le modèle avec device_id
       final particulierModel = ParticulierModel.fromAnonymousAuth(
@@ -128,13 +124,14 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
 
       // 5. Insérer dans la table particuliers avec device_id
       try {
-        await supabaseClient.from('particuliers').insert(particulierModel.toInsert());
+        await supabaseClient
+            .from('particuliers')
+            .insert(particulierModel.toInsert());
       } catch (e) {
         // Continue même si l'insertion en table échoue
       }
 
       return particulierModel;
-
     } on AuthException catch (e) {
       throw ServerException(e.message);
     } catch (e) {
@@ -145,10 +142,8 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
   @override
   Future<void> logout() async {
     try {
-      
       // Déconnexion globale pour nettoyer toutes les sessions
       await supabaseClient.auth.signOut(scope: SignOutScope.global);
-      
     } catch (e) {
       throw ServerException('Erreur lors de la déconnexion: $e');
     }
@@ -157,12 +152,10 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
   @override
   Future<ParticulierModel> getCurrentParticulier() async {
     try {
-
       final user = supabaseClient.auth.currentUser;
       if (user == null) {
         throw const ServerException('Aucun utilisateur connecté');
       }
-
 
       // Vérifier si c'est un utilisateur anonyme
       if (user.isAnonymous) {
@@ -194,9 +187,9 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
               : null,
         );
       }
-
     } catch (e) {
-      throw ServerException('Erreur lors de la récupération de l\'utilisateur: $e');
+      throw ServerException(
+          'Erreur lors de la récupération de l\'utilisateur: $e');
     }
   }
 
@@ -211,9 +204,9 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
   }
 
   @override
-  Future<ParticulierModel> updateParticulier(ParticulierModel particulier) async {
+  Future<ParticulierModel> updateParticulier(
+      ParticulierModel particulier) async {
     try {
-
       final dataToUpdate = {
         'first_name': particulier.firstName,
         'last_name': particulier.lastName,
@@ -224,14 +217,12 @@ class ParticulierAuthRemoteDataSourceImpl implements ParticulierAuthRemoteDataSo
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-
       final response = await supabaseClient
           .from('particuliers')
           .update(dataToUpdate)
           .eq('id', particulier.id)
           .select()
           .single();
-
 
       return ParticulierModel.fromJson(response);
     } catch (e) {

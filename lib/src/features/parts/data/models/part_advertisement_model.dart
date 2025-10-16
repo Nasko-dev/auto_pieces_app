@@ -36,7 +36,8 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
 
   const PartAdvertisementModel._();
 
-  factory PartAdvertisementModel.fromJson(Map<String, dynamic> json) => _$PartAdvertisementModelFromJson(json);
+  factory PartAdvertisementModel.fromJson(Map<String, dynamic> json) =>
+      _$PartAdvertisementModelFromJson(json);
 
   // Conversion vers l'entité domain
   PartAdvertisement toEntity() {
@@ -109,7 +110,9 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       contactCount: data['contact_count'] as int? ?? 0,
       createdAt: DateTime.parse(data['created_at'] as String),
       updatedAt: DateTime.parse(data['updated_at'] as String),
-      expiresAt: data['expires_at'] != null ? DateTime.parse(data['expires_at'] as String) : null,
+      expiresAt: data['expires_at'] != null
+          ? DateTime.parse(data['expires_at'] as String)
+          : null,
     );
   }
 
@@ -173,6 +176,6 @@ class SearchPartAdvertisementsParams with _$SearchPartAdvertisementsParams {
     @Default(0) int offset,
   }) = _SearchPartAdvertisementsParams;
 
-  factory SearchPartAdvertisementsParams.fromJson(Map<String, dynamic> json) => 
+  factory SearchPartAdvertisementsParams.fromJson(Map<String, dynamic> json) =>
       _$SearchPartAdvertisementsParamsFromJson(json);
 }

@@ -35,10 +35,11 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer(
+          (_) async => const Left(AuthFailure('Accès non autorisé')));
 
       // act
       final result = await usecase(tRequestId);
@@ -48,10 +49,11 @@ void main() {
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit retourner ValidationFailure quand la demande n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la demande n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Demande non trouvée')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Demande non trouvée')));
 
       // act
       final result = await usecase(tRequestId);
@@ -61,29 +63,41 @@ void main() {
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit retourner ValidationFailure quand l\'utilisateur n\'est pas propriétaire de la demande', () async {
+    test(
+        'doit retourner ValidationFailure quand l\'utilisateur n\'est pas propriétaire de la demande',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Vous ne pouvez supprimer que vos propres demandes')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(ValidationFailure(
+              'Vous ne pouvez supprimer que vos propres demandes')));
 
       // act
       final result = await usecase(tRequestId);
 
       // assert
-      expect(result, const Left(ValidationFailure('Vous ne pouvez supprimer que vos propres demandes')));
+      expect(
+          result,
+          const Left(ValidationFailure(
+              'Vous ne pouvez supprimer que vos propres demandes')));
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit retourner ValidationFailure quand la demande a déjà des réponses', () async {
+    test(
+        'doit retourner ValidationFailure quand la demande a déjà des réponses',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Impossible de supprimer une demande avec des réponses')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(ValidationFailure(
+              'Impossible de supprimer une demande avec des réponses')));
 
       // act
       final result = await usecase(tRequestId);
 
       // assert
-      expect(result, const Left(ValidationFailure('Impossible de supprimer une demande avec des réponses')));
+      expect(
+          result,
+          const Left(ValidationFailure(
+              'Impossible de supprimer une demande avec des réponses')));
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
@@ -100,10 +114,11 @@ void main() {
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tRequestId);
@@ -122,7 +137,8 @@ void main() {
       await usecase(tRequestId);
 
       // assert
-      final captured = verify(mockRepository.deletePartRequest(captureAny)).captured;
+      final captured =
+          verify(mockRepository.deletePartRequest(captureAny)).captured;
       expect(captured.first, tRequestId);
     });
 
@@ -205,7 +221,8 @@ void main() {
       }
     });
 
-    test('doit maintenir la cohérence lors de suppressions multiples', () async {
+    test('doit maintenir la cohérence lors de suppressions multiples',
+        () async {
       // arrange
       when(mockRepository.deletePartRequest(tRequestId))
           .thenAnswer((_) async => const Right(null));
@@ -222,36 +239,46 @@ void main() {
       verify(mockRepository.deletePartRequest(tRequestId)).called(3);
     });
 
-    test('doit retourner ValidationFailure pour une demande déjà supprimée', () async {
+    test('doit retourner ValidationFailure pour une demande déjà supprimée',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Cette demande a déjà été supprimée')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(ValidationFailure('Cette demande a déjà été supprimée')));
 
       // act
       final result = await usecase(tRequestId);
 
       // assert
-      expect(result, const Left(ValidationFailure('Cette demande a déjà été supprimée')));
+      expect(result,
+          const Left(ValidationFailure('Cette demande a déjà été supprimée')));
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit retourner ValidationFailure quand la demande est en cours de traitement', () async {
+    test(
+        'doit retourner ValidationFailure quand la demande est en cours de traitement',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Impossible de supprimer une demande en cours de traitement')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(ValidationFailure(
+              'Impossible de supprimer une demande en cours de traitement')));
 
       // act
       final result = await usecase(tRequestId);
 
       // assert
-      expect(result, const Left(ValidationFailure('Impossible de supprimer une demande en cours de traitement')));
+      expect(
+          result,
+          const Left(ValidationFailure(
+              'Impossible de supprimer une demande en cours de traitement')));
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 
-    test('doit gérer les suppressions avec des erreurs de concurrence', () async {
+    test('doit gérer les suppressions avec des erreurs de concurrence',
+        () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(ServerFailure('Erreur de concurrence - la demande a été modifiée par un autre utilisateur')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(ServerFailure(
+              'Erreur de concurrence - la demande a été modifiée par un autre utilisateur')));
 
       // act
       final result = await usecase(tRequestId);
@@ -266,14 +293,15 @@ void main() {
 
     test('doit gérer les timeouts de suppression', () async {
       // arrange
-      when(mockRepository.deletePartRequest(tRequestId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Timeout lors de la suppression')));
+      when(mockRepository.deletePartRequest(tRequestId)).thenAnswer((_) async =>
+          const Left(NetworkFailure('Timeout lors de la suppression')));
 
       // act
       final result = await usecase(tRequestId);
 
       // assert
-      expect(result, const Left(NetworkFailure('Timeout lors de la suppression')));
+      expect(
+          result, const Left(NetworkFailure('Timeout lors de la suppression')));
       verify(mockRepository.deletePartRequest(tRequestId));
     });
 

@@ -158,7 +158,8 @@ class _IOSBottomSheetState extends State<IOSBottomSheet>
                               // Content
                               Flexible(
                                 child: Padding(
-                                  padding: EdgeInsets.only(bottom: bottomPadding),
+                                  padding:
+                                      EdgeInsets.only(bottom: bottomPadding),
                                   child: widget.child,
                                 ),
                               ),

@@ -169,7 +169,8 @@ void main() {
               expect(
                 find.text('AB-123-CD'),
                 findsOneWidget,
-                reason: 'L\'état du formulaire devrait être conservé lors de la navigation',
+                reason:
+                    'L\'état du formulaire devrait être conservé lors de la navigation',
               );
             }
           }

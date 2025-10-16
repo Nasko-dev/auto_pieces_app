@@ -64,7 +64,8 @@ class BatchProcessor<T> {
     _pendingItems.clear();
 
     try {
-      Logger.info('📦 BatchProcessor: Traitement de ${itemsToProcess.length} éléments');
+      Logger.info(
+          '📦 BatchProcessor: Traitement de ${itemsToProcess.length} éléments');
       await _processor(itemsToProcess);
     } catch (e) {
       Logger.error('BatchProcessor: Erreur lors du traitement: $e');

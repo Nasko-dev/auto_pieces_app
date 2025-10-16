@@ -57,10 +57,9 @@ class MessageBubbleWidget extends StatelessWidget {
             // Bulle de message
             Flexible(
               child: Column(
-                crossAxisAlignment:
-                    isFromCurrentUser
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
+                crossAxisAlignment: isFromCurrentUser
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
                 children: [
                   // Affichage conditionnel selon le type de message
                   if (message.messageType == MessageType.image) ...[
@@ -77,19 +76,17 @@ class MessageBubbleWidget extends StatelessWidget {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  isFromCurrentUser
-                                      ? const Color(0xFF3B82F6)
-                                      : const Color(0xFFF3F4F6),
+                              color: isFromCurrentUser
+                                  ? const Color(0xFF3B82F6)
+                                  : const Color(0xFFF3F4F6),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               message.content,
                               style: TextStyle(
-                                color:
-                                    isFromCurrentUser
-                                        ? Colors.white
-                                        : Colors.black87,
+                                color: isFromCurrentUser
+                                    ? Colors.white
+                                    : Colors.black87,
                                 fontSize: 15,
                                 height: 1.4,
                               ),
@@ -114,10 +111,9 @@ class MessageBubbleWidget extends StatelessWidget {
                                 Icon(
                                   message.isRead ? Icons.done_all : Icons.done,
                                   size: 16,
-                                  color:
-                                      message.isRead
-                                          ? Colors.blue
-                                          : Colors.grey[600],
+                                  color: message.isRead
+                                      ? Colors.blue
+                                      : Colors.grey[600],
                                 ),
                               ],
                             ],
@@ -133,39 +129,35 @@ class MessageBubbleWidget extends StatelessWidget {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            isFromCurrentUser
-                                ? const Color(0xFF3B82F6) // Bleu Instagram
-                                : isOffer
+                        color: isFromCurrentUser
+                            ? const Color(0xFF3B82F6) // Bleu Instagram
+                            : isOffer
                                 ? Colors.blue[50]
                                 : const Color(
-                                  0xFFF3F4F6,
-                                ), // Gris clair Instagram
+                                    0xFFF3F4F6,
+                                  ), // Gris clair Instagram
                         borderRadius: BorderRadius.circular(
                           20,
                         ), // Plus arrondi style Instagram
-                        border:
-                            isOffer
-                                ? Border.all(color: Colors.blue, width: 1)
-                                : (!isFromCurrentUser
-                                    ? Border.all(
-                                      color: Colors.grey.shade200,
-                                      width: 1,
-                                    )
-                                    : null),
+                        border: isOffer
+                            ? Border.all(color: Colors.blue, width: 1)
+                            : (!isFromCurrentUser
+                                ? Border.all(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  )
+                                : null),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (isOffer) _buildOfferHeader(),
-
                           Text(
                             message.content,
                             style: TextStyle(
-                              color:
-                                  isFromCurrentUser
-                                      ? Colors.white
-                                      : isOffer
+                              color: isFromCurrentUser
+                                  ? Colors.white
+                                  : isOffer
                                       ? Colors.blue[800]
                                       : Colors.black87,
                               fontSize:
@@ -173,12 +165,10 @@ class MessageBubbleWidget extends StatelessWidget {
                               height: 1.4,
                             ),
                           ),
-
                           if (isOffer) ...[
                             const SizedBox(height: 12),
                             _buildOfferDetails(context),
                           ],
-
                           const SizedBox(height: 4),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -187,10 +177,9 @@ class MessageBubbleWidget extends StatelessWidget {
                                 _formatTime(message.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color:
-                                      isFromCurrentUser
-                                          ? Colors.white70
-                                          : Colors.grey[600],
+                                  color: isFromCurrentUser
+                                      ? Colors.white70
+                                      : Colors.grey[600],
                                 ),
                               ),
                               if (isFromCurrentUser && isLastMessage) ...[
@@ -198,10 +187,9 @@ class MessageBubbleWidget extends StatelessWidget {
                                 Icon(
                                   message.isRead ? Icons.done_all : Icons.done,
                                   size: 16,
-                                  color:
-                                      message.isRead
-                                          ? Colors.blue
-                                          : Colors.white70,
+                                  color: message.isRead
+                                      ? Colors.blue
+                                      : Colors.white70,
                                 ),
                               ],
                             ],
@@ -391,7 +379,6 @@ class MessageBubbleWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-
           if (message.offerAvailability != null) ...[
             Row(
               children: [
@@ -407,7 +394,6 @@ class MessageBubbleWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-
           if (message.offerDeliveryDays != null) ...[
             Row(
               children: [
@@ -473,8 +459,7 @@ class MessageBubbleWidget extends StatelessWidget {
 
   Widget _buildDefaultOtherUserAvatar() {
     // Déterminer l'icône selon le type d'utilisateur
-    final isSellerMessage =
-        currentUserType ==
+    final isSellerMessage = currentUserType ==
         MessageSenderType
             .user; // Si l'utilisateur actuel est un particulier, l'autre est un vendeur
 
@@ -485,16 +470,15 @@ class MessageBubbleWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors:
-              isSellerMessage
-                  ? [
-                    const Color(0xFF405DE6),
-                    const Color(0xFF5851DB),
-                  ] // Gradient Instagram bleu
-                  : [
-                    const Color(0xFF9CA3AF),
-                    const Color(0xFF6B7280),
-                  ], // Gradient gris
+          colors: isSellerMessage
+              ? [
+                  const Color(0xFF405DE6),
+                  const Color(0xFF5851DB),
+                ] // Gradient Instagram bleu
+              : [
+                  const Color(0xFF9CA3AF),
+                  const Color(0xFF6B7280),
+                ], // Gradient gris
         ),
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),

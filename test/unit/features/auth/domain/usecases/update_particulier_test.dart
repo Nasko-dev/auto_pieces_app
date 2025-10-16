@@ -46,7 +46,9 @@ void main() {
   );
 
   group('UpdateParticulier', () {
-    test('doit retourner un Particulier mis à jour quand la mise à jour réussit', () async {
+    test(
+        'doit retourner un Particulier mis à jour quand la mise à jour réussit',
+        () async {
       // arrange
       when(mockRepository.updateParticulier(tParticulier))
           .thenAnswer((_) async => Right(tUpdatedParticulier));
@@ -60,7 +62,9 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner ServerFailure quand la mise à jour échoue côté serveur', () async {
+    test(
+        'doit retourner ServerFailure quand la mise à jour échoue côté serveur',
+        () async {
       // arrange
       when(mockRepository.updateParticulier(tParticulier))
           .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
@@ -73,10 +77,11 @@ void main() {
       verify(mockRepository.updateParticulier(tParticulier));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.updateParticulier(tParticulier))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.updateParticulier(tParticulier)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tParticulier);
@@ -86,7 +91,8 @@ void main() {
       verify(mockRepository.updateParticulier(tParticulier));
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
       when(mockRepository.updateParticulier(tParticulier))
           .thenAnswer((_) async => const Left(AuthFailure('Non autorisé')));
@@ -99,7 +105,8 @@ void main() {
       verify(mockRepository.updateParticulier(tParticulier));
     });
 
-    test('doit retourner ValidationFailure pour des données invalides', () async {
+    test('doit retourner ValidationFailure pour des données invalides',
+        () async {
       // arrange
       final invalidParticulier = Particulier(
         id: '1',
@@ -114,8 +121,8 @@ void main() {
         isActive: true,
       );
 
-      when(mockRepository.updateParticulier(invalidParticulier))
-          .thenAnswer((_) async => const Left(ValidationFailure('Données invalides')));
+      when(mockRepository.updateParticulier(invalidParticulier)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Données invalides')));
 
       // act
       final result = await usecase(invalidParticulier);
@@ -200,7 +207,8 @@ void main() {
       );
     });
 
-    test('doit préserver l\'ID et la date de création lors de la mise à jour', () async {
+    test('doit préserver l\'ID et la date de création lors de la mise à jour',
+        () async {
       // arrange
       when(mockRepository.updateParticulier(tParticulier))
           .thenAnswer((_) async => Right(tUpdatedParticulier));
@@ -247,7 +255,8 @@ void main() {
       );
     });
 
-    test('doit gérer la mise à jour avec des champs optionnels vides', () async {
+    test('doit gérer la mise à jour avec des champs optionnels vides',
+        () async {
       // arrange
       final particulierChampVides = Particulier(
         id: '3',
@@ -281,7 +290,8 @@ void main() {
       );
     });
 
-    test('doit appeler le repository avec le bon particulier en paramètre', () async {
+    test('doit appeler le repository avec le bon particulier en paramètre',
+        () async {
       // arrange
       when(mockRepository.updateParticulier(tParticulier))
           .thenAnswer((_) async => Right(tUpdatedParticulier));
@@ -290,7 +300,8 @@ void main() {
       await usecase(tParticulier);
 
       // assert
-      final captured = verify(mockRepository.updateParticulier(captureAny)).captured;
+      final captured =
+          verify(mockRepository.updateParticulier(captureAny)).captured;
       expect(captured.first, tParticulier);
     });
 

@@ -42,11 +42,14 @@ class EnvironmentConfig {
   static String get supabaseUrl {
     switch (environment) {
       case AppEnvironment.production:
-        return dotenv.env['SUPABASE_URL_PROD'] ?? 'https://your-prod-project.supabase.co';
+        return dotenv.env['SUPABASE_URL_PROD'] ??
+            'https://your-prod-project.supabase.co';
       case AppEnvironment.staging:
-        return dotenv.env['SUPABASE_URL_STAGING'] ?? 'https://your-staging-project.supabase.co';
+        return dotenv.env['SUPABASE_URL_STAGING'] ??
+            'https://your-staging-project.supabase.co';
       case AppEnvironment.development:
-        return dotenv.env['SUPABASE_URL_DEV'] ?? 'https://your-dev-project.supabase.co';
+        return dotenv.env['SUPABASE_URL_DEV'] ??
+            'https://your-dev-project.supabase.co';
     }
   }
 
@@ -55,7 +58,8 @@ class EnvironmentConfig {
       case AppEnvironment.production:
         return dotenv.env['SUPABASE_ANON_KEY_PROD'] ?? 'your-prod-anon-key';
       case AppEnvironment.staging:
-        return dotenv.env['SUPABASE_ANON_KEY_STAGING'] ?? 'your-staging-anon-key';
+        return dotenv.env['SUPABASE_ANON_KEY_STAGING'] ??
+            'your-staging-anon-key';
       case AppEnvironment.development:
         return dotenv.env['SUPABASE_ANON_KEY_DEV'] ?? 'your-dev-anon-key';
     }
@@ -70,7 +74,8 @@ class EnvironmentConfig {
   }
 
   static String get tecallianceBaseUrl {
-    return dotenv.env['TECALLIANCE_BASE_URL'] ?? 'https://vehicle-identification.tecalliance.services';
+    return dotenv.env['TECALLIANCE_BASE_URL'] ??
+        'https://vehicle-identification.tecalliance.services';
   }
 
   static String get tecallianceClientId {

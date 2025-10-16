@@ -4,16 +4,17 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/message.dart';
 import '../repositories/conversations_repository.dart';
 
-class GetConversationMessages implements UseCase<List<Message>, GetConversationMessagesParams> {
+class GetConversationMessages
+    implements UseCase<List<Message>, GetConversationMessagesParams> {
   final ConversationsRepository repository;
 
   GetConversationMessages(this.repository);
 
   @override
-  Future<Either<Failure, List<Message>>> call(GetConversationMessagesParams params) async {
+  Future<Either<Failure, List<Message>>> call(
+      GetConversationMessagesParams params) async {
     return await repository.getConversationMessages(
-      conversationId: params.conversationId
-    );
+        conversationId: params.conversationId);
   }
 }
 

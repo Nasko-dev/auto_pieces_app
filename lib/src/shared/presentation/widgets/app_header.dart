@@ -41,11 +41,11 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
 
   void _loadUserSettings() async {
     final currentUser = ref.read(particulierAuthControllerProvider).when(
-      initial: () => null,
-      loading: () => null,
-      anonymousAuthenticated: (particulier) => particulier,
-      error: (_) => null,
-    );
+          initial: () => null,
+          loading: () => null,
+          anonymousAuthenticated: (particulier) => particulier,
+          error: (_) => null,
+        );
 
     if (currentUser?.id == null) return;
 
@@ -94,7 +94,8 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
               initial: () => _buildDefaultAvatar(),
               loading: () => _buildDefaultAvatar(),
               anonymousAuthenticated: (particulier) {
-                final avatarUrl = particulier.avatarUrl ?? _userSettings?.avatarUrl;
+                final avatarUrl =
+                    particulier.avatarUrl ?? _userSettings?.avatarUrl;
 
                 if (avatarUrl != null && avatarUrl.isNotEmpty) {
                   return ClipRRect(
@@ -145,10 +146,7 @@ class _AppHeaderState extends ConsumerState<AppHeader> {
         ),
 
         // Actions personnalisées ou menu
-        if (widget.actions != null)
-          ...widget.actions!
-        else
-          const AppMenu(),
+        if (widget.actions != null) ...widget.actions! else const AppMenu(),
       ],
     );
   }

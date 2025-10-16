@@ -15,14 +15,12 @@ class VehicleCatalogService {
       if (response == null) return [];
 
       // La fonction retourne directement une liste d'objets {brand: "..."}
-      return (response as List)
-          .map((item) {
-            if (item is Map) {
-              return item['brand'] as String;
-            }
-            return item.toString();
-          })
-          .toList();
+      return (response as List).map((item) {
+        if (item is Map) {
+          return item['brand'] as String;
+        }
+        return item.toString();
+      }).toList();
     } catch (e) {
       throw Exception('Erreur lors de la récupération des marques: $e');
     }
@@ -41,14 +39,12 @@ class VehicleCatalogService {
       if (response == null) return [];
 
       // La fonction retourne directement une liste d'objets {model: "..."}
-      return (response as List)
-          .map((item) {
-            if (item is Map) {
-              return item['model'] as String;
-            }
-            return item.toString();
-          })
-          .toList();
+      return (response as List).map((item) {
+        if (item is Map) {
+          return item['model'] as String;
+        }
+        return item.toString();
+      }).toList();
     } catch (e) {
       throw Exception('Erreur lors de la récupération des modèles: $e');
     }
@@ -70,17 +66,15 @@ class VehicleCatalogService {
       if (response == null) return [];
 
       // La fonction retourne directement une liste d'objets {year: 2020}
-      return (response as List)
-          .map((item) {
-            if (item is Map) {
-              return item['year'] as int;
-            }
-            if (item is int) {
-              return item;
-            }
-            return int.parse(item.toString());
-          })
-          .toList();
+      return (response as List).map((item) {
+        if (item is Map) {
+          return item['year'] as int;
+        }
+        if (item is int) {
+          return item;
+        }
+        return int.parse(item.toString());
+      }).toList();
     } catch (e) {
       throw Exception('Erreur lors de la récupération des années: $e');
     }

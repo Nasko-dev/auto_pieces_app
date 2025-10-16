@@ -57,10 +57,11 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand le vendeur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand le vendeur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.saveSellerSettings(tSellerSettings))
-          .thenAnswer((_) async => const Left(AuthFailure('Vendeur non autorisé')));
+      when(mockRepository.saveSellerSettings(tSellerSettings)).thenAnswer(
+          (_) async => const Left(AuthFailure('Vendeur non autorisé')));
 
       // act
       final result = await usecase(tSellerSettings);
@@ -70,10 +71,11 @@ void main() {
       verify(mockRepository.saveSellerSettings(tSellerSettings));
     });
 
-    test('doit retourner ValidationFailure quand les données sont invalides', () async {
+    test('doit retourner ValidationFailure quand les données sont invalides',
+        () async {
       // arrange
-      when(mockRepository.saveSellerSettings(tSellerSettings))
-          .thenAnswer((_) async => const Left(ValidationFailure('Email invalide')));
+      when(mockRepository.saveSellerSettings(tSellerSettings)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Email invalide')));
 
       // act
       final result = await usecase(tSellerSettings);
@@ -96,10 +98,11 @@ void main() {
       verify(mockRepository.saveSellerSettings(tSellerSettings));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.saveSellerSettings(tSellerSettings))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.saveSellerSettings(tSellerSettings)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tSellerSettings);
@@ -118,7 +121,8 @@ void main() {
       await usecase(tSellerSettings);
 
       // assert
-      final captured = verify(mockRepository.saveSellerSettings(captureAny)).captured;
+      final captured =
+          verify(mockRepository.saveSellerSettings(captureAny)).captured;
       expect(captured.first, tSellerSettings);
     });
 
@@ -147,7 +151,8 @@ void main() {
       );
     });
 
-    test('doit sauvegarder avec toutes les propriétés correctement transmises', () async {
+    test('doit sauvegarder avec toutes les propriétés correctement transmises',
+        () async {
       // arrange
       when(mockRepository.saveSellerSettings(tSellerSettings))
           .thenAnswer((_) async => Right(tSellerSettings));
@@ -218,7 +223,8 @@ void main() {
       );
     });
 
-    test('doit gérer la mise à jour des préférences de notifications', () async {
+    test('doit gérer la mise à jour des préférences de notifications',
+        () async {
       // arrange
       final updatedSettings = tSellerSettings.copyWith(
         notificationsEnabled: false,
@@ -299,8 +305,10 @@ void main() {
       const seller1Id = 'seller1';
       const seller2Id = 'seller2';
 
-      final settings1 = SellerSettings(sellerId: seller1Id, email: 'seller1@example.com');
-      final settings2 = SellerSettings(sellerId: seller2Id, email: 'seller2@example.com');
+      final settings1 =
+          SellerSettings(sellerId: seller1Id, email: 'seller1@example.com');
+      final settings2 =
+          SellerSettings(sellerId: seller2Id, email: 'seller2@example.com');
 
       when(mockRepository.saveSellerSettings(settings1))
           .thenAnswer((_) async => Right(settings1));
@@ -334,7 +342,8 @@ void main() {
       result.fold(
         (failure) => fail('Ne devrait pas échouer'),
         (settings) {
-          expect(settings.avatarUrl, 'https://newcdn.example.com/avatars/new_photo.jpg');
+          expect(settings.avatarUrl,
+              'https://newcdn.example.com/avatars/new_photo.jpg');
         },
       );
     });

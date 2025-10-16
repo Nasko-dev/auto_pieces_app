@@ -13,7 +13,8 @@ import 'package:mockito/mockito.dart';
 
 import 'part_request_repository_impl_test.mocks.dart';
 
-@GenerateMocks([PartRequestRemoteDataSource, ConversationsRemoteDataSource, NetworkInfo])
+@GenerateMocks(
+    [PartRequestRemoteDataSource, ConversationsRemoteDataSource, NetworkInfo])
 void main() {
   late PartRequestRepositoryImpl repository;
   late MockPartRequestRemoteDataSource mockRemoteDataSource;
@@ -62,7 +63,9 @@ void main() {
   );
 
   group('getUserPartRequests', () {
-    test('doit retourner une liste de demandes quand l\'appel réussit avec connexion', () async {
+    test(
+        'doit retourner une liste de demandes quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getUserPartRequests())
@@ -81,7 +84,8 @@ void main() {
       verify(mockRemoteDataSource.getUserPartRequests());
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -251,11 +255,13 @@ void main() {
           .thenAnswer((_) async => tPartRequestModel);
 
       // act
-      final result = await repository.updatePartRequestStatus(tRequestId, 'closed');
+      final result =
+          await repository.updatePartRequestStatus(tRequestId, 'closed');
 
       // assert
       expect(result.isRight(), true);
-      verify(mockRemoteDataSource.updatePartRequestStatus(tRequestId, 'closed'));
+      verify(
+          mockRemoteDataSource.updatePartRequestStatus(tRequestId, 'closed'));
     });
 
     test('doit retourner NetworkFailure quand pas de connexion', () async {
@@ -263,7 +269,8 @@ void main() {
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
       // act
-      final result = await repository.updatePartRequestStatus(tRequestId, 'closed');
+      final result =
+          await repository.updatePartRequestStatus(tRequestId, 'closed');
 
       // assert
       expect(result, const Left(NetworkFailure('No internet connection')));
@@ -276,7 +283,8 @@ void main() {
           .thenThrow(const UnauthorizedException('Not authorized'));
 
       // act
-      final result = await repository.updatePartRequestStatus(tRequestId, 'closed');
+      final result =
+          await repository.updatePartRequestStatus(tRequestId, 'closed');
 
       // assert
       expect(result, const Left(AuthFailure('User not authenticated')));

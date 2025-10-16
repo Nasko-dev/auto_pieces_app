@@ -35,7 +35,8 @@ class PartAdvertisementRepositoryImpl implements PartAdvertisementRepository {
   }
 
   @override
-  Future<Either<Failure, PartAdvertisement>> getPartAdvertisementById(String id) async {
+  Future<Either<Failure, PartAdvertisement>> getPartAdvertisementById(
+      String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure('Pas de connexion internet'));
     }

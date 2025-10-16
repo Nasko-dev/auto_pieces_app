@@ -85,7 +85,9 @@ void main() {
     });
 
     group('displayName getter', () {
-      test('should return full name when both firstName and lastName are provided', () {
+      test(
+          'should return full name when both firstName and lastName are provided',
+          () {
         expect(testParticulier.displayName, 'John Doe');
       });
 
@@ -100,7 +102,8 @@ void main() {
         expect(particulier.displayName, 'John');
       });
 
-      test('should return email username when no names but email is provided', () {
+      test('should return email username when no names but email is provided',
+          () {
         final particulier = Particulier(
           id: 'test-id',
           firstName: null,
@@ -124,7 +127,8 @@ void main() {
     });
 
     group('hasPersonalInfo getter', () {
-      test('should return true when both firstName and lastName are provided', () {
+      test('should return true when both firstName and lastName are provided',
+          () {
         expect(testParticulier.hasPersonalInfo, true);
       });
 
@@ -186,7 +190,8 @@ void main() {
         expect(particulier.isCompleteProfile, false);
       });
 
-      test('should return false when both phone and personal info are missing', () {
+      test('should return false when both phone and personal info are missing',
+          () {
         final particulier = Particulier(
           id: 'test-id',
           firstName: null,
@@ -287,7 +292,8 @@ void main() {
 
       test('should not be equal when any property is different', () {
         final particulier1 = testParticulier;
-        final particulier2 = testParticulier.copyWith(email: 'different@example.com');
+        final particulier2 =
+            testParticulier.copyWith(email: 'different@example.com');
 
         expect(particulier1, isNot(equals(particulier2)));
       });
@@ -324,7 +330,8 @@ void main() {
         expect(particulier.email, '');
         expect(particulier.firstName, '');
         expect(particulier.lastName, '');
-        expect(particulier.displayName, ' '); // firstName + ' ' + lastName = ' '
+        expect(
+            particulier.displayName, ' '); // firstName + ' ' + lastName = ' '
         expect(particulier.hasPersonalInfo, true); // both are non-null
       });
 
@@ -345,7 +352,8 @@ void main() {
           createdAt: testCreatedAt,
         );
 
-        expect(particulier.displayName, 'invalid-email'); // split('@').first on string without @ returns original string
+        expect(particulier.displayName,
+            'invalid-email'); // split('@').first on string without @ returns original string
       });
     });
   });

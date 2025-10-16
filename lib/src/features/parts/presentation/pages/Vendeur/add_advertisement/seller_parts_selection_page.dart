@@ -29,7 +29,8 @@ class _SellerPartsSelectionPageState
   final List<String> _selectedParts = [];
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  String _completeOption = ''; // 'moteur_complet', 'carrosserie_complete', 'vehicule_complet' ou vide
+  String _completeOption =
+      ''; // 'moteur_complet', 'carrosserie_complete', 'vehicule_complet' ou vide
 
   @override
   void initState() {
@@ -155,9 +156,11 @@ class _SellerPartsSelectionPageState
 
   String _getSubtitleText() {
     if (widget.hasMultipleParts) {
-      if (widget.selectedCategory == 'moteur' || widget.selectedCategory == 'engine') {
+      if (widget.selectedCategory == 'moteur' ||
+          widget.selectedCategory == 'engine') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Moteur complet"';
-      } else if (widget.selectedCategory == 'carrosserie' || widget.selectedCategory == 'body') {
+      } else if (widget.selectedCategory == 'carrosserie' ||
+          widget.selectedCategory == 'body') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Carrosserie complète"';
       } else {
         return 'Sélectionnez les pièces manquantes ou choisissez "Véhicule complet"';
@@ -272,14 +275,16 @@ class _SellerPartsSelectionPageState
 
   Widget _buildCompleteOptions() {
     // Déterminer quelle option afficher selon la catégorie
-    if (widget.selectedCategory == 'moteur' || widget.selectedCategory == 'engine') {
+    if (widget.selectedCategory == 'moteur' ||
+        widget.selectedCategory == 'engine') {
       return _buildCompleteOption(
         optionKey: 'moteur_complet',
         title: 'Moteur complet',
         description: 'Toutes les pièces moteur sont disponibles',
         icon: Icons.engineering_outlined,
       );
-    } else if (widget.selectedCategory == 'carrosserie' || widget.selectedCategory == 'body') {
+    } else if (widget.selectedCategory == 'carrosserie' ||
+        widget.selectedCategory == 'body') {
       return _buildCompleteOption(
         optionKey: 'carrosserie_complete',
         title: 'Carrosserie complète',
@@ -322,9 +327,7 @@ class _SellerPartsSelectionPageState
               : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? _getCategoryColor()
-                : AppColors.grey200,
+            color: isSelected ? _getCategoryColor() : AppColors.grey200,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -355,9 +358,8 @@ class _SellerPartsSelectionPageState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? _getCategoryColor()
-                          : AppTheme.darkGray,
+                      color:
+                          isSelected ? _getCategoryColor() : AppTheme.darkGray,
                     ),
                   ),
                   const SizedBox(height: 4),

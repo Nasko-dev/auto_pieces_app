@@ -20,14 +20,12 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> cacheUser(UserModel user) async {
     _cachedUser = user;
-    if (kDebugMode) {
-    }
+    if (kDebugMode) {}
   }
 
   @override
   Future<void> clearCache() async {
     _cachedUser = null;
-    if (kDebugMode) {
-    }
+    if (kDebugMode) {}
   }
 }

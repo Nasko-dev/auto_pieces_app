@@ -65,7 +65,8 @@ void main() {
         expect(testParticulierModel.address, '123 Rue de la Paix');
         expect(testParticulierModel.city, 'Paris');
         expect(testParticulierModel.zipCode, '75001');
-        expect(testParticulierModel.avatarUrl, 'https://example.com/avatar.jpg');
+        expect(
+            testParticulierModel.avatarUrl, 'https://example.com/avatar.jpg');
         expect(testParticulierModel.isVerified, true);
         expect(testParticulierModel.isActive, true);
         expect(testParticulierModel.isAnonymous, false);
@@ -74,7 +75,8 @@ void main() {
         expect(testParticulierModel.emailVerifiedAt, testEmailVerifiedAt);
       });
 
-      test('should create ParticulierModel with minimal required parameters', () {
+      test('should create ParticulierModel with minimal required parameters',
+          () {
         final minimalModel = ParticulierModel(
           id: 'minimal-id',
           createdAt: testCreatedAt,
@@ -220,7 +222,8 @@ void main() {
         expect(json['is_anonymous'], false);
         expect(json['created_at'], testCreatedAt.toIso8601String());
         expect(json['updated_at'], testUpdatedAt.toIso8601String());
-        expect(json['email_verified_at'], testEmailVerifiedAt.toIso8601String());
+        expect(
+            json['email_verified_at'], testEmailVerifiedAt.toIso8601String());
       });
 
       test('should handle null values in toJson', () {
@@ -352,7 +355,8 @@ void main() {
         expect(model.isAnonymous, false);
       });
 
-      test('should create unverified ParticulierModel when no emailConfirmedAt', () {
+      test('should create unverified ParticulierModel when no emailConfirmedAt',
+          () {
         final model = ParticulierModel.fromSupabaseAuth(
           id: 'supabase-id',
           email: 'supabase@example.com',
@@ -401,7 +405,8 @@ void main() {
         expect(insertData['is_anonymous'], false);
         expect(insertData['created_at'], testCreatedAt.toIso8601String());
         expect(insertData['updated_at'], testUpdatedAt.toIso8601String());
-        expect(insertData['email_verified_at'], testEmailVerifiedAt.toIso8601String());
+        expect(insertData['email_verified_at'],
+            testEmailVerifiedAt.toIso8601String());
       });
 
       test('should handle null values in toInsert', () {
@@ -508,7 +513,8 @@ void main() {
         expect(roundtripModel.isAnonymous, testParticulierModel.isAnonymous);
         expect(roundtripModel.createdAt, testParticulierModel.createdAt);
         expect(roundtripModel.updatedAt, testParticulierModel.updatedAt);
-        expect(roundtripModel.emailVerifiedAt, testParticulierModel.emailVerifiedAt);
+        expect(roundtripModel.emailVerifiedAt,
+            testParticulierModel.emailVerifiedAt);
       });
 
       test('should handle minimal data through JSON roundtrip', () {

@@ -24,7 +24,8 @@ void main() {
     userId: tUserId,
   );
 
-  final tConversationParams = ConversationParams(conversationId: tConversationId);
+  final tConversationParams =
+      ConversationParams(conversationId: tConversationId);
 
   group('MarkMessagesAsRead', () {
     late MarkMessagesAsRead usecase;
@@ -52,7 +53,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
       when(mockRepository.markMessagesAsRead(
         conversationId: anyNamed('conversationId'),
@@ -70,12 +72,14 @@ void main() {
       ));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
       when(mockRepository.markMessagesAsRead(
         conversationId: anyNamed('conversationId'),
         userId: anyNamed('userId'),
-      )).thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      )).thenAnswer((_) async =>
+          const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tMarkParams);
@@ -139,7 +143,8 @@ void main() {
 
     test('doit supprimer la conversation avec succès', () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
@@ -147,14 +152,18 @@ void main() {
 
       // assert
       expect(result, const Right(null));
-      verify(mockRepository.deleteConversation(conversationId: tConversationId));
+      verify(
+          mockRepository.deleteConversation(conversationId: tConversationId));
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé')));
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer(
+              (_) async => const Left(AuthFailure('Accès non autorisé')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -163,10 +172,13 @@ void main() {
       expect(result, const Left(AuthFailure('Accès non autorisé')));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -175,21 +187,27 @@ void main() {
       expect(result, const Left(ValidationFailure('Conversation non trouvée')));
     });
 
-    test('doit retourner ValidationFailure pour une conversation déjà supprimée', () async {
+    test(
+        'doit retourner ValidationFailure pour une conversation déjà supprimée',
+        () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation déjà supprimée')));
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation déjà supprimée')));
 
       // act
       final result = await usecase(tConversationParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Conversation déjà supprimée')));
+      expect(
+          result, const Left(ValidationFailure('Conversation déjà supprimée')));
     });
 
     test('doit retourner ServerFailure en cas d\'erreur serveur', () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
 
       // act
@@ -201,14 +219,17 @@ void main() {
 
     test('doit appeler le repository avec le bon conversationId', () async {
       // arrange
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
       await usecase(tConversationParams);
 
       // assert
-      final captured = verify(mockRepository.deleteConversation(conversationId: captureAnyNamed('conversationId'))).captured;
+      final captured = verify(mockRepository.deleteConversation(
+              conversationId: captureAnyNamed('conversationId')))
+          .captured;
       expect(captured.first, tConversationId);
     });
   });
@@ -222,7 +243,8 @@ void main() {
 
     test('doit bloquer la conversation avec succès', () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
@@ -234,10 +256,13 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé')));
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer(
+              (_) async => const Left(AuthFailure('Accès non autorisé')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -246,10 +271,13 @@ void main() {
       expect(result, const Left(AuthFailure('Accès non autorisé')));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -258,21 +286,26 @@ void main() {
       expect(result, const Left(ValidationFailure('Conversation non trouvée')));
     });
 
-    test('doit retourner ValidationFailure pour une conversation déjà bloquée', () async {
+    test('doit retourner ValidationFailure pour une conversation déjà bloquée',
+        () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation déjà bloquée')));
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation déjà bloquée')));
 
       // act
       final result = await usecase(tConversationParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Conversation déjà bloquée')));
+      expect(
+          result, const Left(ValidationFailure('Conversation déjà bloquée')));
     });
 
     test('doit retourner ServerFailure en cas d\'erreur serveur', () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
 
       // act
@@ -284,14 +317,17 @@ void main() {
 
     test('doit appeler le repository avec le bon conversationId', () async {
       // arrange
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
       await usecase(tConversationParams);
 
       // assert
-      final captured = verify(mockRepository.blockConversation(conversationId: captureAnyNamed('conversationId'))).captured;
+      final captured = verify(mockRepository.blockConversation(
+              conversationId: captureAnyNamed('conversationId')))
+          .captured;
       expect(captured.first, tConversationId);
     });
   });
@@ -305,7 +341,8 @@ void main() {
 
     test('doit fermer la conversation avec succès', () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
@@ -317,10 +354,13 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé')));
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer(
+              (_) async => const Left(AuthFailure('Accès non autorisé')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -329,10 +369,13 @@ void main() {
       expect(result, const Left(AuthFailure('Accès non autorisé')));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -341,10 +384,13 @@ void main() {
       expect(result, const Left(ValidationFailure('Conversation non trouvée')));
     });
 
-    test('doit retourner ValidationFailure pour une conversation déjà fermée', () async {
+    test('doit retourner ValidationFailure pour une conversation déjà fermée',
+        () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation déjà fermée')));
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation déjà fermée')));
 
       // act
       final result = await usecase(tConversationParams);
@@ -355,7 +401,8 @@ void main() {
 
     test('doit retourner ServerFailure en cas d\'erreur serveur', () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
 
       // act
@@ -367,14 +414,17 @@ void main() {
 
     test('doit appeler le repository avec le bon conversationId', () async {
       // arrange
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
       await usecase(tConversationParams);
 
       // assert
-      final captured = verify(mockRepository.closeConversation(conversationId: captureAnyNamed('conversationId'))).captured;
+      final captured = verify(mockRepository.closeConversation(
+              conversationId: captureAnyNamed('conversationId')))
+          .captured;
       expect(captured.first, tConversationId);
     });
   });
@@ -399,10 +449,12 @@ void main() {
         userId: anyNamed('userId'),
       )).thenAnswer((_) async => const Right(null));
 
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act - marquer comme lu
@@ -424,10 +476,12 @@ void main() {
         userId: tUserId,
       ));
       verify(mockRepository.closeConversation(conversationId: tConversationId));
-      verify(mockRepository.deleteConversation(conversationId: tConversationId));
+      verify(
+          mockRepository.deleteConversation(conversationId: tConversationId));
     });
 
-    test('doit gérer des IDs de conversation avec différents formats', () async {
+    test('doit gérer des IDs de conversation avec différents formats',
+        () async {
       // arrange
       final validIds = [
         'conv123',
@@ -477,30 +531,39 @@ void main() {
         userId: anyNamed('userId'),
       )).thenThrow(Exception('Mark error'));
 
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenThrow(Exception('Delete error'));
 
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
           .thenThrow(Exception('Block error'));
 
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenThrow(Exception('Close error'));
 
       expect(() => markUsecase(tMarkParams), throwsA(isA<Exception>()));
-      expect(() => deleteUsecase(tConversationParams), throwsA(isA<Exception>()));
-      expect(() => blockUsecase(tConversationParams), throwsA(isA<Exception>()));
-      expect(() => closeUsecase(tConversationParams), throwsA(isA<Exception>()));
+      expect(
+          () => deleteUsecase(tConversationParams), throwsA(isA<Exception>()));
+      expect(
+          () => blockUsecase(tConversationParams), throwsA(isA<Exception>()));
+      expect(
+          () => closeUsecase(tConversationParams), throwsA(isA<Exception>()));
     });
 
-    test('doit fonctionner avec différents utilisateurs et conversations', () async {
+    test('doit fonctionner avec différents utilisateurs et conversations',
+        () async {
       // arrange
       const conv1Id = 'conv1';
       const conv2Id = 'conv2';
       const user1Id = 'user1';
       const user2Id = 'user2';
 
-      final params1 = MarkMessagesAsReadParams(conversationId: conv1Id, userId: user1Id);
-      final params2 = MarkMessagesAsReadParams(conversationId: conv2Id, userId: user2Id);
+      final params1 =
+          MarkMessagesAsReadParams(conversationId: conv1Id, userId: user1Id);
+      final params2 =
+          MarkMessagesAsReadParams(conversationId: conv2Id, userId: user2Id);
 
       when(mockRepository.markMessagesAsRead(
         conversationId: conv1Id,
@@ -519,8 +582,10 @@ void main() {
       // assert
       expect(result1, const Right(null));
       expect(result2, const Right(null));
-      verify(mockRepository.markMessagesAsRead(conversationId: conv1Id, userId: user1Id));
-      verify(mockRepository.markMessagesAsRead(conversationId: conv2Id, userId: user2Id));
+      verify(mockRepository.markMessagesAsRead(
+          conversationId: conv1Id, userId: user1Id));
+      verify(mockRepository.markMessagesAsRead(
+          conversationId: conv2Id, userId: user2Id));
     });
 
     test('doit déléguer entièrement aux méthodes du repository', () async {
@@ -529,11 +594,14 @@ void main() {
         conversationId: anyNamed('conversationId'),
         userId: anyNamed('userId'),
       )).thenAnswer((_) async => const Right(null));
-      when(mockRepository.deleteConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.deleteConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
-      when(mockRepository.blockConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.blockConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
-      when(mockRepository.closeConversation(conversationId: anyNamed('conversationId')))
+      when(mockRepository.closeConversation(
+              conversationId: anyNamed('conversationId')))
           .thenAnswer((_) async => const Right(null));
 
       // act
@@ -543,8 +611,10 @@ void main() {
       await closeUsecase(tConversationParams);
 
       // assert - vérifier que les use cases ne font que déléguer
-      verify(mockRepository.markMessagesAsRead(conversationId: tConversationId, userId: tUserId));
-      verify(mockRepository.deleteConversation(conversationId: tConversationId));
+      verify(mockRepository.markMessagesAsRead(
+          conversationId: tConversationId, userId: tUserId));
+      verify(
+          mockRepository.deleteConversation(conversationId: tConversationId));
       verify(mockRepository.blockConversation(conversationId: tConversationId));
       verify(mockRepository.closeConversation(conversationId: tConversationId));
       verifyNoMoreInteractions(mockRepository);

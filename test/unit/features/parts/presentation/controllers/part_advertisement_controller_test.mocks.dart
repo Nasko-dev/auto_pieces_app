@@ -88,10 +88,11 @@ class MockPartAdvertisementRepository extends _i1.Mock
 
   @override
   _i4.Future<_i2.Either<_i5.Failure, List<_i6.PartAdvertisement>>>
-      getMyPartAdvertisements() => (super.noSuchMethod(
+      getMyPartAdvertisements({String? particulierId}) => (super.noSuchMethod(
             Invocation.method(
               #getMyPartAdvertisements,
               [],
+              {#particulierId: particulierId},
             ),
             returnValue: _i4.Future<
                     _i2.Either<_i5.Failure, List<_i6.PartAdvertisement>>>.value(
@@ -100,6 +101,7 @@ class MockPartAdvertisementRepository extends _i1.Mock
               Invocation.method(
                 #getMyPartAdvertisements,
                 [],
+                {#particulierId: particulierId},
               ),
             )),
           ) as _i4

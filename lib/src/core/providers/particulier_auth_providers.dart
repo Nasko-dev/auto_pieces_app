@@ -30,7 +30,8 @@ final deviceServiceProvider = Provider<DeviceService>((ref) {
 });
 
 // Data sources
-final particulierAuthRemoteDataSourceProvider = Provider<ParticulierAuthRemoteDataSource>((ref) {
+final particulierAuthRemoteDataSourceProvider =
+    Provider<ParticulierAuthRemoteDataSource>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
   final deviceService = ref.watch(deviceServiceProvider);
   return ParticulierAuthRemoteDataSourceImpl(
@@ -39,16 +40,19 @@ final particulierAuthRemoteDataSourceProvider = Provider<ParticulierAuthRemoteDa
   );
 });
 
-final particulierAuthLocalDataSourceProvider = Provider<ParticulierAuthLocalDataSource>((ref) {
+final particulierAuthLocalDataSourceProvider =
+    Provider<ParticulierAuthLocalDataSource>((ref) {
   final sharedPreferences = ref.watch(sharedPreferencesProvider);
-  return ParticulierAuthLocalDataSourceImpl(sharedPreferences: sharedPreferences);
+  return ParticulierAuthLocalDataSourceImpl(
+      sharedPreferences: sharedPreferences);
 });
 
 // Repository
-final particulierAuthRepositoryProvider = Provider<ParticulierAuthRepository>((ref) {
+final particulierAuthRepositoryProvider =
+    Provider<ParticulierAuthRepository>((ref) {
   final remoteDataSource = ref.watch(particulierAuthRemoteDataSourceProvider);
   final localDataSource = ref.watch(particulierAuthLocalDataSourceProvider);
-  
+
   return ParticulierAuthRepositoryImpl(
     remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
@@ -56,7 +60,8 @@ final particulierAuthRepositoryProvider = Provider<ParticulierAuthRepository>((r
 });
 
 // Use cases
-final particulierAnonymousAuthProvider = Provider<ParticulierAnonymousAuth>((ref) {
+final particulierAnonymousAuthProvider =
+    Provider<ParticulierAnonymousAuth>((ref) {
   final repository = ref.watch(particulierAuthRepositoryProvider);
   return ParticulierAnonymousAuth(repository);
 });
@@ -77,7 +82,9 @@ final updateParticulierProvider = Provider<UpdateParticulier>((ref) {
 });
 
 // Controller
-final particulierAuthControllerProvider = StateNotifierProvider<ParticulierAuthController, ParticulierAuthState>((ref) {
+final particulierAuthControllerProvider =
+    StateNotifierProvider<ParticulierAuthController, ParticulierAuthState>(
+        (ref) {
   final particulierAnonymousAuth = ref.watch(particulierAnonymousAuthProvider);
   final particulierLogout = ref.watch(particulierLogoutProvider);
   final getCurrentParticulier = ref.watch(getCurrentParticulierProvider);

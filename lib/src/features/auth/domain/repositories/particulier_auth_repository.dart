@@ -11,5 +11,6 @@ abstract class ParticulierAuthRepository {
 
   Future<Either<Failure, bool>> isLoggedIn();
 
-  Future<Either<Failure, Particulier>> updateParticulier(Particulier particulier);
+  Future<Either<Failure, Particulier>> updateParticulier(
+      Particulier particulier);
 }

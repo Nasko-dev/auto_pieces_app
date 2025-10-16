@@ -12,7 +12,8 @@ class SellerMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
-      key: const Key('seller_menu_popup'), // ✅ FIX: Clé unique pour éviter les erreurs de layout
+      key: const Key(
+          'seller_menu_popup'), // ✅ FIX: Clé unique pour éviter les erreurs de layout
       icon: const Icon(
         Icons.more_vert,
         color: AppTheme.darkGray,
@@ -133,16 +134,15 @@ class SellerMenu extends ConsumerWidget {
     }
   }
 
-
   void _logout(BuildContext context, WidgetRef ref) {
     // Déconnexion via le contrôleur seller auth
     ref.read(sellerAuthControllerProvider.notifier).logout();
-    
+
     // Navigation vers la page d'accueil
     if (context.mounted) {
       context.go('/welcome');
     }
-    
+
     // Message de confirmation
     notificationService.success(context, 'Déconnexion réussie');
   }

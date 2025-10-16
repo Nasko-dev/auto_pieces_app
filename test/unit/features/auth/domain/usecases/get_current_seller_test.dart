@@ -36,7 +36,8 @@ void main() {
   );
 
   group('GetCurrentSeller', () {
-    test('doit retourner un Seller quand l\'utilisateur est connecté', () async {
+    test('doit retourner un Seller quand l\'utilisateur est connecté',
+        () async {
       // arrange
       when(mockRepository.getCurrentSeller())
           .thenAnswer((_) async => Right(tSeller));
@@ -50,7 +51,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
       when(mockRepository.getCurrentSeller())
           .thenAnswer((_) async => const Left(AuthFailure('Non authentifié')));
@@ -76,10 +78,11 @@ void main() {
       verify(mockRepository.getCurrentSeller());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getCurrentSeller())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getCurrentSeller()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -166,7 +169,8 @@ void main() {
       verify(mockRepository.getCurrentSeller()).called(2);
     });
 
-    test('doit retourner un vendeur avec toutes les propriétés correctes', () async {
+    test('doit retourner un vendeur avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getCurrentSeller())
           .thenAnswer((_) async => Right(tSeller));

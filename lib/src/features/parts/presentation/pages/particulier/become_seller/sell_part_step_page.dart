@@ -275,7 +275,8 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                       if (widget.selectedCategory != 'moteur' &&
                           widget.selectedCategory != 'engine') ...[
                         _buildPartSearchField(),
-                        if (_hasMultiple == true && _selectedParts.isNotEmpty) ...[
+                        if (_hasMultiple == true &&
+                            _selectedParts.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           _buildSelectedPartsTags(),
                         ],
@@ -639,8 +640,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           _buildOptionCheckbox(
             value: _hasMultiple == true,
             label: 'J\'ai plus que 5 pièces',
-            description:
-                'Vous avez plusieurs pièces à vendre (plus de 5)',
+            description: 'Vous avez plusieurs pièces à vendre (plus de 5)',
             icon: Icons.inventory_outlined,
             onChanged: (value) {
               setState(() {
@@ -653,8 +653,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           _buildOptionCheckbox(
             value: _hasMultiple == false,
             label: 'J\'ai moins de 5 pièces',
-            description:
-                'Vous avez quelques pièces à vendre (moins de 5)',
+            description: 'Vous avez quelques pièces à vendre (moins de 5)',
             icon: Icons.dashboard_customize_outlined,
             onChanged: (value) {
               setState(() {

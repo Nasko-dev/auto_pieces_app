@@ -14,7 +14,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('doit afficher le widget avec les paramètres par défaut', (tester) async {
+    testWidgets('doit afficher le widget avec les paramètres par défaut',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -50,7 +51,9 @@ void main() {
       expect(controller.text, plateNumber);
     });
 
-    testWidgets('doit convertir le texte saisi en majuscules sans formatage automatique', (tester) async {
+    testWidgets(
+        'doit convertir le texte saisi en majuscules sans formatage automatique',
+        (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -67,7 +70,9 @@ void main() {
       expect(controller.text, 'AB123CD');
     });
 
-    testWidgets('doit gérer les différentes étapes de saisie sans formatage automatique', (tester) async {
+    testWidgets(
+        'doit gérer les différentes étapes de saisie sans formatage automatique',
+        (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -114,7 +119,8 @@ void main() {
       expect(controller.text.length, lessThanOrEqualTo(15));
     });
 
-    testWidgets('doit supprimer les caractères non alphanumériques sauf tirets', (tester) async {
+    testWidgets('doit supprimer les caractères non alphanumériques sauf tirets',
+        (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -209,7 +215,8 @@ void main() {
       expect(textField.enabled, false);
     });
 
-    testWidgets('doit désactiver le champ quand isLoading=true', (tester) async {
+    testWidgets('doit désactiver le champ quand isLoading=true',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -227,7 +234,9 @@ void main() {
       expect(textField.enabled, false);
     });
 
-    testWidgets('doit afficher l\'indicateur de chargement quand isLoading=true', (tester) async {
+    testWidgets(
+        'doit afficher l\'indicateur de chargement quand isLoading=true',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -264,15 +273,18 @@ void main() {
       expect(find.text(errorMessage), findsOneWidget);
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is Text &&
-                      widget.data == errorMessage &&
-                      widget.style?.color == Colors.red,
+          (widget) =>
+              widget is Text &&
+              widget.data == errorMessage &&
+              widget.style?.color == Colors.red,
         ),
         findsOneWidget,
       );
     });
 
-    testWidgets('ne doit pas afficher le message d\'erreur si errorText est null', (tester) async {
+    testWidgets(
+        'ne doit pas afficher le message d\'erreur si errorText est null',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -412,7 +424,8 @@ void main() {
 
         // assert - doit être tronqué à 15 caractères max
         expect(controller.text.length, lessThanOrEqualTo(15));
-        expect(controller.text, 'ABCDEFGHIJKLMNO'); // Les 15 premiers caractères
+        expect(
+            controller.text, 'ABCDEFGHIJKLMNO'); // Les 15 premiers caractères
       });
     });
 

@@ -29,16 +29,16 @@ class TestPartRequestController extends PartRequestController {
     required GetPartRequestResponses getPartRequestResponses,
     required DeletePartRequest deletePartRequest,
     required PartRequestRepository testRepository,
-  }) : _testRepository = testRepository,
-       _createPartRequestUsecase = createPartRequest,
-       _deletePartRequestUsecase = deletePartRequest,
-       super(
-         createPartRequest: createPartRequest,
-         getUserPartRequests: getUserPartRequests,
-         getPartRequestResponses: getPartRequestResponses,
-         deletePartRequest: deletePartRequest,
-         ref: _MockRef(),
-       );
+  })  : _testRepository = testRepository,
+        _createPartRequestUsecase = createPartRequest,
+        _deletePartRequestUsecase = deletePartRequest,
+        super(
+          createPartRequest: createPartRequest,
+          getUserPartRequests: getUserPartRequests,
+          getPartRequestResponses: getPartRequestResponses,
+          deletePartRequest: deletePartRequest,
+          ref: _MockRef(),
+        );
 
   @override
   Future<bool> createPartRequest(CreatePartRequestParams params) async {
@@ -99,9 +99,8 @@ class TestPartRequestController extends PartRequestController {
         return false;
       },
       (_) {
-        final updatedRequests = state.requests
-            .where((request) => request.id != requestId)
-            .toList();
+        final updatedRequests =
+            state.requests.where((request) => request.id != requestId).toList();
 
         state = state.copyWith(
           isDeleting: false,
@@ -204,7 +203,8 @@ void main() {
     });
 
     group('createPartRequest', () {
-      test('doit créer une demande avec succès quand aucune demande active', () async {
+      test('doit créer une demande avec succès quand aucune demande active',
+          () async {
         // arrange
         when(mockRepository.hasActivePartRequest())
             .thenAnswer((_) async => const Right(false));
@@ -234,7 +234,8 @@ void main() {
         expect(result, false);
         expect(controller.state.isCreating, false);
         expect(controller.state.requests, isEmpty);
-        expect(controller.state.error, 'Une demande est déjà en cours. Veuillez attendre sa clôture.');
+        expect(controller.state.error,
+            'Une demande est déjà en cours. Veuillez attendre sa clôture.');
         verifyNever(mockCreatePartRequest(any));
       });
 
@@ -277,8 +278,8 @@ void main() {
 
       test('doit continuer si la vérification hasActive échoue', () async {
         // arrange
-        when(mockRepository.hasActivePartRequest())
-            .thenAnswer((_) async => const Left(ServerFailure('Erreur vérification')));
+        when(mockRepository.hasActivePartRequest()).thenAnswer(
+            (_) async => const Left(ServerFailure('Erreur vérification')));
         when(mockCreatePartRequest(tCreateParams))
             .thenAnswer((_) async => Right(tPartRequest));
 
@@ -371,7 +372,8 @@ void main() {
         expect(controller.state.error, failure.message);
       });
 
-      test('doit passer par l\'état loadingResponses pendant le chargement', () async {
+      test('doit passer par l\'état loadingResponses pendant le chargement',
+          () async {
         // arrange
         when(mockGetPartRequestResponses('1'))
             .thenAnswer((_) async => Right(tSellerResponsesList));
@@ -425,7 +427,9 @@ void main() {
     });
 
     group('refresh', () {
-      test('doit rafraîchir les demandes et les réponses si une demande est sélectionnée', () async {
+      test(
+          'doit rafraîchir les demandes et les réponses si une demande est sélectionnée',
+          () async {
         // arrange
         when(mockGetUserPartRequests(NoParams()))
             .thenAnswer((_) async => Right(tPartRequestsList));
@@ -441,10 +445,13 @@ void main() {
 
         // assert
         verify(mockGetUserPartRequests(NoParams()));
-        verify(mockGetPartRequestResponses(tPartRequest.id)).called(2); // Une fois pour select, une fois pour refresh
+        verify(mockGetPartRequestResponses(tPartRequest.id))
+            .called(2); // Une fois pour select, une fois pour refresh
       });
 
-      test('doit rafraîchir seulement les demandes si aucune demande sélectionnée', () async {
+      test(
+          'doit rafraîchir seulement les demandes si aucune demande sélectionnée',
+          () async {
         // arrange
         when(mockGetUserPartRequests(NoParams()))
             .thenAnswer((_) async => Right(tPartRequestsList));
@@ -476,7 +483,8 @@ void main() {
         // arrange - état avec plusieurs demandes
         final activeRequest = tPartRequest.copyWith(id: '1', status: 'active');
         final closedRequest = tPartRequest.copyWith(id: '2', status: 'closed');
-        final fulfilledRequest = tPartRequest.copyWith(id: '3', status: 'fulfilled');
+        final fulfilledRequest =
+            tPartRequest.copyWith(id: '3', status: 'fulfilled');
 
         controller.state = controller.state.copyWith(
           requests: [activeRequest, closedRequest, fulfilledRequest],
@@ -513,10 +521,16 @@ void main() {
         final activeRequest1 = tPartRequest.copyWith(id: '1', status: 'active');
         final activeRequest2 = tPartRequest.copyWith(id: '2', status: 'active');
         final closedRequest = tPartRequest.copyWith(id: '3', status: 'closed');
-        final fulfilledRequest = tPartRequest.copyWith(id: '4', status: 'fulfilled');
+        final fulfilledRequest =
+            tPartRequest.copyWith(id: '4', status: 'fulfilled');
 
         controller.state = controller.state.copyWith(
-          requests: [activeRequest1, activeRequest2, closedRequest, fulfilledRequest],
+          requests: [
+            activeRequest1,
+            activeRequest2,
+            closedRequest,
+            fulfilledRequest
+          ],
         );
 
         // act
@@ -547,7 +561,8 @@ void main() {
     group('deletePartRequest', () {
       test('doit supprimer une demande avec succès', () async {
         // arrange
-        controller.state = controller.state.copyWith(requests: tPartRequestsList);
+        controller.state =
+            controller.state.copyWith(requests: tPartRequestsList);
         when(mockDeletePartRequest('1'))
             .thenAnswer((_) async => const Right(null));
 
@@ -563,7 +578,8 @@ void main() {
 
       test('doit gérer les erreurs lors de la suppression', () async {
         // arrange
-        controller.state = controller.state.copyWith(requests: tPartRequestsList);
+        controller.state =
+            controller.state.copyWith(requests: tPartRequestsList);
         const failure = ServerFailure('Erreur suppression');
         when(mockDeletePartRequest('1'))
             .thenAnswer((_) async => const Left(failure));
@@ -580,7 +596,8 @@ void main() {
 
       test('doit passer par l\'état deleting pendant la suppression', () async {
         // arrange
-        controller.state = controller.state.copyWith(requests: tPartRequestsList);
+        controller.state =
+            controller.state.copyWith(requests: tPartRequestsList);
         when(mockDeletePartRequest('1'))
             .thenAnswer((_) async => const Right(null));
 
@@ -600,7 +617,8 @@ void main() {
         // arrange
         final request1 = tPartRequest.copyWith(id: '1');
         final request2 = tPartRequest.copyWith(id: '2');
-        controller.state = controller.state.copyWith(requests: [request1, request2]);
+        controller.state =
+            controller.state.copyWith(requests: [request1, request2]);
         when(mockDeletePartRequest('1'))
             .thenAnswer((_) async => const Right(null));
 
@@ -625,7 +643,8 @@ void main() {
       );
     });
 
-    test('doit maintenir l\'état correct lors d\'opérations multiples', () async {
+    test('doit maintenir l\'état correct lors d\'opérations multiples',
+        () async {
       // arrange
       when(mockGetUserPartRequests(NoParams()))
           .thenAnswer((_) async => Right(tPartRequestsList));

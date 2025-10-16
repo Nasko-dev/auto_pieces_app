@@ -53,7 +53,9 @@ void main() {
   final tPartRequestsList = [tPartRequest1, tPartRequest2];
 
   group('GetUserPartRequests', () {
-    test('doit retourner une liste de PartRequest quand la récupération réussit', () async {
+    test(
+        'doit retourner une liste de PartRequest quand la récupération réussit',
+        () async {
       // arrange
       when(mockRepository.getUserPartRequests())
           .thenAnswer((_) async => Right(tPartRequestsList));
@@ -67,7 +69,9 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner une liste vide quand l\'utilisateur n\'a pas de demandes', () async {
+    test(
+        'doit retourner une liste vide quand l\'utilisateur n\'a pas de demandes',
+        () async {
       // arrange
       when(mockRepository.getUserPartRequests())
           .thenAnswer((_) async => const Right([]));
@@ -84,10 +88,11 @@ void main() {
       verify(mockRepository.getUserPartRequests());
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.getUserPartRequests())
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non connecté')));
+      when(mockRepository.getUserPartRequests()).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non connecté')));
 
       // act
       final result = await usecase(NoParams());
@@ -110,10 +115,11 @@ void main() {
       verify(mockRepository.getUserPartRequests());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getUserPartRequests())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getUserPartRequests()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -173,7 +179,8 @@ void main() {
       );
     });
 
-    test('doit retourner les demandes avec toutes les propriétés correctes', () async {
+    test('doit retourner les demandes avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getUserPartRequests())
           .thenAnswer((_) async => Right(tPartRequestsList));
@@ -238,7 +245,8 @@ void main() {
       result.fold(
         (failure) => fail('Ne devrait pas échouer'),
         (partRequests) {
-          expect(partRequests[0].createdAt.isAfter(partRequests[1].createdAt), true);
+          expect(partRequests[0].createdAt.isAfter(partRequests[1].createdAt),
+              true);
         },
       );
     });

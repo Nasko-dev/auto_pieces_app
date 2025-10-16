@@ -56,7 +56,9 @@ void main() {
       const tEmail = 'test@example.com';
       const tPassword = 'password123';
 
-      test('doit retourner un Seller quand la connexion réussit avec connexion internet', () async {
+      test(
+          'doit retourner un Seller quand la connexion réussit avec connexion internet',
+          () async {
         // arrange
         when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
         when(mockRemoteDataSource.loginSeller(
@@ -79,7 +81,9 @@ void main() {
         expect(result, Right(tSellerModel));
       });
 
-      test('doit retourner NetworkFailure quand il n\'y a pas de connexion internet', () async {
+      test(
+          'doit retourner NetworkFailure quand il n\'y a pas de connexion internet',
+          () async {
         // arrange
         when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -95,7 +99,8 @@ void main() {
         expect(result, const Left(NetworkFailure('Aucune connexion internet')));
       });
 
-      test('doit retourner AuthFailure quand les identifiants sont incorrects', () async {
+      test('doit retourner AuthFailure quand les identifiants sont incorrects',
+          () async {
         // arrange
         when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
         when(mockRemoteDataSource.loginSeller(
@@ -128,7 +133,10 @@ void main() {
         );
 
         // assert
-        expect(result, const Left(ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
+        expect(
+            result,
+            const Left(
+                ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
       });
     });
 
@@ -210,7 +218,8 @@ void main() {
       test('doit réussir même si le nettoyage du cache échoue', () async {
         // arrange
         when(mockRemoteDataSource.logoutSeller()).thenAnswer((_) async => {});
-        when(mockLocalDataSource.clearCache()).thenThrow(Exception('Erreur cache'));
+        when(mockLocalDataSource.clearCache())
+            .thenThrow(Exception('Erreur cache'));
 
         // act
         final result = await repository.logoutSeller();
@@ -223,21 +232,27 @@ void main() {
 
       test('doit retourner ServerFailure si la déconnexion échoue', () async {
         // arrange
-        when(mockRemoteDataSource.logoutSeller()).thenThrow(Exception('Erreur déconnexion'));
+        when(mockRemoteDataSource.logoutSeller())
+            .thenThrow(Exception('Erreur déconnexion'));
 
         // act
         final result = await repository.logoutSeller();
 
         // assert
-        expect(result, const Left(ServerFailure('Erreur lors de la déconnexion: Exception: Erreur déconnexion')));
+        expect(
+            result,
+            const Left(ServerFailure(
+                'Erreur lors de la déconnexion: Exception: Erreur déconnexion')));
       });
     });
 
     group('getCurrentSeller', () {
-      test('doit retourner le vendeur actuel avec connexion internet', () async {
+      test('doit retourner le vendeur actuel avec connexion internet',
+          () async {
         // arrange
         when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-        when(mockRemoteDataSource.getCurrentSeller()).thenAnswer((_) async => tSellerModel);
+        when(mockRemoteDataSource.getCurrentSeller())
+            .thenAnswer((_) async => tSellerModel);
 
         // act
         final result = await repository.getCurrentSeller();

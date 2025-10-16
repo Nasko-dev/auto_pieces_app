@@ -82,15 +82,26 @@ class MockPartAdvertisementRemoteDataSource extends _i1.Mock
       ) as _i4.Future<_i2.PartAdvertisementModel>);
 
   @override
-  _i4.Future<List<_i2.PartAdvertisementModel>> getMyPartAdvertisements() =>
+  _i4.Future<List<_i2.PartAdvertisementModel>> getMyPartAdvertisements(
+          {String? particulierId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getMyPartAdvertisements,
           [],
+          {#particulierId: particulierId},
         ),
         returnValue: _i4.Future<List<_i2.PartAdvertisementModel>>.value(
             <_i2.PartAdvertisementModel>[]),
       ) as _i4.Future<List<_i2.PartAdvertisementModel>>);
+
+  @override
+  _i4.Future<String?> getParticulierIdFromDeviceId() => (super.noSuchMethod(
+        Invocation.method(
+          #getParticulierIdFromDeviceId,
+          [],
+        ),
+        returnValue: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
   _i4.Future<List<_i2.PartAdvertisementModel>> searchPartAdvertisements(

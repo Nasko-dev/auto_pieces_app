@@ -12,7 +12,8 @@ class LicensePlateInput extends ConsumerStatefulWidget {
   final bool showManualOption;
   final bool autoSearch;
   final String? initialPlate;
-  final bool allowWithActiveRequest; // ✅ FIX: Permettre même si demande active (pour annonces)
+  final bool
+      allowWithActiveRequest; // ✅ FIX: Permettre même si demande active (pour annonces)
 
   const LicensePlateInput({
     super.key,
@@ -21,7 +22,8 @@ class LicensePlateInput extends ConsumerStatefulWidget {
     this.showManualOption = true,
     this.autoSearch = true,
     this.initialPlate,
-    this.allowWithActiveRequest = false, // Par défaut, bloquer (comportement actuel)
+    this.allowWithActiveRequest =
+        false, // Par défaut, bloquer (comportement actuel)
   });
 
   @override
@@ -29,7 +31,6 @@ class LicensePlateInput extends ConsumerStatefulWidget {
 }
 
 class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
-
   static const double _radius = 10;
 
   late TextEditingController _plateController;
@@ -51,24 +52,21 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
     final plate = _plateController.text.trim();
     if (plate.isEmpty) return;
 
-
     setState(() {
       _hasSearched = true;
     });
 
     await ref.read(vehicleSearchProvider.notifier).searchVehicle(
-      plate,
-      allowWithActiveRequest: widget.allowWithActiveRequest,
-    );
+          plate,
+          allowWithActiveRequest: widget.allowWithActiveRequest,
+        );
 
     final state = ref.read(vehicleSearchProvider);
 
     if (state.vehicleInfo != null) {
       widget.onPlateValidated?.call(plate);
-    } else if (state.error != null) {
-    }
+    } else if (state.error != null) {}
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,16 +90,21 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
 
         FrenchLicensePlate(
           controller: _plateController,
-          enabled: !vehicleState.isLoading && (widget.allowWithActiveRequest || !vehicleState.hasActiveRequest),
-          isLoading: vehicleState.isLoading || vehicleState.isCheckingActiveRequest,
+          enabled: !vehicleState.isLoading &&
+              (widget.allowWithActiveRequest || !vehicleState.hasActiveRequest),
+          isLoading:
+              vehicleState.isLoading || vehicleState.isCheckingActiveRequest,
           errorText: vehicleState.error != null && _hasSearched
               ? vehicleState.error
               : null,
-          onChanged: (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ? null : (value) {
-            setState(() {
-              _hasSearched = false;
-            });
-          },
+          onChanged:
+              (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest)
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _hasSearched = false;
+                      });
+                    },
           onSubmitted: null,
         ),
 
@@ -113,9 +116,13 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
           height: 52,
           child: ElevatedButton(
             onPressed: (vehicleState.isLoading ||
-                       vehicleState.isCheckingActiveRequest ||
-                       (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ||
-                       _plateController.text.replaceAll(RegExp(r'[^A-Z0-9]'), '').length < 7)
+                    vehicleState.isCheckingActiveRequest ||
+                    (vehicleState.hasActiveRequest &&
+                        !widget.allowWithActiveRequest) ||
+                    _plateController.text
+                            .replaceAll(RegExp(r'[^A-Z0-9]'), '')
+                            .length <
+                        7)
                 ? null
                 : _handleSearch,
             style: ElevatedButton.styleFrom(
@@ -130,7 +137,8 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
                 fontSize: 16,
               ),
             ),
-            child: vehicleState.isLoading || vehicleState.isCheckingActiveRequest
+            child: vehicleState.isLoading ||
+                    vehicleState.isCheckingActiveRequest
                 ? const SizedBox(
                     height: 20,
                     width: 20,
@@ -144,12 +152,14 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
         ),
 
         // ✅ FIX: Affichage du blocage UNIQUEMENT si pas allowWithActiveRequest
-        if (vehicleState.hasActiveRequest && !widget.allowWithActiveRequest) ...[
+        if (vehicleState.hasActiveRequest &&
+            !widget.allowWithActiveRequest) ...[
           const SizedBox(height: 12),
           _ActiveRequestWarning(),
         ]
         // Affichage des limitations de tentatives SEULEMENT si pas de demande active
-        else if (!vehicleState.hasActiveRequest || widget.allowWithActiveRequest) ...[
+        else if (!vehicleState.hasActiveRequest ||
+            widget.allowWithActiveRequest) ...[
           if (vehicleState.isRateLimited) ...[
             const SizedBox(height: 12),
             _RateLimitWarning(
@@ -158,7 +168,8 @@ class _LicensePlateInputState extends ConsumerState<LicensePlateInput> {
             ),
           ] else if (vehicleState.remainingAttempts < 3) ...[
             const SizedBox(height: 12),
-            _RemainingAttemptsInfo(remainingAttempts: vehicleState.remainingAttempts),
+            _RemainingAttemptsInfo(
+                remainingAttempts: vehicleState.remainingAttempts),
           ],
         ],
 

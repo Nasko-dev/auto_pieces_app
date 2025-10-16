@@ -153,7 +153,8 @@ void main() {
         expect(partRequest.isActive, false);
       });
 
-      test('should return true when status is active and no expiration date', () {
+      test('should return true when status is active and no expiration date',
+          () {
         final partRequest = testPartRequest.copyWith(
           status: 'active',
           expiresAt: null,
@@ -186,7 +187,8 @@ void main() {
 
     group('vehicleInfo getter', () {
       group('when partType is body', () {
-        test('should return brand + model + year + engine when all are present', () {
+        test('should return brand + model + year + engine when all are present',
+            () {
           final partRequest = testPartRequest.copyWith(
             partType: 'body',
             vehicleBrand: 'Peugeot',
@@ -286,7 +288,8 @@ void main() {
           expect(partRequest.vehicleInfo, '3.0 V6');
         });
 
-        test('should return default message when no vehicle info available', () {
+        test('should return default message when no vehicle info available',
+            () {
           final partRequest = testPartRequest.copyWith(
             partType: 'unknown',
             vehicleBrand: null,
@@ -504,7 +507,8 @@ void main() {
         );
 
         expect(partRequest.vehicleYear, 1900);
-        expect(partRequest.vehicleInfo, 'Renault - Clio - 1900 - 1.2 TCE'); // All available fields
+        expect(partRequest.vehicleInfo,
+            'Renault - Clio - 1900 - 1.2 TCE'); // All available fields
       });
 
       test('should handle future years', () {
@@ -547,7 +551,9 @@ void main() {
       expect(params.isSellerRequest, false);
     });
 
-    test('should create CreatePartRequestParams with minimal required parameters', () {
+    test(
+        'should create CreatePartRequestParams with minimal required parameters',
+        () {
       final params = CreatePartRequestParams(
         partType: 'body',
         partNames: ['Rétroviseur'],
