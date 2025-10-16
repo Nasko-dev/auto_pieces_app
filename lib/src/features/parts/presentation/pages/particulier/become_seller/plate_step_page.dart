@@ -48,6 +48,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   // Pour les dropdowns boîte de vitesses
   String? _selectedTransmissionType;
   String? _selectedGears;
+  String? _selectedDriveType;
 
   @override
   void dispose() {
@@ -72,9 +73,17 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
       } else if (widget.selectedSubType == 'transmission_parts') {
         // Transmission + véhicule
         final parts = <String>[];
-        if (_selectedTransmissionType != null)
+        if (_selectedTransmissionType != null) {
           parts.add(_selectedTransmissionType!);
-        if (_selectedGears != null) parts.add('$_selectedGears vitesses');
+        }
+        if (_selectedGears != null) {
+          if (_selectedGears == 'Je ne sais pas') {
+            parts.add(_selectedGears!);
+          } else {
+            parts.add('$_selectedGears vitesses');
+          }
+        }
+        if (_selectedDriveType != null) parts.add(_selectedDriveType!);
         if (_selectedBrand != null) parts.add(_selectedBrand!);
         if (_selectedModel != null) parts.add(_selectedModel!);
         if (_selectedYear != null) parts.add(_selectedYear.toString());
@@ -315,6 +324,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 _horsepowerController.clear();
                 _selectedTransmissionType = null;
                 _selectedGears = null;
+                _selectedDriveType = null;
               }),
             ),
             const SizedBox(height: 80),
@@ -451,13 +461,16 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
     const transmissionTypes = [
       'Manuelle',
       'Automatique',
-      'Robotisée',
-      'Séquentielle',
-      'CVT',
-      'Double embrayage',
     ];
 
-    const gearsList = ['4', '5', '6', '7', '8', '9', '10'];
+    const gearsList = ['4', '5', '6', '7', '8', '9', '10', 'Je ne sais pas'];
+
+    const driveTypes = [
+      'Traction',
+      'Propulsion',
+      '4 roues motrices',
+      'Je ne sais pas',
+    ];
 
     return [
       const Text(
@@ -469,11 +482,11 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         ),
       ),
       const SizedBox(height: 16),
-      // Dropdown Type de boîte
+      // Dropdown Type de boîte de vitesse
       _buildDropdown<String>(
-        label: 'Type de boîte',
+        label: 'Type de boîte de vitesse',
         hint: 'Sélectionnez un type',
-        icon: Icons.settings,
+        icon: Icons.settings_input_composite,
         value: _selectedTransmissionType,
         items: transmissionTypes,
         onChanged: (value) {
@@ -484,11 +497,11 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         enabled: true,
       ),
       const SizedBox(height: 16),
-      // Dropdown Nombre de vitesses
+      // Dropdown Nombre de rapports
       _buildDropdown<String>(
-        label: 'Nombre de vitesses',
-        hint: 'Sélectionnez le nombre',
-        icon: Icons.speed,
+        label: 'Nombre de rapports',
+        hint: 'Sélectionnez le nombre de vitesses',
+        icon: Icons.linear_scale,
         value: _selectedGears,
         items: gearsList,
         onChanged: (value) {
@@ -498,6 +511,22 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         },
         enabled: _selectedTransmissionType != null &&
             _selectedTransmissionType!.isNotEmpty,
+      ),
+      const SizedBox(height: 16),
+      // Dropdown Type de transmission
+      _buildDropdown<String>(
+        label: 'Type de transmission',
+        hint: 'Sélectionnez un type',
+        icon: Icons.sync_alt,
+        value: _selectedDriveType,
+        items: driveTypes,
+        onChanged: (value) {
+          setState(() {
+            _selectedDriveType = value;
+          });
+        },
+        enabled: _selectedGears != null &&
+            _selectedGears!.isNotEmpty,
       ),
       const SizedBox(height: 24),
       const Text(
@@ -1003,11 +1032,13 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedFuelType != null &&
           _selectedFuelType!.isNotEmpty;
     } else if (widget.selectedSubType == 'transmission_parts') {
-      // Pour les pièces boîte/transmission : type boîte + vitesses + marque + modèle + année requis
+      // Pour les pièces boîte/transmission : type boîte + vitesses + drive type + marque + modèle + année requis
       return _selectedTransmissionType != null &&
           _selectedTransmissionType!.isNotEmpty &&
           _selectedGears != null &&
           _selectedGears!.isNotEmpty &&
+          _selectedDriveType != null &&
+          _selectedDriveType!.isNotEmpty &&
           _selectedBrand != null &&
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
