@@ -8,6 +8,7 @@ import '../../../../../core/utils/haptic_helper.dart';
 import 'become_seller/choice_step_page.dart';
 import 'become_seller/sub_type_step_page.dart';
 import 'become_seller/quantity_step_page.dart';
+import '../Vendeur/add_advertisement/seller_parts_selection_page.dart';
 import 'become_seller/plate_step_page.dart';
 import 'become_seller/congrats_step_page.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
@@ -78,35 +79,47 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     setState(() {
       _quantityType = quantity;
 
-      // Définir automatiquement le nom de la pièce selon la quantité
+      // Si "complet", définir le nom et skip la sélection des pièces
       if (quantity == 'complete_engine') {
         _partName = 'Moteur complet';
+        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
       } else if (quantity == 'complete_transmission') {
         _partName = 'Boîte complète';
-      } else if (quantity == 'multiple') {
-        _partName = _getPartNameFromSubType('Plusieurs pièces');
-      } else if (quantity == 'few') {
-        _partName = _getPartNameFromSubType('Quelques pièces');
+        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
+      } else {
+        // Pour multiple ou few, aller à la page de sélection des pièces
+        _currentStep = 3; // SellerPartsSelectionPage
       }
-
-      // Aller directement à PlateStepPage
-      _currentStep = 3;
     });
   }
 
-  String _getPartNameFromSubType(String prefix) {
-    switch (_selectedSubType) {
-      case 'engine_parts':
-        return '$prefix moteur';
-      case 'transmission_parts':
-        return '$prefix transmission';
-      case 'body_parts':
-        return '$prefix carrosserie';
-      case 'both':
-        return '$prefix moteur et transmission';
-      default:
-        return prefix;
-    }
+  void _onPartsSelected(List<String> parts, String completeOption) {
+    setState(() {
+      // Construire le nom de la pièce selon la sélection
+      if (completeOption.isNotEmpty) {
+        switch (completeOption) {
+          case 'moteur_complet':
+            _partName = 'Moteur complet';
+            break;
+          case 'carrosserie_complete':
+            _partName = 'Carrosserie complète';
+            break;
+          case 'vehicule_complet':
+            _partName = 'Véhicule complet';
+            break;
+        }
+      } else if (parts.isNotEmpty) {
+        if (_quantityType == 'multiple') {
+          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
+          _partName = 'Toutes pièces sauf: ${parts.join(', ')}';
+        } else {
+          // -5 pièces : les pièces listées sont celles qu'on A
+          _partName = parts.join(', ');
+        }
+      }
+
+      _currentStep = 4; // PlateStepPage
+    });
   }
 
   void _onPlateSubmitted(String plate) async {
@@ -120,7 +133,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
       setState(() {
         _isSubmitting = false;
-        _currentStep = 4; // CongratsStepPage
+        _currentStep = 5; // CongratsStepPage
       });
     } catch (e) {
       setState(() {
@@ -218,8 +231,17 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           _currentStep = 0; // Retour à Choice
         }
       } else if (_currentStep == 3) {
-        // Depuis PlateStep, retour à QuantityStep
+        // Depuis SellerPartsSelectionPage, retour à QuantityStep
         _currentStep = 2;
+      } else if (_currentStep == 4) {
+        // Depuis PlateStep, retour selon si on a skippé ou non
+        if (_quantityType == 'complete_engine' ||
+            _quantityType == 'complete_transmission') {
+          _currentStep =
+              2; // Retour direct à QuantityStep (on avait skippé step 3)
+        } else {
+          _currentStep = 3; // Retour à SellerPartsSelectionPage
+        }
       } else {
         _currentStep--;
       }
@@ -289,7 +311,12 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                 selectedSubType: _selectedSubType,
                 onQuantitySelected: _onQuantitySelected,
               ),
-            3 => PlateStepPage(
+            3 => SellerPartsSelectionPage(
+                selectedCategory: _selectedChoice,
+                hasMultipleParts: _quantityType == 'multiple',
+                onSubmit: _onPartsSelected,
+              ),
+            4 => PlateStepPage(
                 selectedChoice: _selectedChoice,
                 selectedSubType: _selectedSubType,
                 onPlateSubmitted: _onPlateSubmitted,

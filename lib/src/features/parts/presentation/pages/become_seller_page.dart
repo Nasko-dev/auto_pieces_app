@@ -4,6 +4,7 @@ import '../../../../core/utils/haptic_helper.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/choice_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/sub_type_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/quantity_step_page.dart';
+import '../../../../features/parts/presentation/pages/Vendeur/add_advertisement/seller_parts_selection_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/plate_step_page.dart';
 import '../../../../features/parts/presentation/pages/particulier/become_seller/congrats_step_page.dart';
 import '../../../../shared/presentation/widgets/app_menu.dart';
@@ -49,35 +50,47 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
     setState(() {
       quantityType = quantity;
 
-      // Définir automatiquement le nom de la pièce selon la quantité
+      // Si "complet", définir le nom et skip la sélection des pièces
       if (quantity == 'complete_engine') {
         partName = 'Moteur complet';
+        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
       } else if (quantity == 'complete_transmission') {
         partName = 'Boîte complète';
-      } else if (quantity == 'multiple') {
-        partName = _getPartNameFromSubType('Plusieurs pièces');
-      } else if (quantity == 'few') {
-        partName = _getPartNameFromSubType('Quelques pièces');
+        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
+      } else {
+        // Pour multiple ou few, aller à la page de sélection des pièces
+        _currentStep = 3; // SellerPartsSelectionPage
       }
-
-      // Aller directement à PlateStepPage
-      _currentStep = 3;
     });
   }
 
-  String _getPartNameFromSubType(String prefix) {
-    switch (selectedSubType) {
-      case 'engine_parts':
-        return '$prefix moteur';
-      case 'transmission_parts':
-        return '$prefix transmission';
-      case 'body_parts':
-        return '$prefix carrosserie';
-      case 'both':
-        return '$prefix moteur et transmission';
-      default:
-        return prefix;
-    }
+  void _onPartsSelected(List<String> parts, String completeOption) {
+    setState(() {
+      // Construire le nom de la pièce selon la sélection
+      if (completeOption.isNotEmpty) {
+        switch (completeOption) {
+          case 'moteur_complet':
+            partName = 'Moteur complet';
+            break;
+          case 'carrosserie_complete':
+            partName = 'Carrosserie complète';
+            break;
+          case 'vehicule_complet':
+            partName = 'Véhicule complet';
+            break;
+        }
+      } else if (parts.isNotEmpty) {
+        if (quantityType == 'multiple') {
+          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
+          partName = 'Toutes pièces sauf: ${parts.join(', ')}';
+        } else {
+          // -5 pièces : les pièces listées sont celles qu'on A
+          partName = parts.join(', ');
+        }
+      }
+
+      _currentStep = 4; // PlateStepPage
+    });
   }
 
   void _goToNextStep() {
@@ -97,7 +110,17 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
             _currentStep = 0;
           }
         } else if (_currentStep == 3) {
+          // Depuis SellerPartsSelectionPage, retour à QuantityStep
           _currentStep = 2;
+        } else if (_currentStep == 4) {
+          // Depuis PlateStep, retour selon si on a skippé ou non
+          if (quantityType == 'complete_engine' ||
+              quantityType == 'complete_transmission') {
+            _currentStep =
+                2; // Retour direct à QuantityStep (on avait skippé step 3)
+          } else {
+            _currentStep = 3; // Retour à SellerPartsSelectionPage
+          }
         } else {
           _currentStep--;
         }
@@ -150,14 +173,20 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
                 selectedSubType: selectedSubType,
                 onQuantitySelected: _onQuantitySelected,
               ),
-            3 => PlateStepPage(
+            3 => SellerPartsSelectionPage(
                 key: const ValueKey(3),
+                selectedCategory: selectedChoice,
+                hasMultipleParts: quantityType == 'multiple',
+                onSubmit: _onPartsSelected,
+              ),
+            4 => PlateStepPage(
+                key: const ValueKey(4),
                 selectedChoice: selectedChoice,
                 selectedSubType: selectedSubType,
                 onNext: _goToNextStep,
               ),
             _ => CongratsStepPage(
-                key: const ValueKey(4),
+                key: const ValueKey(5),
                 onFinish: _finishFlow,
               ),
           },
