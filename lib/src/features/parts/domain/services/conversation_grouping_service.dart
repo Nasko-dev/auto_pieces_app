@@ -66,8 +66,21 @@ class ConversationGroupingService {
   }
 
   static String _generateGroupKey(Conversation conversation) {
-    // Créer une clé unique basée sur : véhicule uniquement (marque + modèle + année)
+    // Créer une clé unique basée sur : pièce + véhicule (pièce + marque + modèle + année)
     final parts = <String>[];
+
+    // Ajouter les informations de la pièce
+    if (conversation.requestTitle != null &&
+        conversation.requestTitle!.isNotEmpty) {
+      // Nettoyer le titre (enlever caractères spéciaux, mettre en minuscules)
+      final cleanTitle = conversation.requestTitle!
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+          .replaceAll(RegExp(r'\s+'), '_');
+      parts.add(cleanTitle);
+    } else {
+      parts.add('piece');
+    }
 
     // Ajouter les informations du véhicule
     if (conversation.vehicleBrand != null) {
