@@ -78,18 +78,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onQuantitySelected(String quantity) {
     setState(() {
       _quantityType = quantity;
-
-      // Si "complet", définir le nom et skip la sélection des pièces
-      if (quantity == 'complete_engine') {
-        _partName = 'Moteur complet';
-        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
-      } else if (quantity == 'complete_transmission') {
-        _partName = 'Boîte complète';
-        _currentStep = 4; // Skip SellerPartsSelectionPage, go to PlateStepPage
-      } else {
-        // Pour multiple ou few, aller à la page de sélection des pièces
-        _currentStep = 3; // SellerPartsSelectionPage
-      }
+      // Toujours aller à la page de sélection des pièces
+      _currentStep = 3; // SellerPartsSelectionPage
     });
   }
 
@@ -234,14 +224,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         // Depuis SellerPartsSelectionPage, retour à QuantityStep
         _currentStep = 2;
       } else if (_currentStep == 4) {
-        // Depuis PlateStep, retour selon si on a skippé ou non
-        if (_quantityType == 'complete_engine' ||
-            _quantityType == 'complete_transmission') {
-          _currentStep =
-              2; // Retour direct à QuantityStep (on avait skippé step 3)
-        } else {
-          _currentStep = 3; // Retour à SellerPartsSelectionPage
-        }
+        // Depuis PlateStep, retour à SellerPartsSelectionPage
+        _currentStep = 3;
       } else {
         _currentStep--;
       }

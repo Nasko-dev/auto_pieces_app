@@ -106,7 +106,7 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
   }
 
   List<Widget> _buildQuantityCards() {
-    final cards = <Widget>[
+    return [
       _buildQuantityCard(
         quantityType: 'multiple',
         title: 'J\'ai plus de 5 pièces',
@@ -121,48 +121,6 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
         icon: Icons.settings_outlined,
       ),
     ];
-
-    // Ajouter l'option "complet" selon le sous-type
-    if (widget.selectedSubType == 'engine_parts') {
-      cards.addAll([
-        const SizedBox(height: 16),
-        _buildQuantityCard(
-          quantityType: 'complete_engine',
-          title: 'Moteur complet',
-          subtitle: 'Vous vendez un moteur complet avec toutes ses pièces',
-          icon: Icons.precision_manufacturing,
-        ),
-      ]);
-    } else if (widget.selectedSubType == 'transmission_parts') {
-      cards.addAll([
-        const SizedBox(height: 16),
-        _buildQuantityCard(
-          quantityType: 'complete_transmission',
-          title: 'Boîte complète',
-          subtitle: 'Vous vendez une boîte complète avec toutes ses pièces',
-          icon: Icons.settings_input_component_outlined,
-        ),
-      ]);
-    } else if (widget.selectedSubType == 'both') {
-      cards.addAll([
-        const SizedBox(height: 16),
-        _buildQuantityCard(
-          quantityType: 'complete_engine',
-          title: 'Moteur complet',
-          subtitle: 'Vous vendez un moteur complet avec toutes ses pièces',
-          icon: Icons.precision_manufacturing,
-        ),
-        const SizedBox(height: 16),
-        _buildQuantityCard(
-          quantityType: 'complete_transmission',
-          title: 'Boîte complète',
-          subtitle: 'Vous vendez une boîte complète avec toutes ses pièces',
-          icon: Icons.settings_input_component_outlined,
-        ),
-      ]);
-    }
-
-    return cards;
   }
 
   Widget _buildQuantityCard({
