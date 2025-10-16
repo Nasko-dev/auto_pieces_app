@@ -58,34 +58,26 @@ class ConversationGroupingService {
   }
 
   static String _generateGroupKey(Conversation conversation) {
-    // Créer une clé unique basée sur : pièce + véhicule
+    // Créer une clé unique basée sur : véhicule uniquement (marque + modèle + année)
     final parts = <String>[];
-
-    // Ajouter les informations de la pièce
-    if (conversation.requestTitle != null &&
-        conversation.requestTitle!.isNotEmpty) {
-      // Nettoyer le titre (enlever caractères spéciaux, mettre en minuscules)
-      final cleanTitle = conversation.requestTitle!
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
-          .replaceAll(RegExp(r'\s+'), '-');
-      parts.add(cleanTitle);
-    }
 
     // Ajouter les informations du véhicule
     if (conversation.vehicleBrand != null) {
-      parts.add(conversation.vehicleBrand!.toLowerCase());
-    }
-    if (conversation.vehicleModel != null) {
-      parts.add(conversation.vehicleModel!.toLowerCase());
-    }
-    if (conversation.vehicleYear != null) {
-      parts.add(conversation.vehicleYear.toString());
+      parts.add(conversation.vehicleBrand!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
     }
 
-    // Si pas d'infos, utiliser l'ID de la demande
-    if (parts.isEmpty) {
-      parts.add('demande-${conversation.requestId}');
+    if (conversation.vehicleModel != null) {
+      parts.add(conversation.vehicleModel!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
+    }
+
+    if (conversation.vehicleYear != null) {
+      parts.add(conversation.vehicleYear.toString());
+    } else {
+      parts.add('inconnu');
     }
 
     return parts.join('_');
