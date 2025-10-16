@@ -23,14 +23,14 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
       _selectedQuantityType; // 'multiple', 'few', 'complete_engine', 'complete_transmission'
 
   Color _getCategoryColor() {
-    if (widget.selectedCategory == 'moteur' ||
-        widget.selectedCategory == 'engine') {
-      return const Color(0xFF2196F3);
-    } else if (widget.selectedCategory == 'carrosserie' ||
-        widget.selectedCategory == 'body') {
-      return const Color(0xFF4CAF50);
+    if (widget.selectedSubType == 'engine_parts') {
+      return const Color(0xFF2196F3); // Bleu
+    } else if (widget.selectedSubType == 'transmission_parts') {
+      return const Color(0xFF4CAF50); // Vert
+    } else if (widget.selectedSubType == 'body_parts') {
+      return const Color(0xFFFF9800); // Orange
     } else {
-      return const Color(0xFFFF9800);
+      return const Color(0xFFFF9800); // Orange (pour "both")
     }
   }
 
