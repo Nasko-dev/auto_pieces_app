@@ -116,6 +116,14 @@ class _SubTypeStepPageState extends State<SubTypeStepPage> {
           icon: Icons.settings_input_component,
           color: const Color(0xFF4CAF50),
         ),
+        const SizedBox(height: 16),
+        _buildSubTypeCard(
+          subType: 'both',
+          title: 'Les deux',
+          subtitle: 'Moteur et boîte/transmission',
+          icon: Icons.category,
+          color: const Color(0xFFFF9800),
+        ),
       ];
     } else if (widget.selectedCategory == 'lesdeux') {
       return [

@@ -4,11 +4,13 @@ import '../../../../../../core/theme/app_colors.dart';
 
 class QuantityStepPage extends StatefulWidget {
   final String selectedCategory;
-  final Function(bool hasMultiple) onQuantitySelected;
+  final String selectedSubType;
+  final Function(String quantityType) onQuantitySelected;
 
   const QuantityStepPage({
     super.key,
     required this.selectedCategory,
+    required this.selectedSubType,
     required this.onQuantitySelected,
   });
 
@@ -17,7 +19,8 @@ class QuantityStepPage extends StatefulWidget {
 }
 
 class _QuantityStepPageState extends State<QuantityStepPage> {
-  bool? _hasMultiple; // null = aucun choix, true = +5 pièces, false = -5 pièces
+  String?
+      _selectedQuantityType; // 'multiple', 'few', 'complete_engine', 'complete_transmission'
 
   Color _getCategoryColor() {
     if (widget.selectedCategory == 'moteur' ||
@@ -64,23 +67,7 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: [
-                      _buildQuantityCard(
-                        hasMultiple: true,
-                        title: 'J\'ai plus de 5 pièces',
-                        subtitle:
-                            'Vous avez plusieurs pièces à vendre (plus de 5)',
-                        icon: Icons.inventory_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildQuantityCard(
-                        hasMultiple: false,
-                        title: 'J\'ai moins de 5 pièces',
-                        subtitle:
-                            'Vous avez quelques pièces à vendre (moins de 5)',
-                        icon: Icons.settings_outlined,
-                      ),
-                    ],
+                    children: _buildQuantityCards(),
                   ),
                 ),
               ),
@@ -89,8 +76,8 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _hasMultiple != null
-                      ? () => widget.onQuantitySelected(_hasMultiple!)
+                  onPressed: _selectedQuantityType != null
+                      ? () => widget.onQuantitySelected(_selectedQuantityType!)
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _getCategoryColor(),
@@ -118,19 +105,79 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
     );
   }
 
+  List<Widget> _buildQuantityCards() {
+    final cards = <Widget>[
+      _buildQuantityCard(
+        quantityType: 'multiple',
+        title: 'J\'ai plus de 5 pièces',
+        subtitle: 'Vous avez plusieurs pièces à vendre (plus de 5)',
+        icon: Icons.inventory_outlined,
+      ),
+      const SizedBox(height: 16),
+      _buildQuantityCard(
+        quantityType: 'few',
+        title: 'J\'ai moins de 5 pièces',
+        subtitle: 'Vous avez quelques pièces à vendre (moins de 5)',
+        icon: Icons.settings_outlined,
+      ),
+    ];
+
+    // Ajouter l'option "complet" selon le sous-type
+    if (widget.selectedSubType == 'engine_parts') {
+      cards.addAll([
+        const SizedBox(height: 16),
+        _buildQuantityCard(
+          quantityType: 'complete_engine',
+          title: 'Moteur complet',
+          subtitle: 'Vous vendez un moteur complet avec toutes ses pièces',
+          icon: Icons.precision_manufacturing,
+        ),
+      ]);
+    } else if (widget.selectedSubType == 'transmission_parts') {
+      cards.addAll([
+        const SizedBox(height: 16),
+        _buildQuantityCard(
+          quantityType: 'complete_transmission',
+          title: 'Boîte complète',
+          subtitle: 'Vous vendez une boîte complète avec toutes ses pièces',
+          icon: Icons.settings_input_component_outlined,
+        ),
+      ]);
+    } else if (widget.selectedSubType == 'both') {
+      cards.addAll([
+        const SizedBox(height: 16),
+        _buildQuantityCard(
+          quantityType: 'complete_engine',
+          title: 'Moteur complet',
+          subtitle: 'Vous vendez un moteur complet avec toutes ses pièces',
+          icon: Icons.precision_manufacturing,
+        ),
+        const SizedBox(height: 16),
+        _buildQuantityCard(
+          quantityType: 'complete_transmission',
+          title: 'Boîte complète',
+          subtitle: 'Vous vendez une boîte complète avec toutes ses pièces',
+          icon: Icons.settings_input_component_outlined,
+        ),
+      ]);
+    }
+
+    return cards;
+  }
+
   Widget _buildQuantityCard({
-    required bool hasMultiple,
+    required String quantityType,
     required String title,
     required String subtitle,
     required IconData icon,
   }) {
-    final isSelected = _hasMultiple == hasMultiple;
+    final isSelected = _selectedQuantityType == quantityType;
     final color = _getCategoryColor();
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _hasMultiple = hasMultiple;
+          _selectedQuantityType = quantityType;
         });
       },
       child: AnimatedContainer(

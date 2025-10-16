@@ -35,11 +35,19 @@ class BecomeSellerPage extends ConsumerStatefulWidget {
 class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   int _currentStep = 0;
   String _selectedChoice = '';
-  String _selectedSubType = ''; // engine_parts, transmission_parts, body_parts
-  bool _hasMultiple = false;
+  String _selectedSubType =
+      ''; // engine_parts, transmission_parts, body_parts, both
+  String _quantityType =
+      ''; // multiple, few, complete_engine, complete_transmission
   String _partName = '';
   String _vehiclePlate = '';
   bool _isSubmitting = false;
+
+  bool get _hasMultiple {
+    return _quantityType == 'multiple' ||
+        _quantityType == 'complete_engine' ||
+        _quantityType == 'complete_transmission';
+  }
 
   @override
   void initState() {
@@ -74,9 +82,9 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     });
   }
 
-  void _onQuantitySelected(bool hasMultiple) {
+  void _onQuantitySelected(String quantity) {
     setState(() {
-      _hasMultiple = hasMultiple;
+      _quantityType = quantity;
       _currentStep = 3; // SellPartStepPage
     });
   }
@@ -293,6 +301,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
               ),
             2 => QuantityStepPage(
                 selectedCategory: _selectedChoice,
+                selectedSubType: _selectedSubType,
                 onQuantitySelected: _onQuantitySelected,
               ),
             3 => SellPartStepPage(

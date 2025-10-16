@@ -73,6 +73,27 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         if (_selectedModel != null) parts.add(_selectedModel!);
         if (_selectedYear != null) parts.add(_selectedYear.toString());
         return parts.isNotEmpty ? parts.join(' ') : 'Véhicule manuel';
+      } else if (widget.selectedSubType == 'both') {
+        // Les deux : afficher moteur ET véhicule
+        final engineParts = <String>[];
+        if (_selectedCylinder != null) engineParts.add(_selectedCylinder!);
+        if (_selectedFuelType != null) engineParts.add(_selectedFuelType!);
+        if (_horsepowerController.text.isNotEmpty) {
+          engineParts.add('${_horsepowerController.text}cv');
+        }
+
+        final vehicleParts = <String>[];
+        if (_selectedBrand != null) vehicleParts.add(_selectedBrand!);
+        if (_selectedModel != null) vehicleParts.add(_selectedModel!);
+        if (_selectedYear != null) vehicleParts.add(_selectedYear.toString());
+
+        final allParts = <String>[];
+        if (engineParts.isNotEmpty) allParts.add(engineParts.join(' - '));
+        if (vehicleParts.isNotEmpty) allParts.add(vehicleParts.join(' '));
+
+        return allParts.isNotEmpty
+            ? allParts.join(' • ')
+            : 'Information manuelle';
       }
       return 'Information manuelle';
     } else {
@@ -164,6 +185,11 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 ..._buildEngineDropdowns(),
               ] else if (widget.selectedSubType == 'transmission_parts' ||
                   widget.selectedSubType == 'body_parts') ...[
+                _buildVehicleDropdowns(),
+              ] else if (widget.selectedSubType == 'both') ...[
+                // Pour "Les deux" : afficher moteur ET véhicule
+                ..._buildEngineDropdowns(),
+                const SizedBox(height: 24),
                 _buildVehicleDropdowns(),
               ],
             ],
@@ -793,6 +819,20 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
           _selectedYear != null;
+    } else if (widget.selectedSubType == 'both') {
+      // Pour "Les deux" : TOUS les champs requis (moteur ET véhicule)
+      final engineValid = _selectedCylinder != null &&
+          _selectedCylinder!.isNotEmpty &&
+          _selectedFuelType != null &&
+          _selectedFuelType!.isNotEmpty;
+
+      final vehicleValid = _selectedBrand != null &&
+          _selectedBrand!.isNotEmpty &&
+          _selectedModel != null &&
+          _selectedModel!.isNotEmpty &&
+          _selectedYear != null;
+
+      return engineValid && vehicleValid;
     }
 
     return false;

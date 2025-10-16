@@ -19,8 +19,10 @@ class BecomeSellerPage extends StatefulWidget {
 class _BecomeSellerPageState extends State<BecomeSellerPage> {
   int _currentStep = 0;
   String selectedChoice = '';
-  String selectedSubType = ''; // engine_parts, transmission_parts, body_parts
-  bool hasMultipleParts = false;
+  String selectedSubType =
+      ''; // engine_parts, transmission_parts, body_parts, both
+  String quantityType =
+      ''; // multiple, few, complete_engine, complete_transmission
   String partName = '';
 
   void _onChoiceSelected(String choice) {
@@ -44,11 +46,17 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
     });
   }
 
-  void _onQuantitySelected(bool hasMultiple) {
+  void _onQuantitySelected(String quantity) {
     setState(() {
-      hasMultipleParts = hasMultiple;
+      quantityType = quantity;
       _currentStep = 3;
     });
+  }
+
+  bool get _hasMultipleParts {
+    return quantityType == 'multiple' ||
+        quantityType == 'complete_engine' ||
+        quantityType == 'complete_transmission';
   }
 
   void _onPartSubmitted(String name) {
@@ -110,12 +118,13 @@ class _BecomeSellerPageState extends State<BecomeSellerPage> {
             2 => QuantityStepPage(
                 key: const ValueKey(2),
                 selectedCategory: selectedChoice,
+                selectedSubType: selectedSubType,
                 onQuantitySelected: _onQuantitySelected,
               ),
             3 => SellPartStepPage(
                 key: const ValueKey(3),
                 selectedCategory: selectedChoice,
-                hasMultiple: hasMultipleParts,
+                hasMultiple: _hasMultipleParts,
                 onPartSubmitted: _onPartSubmitted,
               ),
             4 => PlateStepPage(
