@@ -45,6 +45,10 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   String? _selectedFuelType;
   final TextEditingController _horsepowerController = TextEditingController();
 
+  // Pour les dropdowns boîte de vitesses
+  String? _selectedTransmissionType;
+  String? _selectedGears;
+
   @override
   void dispose() {
     _plateController.dispose();
@@ -65,8 +69,17 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           parts.add('${_horsepowerController.text}cv');
         }
         return parts.isNotEmpty ? parts.join(' - ') : 'Motorisation manuelle';
-      } else if (widget.selectedSubType == 'transmission_parts' ||
-          widget.selectedSubType == 'body_parts') {
+      } else if (widget.selectedSubType == 'transmission_parts') {
+        // Transmission + véhicule
+        final parts = <String>[];
+        if (_selectedTransmissionType != null)
+          parts.add(_selectedTransmissionType!);
+        if (_selectedGears != null) parts.add('$_selectedGears vitesses');
+        if (_selectedBrand != null) parts.add(_selectedBrand!);
+        if (_selectedModel != null) parts.add(_selectedModel!);
+        if (_selectedYear != null) parts.add(_selectedYear.toString());
+        return parts.isNotEmpty ? parts.join(' - ') : 'Transmission manuelle';
+      } else if (widget.selectedSubType == 'body_parts') {
         // Véhicule complet
         final parts = <String>[];
         if (_selectedBrand != null) parts.add(_selectedBrand!);
@@ -183,8 +196,9 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               // Afficher les dropdowns selon le sous-type sélectionné
               if (widget.selectedSubType == 'engine_parts') ...[
                 ..._buildEngineDropdowns(),
-              ] else if (widget.selectedSubType == 'transmission_parts' ||
-                  widget.selectedSubType == 'body_parts') ...[
+              ] else if (widget.selectedSubType == 'transmission_parts') ...[
+                ..._buildTransmissionDropdowns(),
+              ] else if (widget.selectedSubType == 'body_parts') ...[
                 _buildVehicleDropdowns(),
               ] else if (widget.selectedSubType == 'both') ...[
                 // Pour "Les deux" : afficher moteur ET véhicule
@@ -299,6 +313,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 _selectedCylinder = null;
                 _selectedFuelType = null;
                 _horsepowerController.clear();
+                _selectedTransmissionType = null;
+                _selectedGears = null;
               }),
             ),
             const SizedBox(height: 80),
@@ -427,6 +443,181 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         icon: Icons.flash_on,
         controller: _horsepowerController,
         keyboardType: TextInputType.number,
+      ),
+    ];
+  }
+
+  List<Widget> _buildTransmissionDropdowns() {
+    const transmissionTypes = [
+      'Manuelle',
+      'Automatique',
+      'Robotisée',
+      'Séquentielle',
+      'CVT',
+      'Double embrayage',
+    ];
+
+    const gearsList = ['4', '5', '6', '7', '8', '9', '10'];
+
+    return [
+      const Text(
+        'Informations de la boîte de vitesses',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.darkGray,
+        ),
+      ),
+      const SizedBox(height: 16),
+      // Dropdown Type de boîte
+      _buildDropdown<String>(
+        label: 'Type de boîte',
+        hint: 'Sélectionnez un type',
+        icon: Icons.settings,
+        value: _selectedTransmissionType,
+        items: transmissionTypes,
+        onChanged: (value) {
+          setState(() {
+            _selectedTransmissionType = value;
+          });
+        },
+        enabled: true,
+      ),
+      const SizedBox(height: 16),
+      // Dropdown Nombre de vitesses
+      _buildDropdown<String>(
+        label: 'Nombre de vitesses',
+        hint: 'Sélectionnez le nombre',
+        icon: Icons.speed,
+        value: _selectedGears,
+        items: gearsList,
+        onChanged: (value) {
+          setState(() {
+            _selectedGears = value;
+          });
+        },
+        enabled: _selectedTransmissionType != null &&
+            _selectedTransmissionType!.isNotEmpty,
+      ),
+      const SizedBox(height: 24),
+      const Text(
+        'Informations du véhicule',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.darkGray,
+        ),
+      ),
+      const SizedBox(height: 16),
+      // Dropdowns véhicule
+      Consumer(
+        builder: (context, ref, child) {
+          final brandsAsync = ref.watch(vehicleBrandsProvider);
+          return brandsAsync.when(
+            data: (brands) => _buildDropdown<String>(
+              label: 'Marque',
+              hint: 'Sélectionnez une marque',
+              icon: Icons.directions_car,
+              value: _selectedBrand,
+              items: brands,
+              onChanged: (value) {
+                setState(() {
+                  _selectedBrand = value;
+                  _selectedModel = null;
+                  _selectedYear = null;
+                });
+              },
+              enabled: true,
+            ),
+            loading: () => _buildLoadingDropdown(
+              label: 'Marque',
+              hint: 'Chargement...',
+              icon: Icons.directions_car,
+            ),
+            error: (_, __) => _buildDropdown<String>(
+              label: 'Marque',
+              hint: 'Erreur de chargement',
+              icon: Icons.directions_car,
+              value: null,
+              items: const [],
+              onChanged: null,
+              enabled: false,
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 16),
+      Consumer(
+        builder: (context, ref, child) {
+          final modelsAsync =
+              ref.watch(vehicleModelsProvider(_selectedBrand ?? ''));
+          return modelsAsync.when(
+            data: (models) => _buildDropdown<String>(
+              label: 'Modèle',
+              hint: 'Sélectionnez un modèle',
+              icon: Icons.model_training,
+              value: _selectedModel,
+              items: models,
+              onChanged: (value) {
+                setState(() {
+                  _selectedModel = value;
+                  _selectedYear = null;
+                });
+              },
+              enabled: _selectedBrand != null && _selectedBrand!.isNotEmpty,
+            ),
+            loading: () => _buildLoadingDropdown(
+              label: 'Modèle',
+              hint: 'Chargement...',
+              icon: Icons.model_training,
+            ),
+            error: (_, __) => _buildDropdown<String>(
+              label: 'Modèle',
+              hint: 'Erreur de chargement',
+              icon: Icons.model_training,
+              value: null,
+              items: const [],
+              onChanged: null,
+              enabled: false,
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 16),
+      Consumer(
+        builder: (context, ref, child) {
+          final brandModel = '${_selectedBrand ?? ''}|${_selectedModel ?? ''}';
+          final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
+          return yearsAsync.when(
+            data: (years) => _buildDropdown<int>(
+              label: 'Année',
+              hint: 'Sélectionnez une année',
+              icon: Icons.calendar_today,
+              value: _selectedYear,
+              items: years,
+              onChanged: (value) {
+                setState(() {
+                  _selectedYear = value;
+                });
+              },
+              enabled: _selectedModel != null && _selectedModel!.isNotEmpty,
+            ),
+            loading: () => _buildLoadingDropdown(
+              label: 'Année',
+              hint: 'Chargement...',
+              icon: Icons.calendar_today,
+            ),
+            error: (_, __) => _buildDropdown<int>(
+              label: 'Année',
+              hint: 'Erreur de chargement',
+              icon: Icons.calendar_today,
+              value: null,
+              items: const [],
+              onChanged: null,
+              enabled: false,
+            ),
+          );
+        },
       ),
     ];
   }
@@ -811,9 +1002,19 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedCylinder!.isNotEmpty &&
           _selectedFuelType != null &&
           _selectedFuelType!.isNotEmpty;
-    } else if (widget.selectedSubType == 'transmission_parts' ||
-        widget.selectedSubType == 'body_parts') {
-      // Pour les pièces boîte/transmission et carrosserie : marque + modèle + année requis
+    } else if (widget.selectedSubType == 'transmission_parts') {
+      // Pour les pièces boîte/transmission : type boîte + vitesses + marque + modèle + année requis
+      return _selectedTransmissionType != null &&
+          _selectedTransmissionType!.isNotEmpty &&
+          _selectedGears != null &&
+          _selectedGears!.isNotEmpty &&
+          _selectedBrand != null &&
+          _selectedBrand!.isNotEmpty &&
+          _selectedModel != null &&
+          _selectedModel!.isNotEmpty &&
+          _selectedYear != null;
+    } else if (widget.selectedSubType == 'body_parts') {
+      // Pour la carrosserie : marque + modèle + année requis
       return _selectedBrand != null &&
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
