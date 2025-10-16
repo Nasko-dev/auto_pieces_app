@@ -86,30 +86,42 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void _onPartsSelected(List<String> parts, String completeOption) {
     setState(() {
       // Construire le nom de la pièce selon la sélection
+      final partNames = <String>[];
+
+      // Traiter les options complètes (peuvent être multiples, séparées par virgule)
       if (completeOption.isNotEmpty) {
-        switch (completeOption) {
-          case 'moteur_complet':
-            _partName = 'Moteur complet';
-            break;
-          case 'boite_complete':
-            _partName = 'Boîte complète';
-            break;
-          case 'carrosserie_complete':
-            _partName = 'Carrosserie complète';
-            break;
-          case 'vehicule_complet':
-            _partName = 'Véhicule complet';
-            break;
-        }
-      } else if (parts.isNotEmpty) {
-        if (_quantityType == 'multiple') {
-          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
-          _partName = 'Toutes pièces sauf: ${parts.join(', ')}';
-        } else {
-          // -5 pièces : les pièces listées sont celles qu'on A
-          _partName = parts.join(', ');
+        final completeOptions = completeOption.split(',');
+        for (final option in completeOptions) {
+          switch (option) {
+            case 'moteur_complet':
+              partNames.add('Moteur complet');
+              break;
+            case 'boite_complete':
+              partNames.add('Boîte complète');
+              break;
+            case 'carrosserie_complete':
+              partNames.add('Carrosserie complète');
+              break;
+            case 'vehicule_complet':
+              partNames.add('Véhicule complet');
+              break;
+          }
         }
       }
+
+      // Traiter les pièces manquantes/présentes
+      if (parts.isNotEmpty) {
+        if (_quantityType == 'multiple') {
+          // +5 pièces : les pièces listées sont celles qu'on N'A PAS
+          partNames.add('Pièces manquantes: ${parts.join(', ')}');
+        } else {
+          // -5 pièces : les pièces listées sont celles qu'on A
+          partNames.add(parts.join(', '));
+        }
+      }
+
+      // Combiner tous les noms
+      _partName = partNames.isNotEmpty ? partNames.join(' + ') : 'Pièces auto';
 
       _currentStep = 4; // PlateStepPage
     });

@@ -30,8 +30,8 @@ class _SellerPartsSelectionPageState
   final List<String> _selectedParts = [];
   List<String> _suggestions = [];
   bool _showSuggestions = false;
-  String _completeOption =
-      ''; // 'moteur_complet', 'carrosserie_complete', 'vehicule_complet' ou vide
+  final List<String> _completeOptions =
+      []; // 'moteur_complet', 'boite_complete', 'carrosserie_complete', etc.
 
   @override
   void initState() {
@@ -143,16 +143,14 @@ class _SellerPartsSelectionPageState
   }
 
   bool _isFormValid() {
-    // Si une option complète est sélectionnée, toujours valide
-    if (_completeOption.isNotEmpty) {
-      return true;
-    }
-    // Sinon, il faut au moins une pièce sélectionnée
-    return _selectedParts.isNotEmpty;
+    // Si une option complète est sélectionnée OU au moins une pièce, valide
+    return _completeOptions.isNotEmpty || _selectedParts.isNotEmpty;
   }
 
   void _handleSubmit() {
-    widget.onSubmit(_selectedParts, _completeOption);
+    // Combiner les options complètes en une seule string séparée par ","
+    final completeOptionsString = _completeOptions.join(',');
+    widget.onSubmit(_selectedParts, completeOptionsString);
   }
 
   String _getSubtitleText() {
@@ -164,7 +162,7 @@ class _SellerPartsSelectionPageState
       } else if (widget.selectedCategory == 'body_parts') {
         return 'Sélectionnez les pièces manquantes ou choisissez "Carrosserie complète"';
       } else {
-        return 'Sélectionnez les pièces manquantes ou choisissez "Véhicule complet"';
+        return 'Cochez ce qui est complet et/ou sélectionnez les pièces manquantes';
       }
     } else {
       return 'Sélectionnez les pièces que vous possédez';
@@ -232,7 +230,7 @@ class _SellerPartsSelectionPageState
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
-                                'OU',
+                                'ET/OU',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -246,13 +244,11 @@ class _SellerPartsSelectionPageState
                         const SizedBox(height: 24),
                       ],
 
-                      // Champ de recherche
-                      if (_completeOption.isEmpty) ...[
-                        _buildSearchField(),
-                        if (_selectedParts.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _buildSelectedPartsTags(),
-                        ],
+                      // Champ de recherche (toujours visible)
+                      _buildSearchField(),
+                      if (_selectedParts.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildSelectedPartsTags(),
                       ],
                     ],
                   ),
@@ -298,11 +294,25 @@ class _SellerPartsSelectionPageState
         icon: Icons.car_repair_outlined,
       );
     } else {
-      return _buildCompleteOption(
-        optionKey: 'vehicule_complet',
-        title: 'Véhicule complet',
-        description: 'Toutes les pièces du véhicule sont disponibles',
-        icon: Icons.directions_car_outlined,
+      // Pour "both" (Les deux), afficher moteur ET boîte
+      return Column(
+        children: [
+          _buildCompleteOption(
+            optionKey: 'moteur_complet',
+            title: 'Moteur complet',
+            description: 'Toutes les pièces moteur sont disponibles',
+            icon: Icons.engineering_outlined,
+            color: const Color(0xFF2196F3), // Bleu pour moteur
+          ),
+          const SizedBox(height: 16),
+          _buildCompleteOption(
+            optionKey: 'boite_complete',
+            title: 'Boîte complète',
+            description: 'Toutes les pièces de transmission sont disponibles',
+            icon: Icons.settings_input_component_outlined,
+            color: const Color(0xFF4CAF50), // Vert pour boîte
+          ),
+        ],
       );
     }
   }
@@ -312,16 +322,18 @@ class _SellerPartsSelectionPageState
     required String title,
     required String description,
     required IconData icon,
+    Color? color,
   }) {
-    final isSelected = _completeOption == optionKey;
+    final isSelected = _completeOptions.contains(optionKey);
+    final displayColor = color ?? _getCategoryColor();
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _completeOption = isSelected ? '' : optionKey;
-          if (_completeOption.isNotEmpty) {
-            _selectedParts.clear();
-            _searchController.clear();
+          if (isSelected) {
+            _completeOptions.remove(optionKey);
+          } else {
+            _completeOptions.add(optionKey);
           }
         });
       },
@@ -329,11 +341,11 @@ class _SellerPartsSelectionPageState
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isSelected
-              ? _getCategoryColor().withValues(alpha: 0.08)
+              ? displayColor.withValues(alpha: 0.08)
               : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? _getCategoryColor() : AppColors.grey200,
+            color: isSelected ? displayColor : AppColors.grey200,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -344,14 +356,14 @@ class _SellerPartsSelectionPageState
               height: 48,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? _getCategoryColor().withValues(alpha: 0.15)
+                    ? displayColor.withValues(alpha: 0.15)
                     : AppTheme.lightGray,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
                 size: 24,
-                color: isSelected ? _getCategoryColor() : AppTheme.gray,
+                color: isSelected ? displayColor : AppTheme.gray,
               ),
             ),
             const SizedBox(width: 16),
@@ -365,7 +377,7 @@ class _SellerPartsSelectionPageState
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color:
-                          isSelected ? _getCategoryColor() : AppTheme.darkGray,
+                          isSelected ? displayColor : AppTheme.darkGray,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -387,17 +399,17 @@ class _SellerPartsSelectionPageState
                 value: isSelected,
                 onChanged: (value) {
                   setState(() {
-                    _completeOption = (value ?? false) ? optionKey : '';
-                    if (_completeOption.isNotEmpty) {
-                      _selectedParts.clear();
-                      _searchController.clear();
+                    if (value ?? false) {
+                      _completeOptions.add(optionKey);
+                    } else {
+                      _completeOptions.remove(optionKey);
                     }
                   });
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
-                activeColor: _getCategoryColor(),
+                activeColor: displayColor,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
