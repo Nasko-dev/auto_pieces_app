@@ -12,6 +12,7 @@ import '../../features/auth/presentation/pages/seller_forgot_password_page.dart'
 import '../../features/parts/presentation/pages/particulier/home_page.dart';
 import '../../features/parts/presentation/pages/particulier/requests_page.dart';
 import '../../features/parts/presentation/pages/particulier/become_seller_page.dart';
+import '../../features/parts/presentation/pages/particulier/seller_ads_list_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/seller_initial_choice_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/seller_create_request_page.dart';
 import '../../features/parts/presentation/pages/particulier/conversations_list_page.dart';
@@ -169,7 +170,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'become-seller',
             pageBuilder: (context, state) => buildPageWithTransition(
               state,
-              const BecomeSellerPage(),
+              const SellerAdsListPage(),
             ),
           ),
           GoRoute(
@@ -194,6 +195,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => buildPageWithTransition(
               state,
               const SettingsPage(),
+            ),
+          ),
+          GoRoute(
+            path: '/create-advertisement',
+            name: 'create-advertisement',
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const BecomeSellerPage(mode: SellerMode.particulier),
             ),
           ),
         ],

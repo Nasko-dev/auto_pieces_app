@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
+import '../../../../../shared/presentation/widgets/unread_filter_chip.dart'
+    show ConversationFilterChips;
 import '../../providers/conversations_providers.dart';
 import '../../widgets/conversation_group_card.dart';
 import '../../../domain/entities/conversation_group.dart';
@@ -16,6 +18,8 @@ class SellerMessagesPage extends ConsumerStatefulWidget {
 }
 
 class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
+  bool _showOnlyUnread = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,15 +39,41 @@ class _SellerMessagesPageState extends ConsumerState<SellerMessagesPage> {
   @override
   Widget build(BuildContext context) {
     // Utiliser les groupes de conversations au lieu des conversations individuelles
-    final conversationGroups = ref.watch(conversationGroupsProvider);
+    final allConversationGroups = ref.watch(conversationGroupsProvider);
     final isLoading = ref.watch(isLoadingProvider);
     final error = ref.watch(conversationsErrorProvider);
+
+    // Filtrer les groupes selon le filtre actif
+    final conversationGroups = _showOnlyUnread
+        ? allConversationGroups
+            .where((group) => group.hasUnreadMessages)
+            .toList()
+        : allConversationGroups;
+
+    // Calculer le nombre total de messages non lus
+    final totalUnreadCount = allConversationGroups.fold<int>(
+      0,
+      (sum, group) => sum + group.totalUnreadCount,
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.lightGray,
       body: Column(
         children: [
           const SellerHeader(title: 'Messages'),
+          // Widget de filtres (Tous / Non lus)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: ConversationFilterChips(
+              showOnlyUnread: _showOnlyUnread,
+              onFilterChanged: (showUnread) {
+                setState(() {
+                  _showOnlyUnread = showUnread;
+                });
+              },
+              unreadCount: totalUnreadCount,
+            ),
+          ),
           Expanded(
             child: _buildBody(conversationGroups, isLoading, error),
           ),
