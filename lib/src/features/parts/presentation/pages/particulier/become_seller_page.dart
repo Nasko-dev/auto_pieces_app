@@ -41,6 +41,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   String _partName = '';
   String _vehiclePlate = '';
   bool _isSubmitting = false;
+  String? _createdAdvertisementId;
 
   @override
   void initState() {
@@ -217,6 +218,12 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         final state = ref.read(partAdvertisementControllerProvider);
         throw Exception(state.error ?? 'Erreur inconnue');
       }
+
+      // Récupérer l'ID de l'annonce créée
+      final state = ref.read(partAdvertisementControllerProvider);
+      if (state.currentAdvertisement != null) {
+        _createdAdvertisementId = state.currentAdvertisement!.id;
+      }
     } catch (e) {
       rethrow;
     }
@@ -255,11 +262,127 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     }
   }
 
-  void _onNameAdvertisement() {
-    // Retour à l'étape de sélection des pièces pour modifier le nom
-    setState(() {
-      _currentStep = 3;
-    });
+  void _onNameAdvertisement() async {
+    if (_createdAdvertisementId == null) return;
+
+    final controller = TextEditingController(text: _partName);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Nommer l\'annonce',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.darkBlue,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Donnez un nom personnalisé à votre annonce',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.darkGray,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 100,
+              decoration: InputDecoration(
+                hintText: 'Ex: Moteur 2.0 TDI excellent état',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryBlue,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: AppTheme.gray),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      // Mettre à jour le nom de l'annonce
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        final success = await ref
+            .read(partAdvertisementControllerProvider.notifier)
+            .updateAdvertisement(_createdAdvertisementId!, {
+          'part_name': result,
+        });
+
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+
+          if (success) {
+            _partName = result;
+            notificationService.success(
+              context,
+              'Nom de l\'annonce mis à jour',
+              subtitle: 'Votre annonce a bien été renommée',
+            );
+          } else {
+            final state = ref.read(partAdvertisementControllerProvider);
+            notificationService.error(
+              context,
+              'Erreur',
+              subtitle: state.error ?? 'Impossible de mettre à jour le nom',
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          notificationService.error(
+            context,
+            'Erreur',
+            subtitle: e.toString(),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -330,7 +453,9 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
               ),
             _ => CongratsStepPage(
                 onFinish: _finishFlow,
-                onNameAdvertisement: _onNameAdvertisement,
+                onNameAdvertisement: _createdAdvertisementId != null
+                    ? _onNameAdvertisement
+                    : null,
               ),
           },
         ),
