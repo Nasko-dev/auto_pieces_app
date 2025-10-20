@@ -277,7 +277,8 @@ class _AdvertisementCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      RenameDeleteContextMenu(
+                      EditRenameDeleteContextMenu(
+                        onEdit: () => _showEditDialog(context, ref),
                         onRename: () => _showRenameDialog(context, ref),
                         onDelete: () => _showDeleteDialog(context, ref),
                       ),
@@ -373,6 +374,14 @@ class _AdvertisementCard extends ConsumerWidget {
     } else {
       return '${(difference.inDays / 7).floor()}sem';
     }
+  }
+
+  void _showEditDialog(BuildContext context, WidgetRef ref) {
+    notificationService.info(
+      context,
+      'Modification',
+      subtitle: 'La page de modification sera bientôt disponible',
+    );
   }
 
   void _showRenameDialog(BuildContext context, WidgetRef ref) async {
