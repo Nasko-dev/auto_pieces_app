@@ -255,6 +255,15 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     }
   }
 
+  void _onNameAdvertisement() {
+    // TODO: Implémenter la fonctionnalité de nommage de l'annonce
+    notificationService.info(
+      context,
+      'Nommer l\'annonce',
+      subtitle: 'Cette fonctionnalité sera bientôt disponible',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -323,6 +332,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
               ),
             _ => CongratsStepPage(
                 onFinish: _finishFlow,
+                onNameAdvertisement: _onNameAdvertisement,
               ),
           },
         ),
