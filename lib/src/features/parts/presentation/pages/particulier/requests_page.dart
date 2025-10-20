@@ -4,24 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../controllers/part_request_controller.dart';
-import '../../controllers/part_advertisement_controller.dart';
 import '../../../domain/entities/part_request.dart';
-import '../../../domain/entities/part_advertisement.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
 
-// Classe wrapper pour unifier requests et advertisements
+// Classe wrapper pour les demandes de pièces
 class UnifiedItem {
   final String id;
-  final String type; // 'request' ou 'advertisement'
+  final String type; // 'request'
   final String vehicleInfo;
   final String partInfo;
   final DateTime createdAt;
   final String status;
   final int? responseCount;
-  final PartRequest? request;
-  final PartAdvertisement? advertisement;
+  final PartRequest request;
 
   UnifiedItem({
     required this.id,
@@ -31,8 +28,7 @@ class UnifiedItem {
     required this.createdAt,
     required this.status,
     this.responseCount,
-    this.request,
-    this.advertisement,
+    required this.request,
   });
 
   factory UnifiedItem.fromRequest(PartRequest request) {
@@ -45,26 +41,6 @@ class UnifiedItem {
       status: request.status,
       responseCount: request.responseCount,
       request: request,
-    );
-  }
-
-  factory UnifiedItem.fromAdvertisement(PartAdvertisement ad) {
-    final vehicleParts = <String>[];
-    if (ad.vehicleBrand != null) vehicleParts.add(ad.vehicleBrand!);
-    if (ad.vehicleModel != null) vehicleParts.add(ad.vehicleModel!);
-    if (ad.vehicleYear != null) vehicleParts.add(ad.vehicleYear.toString());
-    if (ad.vehicleEngine != null) vehicleParts.add(ad.vehicleEngine!);
-
-    return UnifiedItem(
-      id: ad.id,
-      type: 'advertisement',
-      vehicleInfo: vehicleParts.isNotEmpty
-          ? vehicleParts.join(' - ')
-          : 'Véhicule non spécifié',
-      partInfo: ad.partName,
-      createdAt: ad.createdAt,
-      status: ad.status,
-      advertisement: ad,
     );
   }
 }
@@ -92,17 +68,14 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _reloadAdvertisements();
+        _reloadRequests();
       }
     });
   }
 
-  void _reloadAdvertisements() {
+  void _reloadRequests() {
     // Le datasource récupère automatiquement l'ID stable via device_id
     ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
-    ref
-        .read(partAdvertisementControllerProvider.notifier)
-        .getMyAdvertisements();
   }
 
   @override
@@ -122,7 +95,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
     return Consumer(
       builder: (context, ref, child) {
         final requestState = ref.watch(partRequestControllerProvider);
-        final adState = ref.watch(partAdvertisementControllerProvider);
 
         // Filtrer pour ne montrer que les demandes particulier (non-vendeur)
         final filteredRequests = requestState.requests
@@ -130,16 +102,10 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
             .map((r) => UnifiedItem.fromRequest(r))
             .toList();
 
-        // Convertir les annonces en UnifiedItem
-        final advertisements = adState.advertisements
-            .map((ad) => UnifiedItem.fromAdvertisement(ad))
-            .toList();
+        // Trier par date (plus récent en premier)
+        filteredRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-        // Fusionner et trier par date
-        final allItems = [...filteredRequests, ...advertisements];
-        allItems.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-        if (requestState.isLoading || adState.isLoading) {
+        if (requestState.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -174,7 +140,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _reloadAdvertisements,
+                  onPressed: _reloadRequests,
                   child: const Text('Réessayer'),
                 ),
               ],
@@ -182,7 +148,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
           );
         }
 
-        if (allItems.isEmpty) {
+        if (filteredRequests.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -203,7 +169,7 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Ici vous trouverez vos recherches et annonces en cours.',
+                  'Ici vous trouverez vos recherches de pièces.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.grey[600],
@@ -226,14 +192,14 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            _reloadAdvertisements();
+            _reloadRequests();
           },
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            itemCount: allItems.length,
+            itemCount: filteredRequests.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final item = allItems[index];
+              final item = filteredRequests[index];
               return _UnifiedItemCard(item: item);
             },
           ),
@@ -398,11 +364,10 @@ class _UnifiedItemCard extends ConsumerWidget {
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
-    final isAdvertisement = item.type == 'advertisement';
     final result = await context.showDestructiveDialog(
-      title: isAdvertisement ? 'Supprimer l\'annonce' : 'Supprimer la demande',
+      title: 'Supprimer la demande',
       message:
-          'Êtes-vous sûr de vouloir supprimer ${isAdvertisement ? 'cette annonce' : 'cette demande'} ? Cette action est irréversible.',
+          'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
       destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
@@ -413,8 +378,6 @@ class _UnifiedItemCard extends ConsumerWidget {
   }
 
   void _deleteItem(BuildContext context, WidgetRef ref) async {
-    final isAdvertisement = item.type == 'advertisement';
-
     try {
       // Afficher l'indicateur de suppression
       notificationService.info(
@@ -423,16 +386,9 @@ class _UnifiedItemCard extends ConsumerWidget {
         subtitle: 'Veuillez patienter',
       );
 
-      bool success;
-      if (isAdvertisement) {
-        success = await ref
-            .read(partAdvertisementControllerProvider.notifier)
-            .deleteAdvertisement(item.id);
-      } else {
-        success = await ref
-            .read(partRequestControllerProvider.notifier)
-            .deletePartRequest(item.id);
-      }
+      final success = await ref
+          .read(partRequestControllerProvider.notifier)
+          .deletePartRequest(item.id);
 
       // Afficher le résultat
       if (context.mounted) {
@@ -440,19 +396,12 @@ class _UnifiedItemCard extends ConsumerWidget {
           notificationService.success(
             context,
             'Suppression réussie',
-            subtitle: isAdvertisement
-                ? 'L\'annonce a été supprimée'
-                : 'La demande a été supprimée',
+            subtitle: 'La demande a été supprimée',
           );
         } else {
-          String errorMessage = 'Erreur lors de la suppression';
-          if (isAdvertisement) {
-            final adState = ref.read(partAdvertisementControllerProvider);
-            errorMessage = adState.error ?? errorMessage;
-          } else {
-            final reqState = ref.read(partRequestControllerProvider);
-            errorMessage = reqState.error ?? errorMessage;
-          }
+          final reqState = ref.read(partRequestControllerProvider);
+          final errorMessage =
+              reqState.error ?? 'Erreur lors de la suppression';
           notificationService.error(
             context,
             'Échec de la suppression',
