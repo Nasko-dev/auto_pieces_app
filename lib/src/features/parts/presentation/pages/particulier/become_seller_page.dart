@@ -157,6 +157,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   Future<void> _createAdvertisement() async {
+    debugPrint('📝 [BecomeSellerPage] Début _createAdvertisement');
     try {
       final vehicleState = ref.read(vehicleSearchProvider);
       String description = 'Pièce mise en vente par un particulier';
@@ -211,8 +212,15 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         description: description,
       );
 
+      debugPrint('📝 [BecomeSellerPage] Paramètres annonce:');
+      debugPrint('   - Type: $dbPartType');
+      debugPrint('   - Nom: $_partName');
+      debugPrint('   - Véhicule: $vehicleBrand $vehicleModel $vehicleYear');
+
       final controller = ref.read(partAdvertisementControllerProvider.notifier);
+      debugPrint('📡 [BecomeSellerPage] Appel createPartAdvertisement...');
       final success = await controller.createPartAdvertisement(params);
+      debugPrint('📡 [BecomeSellerPage] Résultat création: $success');
 
       if (!success) {
         final state = ref.read(partAdvertisementControllerProvider);
@@ -221,12 +229,19 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
 
       // Récupérer l'ID de l'annonce créée
       final state = ref.read(partAdvertisementControllerProvider);
+      debugPrint('📝 [BecomeSellerPage] Récupération ID annonce...');
       if (state.currentAdvertisement != null) {
         _createdAdvertisementId = state.currentAdvertisement!.id;
+        debugPrint(
+            '✅ [BecomeSellerPage] ID récupéré: $_createdAdvertisementId');
+      } else {
+        debugPrint('❌ [BecomeSellerPage] Aucune annonce dans le state');
       }
     } catch (e) {
+      debugPrint('❌ [BecomeSellerPage] Erreur création: $e');
       rethrow;
     }
+    debugPrint('📝 [BecomeSellerPage] Fin _createAdvertisement');
   }
 
   void _goToPreviousStep() {
@@ -263,7 +278,15 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   void _onNameAdvertisement() async {
-    if (_createdAdvertisementId == null) return;
+    debugPrint('🏷️ [BecomeSellerPage] Début _onNameAdvertisement');
+    debugPrint(
+        '🏷️ [BecomeSellerPage] ID annonce créée: $_createdAdvertisementId');
+    debugPrint('🏷️ [BecomeSellerPage] Nom actuel: $_partName');
+
+    if (_createdAdvertisementId == null) {
+      debugPrint('❌ [BecomeSellerPage] Pas d\'ID d\'annonce, annulation');
+      return;
+    }
 
     final controller = TextEditingController(text: _partName);
 
@@ -337,17 +360,24 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     );
 
     if (result != null && result.isNotEmpty && mounted) {
+      debugPrint('✅ [BecomeSellerPage] Nouveau nom saisi: "$result"');
+      debugPrint('🔄 [BecomeSellerPage] Début mise à jour de l\'annonce');
+
       // Mettre à jour le nom de l'annonce
       setState(() {
         _isSubmitting = true;
       });
 
       try {
+        debugPrint(
+            '📡 [BecomeSellerPage] Appel updateAdvertisement avec ID: $_createdAdvertisementId');
         final success = await ref
             .read(partAdvertisementControllerProvider.notifier)
             .updateAdvertisement(_createdAdvertisementId!, {
           'part_name': result,
         });
+        debugPrint(
+            '📡 [BecomeSellerPage] Résultat updateAdvertisement: $success');
 
         if (mounted) {
           setState(() {
@@ -355,7 +385,10 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           });
 
           if (success) {
+            debugPrint('✅ [BecomeSellerPage] Mise à jour réussie !');
             _partName = result;
+            debugPrint(
+                '✅ [BecomeSellerPage] Nouveau nom local enregistré: $_partName');
             notificationService.success(
               context,
               'Nom de l\'annonce mis à jour',
@@ -363,6 +396,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
             );
           } else {
             final state = ref.read(partAdvertisementControllerProvider);
+            debugPrint('❌ [BecomeSellerPage] Échec de la mise à jour');
+            debugPrint('❌ [BecomeSellerPage] Erreur: ${state.error}');
             notificationService.error(
               context,
               'Erreur',
@@ -371,6 +406,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           }
         }
       } catch (e) {
+        debugPrint('❌ [BecomeSellerPage] Exception lors de la mise à jour: $e');
         if (mounted) {
           setState(() {
             _isSubmitting = false;
@@ -382,7 +418,12 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
           );
         }
       }
+    } else {
+      debugPrint('❌ [BecomeSellerPage] Dialogue annulé ou nom vide');
+      debugPrint('❌ [BecomeSellerPage] Result: $result, mounted: $mounted');
     }
+
+    debugPrint('🏷️ [BecomeSellerPage] Fin _onNameAdvertisement');
   }
 
   @override
