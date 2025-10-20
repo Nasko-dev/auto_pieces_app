@@ -49,6 +49,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
       case '/messages-clients':
         return 2;
       case '/become-seller':
+      case '/create-advertisement':
         return 3;
       default:
         return 0;
