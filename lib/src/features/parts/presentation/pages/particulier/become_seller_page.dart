@@ -256,12 +256,10 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   }
 
   void _onNameAdvertisement() {
-    // TODO: Implémenter la fonctionnalité de nommage de l'annonce
-    notificationService.info(
-      context,
-      'Nommer l\'annonce',
-      subtitle: 'Cette fonctionnalité sera bientôt disponible',
-    );
+    // Retour à l'étape de sélection des pièces pour modifier le nom
+    setState(() {
+      _currentStep = 3;
+    });
   }
 
   @override
