@@ -277,8 +277,8 @@ class _AdvertisementCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      EditDeleteContextMenu(
-                        onEdit: () => _showEditDialog(context, ref),
+                      RenameDeleteContextMenu(
+                        onRename: () => _showRenameDialog(context, ref),
                         onDelete: () => _showDeleteDialog(context, ref),
                       ),
                     ],
@@ -375,12 +375,138 @@ class _AdvertisementCard extends ConsumerWidget {
     }
   }
 
-  void _showEditDialog(BuildContext context, WidgetRef ref) {
-    notificationService.info(
-      context,
-      'Modification',
-      subtitle: 'La page de modification sera bientôt disponible',
+  void _showRenameDialog(BuildContext context, WidgetRef ref) async {
+    debugPrint('🏷️ [SellerAdsListPage] Début _showRenameDialog');
+    debugPrint('🏷️ [SellerAdsListPage] ID annonce: ${advertisement.id}');
+    debugPrint('🏷️ [SellerAdsListPage] Nom actuel: ${advertisement.partName}');
+
+    final controller = TextEditingController(text: advertisement.partName);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Renommer l\'annonce',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.darkBlue,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Donnez un nouveau nom à votre annonce',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.darkGray,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 100,
+              decoration: InputDecoration(
+                hintText: 'Ex: Moteur 2.0 TDI excellent état',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryBlue,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: AppTheme.gray),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
     );
+
+    if (result != null && result.isNotEmpty && context.mounted) {
+      debugPrint('✅ [SellerAdsListPage] Nouveau nom saisi: "$result"');
+      await _renameAdvertisement(context, ref, result);
+    } else {
+      debugPrint('❌ [SellerAdsListPage] Dialogue annulé ou nom vide');
+    }
+
+    debugPrint('🏷️ [SellerAdsListPage] Fin _showRenameDialog');
+  }
+
+  Future<void> _renameAdvertisement(
+      BuildContext context, WidgetRef ref, String newName) async {
+    try {
+      debugPrint('🔄 [SellerAdsListPage] Début renommage');
+      debugPrint('🔄 [SellerAdsListPage] Nouveau nom: $newName');
+
+      notificationService.info(
+        context,
+        'Renommage en cours...',
+        subtitle: 'Veuillez patienter',
+      );
+
+      final success = await ref
+          .read(partAdvertisementControllerProvider.notifier)
+          .updateAdvertisement(advertisement.id, {
+        'part_name': newName,
+      });
+
+      if (context.mounted) {
+        if (success) {
+          debugPrint('✅ [SellerAdsListPage] Renommage réussi');
+          notificationService.success(
+            context,
+            'Annonce renommée',
+            subtitle: 'Le nom a été mis à jour avec succès',
+          );
+        } else {
+          final adState = ref.read(partAdvertisementControllerProvider);
+          debugPrint('❌ [SellerAdsListPage] Échec renommage: ${adState.error}');
+          notificationService.error(
+            context,
+            'Échec du renommage',
+            subtitle: adState.error ?? 'Erreur lors du renommage',
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [SellerAdsListPage] Exception: $e');
+      if (context.mounted) {
+        notificationService.error(
+          context,
+          'Erreur inattendue',
+          subtitle: e.toString(),
+        );
+      }
+    }
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
