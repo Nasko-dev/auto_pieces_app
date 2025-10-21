@@ -326,25 +326,47 @@ class _ParticulierNotificationsPageState
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
+    debugPrint('🔵 [ParticulierNotifications] Début _acceptAndRespond');
+    debugPrint(
+        '📋 [ParticulierNotifications] PartRequest ID: ${partRequest.id}');
+    debugPrint(
+        '📋 [ParticulierNotifications] PartRequest userId: ${partRequest.userId}');
+    debugPrint(
+        '📋 [ParticulierNotifications] Pièces: ${partRequest.partNames.join(', ')}');
+
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
+      debugPrint(
+          '👤 [ParticulierNotifications] Current user ID (seller): $userId');
+
       if (userId == null) {
+        debugPrint(
+            '❌ [ParticulierNotifications] Erreur: Utilisateur non connecté');
         notificationService.error(context, 'Erreur : Utilisateur non connecté');
         return;
       }
 
       String sellerName = 'Particulier';
       String? sellerCompany;
+      debugPrint('📝 [ParticulierNotifications] Seller name: $sellerName');
 
       final dataSource = ConversationsRemoteDataSourceImpl(
         supabaseClient: Supabase.instance.client,
       );
 
       if (partRequest.userId == null) {
+        debugPrint(
+            '❌ [ParticulierNotifications] Erreur: userId manquant dans partRequest');
         throw Exception('ID utilisateur manquant dans la demande');
       }
 
-      await dataSource.createOrGetConversation(
+      debugPrint(
+          '🚀 [ParticulierNotifications] Appel createOrGetConversation...');
+      debugPrint('   - requestId: ${partRequest.id}');
+      debugPrint('   - userId (demandeur): ${partRequest.userId}');
+      debugPrint('   - sellerId (répondeur): $userId');
+
+      final conversation = await dataSource.createOrGetConversation(
         requestId: partRequest.id,
         userId: partRequest.userId!,
         sellerId: userId,
@@ -353,12 +375,35 @@ class _ParticulierNotificationsPageState
         requestTitle: partRequest.partNames.join(', '),
       );
 
-      if (!mounted) return;
+      debugPrint(
+          '✅ [ParticulierNotifications] Conversation créée/récupérée: ${conversation.id}');
+      debugPrint('📊 [ParticulierNotifications] Conversation details:');
+      debugPrint('   - ID: ${conversation.id}');
+      debugPrint('   - Status: ${conversation.status}');
+      debugPrint('   - Request ID: ${conversation.requestId}');
+      debugPrint('   - User ID: ${conversation.userId}');
+      debugPrint('   - Seller ID: ${conversation.sellerId}');
+
+      if (!mounted) {
+        debugPrint(
+            '⚠️ [ParticulierNotifications] Widget non monté, abandon navigation');
+        return;
+      }
+
+      debugPrint(
+          '🧭 [ParticulierNotifications] Navigation vers /messages-clients');
       // ignore: use_build_context_synchronously
       context.push('/messages-clients');
 
+      debugPrint('🔄 [ParticulierNotifications] Refresh des notifications');
       ref.read(particulierNotificationsControllerProvider.notifier).refresh();
-    } catch (e) {
+
+      debugPrint('✅ [ParticulierNotifications] Fin _acceptAndRespond - Succès');
+    } catch (e, stackTrace) {
+      debugPrint('❌ [ParticulierNotifications] ERREUR dans _acceptAndRespond');
+      debugPrint('   Error: $e');
+      debugPrint('   StackTrace: $stackTrace');
+
       if (mounted) {
         if (context.mounted) {
           notificationService.error(context, 'Erreur', subtitle: e.toString());
