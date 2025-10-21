@@ -844,7 +844,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         allUserIds = [currentUser.id];
       }
 
-      final conversations = await _supabase
+      // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
+      final conversationsAsRequester = await _supabase
           .from('conversations')
           .select('''
             *,
@@ -869,6 +870,54 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           ''')
           .inFilter('user_id', allUserIds)
           .order('last_message_at', ascending: false);
+
+      final conversationsAsResponder = await _supabase
+          .from('conversations')
+          .select('''
+            *,
+            part_requests!inner(
+              id,
+              part_type,
+              part_names,
+              vehicle_brand,
+              vehicle_model,
+              vehicle_year,
+              vehicle_plate,
+              created_at,
+              updated_at
+            ),
+            sellers!inner(
+              id,
+              first_name,
+              last_name,
+              company_name,
+              avatar_url
+            )
+          ''')
+          .inFilter('seller_id', allUserIds)
+          .order('last_message_at', ascending: false);
+
+      // Fusionner et dédupliquer les conversations
+      final allConversationsMap = <String, dynamic>{};
+      for (final conv in conversationsAsRequester) {
+        allConversationsMap[conv['id']] = conv;
+      }
+      for (final conv in conversationsAsResponder) {
+        if (!allConversationsMap.containsKey(conv['id'])) {
+          allConversationsMap[conv['id']] = conv;
+        }
+      }
+
+      final conversations = allConversationsMap.values.toList()
+        ..sort((a, b) {
+          final aTime = a['last_message_at'] != null
+              ? DateTime.parse(a['last_message_at'])
+              : DateTime.fromMillisecondsSinceEpoch(0);
+          final bTime = b['last_message_at'] != null
+              ? DateTime.parse(b['last_message_at'])
+              : DateTime.fromMillisecondsSinceEpoch(0);
+          return bTime.compareTo(aTime); // Tri décroissant
+        });
 
       List<ParticulierConversation> result = [];
 
@@ -926,6 +975,10 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             updatedAt: DateTime.parse(partRequestData['updated_at']),
           );
 
+          // Déterminer si le particulier est le demandeur ou le répondeur
+          final userId = convData['user_id'];
+          final isRequester = allUserIds.contains(userId);
+
           // Créer la conversation
           final conversation = ParticulierConversation(
             id: convData['id'],
@@ -950,6 +1003,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
                   convData['unread_count_for_user'] as int? ?? 0;
               return dbUnreadCount;
             }(),
+            isRequester: isRequester, // true = demandeur, false = répondeur
             vehiclePlate: partRequestData['vehicle_plate'],
             partType: partRequestData['part_type'],
             partNames: List<String>.from(partRequestData['part_names'] ?? []),
