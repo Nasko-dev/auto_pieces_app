@@ -845,6 +845,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       }
 
       // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
+      // Note: On ne fait plus le join avec sellers car seller_id peut pointer vers particuliers
       final conversationsAsRequester = await _supabase
           .from('conversations')
           .select('''
@@ -859,13 +860,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               vehicle_plate,
               created_at,
               updated_at
-            ),
-            sellers!inner(
-              id,
-              first_name,
-              last_name,
-              company_name,
-              avatar_url
             )
           ''')
           .inFilter('user_id', allUserIds)
@@ -885,13 +879,6 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               vehicle_plate,
               created_at,
               updated_at
-            ),
-            sellers!inner(
-              id,
-              first_name,
-              last_name,
-              company_name,
-              avatar_url
             )
           ''')
           .inFilter('seller_id', allUserIds)
@@ -951,15 +938,46 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             );
           }).toList();
 
-          // Récupérer les infos du vendeur
-          final sellerData = convData['sellers'];
+          // Récupérer les infos du répondeur (seller_id peut pointer vers sellers OU particuliers)
+          final sellerId = convData['seller_id'];
+          String sellerName = 'Répondeur inconnu';
+          String? sellerCompanyName;
+          String? sellerAvatarUrl;
 
-          final sellerName = sellerData != null
-              ? '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
-                  .trim()
-              : 'Vendeur inconnu';
-          final sellerCompanyName = sellerData?['company_name'];
-          final sellerAvatarUrl = sellerData?['avatar_url'];
+          try {
+            // Essayer d'abord dans la table sellers
+            final sellerData = await _supabase
+                .from('sellers')
+                .select('first_name, last_name, company_name, avatar_url')
+                .eq('id', sellerId)
+                .maybeSingle();
+
+            if (sellerData != null) {
+              // C'est un vendeur
+              sellerName =
+                  '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                      .trim();
+              if (sellerName.isEmpty) sellerName = 'Vendeur';
+              sellerCompanyName = sellerData['company_name'];
+              sellerAvatarUrl = sellerData['avatar_url'];
+            } else {
+              // Sinon c'est un particulier
+              final particulierData = await _supabase
+                  .from('particuliers')
+                  .select('name')
+                  .eq('id', sellerId)
+                  .maybeSingle();
+
+              if (particulierData != null) {
+                sellerName = particulierData['name'] ?? 'Particulier';
+              } else {
+                sellerName = 'Particulier';
+              }
+            }
+          } catch (e) {
+            // En cas d'erreur, on met une valeur par défaut
+            sellerName = 'Répondeur';
+          }
 
           // Récupérer les infos de la demande de pièce
           final partRequestData = convData['part_requests'];
