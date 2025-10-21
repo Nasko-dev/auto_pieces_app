@@ -25,10 +25,12 @@ import '../../../../../core/theme/app_theme.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
+  final String? prefilledMessage;
 
   const ChatPage({
     super.key,
     required this.conversationId,
+    this.prefilledMessage,
   });
 
   @override
@@ -52,6 +54,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Informer le service global que cette conversation est active
     GlobalMessageNotificationService()
         .setActiveConversation(widget.conversationId);
+
+    // Pré-remplir le message si fourni
+    if (widget.prefilledMessage != null) {
+      _messageController.text = widget.prefilledMessage!;
+    }
 
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {

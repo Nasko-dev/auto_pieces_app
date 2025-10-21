@@ -390,10 +390,23 @@ class _ParticulierNotificationsPageState
         return;
       }
 
+      // Créer le message pré-rempli comme le vendeur
+      final partNamesStr = partRequest.partNames.isNotEmpty
+          ? partRequest.partNames.join(', ')
+          : 'des pièces';
+      final vehicleStr = partRequest.vehicleInfo.isNotEmpty
+          ? partRequest.vehicleInfo
+          : 'votre véhicule';
+      final prefilledMessage =
+          "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
+      final encodedMessage = Uri.encodeComponent(prefilledMessage);
+
       debugPrint(
-          '🧭 [ParticulierNotifications] Navigation vers /messages-clients');
+          '🧭 [ParticulierNotifications] Navigation vers conversation ${conversation.id}');
       // ignore: use_build_context_synchronously
-      context.push('/messages-clients');
+      context.push(
+        '/conversations/${conversation.id}?prefilled=$encodedMessage',
+      );
 
       debugPrint('🔄 [ParticulierNotifications] Refresh des notifications');
       ref.read(particulierNotificationsControllerProvider.notifier).refresh();
