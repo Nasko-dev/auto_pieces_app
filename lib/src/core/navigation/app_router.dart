@@ -23,6 +23,7 @@ import '../../features/parts/presentation/pages/particulier/settings_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/messages_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/conversation_detail_page.dart';
 import '../../features/parts/presentation/pages/Vendeur/all_notifications_page.dart';
+import '../../features/parts/presentation/pages/Particulier/particulier_notifications_page.dart';
 import '../../shared/presentation/widgets/main_wrapper.dart';
 import '../../features/parts/presentation/pages/Vendeur/home_selleur.dart';
 import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
@@ -163,6 +164,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => buildPageWithTransition(
               state,
               const ConversationsListPage(),
+            ),
+          ),
+          GoRoute(
+            path: '/notifications-particulier',
+            name: 'notifications-particulier',
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const ParticulierNotificationsPage(),
             ),
           ),
           GoRoute(
