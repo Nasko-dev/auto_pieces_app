@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -846,6 +847,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
       // Note: On ne fait plus le join avec sellers car seller_id peut pointer vers particuliers
+      debugPrint('📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds');
+
       final conversationsAsRequester = await _supabase
           .from('conversations')
           .select('''
@@ -864,6 +867,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           ''')
           .inFilter('user_id', allUserIds)
           .order('last_message_at', ascending: false);
+
+      debugPrint('✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
 
       final conversationsAsResponder = await _supabase
           .from('conversations')
@@ -884,6 +889,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .inFilter('seller_id', allUserIds)
           .order('last_message_at', ascending: false);
 
+      debugPrint('✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+
       // Fusionner et dédupliquer les conversations
       final allConversationsMap = <String, dynamic>{};
       for (final conv in conversationsAsRequester) {
@@ -895,6 +902,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         }
       }
 
+      debugPrint('📦 [GetParticulierConversations] Total conversations après fusion: ${allConversationsMap.length}');
+
       final conversations = allConversationsMap.values.toList()
         ..sort((a, b) {
           final aTime = a['last_message_at'] != null
@@ -905,6 +914,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               : DateTime.fromMillisecondsSinceEpoch(0);
           return bTime.compareTo(aTime); // Tri décroissant
         });
+
+      // Debug: afficher les IDs des conversations
+      debugPrint('🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
 
       List<ParticulierConversation> result = [];
 
