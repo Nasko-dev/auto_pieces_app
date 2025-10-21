@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
+import '../../../../../core/providers/part_advertisement_providers.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../core/utils/haptic_helper.dart';
 import 'become_seller/choice_step_page.dart';
@@ -226,6 +227,9 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
         final state = ref.read(partAdvertisementControllerProvider);
         throw Exception(state.error ?? 'Erreur inconnue');
       }
+
+      // Invalider le provider pour rafraîchir la navbar en temps réel
+      ref.invalidate(hasActiveAdvertisementsProvider);
 
       // Récupérer l'ID de l'annonce créée
       final state = ref.read(partAdvertisementControllerProvider);
