@@ -46,12 +46,18 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
 
     if (!hasActiveAds) {
       // Sans annonces: Accueil(0), Recherches(1), Messages(2), Vendeur(3)
+      // Vérifier si on est dans une conversation (route /conversations/:id)
+      if (location.startsWith('/conversations/')) {
+        return 2; // Messages
+      }
+
       switch (location) {
         case '/home':
           return 0;
         case '/requests':
           return 1;
         case '/messages-clients':
+        case '/conversations':
           return 2;
         case '/become-seller':
         case '/create-advertisement':
@@ -61,6 +67,11 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
       }
     } else {
       // Avec annonces: Accueil(0), Recherches(1), Notifications(2), Messages(3), Vendeur(4)
+      // Vérifier si on est dans une conversation (route /conversations/:id)
+      if (location.startsWith('/conversations/')) {
+        return 3; // Messages
+      }
+
       switch (location) {
         case '/home':
           return 0;
@@ -69,6 +80,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
         case '/notifications-particulier':
           return 2;
         case '/messages-clients':
+        case '/conversations':
           return 3;
         case '/become-seller':
         case '/create-advertisement':
