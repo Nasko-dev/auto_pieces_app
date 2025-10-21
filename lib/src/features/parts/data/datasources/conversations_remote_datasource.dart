@@ -1045,15 +1045,25 @@ class ConversationsRemoteDataSourceImpl
       final sellerId = conversationResponse['seller_id'] as String;
 
       // Déterminer qui est le destinataire (pas l'expéditeur)
-      // IMPORTANT: Pour les particuliers, leur User ID peut changer à cause de l'auth anonyme
-      // On doit vérifier par le senderType plutôt que par l'User ID exact
+      // Maintenant qu'un particulier peut être soit demandeur (user_id) soit répondeur (seller_id),
+      // on compare le senderId avec les deux pour trouver le destinataire
       String recipientId;
-      if (senderType == 'user') {
-        // L'expéditeur est un particulier → destinataire = seller
+      if (senderId == userId) {
+        // L'expéditeur est le demandeur → destinataire = répondeur (seller)
         recipientId = sellerId;
-      } else {
-        // L'expéditeur est un seller → destinataire = user (particulier)
+        debugPrint('📤 Notification: demandeur → répondeur ($userId → $sellerId)');
+      } else if (senderId == sellerId) {
+        // L'expéditeur est le répondeur → destinataire = demandeur (user)
         recipientId = userId;
+        debugPrint('📤 Notification: répondeur → demandeur ($sellerId → $userId)');
+      } else {
+        // Fallback: utiliser l'ancienne logique basée sur senderType
+        debugPrint('⚠️ senderId ne correspond ni à userId ni à sellerId, fallback sur senderType');
+        if (senderType == 'user') {
+          recipientId = sellerId;
+        } else {
+          recipientId = userId;
+        }
       }
 
       // Récupérer le nom de l'expéditeur
@@ -1109,7 +1119,6 @@ class ConversationsRemoteDataSourceImpl
         messagePreview = '${messagePreview.substring(0, 50)}...';
       }
 
-      debugPrint('📤 Notification: $senderName → $recipientId');
       debugPrint('📝 Message: $messagePreview');
       debugPrint('🎯 Sender: $senderId ($senderType)');
       debugPrint('🎯 Recipient User ID: $recipientId');
