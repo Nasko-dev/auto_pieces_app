@@ -8,6 +8,7 @@ import '../../../domain/entities/part_advertisement.dart';
 import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
+import '../../../../../core/providers/part_advertisement_providers.dart';
 
 class SellerAdsListPage extends ConsumerStatefulWidget {
   const SellerAdsListPage({super.key});
@@ -546,6 +547,9 @@ class _AdvertisementCard extends ConsumerWidget {
 
       if (context.mounted) {
         if (success) {
+          // Invalider le provider pour rafraîchir la navbar
+          ref.invalidate(hasActiveAdvertisementsProvider);
+
           notificationService.success(
             context,
             'Suppression réussie',

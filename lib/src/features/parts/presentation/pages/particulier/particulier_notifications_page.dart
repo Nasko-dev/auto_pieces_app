@@ -100,7 +100,7 @@ class _ParticulierNotificationsPageState
           },
         ),
         title: const Text(
-          'Mes notifications',
+          'Tableau',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,

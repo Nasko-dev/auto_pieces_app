@@ -134,13 +134,13 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     index: 1,
                     hasActiveAds: hasActiveAds,
                   ),
-                  // Item conditionnel: Mes notifications (uniquement si annonces actives)
+                  // Item conditionnel: Tableau (uniquement si annonces actives)
                   if (hasActiveAds)
                     _buildNavItem(
                       context: context,
                       icon: Icons.insert_chart_outlined,
                       selectedIcon: Icons.insert_chart_rounded,
-                      label: 'Mes notifications',
+                      label: 'Tableau',
                       route: '/notifications-particulier',
                       index: 2,
                       hasActiveAds: hasActiveAds,
