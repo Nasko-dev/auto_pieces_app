@@ -838,6 +838,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         allUserIds =
             allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
+        // IMPORTANT: Ajouter aussi l'ID auth car les conversations créées en tant que répondeur
+        // utilisent l'ID auth (currentUser.id) comme seller_id
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
         if (allUserIds.isEmpty) {
           allUserIds = [currentUser.id];
         }
