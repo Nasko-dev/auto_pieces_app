@@ -479,13 +479,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  void _sendMessage(String content) {
+  void _sendMessage(String content) async {
     if (content.trim().isEmpty) return;
 
-    ref.read(conversationsControllerProvider.notifier).sendMessage(
+    await ref.read(conversationsControllerProvider.notifier).sendMessage(
           conversationId: widget.conversationId,
           content: content.trim(),
         );
+
+    // Invalider le provider de la liste des conversations pour rafraîchir l'affichage
+    ref.invalidate(particulierConversationsControllerProvider);
 
     _messageController.clear();
   }
