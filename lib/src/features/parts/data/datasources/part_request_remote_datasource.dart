@@ -808,12 +808,23 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       debugPrint(
           '📊 [Notifications] Demandes filtrées affichées: ${filteredResult.length}');
 
-      final models = filteredResult.map((json) {
-        return PartRequestModel.fromJson(json);
-      }).toList();
+      // Convertir en modèles avec gestion d'erreur détaillée
+      final List<PartRequestModel> models = [];
+      for (int i = 0; i < filteredResult.length; i++) {
+        try {
+          final model = PartRequestModel.fromJson(filteredResult[i]);
+          models.add(model);
+        } catch (e) {
+          debugPrint('❌ [Notifications] Erreur conversion demande $i: $e');
+          debugPrint('   Données JSON: ${filteredResult[i]}');
+        }
+      }
+
+      debugPrint('✅ [Notifications] ${models.length} demandes converties avec succès');
 
       return models;
     } catch (e) {
+      debugPrint('❌ [Notifications] Erreur globale: $e');
       throw ServerException(e.toString());
     }
   }
