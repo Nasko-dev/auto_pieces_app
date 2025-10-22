@@ -42,7 +42,16 @@ mixin _$PartAdvertisementModel {
   String? get zipCode => throw _privateConstructorUsedError;
   String? get department => throw _privateConstructorUsedError;
   int get viewCount => throw _privateConstructorUsedError;
-  int get contactCount => throw _privateConstructorUsedError;
+  int get contactCount =>
+      throw _privateConstructorUsedError; // Gestion de stock
+  String get stockType => throw _privateConstructorUsedError;
+  int? get quantity => throw _privateConstructorUsedError;
+  int? get initialQuantity => throw _privateConstructorUsedError;
+  int get soldQuantity => throw _privateConstructorUsedError;
+  int get reservedQuantity => throw _privateConstructorUsedError;
+  int get lowStockThreshold => throw _privateConstructorUsedError;
+  bool get autoDisableWhenEmpty => throw _privateConstructorUsedError;
+  bool get stockAlertEnabled => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   DateTime? get expiresAt => throw _privateConstructorUsedError;
@@ -86,6 +95,14 @@ abstract class $PartAdvertisementModelCopyWith<$Res> {
       String? department,
       int viewCount,
       int contactCount,
+      String stockType,
+      int? quantity,
+      int? initialQuantity,
+      int soldQuantity,
+      int reservedQuantity,
+      int lowStockThreshold,
+      bool autoDisableWhenEmpty,
+      bool stockAlertEnabled,
       DateTime createdAt,
       DateTime updatedAt,
       DateTime? expiresAt});
@@ -129,6 +146,14 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
     Object? department = freezed,
     Object? viewCount = null,
     Object? contactCount = null,
+    Object? stockType = null,
+    Object? quantity = freezed,
+    Object? initialQuantity = freezed,
+    Object? soldQuantity = null,
+    Object? reservedQuantity = null,
+    Object? lowStockThreshold = null,
+    Object? autoDisableWhenEmpty = null,
+    Object? stockAlertEnabled = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? expiresAt = freezed,
@@ -222,6 +247,38 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
           ? _value.contactCount
           : contactCount // ignore: cast_nullable_to_non_nullable
               as int,
+      stockType: null == stockType
+          ? _value.stockType
+          : stockType // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: freezed == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      initialQuantity: freezed == initialQuantity
+          ? _value.initialQuantity
+          : initialQuantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      soldQuantity: null == soldQuantity
+          ? _value.soldQuantity
+          : soldQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      reservedQuantity: null == reservedQuantity
+          ? _value.reservedQuantity
+          : reservedQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
+      autoDisableWhenEmpty: null == autoDisableWhenEmpty
+          ? _value.autoDisableWhenEmpty
+          : autoDisableWhenEmpty // ignore: cast_nullable_to_non_nullable
+              as bool,
+      stockAlertEnabled: null == stockAlertEnabled
+          ? _value.stockAlertEnabled
+          : stockAlertEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -270,6 +327,14 @@ abstract class _$$PartAdvertisementModelImplCopyWith<$Res>
       String? department,
       int viewCount,
       int contactCount,
+      String stockType,
+      int? quantity,
+      int? initialQuantity,
+      int soldQuantity,
+      int reservedQuantity,
+      int lowStockThreshold,
+      bool autoDisableWhenEmpty,
+      bool stockAlertEnabled,
       DateTime createdAt,
       DateTime updatedAt,
       DateTime? expiresAt});
@@ -312,6 +377,14 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
     Object? department = freezed,
     Object? viewCount = null,
     Object? contactCount = null,
+    Object? stockType = null,
+    Object? quantity = freezed,
+    Object? initialQuantity = freezed,
+    Object? soldQuantity = null,
+    Object? reservedQuantity = null,
+    Object? lowStockThreshold = null,
+    Object? autoDisableWhenEmpty = null,
+    Object? stockAlertEnabled = null,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? expiresAt = freezed,
@@ -405,6 +478,38 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
           ? _value.contactCount
           : contactCount // ignore: cast_nullable_to_non_nullable
               as int,
+      stockType: null == stockType
+          ? _value.stockType
+          : stockType // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: freezed == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      initialQuantity: freezed == initialQuantity
+          ? _value.initialQuantity
+          : initialQuantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      soldQuantity: null == soldQuantity
+          ? _value.soldQuantity
+          : soldQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      reservedQuantity: null == reservedQuantity
+          ? _value.reservedQuantity
+          : reservedQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
+      autoDisableWhenEmpty: null == autoDisableWhenEmpty
+          ? _value.autoDisableWhenEmpty
+          : autoDisableWhenEmpty // ignore: cast_nullable_to_non_nullable
+              as bool,
+      stockAlertEnabled: null == stockAlertEnabled
+          ? _value.stockAlertEnabled
+          : stockAlertEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -447,6 +552,14 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
       this.department,
       this.viewCount = 0,
       this.contactCount = 0,
+      this.stockType = 'single',
+      this.quantity,
+      this.initialQuantity,
+      this.soldQuantity = 0,
+      this.reservedQuantity = 0,
+      this.lowStockThreshold = 1,
+      this.autoDisableWhenEmpty = true,
+      this.stockAlertEnabled = true,
       required this.createdAt,
       required this.updatedAt,
       this.expiresAt})
@@ -511,6 +624,29 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   @override
   @JsonKey()
   final int contactCount;
+// Gestion de stock
+  @override
+  @JsonKey()
+  final String stockType;
+  @override
+  final int? quantity;
+  @override
+  final int? initialQuantity;
+  @override
+  @JsonKey()
+  final int soldQuantity;
+  @override
+  @JsonKey()
+  final int reservedQuantity;
+  @override
+  @JsonKey()
+  final int lowStockThreshold;
+  @override
+  @JsonKey()
+  final bool autoDisableWhenEmpty;
+  @override
+  @JsonKey()
+  final bool stockAlertEnabled;
   @override
   final DateTime createdAt;
   @override
@@ -520,7 +656,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
 
   @override
   String toString() {
-    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
+    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, stockType: $stockType, quantity: $quantity, initialQuantity: $initialQuantity, soldQuantity: $soldQuantity, reservedQuantity: $reservedQuantity, lowStockThreshold: $lowStockThreshold, autoDisableWhenEmpty: $autoDisableWhenEmpty, stockAlertEnabled: $stockAlertEnabled, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
   }
 
   @override
@@ -565,6 +701,22 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
                 other.viewCount == viewCount) &&
             (identical(other.contactCount, contactCount) ||
                 other.contactCount == contactCount) &&
+            (identical(other.stockType, stockType) ||
+                other.stockType == stockType) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
+            (identical(other.initialQuantity, initialQuantity) ||
+                other.initialQuantity == initialQuantity) &&
+            (identical(other.soldQuantity, soldQuantity) ||
+                other.soldQuantity == soldQuantity) &&
+            (identical(other.reservedQuantity, reservedQuantity) ||
+                other.reservedQuantity == reservedQuantity) &&
+            (identical(other.lowStockThreshold, lowStockThreshold) ||
+                other.lowStockThreshold == lowStockThreshold) &&
+            (identical(other.autoDisableWhenEmpty, autoDisableWhenEmpty) ||
+                other.autoDisableWhenEmpty == autoDisableWhenEmpty) &&
+            (identical(other.stockAlertEnabled, stockAlertEnabled) ||
+                other.stockAlertEnabled == stockAlertEnabled) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -599,6 +751,14 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
         department,
         viewCount,
         contactCount,
+        stockType,
+        quantity,
+        initialQuantity,
+        soldQuantity,
+        reservedQuantity,
+        lowStockThreshold,
+        autoDisableWhenEmpty,
+        stockAlertEnabled,
         createdAt,
         updatedAt,
         expiresAt
@@ -645,6 +805,14 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
       final String? department,
       final int viewCount,
       final int contactCount,
+      final String stockType,
+      final int? quantity,
+      final int? initialQuantity,
+      final int soldQuantity,
+      final int reservedQuantity,
+      final int lowStockThreshold,
+      final bool autoDisableWhenEmpty,
+      final bool stockAlertEnabled,
       required final DateTime createdAt,
       required final DateTime updatedAt,
       final DateTime? expiresAt}) = _$PartAdvertisementModelImpl;
@@ -696,7 +864,23 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   @override
   int get viewCount;
   @override
-  int get contactCount;
+  int get contactCount; // Gestion de stock
+  @override
+  String get stockType;
+  @override
+  int? get quantity;
+  @override
+  int? get initialQuantity;
+  @override
+  int get soldQuantity;
+  @override
+  int get reservedQuantity;
+  @override
+  int get lowStockThreshold;
+  @override
+  bool get autoDisableWhenEmpty;
+  @override
+  bool get stockAlertEnabled;
   @override
   DateTime get createdAt;
   @override
@@ -734,7 +918,14 @@ mixin _$CreatePartAdvertisementParams {
   String? get condition => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
   String? get contactPhone => throw _privateConstructorUsedError;
-  String? get contactEmail => throw _privateConstructorUsedError;
+  String? get contactEmail =>
+      throw _privateConstructorUsedError; // Gestion de stock
+  String get stockType =>
+      throw _privateConstructorUsedError; // 'single', 'multiple', 'unlimited'
+  int? get quantity =>
+      throw _privateConstructorUsedError; // Obligatoire si stockType = 'multiple'
+  int get lowStockThreshold => throw _privateConstructorUsedError;
+  bool get autoDisableWhenEmpty => throw _privateConstructorUsedError;
 
   /// Serializes this CreatePartAdvertisementParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -768,7 +959,11 @@ abstract class $CreatePartAdvertisementParamsCopyWith<$Res> {
       String? condition,
       List<String> images,
       String? contactPhone,
-      String? contactEmail});
+      String? contactEmail,
+      String stockType,
+      int? quantity,
+      int lowStockThreshold,
+      bool autoDisableWhenEmpty});
 }
 
 /// @nodoc
@@ -801,6 +996,10 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
     Object? images = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
+    Object? stockType = null,
+    Object? quantity = freezed,
+    Object? lowStockThreshold = null,
+    Object? autoDisableWhenEmpty = null,
   }) {
     return _then(_value.copyWith(
       particulierId: freezed == particulierId
@@ -859,6 +1058,22 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
+      stockType: null == stockType
+          ? _value.stockType
+          : stockType // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: freezed == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
+      autoDisableWhenEmpty: null == autoDisableWhenEmpty
+          ? _value.autoDisableWhenEmpty
+          : autoDisableWhenEmpty // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -886,7 +1101,11 @@ abstract class _$$CreatePartAdvertisementParamsImplCopyWith<$Res>
       String? condition,
       List<String> images,
       String? contactPhone,
-      String? contactEmail});
+      String? contactEmail,
+      String stockType,
+      int? quantity,
+      int lowStockThreshold,
+      bool autoDisableWhenEmpty});
 }
 
 /// @nodoc
@@ -918,6 +1137,10 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
     Object? images = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
+    Object? stockType = null,
+    Object? quantity = freezed,
+    Object? lowStockThreshold = null,
+    Object? autoDisableWhenEmpty = null,
   }) {
     return _then(_$CreatePartAdvertisementParamsImpl(
       particulierId: freezed == particulierId
@@ -976,6 +1199,22 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
+      stockType: null == stockType
+          ? _value.stockType
+          : stockType // ignore: cast_nullable_to_non_nullable
+              as String,
+      quantity: freezed == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int?,
+      lowStockThreshold: null == lowStockThreshold
+          ? _value.lowStockThreshold
+          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
+              as int,
+      autoDisableWhenEmpty: null == autoDisableWhenEmpty
+          ? _value.autoDisableWhenEmpty
+          : autoDisableWhenEmpty // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -998,7 +1237,11 @@ class _$CreatePartAdvertisementParamsImpl
       this.condition,
       final List<String> images = const [],
       this.contactPhone,
-      this.contactEmail})
+      this.contactEmail,
+      this.stockType = 'single',
+      this.quantity,
+      this.lowStockThreshold = 1,
+      this.autoDisableWhenEmpty = true})
       : _images = images;
 
   factory _$CreatePartAdvertisementParamsImpl.fromJson(
@@ -1042,10 +1285,24 @@ class _$CreatePartAdvertisementParamsImpl
   final String? contactPhone;
   @override
   final String? contactEmail;
+// Gestion de stock
+  @override
+  @JsonKey()
+  final String stockType;
+// 'single', 'multiple', 'unlimited'
+  @override
+  final int? quantity;
+// Obligatoire si stockType = 'multiple'
+  @override
+  @JsonKey()
+  final int lowStockThreshold;
+  @override
+  @JsonKey()
+  final bool autoDisableWhenEmpty;
 
   @override
   String toString() {
-    return 'CreatePartAdvertisementParams(particulierId: $particulierId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail)';
+    return 'CreatePartAdvertisementParams(particulierId: $particulierId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail, stockType: $stockType, quantity: $quantity, lowStockThreshold: $lowStockThreshold, autoDisableWhenEmpty: $autoDisableWhenEmpty)';
   }
 
   @override
@@ -1078,7 +1335,15 @@ class _$CreatePartAdvertisementParamsImpl
             (identical(other.contactPhone, contactPhone) ||
                 other.contactPhone == contactPhone) &&
             (identical(other.contactEmail, contactEmail) ||
-                other.contactEmail == contactEmail));
+                other.contactEmail == contactEmail) &&
+            (identical(other.stockType, stockType) ||
+                other.stockType == stockType) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
+            (identical(other.lowStockThreshold, lowStockThreshold) ||
+                other.lowStockThreshold == lowStockThreshold) &&
+            (identical(other.autoDisableWhenEmpty, autoDisableWhenEmpty) ||
+                other.autoDisableWhenEmpty == autoDisableWhenEmpty));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1098,7 +1363,11 @@ class _$CreatePartAdvertisementParamsImpl
       condition,
       const DeepCollectionEquality().hash(_images),
       contactPhone,
-      contactEmail);
+      contactEmail,
+      stockType,
+      quantity,
+      lowStockThreshold,
+      autoDisableWhenEmpty);
 
   /// Create a copy of CreatePartAdvertisementParams
   /// with the given fields replaced by the non-null parameter values.
@@ -1134,7 +1403,11 @@ abstract class _CreatePartAdvertisementParams
       final String? condition,
       final List<String> images,
       final String? contactPhone,
-      final String? contactEmail}) = _$CreatePartAdvertisementParamsImpl;
+      final String? contactEmail,
+      final String stockType,
+      final int? quantity,
+      final int lowStockThreshold,
+      final bool autoDisableWhenEmpty}) = _$CreatePartAdvertisementParamsImpl;
 
   factory _CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) =
       _$CreatePartAdvertisementParamsImpl.fromJson;
@@ -1166,7 +1439,15 @@ abstract class _CreatePartAdvertisementParams
   @override
   String? get contactPhone;
   @override
-  String? get contactEmail;
+  String? get contactEmail; // Gestion de stock
+  @override
+  String get stockType; // 'single', 'multiple', 'unlimited'
+  @override
+  int? get quantity; // Obligatoire si stockType = 'multiple'
+  @override
+  int get lowStockThreshold;
+  @override
+  bool get autoDisableWhenEmpty;
 
   /// Create a copy of CreatePartAdvertisementParams
   /// with the given fields replaced by the non-null parameter values.
