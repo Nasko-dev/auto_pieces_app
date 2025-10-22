@@ -180,17 +180,26 @@ class ConversationsRemoteDataSourceImpl
           unreadCount = (json['unread_count_for_seller'] as int?) ?? 0;
         }
 
-        // Récupérer les informations du particulier
-        final userInfo = await _getUserInfo(json['user_id']);
+        // Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
+        final conversationUserId = json['user_id'] as String;
+        final conversationSellerId = json['seller_id'] as String;
 
-        // Récupérer les informations du vendeur (avatar, etc.)
-        final sellerInfo = await _getSellerInfo(json['seller_id']);
+        String otherPersonId;
+        if (sellerId == conversationUserId) {
+          // L'utilisateur actuel est le demandeur → afficher le répondeur
+          otherPersonId = conversationSellerId;
+        } else {
+          // L'utilisateur actuel est le répondeur → afficher le demandeur
+          otherPersonId = conversationUserId;
+        }
 
-        // Modifier le JSON pour inclure notre unreadCount calculé et les infos utilisateur/vendeur
+        // Charger les infos de l'AUTRE personne (pas soi-même)
+        final otherPersonInfo = await _getPersonInfo(otherPersonId);
+
+        // Modifier le JSON pour inclure notre unreadCount calculé et les infos de l'autre personne
         final modifiedJson = Map<String, dynamic>.from(json);
         modifiedJson['unread_count'] = unreadCount;
-        modifiedJson['user_info'] = userInfo;
-        modifiedJson['seller_info'] = sellerInfo;
+        modifiedJson['seller_info'] = otherPersonInfo; // Toujours mettre l'autre personne dans seller_info
 
         conversations.add(
             Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
@@ -751,23 +760,6 @@ class ConversationsRemoteDataSourceImpl
   }
 
   // Helper methods pour la conversion
-  Future<Map<String, dynamic>?> _getUserInfo(String userId) async {
-    try {
-      final response = await _supabaseClient
-          .from('particuliers')
-          .select('first_name, last_name, phone, avatar_url')
-          .eq('id', userId)
-          .limit(1);
-
-      if (response.isNotEmpty) {
-        return response.first;
-      }
-    } catch (e) {
-      // Ignorer l'erreur silencieusement
-    }
-    return null;
-  }
-
   Future<Map<String, dynamic>?> _getSellerInfo(String sellerId) async {
     try {
       // Récupérer toutes les infos du vendeur incluant les paramètres professionnels
