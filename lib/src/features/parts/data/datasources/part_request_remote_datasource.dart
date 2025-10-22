@@ -739,6 +739,31 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      // CORRECTION: Récupérer le vrai ID du particulier via device_id
+      List<String> allParticulierIds = [];
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        // Récupérer tous les IDs particulier associés à ce device
+        final particuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allParticulierIds =
+            particuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        debugPrint(
+            '🔍 [Notifications] IDs particuliers du device: $allParticulierIds');
+      } catch (e) {
+        debugPrint(
+            '⚠️ [Notifications] Erreur récupération device_id, fallback auth ID: $e');
+        // Fallback vers auth ID si erreur
+        allParticulierIds = [currentUser.id];
+      }
+
       // Utiliser part_requests_with_responses pour avoir toutes les données du véhicule
       final result = await _supabase
           .from('part_requests_with_responses')
@@ -746,23 +771,28 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .eq('status', 'active')
           .order('created_at', ascending: false);
 
-      // Récupérer les refus de ce vendeur pour filtrer
+      // Récupérer les refus de ce particulier (tous ses IDs) pour filtrer
       final rejections = await _supabase
           .from('seller_rejections')
           .select('part_request_id')
-          .eq('seller_id', currentUser.id);
+          .inFilter('seller_id', allParticulierIds);
 
       final rejectedIds =
           rejections.map((r) => r['part_request_id'] as String).toSet();
 
-      // Récupérer les conversations de ce vendeur pour filtrer les demandes déjà contactées
+      debugPrint('🚫 [Notifications] Demandes refusées: ${rejectedIds.length}');
+
+      // Récupérer les conversations de ce particulier pour filtrer les demandes déjà contactées
       final conversations = await _supabase
           .from('conversations')
           .select('request_id')
-          .eq('seller_id', currentUser.id);
+          .inFilter('seller_id', allParticulierIds);
 
       final contactedIds =
           conversations.map((c) => c['request_id'] as String).toSet();
+
+      debugPrint(
+          '✅ [Notifications] Demandes déjà répondues: ${contactedIds.length}');
 
       // Filtrer les demandes pour exclure celles refusées, contactées ET ses propres demandes
       final filteredResult = result.where((json) {
@@ -772,8 +802,11 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         // Exclure si refusée, déjà contactée, ou si c'est sa propre demande
         return !rejectedIds.contains(requestId) &&
             !contactedIds.contains(requestId) &&
-            requestUserId != currentUser.id;
+            !allParticulierIds.contains(requestUserId);
       }).toList();
+
+      debugPrint(
+          '📊 [Notifications] Demandes filtrées affichées: ${filteredResult.length}');
 
       final models = filteredResult.map((json) {
         return PartRequestModel.fromJson(json);
