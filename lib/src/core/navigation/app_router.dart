@@ -32,6 +32,7 @@ import '../../features/parts/presentation/pages/seller/seller_settings_page.dart
 import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 import '../../shared/presentation/pages/under_development_page.dart';
+import '../../features/settings/presentation/pages/privacy_policy_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Tracker pour la localisation précédente pour les transitions
@@ -102,6 +103,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/under-development',
         name: 'under-development',
         builder: (context, state) => const UnderDevelopmentPage(),
+      ),
+      // Route Privacy Policy (required by Apple)
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          state,
+          const PrivacyPolicyPage(),
+        ),
       ),
       // Routes d'authentification vendeur
       GoRoute(

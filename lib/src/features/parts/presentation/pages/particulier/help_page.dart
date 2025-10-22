@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/haptic_helper.dart';
+import '../../../../../core/constants/app_constants.dart';
 
 class HelpPage extends ConsumerWidget {
   const HelpPage({super.key});
@@ -119,6 +121,11 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
+
+            const SizedBox(height: 20),
+
+            // Section Informations légales
+            _buildLegalSection(context),
 
             const SizedBox(height: 30),
 
@@ -355,6 +362,144 @@ class HelpPage extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLegalSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkGray.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: AppTheme.darkGray,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Informations légales',
+                style: TextStyle(
+                  color: AppTheme.darkBlue,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Politique de confidentialité
+          _buildLegalItem(
+            context: context,
+            icon: Icons.privacy_tip_outlined,
+            title: 'Politique de confidentialité',
+            subtitle: 'Comment nous protégeons vos données',
+            onTap: () {
+              HapticHelper.light();
+              context.push('/privacy');
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Conditions d'utilisation
+          _buildLegalItem(
+            context: context,
+            icon: Icons.description_outlined,
+            title: 'Conditions d\'utilisation',
+            subtitle: 'Règles d\'utilisation de la plateforme',
+            onTap: () async {
+              HapticHelper.light();
+              final uri = Uri.parse(AppConstants.termsOfServiceUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.lightGray.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: AppTheme.darkGray,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppTheme.darkBlue,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: AppTheme.gray,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppTheme.gray,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
