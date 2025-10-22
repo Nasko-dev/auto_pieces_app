@@ -41,9 +41,4 @@ class AppConstants {
   // Part Types
   static const String partTypeMoteur = 'moteur';
   static const String partTypeCarrosserie = 'carrosserie';
-
-  // Legal URLs
-  static const String privacyPolicyUrl = 'https://www.pieceautoenligne.fr/privacy';
-  static const String termsOfServiceUrl = 'https://www.pieceautoenligne.fr/terms';
-  static const String supportEmail = 'contact@pieceautoenligne.fr';
 }

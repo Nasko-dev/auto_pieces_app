@@ -34,9 +34,7 @@ void main() async {
   try {
     // Initialiser OneSignal
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-    final onesignalAppId = dotenv.env['ONESIGNAL_APP_ID'] ??
-        'dd1bf04c-a036-4654-9c19-92e7b20bae08';
-    OneSignal.initialize(onesignalAppId);
+    OneSignal.initialize("dd1bf04c-a036-4654-9c19-92e7b20bae08");
 
     // Demander permission notifications
     OneSignal.Notifications.requestPermission(true);

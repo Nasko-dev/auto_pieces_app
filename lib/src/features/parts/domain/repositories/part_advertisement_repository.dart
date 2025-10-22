@@ -40,16 +40,4 @@ abstract class PartAdvertisementRepository {
 
   /// Incrémenter le compteur de contacts
   Future<Either<Failure, void>> incrementContactCount(String id);
-
-  /// Décrémenter le stock après une vente
-  Future<Either<Failure, PartAdvertisement>> decrementStock(
-      String id, int quantity);
-
-  /// Incrémenter le stock (réappro)
-  Future<Either<Failure, PartAdvertisement>> incrementStock(
-      String id, int quantity);
-
-  /// Mettre à jour le stock directement
-  Future<Either<Failure, PartAdvertisement>> updateStock(
-      String id, int newQuantity);
 }

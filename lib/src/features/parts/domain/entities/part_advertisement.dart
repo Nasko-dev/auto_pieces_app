@@ -15,11 +15,6 @@ class PartAdvertisement extends Equatable {
   final String? condition; // 'neuf', 'bon', 'moyen', 'pour-pieces'
   final List<String> images;
   final String status; // 'active', 'sold', 'inactive'
-  final int quantityTotal;
-  final int quantityAvailable;
-  final int quantitySold;
-  final int? lowStockThreshold;
-  final bool autoMarkSoldWhenEmpty;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -38,11 +33,6 @@ class PartAdvertisement extends Equatable {
     this.condition,
     this.images = const [],
     this.status = 'active',
-    this.quantityTotal = 1,
-    this.quantityAvailable = 1,
-    this.quantitySold = 0,
-    this.lowStockThreshold,
-    this.autoMarkSoldWhenEmpty = true,
     required this.createdAt,
     this.updatedAt,
   });
@@ -62,11 +52,6 @@ class PartAdvertisement extends Equatable {
     String? condition,
     List<String>? images,
     String? status,
-    int? quantityTotal,
-    int? quantityAvailable,
-    int? quantitySold,
-    int? lowStockThreshold,
-    bool? autoMarkSoldWhenEmpty,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -85,12 +70,6 @@ class PartAdvertisement extends Equatable {
       condition: condition ?? this.condition,
       images: images ?? this.images,
       status: status ?? this.status,
-      quantityTotal: quantityTotal ?? this.quantityTotal,
-      quantityAvailable: quantityAvailable ?? this.quantityAvailable,
-      quantitySold: quantitySold ?? this.quantitySold,
-      lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
-      autoMarkSoldWhenEmpty:
-          autoMarkSoldWhenEmpty ?? this.autoMarkSoldWhenEmpty,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -112,11 +91,6 @@ class PartAdvertisement extends Equatable {
         condition,
         images,
         status,
-        quantityTotal,
-        quantityAvailable,
-        quantitySold,
-        lowStockThreshold,
-        autoMarkSoldWhenEmpty,
         createdAt,
         updatedAt,
       ];

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -334,42 +333,38 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     ),
                     SizedBox(width: 12 * s),
                     Expanded(
-                      child: Text.rich(
-                        TextSpan(
-                          text: 'J\'accepte les ',
-                          style: body(14),
-                          children: [
-                            TextSpan(
-                              text: 'conditions générales',
-                              style: GoogleFonts.inter(
-                                fontSize: 14 * s,
-                                fontWeight: FontWeight.w600,
-                                color: _primaryBlue,
-                                decoration: TextDecoration.underline,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _acceptTerms = !_acceptTerms;
+                          });
+                        },
+                        child: Text.rich(
+                          TextSpan(
+                            text: 'J\'accepte les ',
+                            style: body(14),
+                            children: [
+                              TextSpan(
+                                text: 'conditions générales',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14 * s,
+                                  fontWeight: FontWeight.w600,
+                                  color: _primaryBlue,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  HapticHelper.selection();
-                                  // TODO: Créer page CGU
-                                  context.push('/privacy');
-                                },
-                            ),
-                            const TextSpan(text: ' et la '),
-                            TextSpan(
-                              text: 'politique de confidentialité',
-                              style: GoogleFonts.inter(
-                                fontSize: 14 * s,
-                                fontWeight: FontWeight.w600,
-                                color: _primaryBlue,
-                                decoration: TextDecoration.underline,
+                              const TextSpan(text: ' et la '),
+                              TextSpan(
+                                text: 'politique de confidentialité',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14 * s,
+                                  fontWeight: FontWeight.w600,
+                                  color: _primaryBlue,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  HapticHelper.selection();
-                                  context.push('/privacy');
-                                },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
