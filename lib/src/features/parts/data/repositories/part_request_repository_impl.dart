@@ -417,15 +417,17 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   // Particulier - Conversations et messages
   @override
   Future<Either<Failure, List<ParticulierConversation>>>
-      getParticulierConversations() async {
+      getParticulierConversations({String? filterType}) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure('No internet connection'));
     }
 
     try {
-      // RETOUR AU SYSTÈME ORIGINAL : Utiliser l'ancien système particulier
+      // ✅ OPTIMISATION: Passer le filtre pour charger seulement ce qui est nécessaire
       final conversations =
-          await _remoteDataSource.getParticulierConversations();
+          await _remoteDataSource.getParticulierConversations(
+        filterType: filterType,
+      );
       return Right(conversations);
     } on UnauthorizedException {
       return const Left(AuthFailure('User not authenticated'));

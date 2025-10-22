@@ -67,7 +67,9 @@ abstract class PartRequestRemoteDataSource {
   Future<List<SellerRejection>> getSellerRejections(String sellerId);
 
   // Particulier Conversations
-  Future<List<ParticulierConversation>> getParticulierConversations();
+  Future<List<ParticulierConversation>> getParticulierConversations({
+    String? filterType, // 'demandes', 'annonces', ou null pour tout
+  });
   Future<ParticulierConversation> getParticulierConversationById(
       String conversationId);
   Future<void> sendParticulierMessage({
@@ -858,7 +860,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
   // Particulier Conversations
   @override
-  Future<List<ParticulierConversation>> getParticulierConversations() async {
+  Future<List<ParticulierConversation>> getParticulierConversations({
+    String? filterType,
+  }) async {
     try {
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
@@ -895,14 +899,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         allUserIds = [currentUser.id];
       }
 
-      // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
-      // Note: On ne fait plus le join avec sellers car seller_id peut pointer vers particuliers
       debugPrint(
-          '📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds');
+          '📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds (filterType: $filterType)');
 
-      final conversationsAsRequester = await _supabase
-          .from('conversations')
-          .select('''
+      // ✅ OPTIMISATION: Charger seulement le type demandé
+      List<dynamic> conversationsAsRequester = [];
+      List<dynamic> conversationsAsResponder = [];
+
+      // Si filterType est 'demandes' ou null, charger les conversations comme demandeur
+      if (filterType == null || filterType == 'demandes') {
+        conversationsAsRequester = await _supabase
+            .from('conversations')
+            .select('''
             *,
             part_requests!inner(
               id,
@@ -916,15 +924,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               updated_at
             )
           ''')
-          .inFilter('user_id', allUserIds)
-          .order('last_message_at', ascending: false);
+            .inFilter('user_id', allUserIds)
+            .order('last_message_at', ascending: false);
 
-      debugPrint(
-          '✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
+        debugPrint(
+            '✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
+      }
 
-      final conversationsAsResponder = await _supabase
-          .from('conversations')
-          .select('''
+      // Si filterType est 'annonces' ou null, charger les conversations comme répondeur
+      if (filterType == null || filterType == 'annonces') {
+        conversationsAsResponder = await _supabase
+            .from('conversations')
+            .select('''
             *,
             part_requests!inner(
               id,
@@ -938,11 +949,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               updated_at
             )
           ''')
-          .inFilter('seller_id', allUserIds)
-          .order('last_message_at', ascending: false);
+            .inFilter('seller_id', allUserIds)
+            .order('last_message_at', ascending: false);
 
-      debugPrint(
-          '✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+        debugPrint(
+            '✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+      }
 
       // Fusionner et dédupliquer les conversations
       final allConversationsMap = <String, dynamic>{};

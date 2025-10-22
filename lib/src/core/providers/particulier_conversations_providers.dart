@@ -130,12 +130,16 @@ class ParticulierConversationsController
     });
   }
 
+  // ✅ OPTIMISATION: Charger progressivement les conversations
   Future<void> loadConversations() async {
     state = state.copyWith(isLoading: true, error: null);
 
-    final result = await _repository.getParticulierConversations();
+    // 1. Charger en priorité les "Demandes" (onglet affiché par défaut)
+    final demandesResult = await _repository.getParticulierConversations(
+      filterType: 'demandes',
+    );
 
-    result.fold(
+    demandesResult.fold(
       (failure) {
         if (mounted) {
           state = state.copyWith(
@@ -144,13 +148,36 @@ class ParticulierConversationsController
           );
         }
       },
-      (conversations) {
+      (demandes) {
         if (mounted) {
           state = state.copyWith(
-            conversations: conversations,
+            conversations: demandes,
             isLoading: false,
             error: null,
           );
+
+          // 2. Précharger les "Annonces" après 2 secondes en arrière-plan
+          Future.delayed(const Duration(seconds: 2), () {
+            _preloadAnnonces(demandes);
+          });
+        }
+      },
+    );
+  }
+
+  // ✅ OPTIMISATION: Précharger les annonces en arrière-plan
+  Future<void> _preloadAnnonces(List<ParticulierConversation> demandes) async {
+    final annoncesResult = await _repository.getParticulierConversations(
+      filterType: 'annonces',
+    );
+
+    annoncesResult.fold(
+      (failure) => null, // Ignorer les erreurs du préchargement
+      (annonces) {
+        if (mounted) {
+          // Fusionner demandes + annonces
+          final allConversations = [...demandes, ...annonces];
+          state = state.copyWith(conversations: allConversations);
         }
       },
     );

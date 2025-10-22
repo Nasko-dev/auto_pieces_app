@@ -54,7 +54,9 @@ abstract class PartRequestRepository {
 
   // Particulier - Conversations et messages
   Future<Either<Failure, List<ParticulierConversation>>>
-      getParticulierConversations();
+      getParticulierConversations({
+    String? filterType, // 'demandes', 'annonces', ou null pour tout
+  });
   Future<Either<Failure, ParticulierConversation>>
       getParticulierConversationById(String conversationId);
   Future<Either<Failure, void>> sendParticulierMessage({
