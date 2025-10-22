@@ -434,11 +434,22 @@ class MockPartRequestRemoteDataSource extends _i1.Mock
       ) as _i8.Future<List<_i3.SellerRejection>>);
 
   @override
-  _i8.Future<List<_i4.ParticulierConversation>> getParticulierConversations() =>
+  _i8.Future<Map<String, int>> getConversationsCounts() => (super.noSuchMethod(
+        Invocation.method(
+          #getConversationsCounts,
+          [],
+        ),
+        returnValue: _i8.Future<Map<String, int>>.value(<String, int>{}),
+      ) as _i8.Future<Map<String, int>>);
+
+  @override
+  _i8.Future<List<_i4.ParticulierConversation>> getParticulierConversations(
+          {String? filterType}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getParticulierConversations,
           [],
+          {#filterType: filterType},
         ),
         returnValue: _i8.Future<List<_i4.ParticulierConversation>>.value(
             <_i4.ParticulierConversation>[]),

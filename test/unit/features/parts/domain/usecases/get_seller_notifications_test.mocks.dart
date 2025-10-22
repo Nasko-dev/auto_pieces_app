@@ -377,11 +377,30 @@ class MockPartRequestRepository extends _i1.Mock
           ) as _i4.Future<_i2.Either<_i5.Failure, List<_i9.SellerRejection>>>);
 
   @override
+  _i4.Future<_i2.Either<_i5.Failure, Map<String, int>>>
+      getConversationsCounts() => (super.noSuchMethod(
+            Invocation.method(
+              #getConversationsCounts,
+              [],
+            ),
+            returnValue:
+                _i4.Future<_i2.Either<_i5.Failure, Map<String, int>>>.value(
+                    _FakeEither_0<_i5.Failure, Map<String, int>>(
+              this,
+              Invocation.method(
+                #getConversationsCounts,
+                [],
+              ),
+            )),
+          ) as _i4.Future<_i2.Either<_i5.Failure, Map<String, int>>>);
+
+  @override
   _i4.Future<_i2.Either<_i5.Failure, List<_i10.ParticulierConversation>>>
-      getParticulierConversations() => (super.noSuchMethod(
+      getParticulierConversations({String? filterType}) => (super.noSuchMethod(
             Invocation.method(
               #getParticulierConversations,
               [],
+              {#filterType: filterType},
             ),
             returnValue: _i4.Future<
                     _i2.Either<_i5.Failure,
@@ -391,6 +410,7 @@ class MockPartRequestRepository extends _i1.Mock
               Invocation.method(
                 #getParticulierConversations,
                 [],
+                {#filterType: filterType},
               ),
             )),
           ) as _i4.Future<

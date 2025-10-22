@@ -53,6 +53,7 @@ abstract class PartRequestRepository {
       String sellerId);
 
   // Particulier - Conversations et messages
+  Future<Either<Failure, Map<String, int>>> getConversationsCounts();
   Future<Either<Failure, List<ParticulierConversation>>>
       getParticulierConversations({
     String? filterType, // 'demandes', 'annonces', ou null pour tout

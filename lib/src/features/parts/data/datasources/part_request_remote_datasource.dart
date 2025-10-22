@@ -67,6 +67,7 @@ abstract class PartRequestRemoteDataSource {
   Future<List<SellerRejection>> getSellerRejections(String sellerId);
 
   // Particulier Conversations
+  Future<Map<String, int>> getConversationsCounts(); // {'demandes': X, 'annonces': Y}
   Future<List<ParticulierConversation>> getParticulierConversations({
     String? filterType, // 'demandes', 'annonces', ou null pour tout
   });
@@ -859,6 +860,66 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
   }
 
   // Particulier Conversations
+  @override
+  Future<Map<String, int>> getConversationsCounts() async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // Récupérer les IDs du particulier
+      List<String> allUserIds = [];
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // ✅ OPTIMISATION: Compter rapidement sans charger les données
+      // Count des demandes (où je suis demandeur)
+      final demandesCount = await _supabase
+          .from('conversations')
+          .select('id', const FetchOptions(count: CountOption.exact))
+          .inFilter('user_id', allUserIds);
+
+      // Count des annonces (où je suis répondeur)
+      final annoncesCount = await _supabase
+          .from('conversations')
+          .select('id', const FetchOptions(count: CountOption.exact))
+          .inFilter('seller_id', allUserIds);
+
+      final counts = {
+        'demandes': demandesCount.count ?? 0,
+        'annonces': annoncesCount.count ?? 0,
+      };
+
+      debugPrint('📊 [Counts] Demandes: ${counts['demandes']}, Annonces: ${counts['annonces']}');
+
+      return counts;
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
   @override
   Future<List<ParticulierConversation>> getParticulierConversations({
     String? filterType,

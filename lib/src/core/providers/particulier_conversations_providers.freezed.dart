@@ -21,6 +21,9 @@ mixin _$ParticulierConversationsState {
   bool get isLoading => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   String? get activeConversationId => throw _privateConstructorUsedError;
+  int get demandesCount =>
+      throw _privateConstructorUsedError; // Count rapide des demandes
+  int get annoncesCount => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -41,7 +44,9 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      String? activeConversationId});
+      String? activeConversationId,
+      int demandesCount,
+      int annoncesCount});
 }
 
 /// @nodoc
@@ -64,6 +69,8 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? isLoading = null,
     Object? error = freezed,
     Object? activeConversationId = freezed,
+    Object? demandesCount = null,
+    Object? annoncesCount = null,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -82,6 +89,14 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.activeConversationId
           : activeConversationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      demandesCount: null == demandesCount
+          ? _value.demandesCount
+          : demandesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      annoncesCount: null == annoncesCount
+          ? _value.annoncesCount
+          : annoncesCount // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -99,7 +114,9 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       {List<ParticulierConversation> conversations,
       bool isLoading,
       String? error,
-      String? activeConversationId});
+      String? activeConversationId,
+      int demandesCount,
+      int annoncesCount});
 }
 
 /// @nodoc
@@ -121,6 +138,8 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? error = freezed,
     Object? activeConversationId = freezed,
+    Object? demandesCount = null,
+    Object? annoncesCount = null,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -139,6 +158,14 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.activeConversationId
           : activeConversationId // ignore: cast_nullable_to_non_nullable
               as String?,
+      demandesCount: null == demandesCount
+          ? _value.demandesCount
+          : demandesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      annoncesCount: null == annoncesCount
+          ? _value.annoncesCount
+          : annoncesCount // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -151,7 +178,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       {final List<ParticulierConversation> conversations = const [],
       this.isLoading = false,
       this.error,
-      this.activeConversationId})
+      this.activeConversationId,
+      this.demandesCount = 0,
+      this.annoncesCount = 0})
       : _conversations = conversations,
         super._();
 
@@ -171,10 +200,17 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
   final String? error;
   @override
   final String? activeConversationId;
+  @override
+  @JsonKey()
+  final int demandesCount;
+// Count rapide des demandes
+  @override
+  @JsonKey()
+  final int annoncesCount;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount)';
   }
 
   @override
@@ -185,7 +221,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       ..add(DiagnosticsProperty('conversations', conversations))
       ..add(DiagnosticsProperty('isLoading', isLoading))
       ..add(DiagnosticsProperty('error', error))
-      ..add(DiagnosticsProperty('activeConversationId', activeConversationId));
+      ..add(DiagnosticsProperty('activeConversationId', activeConversationId))
+      ..add(DiagnosticsProperty('demandesCount', demandesCount))
+      ..add(DiagnosticsProperty('annoncesCount', annoncesCount));
   }
 
   @override
@@ -199,7 +237,11 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
                 other.isLoading == isLoading) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.activeConversationId, activeConversationId) ||
-                other.activeConversationId == activeConversationId));
+                other.activeConversationId == activeConversationId) &&
+            (identical(other.demandesCount, demandesCount) ||
+                other.demandesCount == demandesCount) &&
+            (identical(other.annoncesCount, annoncesCount) ||
+                other.annoncesCount == annoncesCount));
   }
 
   @override
@@ -208,7 +250,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       const DeepCollectionEquality().hash(_conversations),
       isLoading,
       error,
-      activeConversationId);
+      activeConversationId,
+      demandesCount,
+      annoncesCount);
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -224,11 +268,12 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
 abstract class _ParticulierConversationsState
     extends ParticulierConversationsState {
   const factory _ParticulierConversationsState(
-          {final List<ParticulierConversation> conversations,
-          final bool isLoading,
-          final String? error,
-          final String? activeConversationId}) =
-      _$ParticulierConversationsStateImpl;
+      {final List<ParticulierConversation> conversations,
+      final bool isLoading,
+      final String? error,
+      final String? activeConversationId,
+      final int demandesCount,
+      final int annoncesCount}) = _$ParticulierConversationsStateImpl;
   const _ParticulierConversationsState._() : super._();
 
   @override
@@ -239,6 +284,10 @@ abstract class _ParticulierConversationsState
   String? get error;
   @override
   String? get activeConversationId;
+  @override
+  int get demandesCount; // Count rapide des demandes
+  @override
+  int get annoncesCount;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.

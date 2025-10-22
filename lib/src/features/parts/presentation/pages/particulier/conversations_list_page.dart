@@ -91,8 +91,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
     final isLoading = state.isLoading;
     final error = state.error;
 
-    final hasDemandes = demandesGroups.isNotEmpty;
-    final hasAnnonces = annoncesGroups.isNotEmpty;
+    // ✅ OPTIMISATION: Afficher onglets basés sur les counts au lieu des données chargées
+    final hasDemandes = state.demandesCount > 0;
+    final hasAnnonces = state.annoncesCount > 0;
     final showTabs = hasDemandes && hasAnnonces;
 
     // Calculer le nombre total de messages non lus

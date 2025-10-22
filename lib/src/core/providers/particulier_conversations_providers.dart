@@ -20,6 +20,8 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     @Default(false) bool isLoading,
     String? error,
     String? activeConversationId,
+    @Default(0) int demandesCount, // Count rapide des demandes
+    @Default(0) int annoncesCount, // Count rapide des annonces
   }) = _ParticulierConversationsState;
 
   int get unreadCount =>
@@ -130,17 +132,15 @@ class ParticulierConversationsController
     });
   }
 
-  // ✅ OPTIMISATION: Charger progressivement les conversations
+  // ✅ OPTIMISATION OPTION C: Charger d'abord les counts, puis les données
   Future<void> loadConversations() async {
     state = state.copyWith(isLoading: true, error: null);
 
-    // 1. Charger en priorité les "Demandes" (onglet affiché par défaut)
-    final demandesResult = await _repository.getParticulierConversations(
-      filterType: 'demandes',
-    );
+    // 1. Charger rapidement les counts pour savoir quels onglets afficher
+    final countsResult = await _repository.getConversationsCounts();
 
-    demandesResult.fold(
-      (failure) {
+    await countsResult.fold(
+      (failure) async {
         if (mounted) {
           state = state.copyWith(
             isLoading: false,
@@ -148,18 +148,45 @@ class ParticulierConversationsController
           );
         }
       },
-      (demandes) {
+      (counts) async {
         if (mounted) {
+          // Mettre à jour les counts immédiatement
           state = state.copyWith(
-            conversations: demandes,
-            isLoading: false,
-            error: null,
+            demandesCount: counts['demandes'] ?? 0,
+            annoncesCount: counts['annonces'] ?? 0,
           );
 
-          // 2. Précharger les "Annonces" après 2 secondes en arrière-plan
-          Future.delayed(const Duration(seconds: 2), () {
-            _preloadAnnonces(demandes);
-          });
+          // 2. Charger les vraies données des demandes en priorité
+          final demandesResult = await _repository.getParticulierConversations(
+            filterType: 'demandes',
+          );
+
+          demandesResult.fold(
+            (failure) {
+              if (mounted) {
+                state = state.copyWith(
+                  isLoading: false,
+                  error: failure.message,
+                );
+              }
+            },
+            (demandes) {
+              if (mounted) {
+                state = state.copyWith(
+                  conversations: demandes,
+                  isLoading: false,
+                  error: null,
+                );
+
+                // 3. Précharger les "Annonces" après 2 secondes si elles existent
+                if (counts['annonces'] != null && counts['annonces']! > 0) {
+                  Future.delayed(const Duration(seconds: 2), () {
+                    _preloadAnnonces(demandes);
+                  });
+                }
+              }
+            },
+          );
         }
       },
     );

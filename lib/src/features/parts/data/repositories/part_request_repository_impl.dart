@@ -416,6 +416,24 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
 
   // Particulier - Conversations et messages
   @override
+  Future<Either<Failure, Map<String, int>>> getConversationsCounts() async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure('No internet connection'));
+    }
+
+    try {
+      final counts = await _remoteDataSource.getConversationsCounts();
+      return Right(counts);
+    } on UnauthorizedException {
+      return const Left(AuthFailure('User not authenticated'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<ParticulierConversation>>>
       getParticulierConversations({String? filterType}) async {
     if (!await _networkInfo.isConnected) {
