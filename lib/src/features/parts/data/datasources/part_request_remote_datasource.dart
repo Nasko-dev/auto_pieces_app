@@ -853,7 +853,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
       // Note: On ne fait plus le join avec sellers car seller_id peut pointer vers particuliers
-      debugPrint('📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds');
+      debugPrint(
+          '📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds');
 
       final conversationsAsRequester = await _supabase
           .from('conversations')
@@ -874,7 +875,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .inFilter('user_id', allUserIds)
           .order('last_message_at', ascending: false);
 
-      debugPrint('✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
+      debugPrint(
+          '✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
 
       final conversationsAsResponder = await _supabase
           .from('conversations')
@@ -895,7 +897,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .inFilter('seller_id', allUserIds)
           .order('last_message_at', ascending: false);
 
-      debugPrint('✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+      debugPrint(
+          '✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
 
       // Fusionner et dédupliquer les conversations
       final allConversationsMap = <String, dynamic>{};
@@ -908,7 +911,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         }
       }
 
-      debugPrint('📦 [GetParticulierConversations] Total conversations après fusion: ${allConversationsMap.length}');
+      debugPrint(
+          '📦 [GetParticulierConversations] Total conversations après fusion: ${allConversationsMap.length}');
 
       final conversations = allConversationsMap.values.toList()
         ..sort((a, b) {
@@ -922,7 +926,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         });
 
       // Debug: afficher les IDs des conversations
-      debugPrint('🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
+      debugPrint(
+          '🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
 
       List<ParticulierConversation> result = [];
 
@@ -982,19 +987,25 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               // Sinon c'est un particulier
               final particulierData = await _supabase
                   .from('particuliers')
-                  .select('name')
+                  .select('first_name, last_name, avatar_url')
                   .eq('id', sellerId)
                   .maybeSingle();
 
               if (particulierData != null) {
-                sellerName = particulierData['name'] ?? 'Particulier';
+                final firstName = particulierData['first_name'];
+                final lastName = particulierData['last_name'];
+                sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+                if (sellerName.isEmpty) {
+                  sellerName = 'Particulier';
+                }
+                sellerAvatarUrl = particulierData['avatar_url'];
               } else {
                 sellerName = 'Particulier';
               }
             }
           } catch (e) {
             // En cas d'erreur, on met une valeur par défaut
-            sellerName = 'Répondeur';
+            sellerName = 'Particulier';
           }
 
           // Récupérer les infos de la demande de pièce
