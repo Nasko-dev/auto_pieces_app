@@ -193,12 +193,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: conversationGroups.length,
       itemBuilder: (context, index) {
-        final conversation = conversations[index];
-
-        return ConversationItemWidget(
-          conversation: conversation,
-          onTap: () {
-            context.push('/conversations/${conversation.id}');
         final group = conversationGroups[index];
 
         return ParticulierConversationGroupCard(
@@ -209,45 +203,5 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         );
       },
     );
-  }
-
-  void _showDeleteDialog(String conversationId) async {
-    final result = await context.showDestructiveDialog(
-      title: 'Supprimer la conversation',
-      message:
-          'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
-      destructiveText: 'Supprimer',
-      cancelText: 'Annuler',
-    );
-
-    if (result == true && mounted) {
-      ref
-          .read(particulierConversationsControllerProvider.notifier)
-          .deleteConversation(conversationId);
-
-      if (mounted) {
-        notificationService.success(context, 'Conversation supprimée');
-      }
-    }
-  }
-
-  void _showBlockDialog(String conversationId) async {
-    final result = await context.showWarningDialog(
-      title: 'Bloquer le vendeur',
-      message:
-          'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
-      confirmText: 'Bloquer',
-      cancelText: 'Annuler',
-    );
-
-    if (result == true && mounted) {
-      ref
-          .read(particulierConversationsControllerProvider.notifier)
-          .blockConversation(conversationId);
-
-      if (mounted) {
-        notificationService.warning(context, 'Vendeur bloqué');
-      }
-    }
   }
 }

@@ -52,8 +52,6 @@ class PartAdvertisementRepositoryImpl implements PartAdvertisementRepository {
   }
 
   @override
-  Future<Either<Failure, List<PartAdvertisement>>>
-      getMyPartAdvertisements() async {
   Future<Either<Failure, List<PartAdvertisement>>> getMyPartAdvertisements({
     String? particulierId,
   }) async {
@@ -171,57 +169,6 @@ class PartAdvertisementRepositoryImpl implements PartAdvertisementRepository {
     } catch (e) {
       // Pas critique, on continue sans erreur
       return const Right(null);
-    }
-  }
-
-  @override
-  Future<Either<Failure, PartAdvertisement>> decrementStock(
-      String id, int quantity) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('Pas de connexion internet'));
-    }
-
-    try {
-      final model = await remoteDataSource.decrementStock(id, quantity);
-      return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur inconnue: $e'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, PartAdvertisement>> incrementStock(
-      String id, int quantity) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('Pas de connexion internet'));
-    }
-
-    try {
-      final model = await remoteDataSource.incrementStock(id, quantity);
-      return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur inconnue: $e'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, PartAdvertisement>> updateStock(
-      String id, int newQuantity) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('Pas de connexion internet'));
-    }
-
-    try {
-      final model = await remoteDataSource.updateStock(id, newQuantity);
-      return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur inconnue: $e'));
     }
   }
 }

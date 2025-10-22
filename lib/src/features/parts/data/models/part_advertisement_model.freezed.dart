@@ -35,11 +35,6 @@ mixin _$PartAdvertisementModel {
   String? get condition => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
-  int get quantityTotal => throw _privateConstructorUsedError;
-  int get quantityAvailable => throw _privateConstructorUsedError;
-  int get quantitySold => throw _privateConstructorUsedError;
-  int? get lowStockThreshold => throw _privateConstructorUsedError;
-  bool get autoMarkSoldWhenEmpty => throw _privateConstructorUsedError;
   bool get isNegotiable => throw _privateConstructorUsedError;
   String? get contactPhone => throw _privateConstructorUsedError;
   String? get contactEmail => throw _privateConstructorUsedError;
@@ -83,11 +78,6 @@ abstract class $PartAdvertisementModelCopyWith<$Res> {
       String? condition,
       List<String> images,
       String status,
-      int quantityTotal,
-      int quantityAvailable,
-      int quantitySold,
-      int? lowStockThreshold,
-      bool autoMarkSoldWhenEmpty,
       bool isNegotiable,
       String? contactPhone,
       String? contactEmail,
@@ -131,11 +121,6 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
     Object? condition = freezed,
     Object? images = null,
     Object? status = null,
-    Object? quantityTotal = null,
-    Object? quantityAvailable = null,
-    Object? quantitySold = null,
-    Object? lowStockThreshold = freezed,
-    Object? autoMarkSoldWhenEmpty = null,
     Object? isNegotiable = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
@@ -205,26 +190,6 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
-      quantityTotal: null == quantityTotal
-          ? _value.quantityTotal
-          : quantityTotal // ignore: cast_nullable_to_non_nullable
-              as int,
-      quantityAvailable: null == quantityAvailable
-          ? _value.quantityAvailable
-          : quantityAvailable // ignore: cast_nullable_to_non_nullable
-              as int,
-      quantitySold: null == quantitySold
-          ? _value.quantitySold
-          : quantitySold // ignore: cast_nullable_to_non_nullable
-              as int,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
-      autoMarkSoldWhenEmpty: null == autoMarkSoldWhenEmpty
-          ? _value.autoMarkSoldWhenEmpty
-          : autoMarkSoldWhenEmpty // ignore: cast_nullable_to_non_nullable
-              as bool,
       isNegotiable: null == isNegotiable
           ? _value.isNegotiable
           : isNegotiable // ignore: cast_nullable_to_non_nullable
@@ -297,11 +262,6 @@ abstract class _$$PartAdvertisementModelImplCopyWith<$Res>
       String? condition,
       List<String> images,
       String status,
-      int quantityTotal,
-      int quantityAvailable,
-      int quantitySold,
-      int? lowStockThreshold,
-      bool autoMarkSoldWhenEmpty,
       bool isNegotiable,
       String? contactPhone,
       String? contactEmail,
@@ -344,11 +304,6 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
     Object? condition = freezed,
     Object? images = null,
     Object? status = null,
-    Object? quantityTotal = null,
-    Object? quantityAvailable = null,
-    Object? quantitySold = null,
-    Object? lowStockThreshold = freezed,
-    Object? autoMarkSoldWhenEmpty = null,
     Object? isNegotiable = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
@@ -418,26 +373,6 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
-      quantityTotal: null == quantityTotal
-          ? _value.quantityTotal
-          : quantityTotal // ignore: cast_nullable_to_non_nullable
-              as int,
-      quantityAvailable: null == quantityAvailable
-          ? _value.quantityAvailable
-          : quantityAvailable // ignore: cast_nullable_to_non_nullable
-              as int,
-      quantitySold: null == quantitySold
-          ? _value.quantitySold
-          : quantitySold // ignore: cast_nullable_to_non_nullable
-              as int,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
-      autoMarkSoldWhenEmpty: null == autoMarkSoldWhenEmpty
-          ? _value.autoMarkSoldWhenEmpty
-          : autoMarkSoldWhenEmpty // ignore: cast_nullable_to_non_nullable
-              as bool,
       isNegotiable: null == isNegotiable
           ? _value.isNegotiable
           : isNegotiable // ignore: cast_nullable_to_non_nullable
@@ -504,11 +439,6 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
       this.condition,
       final List<String> images = const [],
       this.status = 'active',
-      this.quantityTotal = 1,
-      this.quantityAvailable = 1,
-      this.quantitySold = 0,
-      this.lowStockThreshold,
-      this.autoMarkSoldWhenEmpty = true,
       this.isNegotiable = true,
       this.contactPhone,
       this.contactEmail,
@@ -564,20 +494,6 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   final String status;
   @override
   @JsonKey()
-  final int quantityTotal;
-  @override
-  @JsonKey()
-  final int quantityAvailable;
-  @override
-  @JsonKey()
-  final int quantitySold;
-  @override
-  final int? lowStockThreshold;
-  @override
-  @JsonKey()
-  final bool autoMarkSoldWhenEmpty;
-  @override
-  @JsonKey()
   final bool isNegotiable;
   @override
   final String? contactPhone;
@@ -604,7 +520,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
 
   @override
   String toString() {
-    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, quantityTotal: $quantityTotal, quantityAvailable: $quantityAvailable, quantitySold: $quantitySold, lowStockThreshold: $lowStockThreshold, autoMarkSoldWhenEmpty: $autoMarkSoldWhenEmpty, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
+    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
   }
 
   @override
@@ -635,16 +551,6 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
                 other.condition == condition) &&
             const DeepCollectionEquality().equals(other._images, _images) &&
             (identical(other.status, status) || other.status == status) &&
-            (identical(other.quantityTotal, quantityTotal) ||
-                other.quantityTotal == quantityTotal) &&
-            (identical(other.quantityAvailable, quantityAvailable) ||
-                other.quantityAvailable == quantityAvailable) &&
-            (identical(other.quantitySold, quantitySold) ||
-                other.quantitySold == quantitySold) &&
-            (identical(other.lowStockThreshold, lowStockThreshold) ||
-                other.lowStockThreshold == lowStockThreshold) &&
-            (identical(other.autoMarkSoldWhenEmpty, autoMarkSoldWhenEmpty) ||
-                other.autoMarkSoldWhenEmpty == autoMarkSoldWhenEmpty) &&
             (identical(other.isNegotiable, isNegotiable) ||
                 other.isNegotiable == isNegotiable) &&
             (identical(other.contactPhone, contactPhone) ||
@@ -685,11 +591,6 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
         condition,
         const DeepCollectionEquality().hash(_images),
         status,
-        quantityTotal,
-        quantityAvailable,
-        quantitySold,
-        lowStockThreshold,
-        autoMarkSoldWhenEmpty,
         isNegotiable,
         contactPhone,
         contactEmail,
@@ -736,11 +637,6 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
       final String? condition,
       final List<String> images,
       final String status,
-      final int quantityTotal,
-      final int quantityAvailable,
-      final int quantitySold,
-      final int? lowStockThreshold,
-      final bool autoMarkSoldWhenEmpty,
       final bool isNegotiable,
       final String? contactPhone,
       final String? contactEmail,
@@ -785,16 +681,6 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   List<String> get images;
   @override
   String get status;
-  @override
-  int get quantityTotal;
-  @override
-  int get quantityAvailable;
-  @override
-  int get quantitySold;
-  @override
-  int? get lowStockThreshold;
-  @override
-  bool get autoMarkSoldWhenEmpty;
   @override
   bool get isNegotiable;
   @override
@@ -849,8 +735,6 @@ mixin _$CreatePartAdvertisementParams {
   List<String> get images => throw _privateConstructorUsedError;
   String? get contactPhone => throw _privateConstructorUsedError;
   String? get contactEmail => throw _privateConstructorUsedError;
-  int get quantityTotal => throw _privateConstructorUsedError;
-  int? get lowStockThreshold => throw _privateConstructorUsedError;
 
   /// Serializes this CreatePartAdvertisementParams to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -884,9 +768,7 @@ abstract class $CreatePartAdvertisementParamsCopyWith<$Res> {
       String? condition,
       List<String> images,
       String? contactPhone,
-      String? contactEmail,
-      int quantityTotal,
-      int? lowStockThreshold});
+      String? contactEmail});
 }
 
 /// @nodoc
@@ -919,8 +801,6 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
     Object? images = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
-    Object? quantityTotal = null,
-    Object? lowStockThreshold = freezed,
   }) {
     return _then(_value.copyWith(
       particulierId: freezed == particulierId
@@ -979,14 +859,6 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
-      quantityTotal: null == quantityTotal
-          ? _value.quantityTotal
-          : quantityTotal // ignore: cast_nullable_to_non_nullable
-              as int,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
     ) as $Val);
   }
 }
@@ -1014,9 +886,7 @@ abstract class _$$CreatePartAdvertisementParamsImplCopyWith<$Res>
       String? condition,
       List<String> images,
       String? contactPhone,
-      String? contactEmail,
-      int quantityTotal,
-      int? lowStockThreshold});
+      String? contactEmail});
 }
 
 /// @nodoc
@@ -1048,8 +918,6 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
     Object? images = null,
     Object? contactPhone = freezed,
     Object? contactEmail = freezed,
-    Object? quantityTotal = null,
-    Object? lowStockThreshold = freezed,
   }) {
     return _then(_$CreatePartAdvertisementParamsImpl(
       particulierId: freezed == particulierId
@@ -1108,14 +976,6 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
-      quantityTotal: null == quantityTotal
-          ? _value.quantityTotal
-          : quantityTotal // ignore: cast_nullable_to_non_nullable
-              as int,
-      lowStockThreshold: freezed == lowStockThreshold
-          ? _value.lowStockThreshold
-          : lowStockThreshold // ignore: cast_nullable_to_non_nullable
-              as int?,
     ));
   }
 }
@@ -1138,9 +998,7 @@ class _$CreatePartAdvertisementParamsImpl
       this.condition,
       final List<String> images = const [],
       this.contactPhone,
-      this.contactEmail,
-      this.quantityTotal = 1,
-      this.lowStockThreshold})
+      this.contactEmail})
       : _images = images;
 
   factory _$CreatePartAdvertisementParamsImpl.fromJson(
@@ -1184,15 +1042,9 @@ class _$CreatePartAdvertisementParamsImpl
   final String? contactPhone;
   @override
   final String? contactEmail;
-  @override
-  @JsonKey()
-  final int quantityTotal;
-  @override
-  final int? lowStockThreshold;
 
   @override
   String toString() {
-    return 'CreatePartAdvertisementParams(partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail, quantityTotal: $quantityTotal, lowStockThreshold: $lowStockThreshold)';
     return 'CreatePartAdvertisementParams(particulierId: $particulierId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail)';
   }
 
@@ -1226,11 +1078,7 @@ class _$CreatePartAdvertisementParamsImpl
             (identical(other.contactPhone, contactPhone) ||
                 other.contactPhone == contactPhone) &&
             (identical(other.contactEmail, contactEmail) ||
-                other.contactEmail == contactEmail) &&
-            (identical(other.quantityTotal, quantityTotal) ||
-                other.quantityTotal == quantityTotal) &&
-            (identical(other.lowStockThreshold, lowStockThreshold) ||
-                other.lowStockThreshold == lowStockThreshold));
+                other.contactEmail == contactEmail));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1250,9 +1098,7 @@ class _$CreatePartAdvertisementParamsImpl
       condition,
       const DeepCollectionEquality().hash(_images),
       contactPhone,
-      contactEmail,
-      quantityTotal,
-      lowStockThreshold);
+      contactEmail);
 
   /// Create a copy of CreatePartAdvertisementParams
   /// with the given fields replaced by the non-null parameter values.
@@ -1288,9 +1134,7 @@ abstract class _CreatePartAdvertisementParams
       final String? condition,
       final List<String> images,
       final String? contactPhone,
-      final String? contactEmail,
-      final int quantityTotal,
-      final int? lowStockThreshold}) = _$CreatePartAdvertisementParamsImpl;
+      final String? contactEmail}) = _$CreatePartAdvertisementParamsImpl;
 
   factory _CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) =
       _$CreatePartAdvertisementParamsImpl.fromJson;
@@ -1323,10 +1167,6 @@ abstract class _CreatePartAdvertisementParams
   String? get contactPhone;
   @override
   String? get contactEmail;
-  @override
-  int get quantityTotal;
-  @override
-  int? get lowStockThreshold;
 
   /// Create a copy of CreatePartAdvertisementParams
   /// with the given fields replaced by the non-null parameter values.

@@ -28,7 +28,6 @@ import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_profile_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_settings_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
-import '../../features/settings/presentation/pages/privacy_policy_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 import '../../shared/presentation/pages/under_development_page.dart';
 
@@ -195,14 +194,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => buildPageWithTransition(
               state,
               const SettingsPage(),
-            ),
-          ),
-          GoRoute(
-            path: '/privacy',
-            name: 'privacy',
-            pageBuilder: (context, state) => buildPageWithTransition(
-              state,
-              const PrivacyPolicyPage(),
             ),
           ),
         ],

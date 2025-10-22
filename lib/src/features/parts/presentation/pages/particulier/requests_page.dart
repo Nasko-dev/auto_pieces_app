@@ -121,20 +121,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
   Widget _buildBody() {
     return Consumer(
       builder: (context, ref, child) {
-        final state = ref.watch(partRequestControllerProvider);
-
-        // Filtrer pour ne montrer que les demandes particulier (non-vendeur)
-        final filteredRequests = state.requests
-            .where((request) => !request.isSellerRequest)
-            .toList();
-
-        if (state.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        if (state.error != null) {
         final requestState = ref.watch(partRequestControllerProvider);
         final adState = ref.watch(partAdvertisementControllerProvider);
 
@@ -180,7 +166,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  state.error!,
                   requestState.error!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -189,11 +174,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(partRequestControllerProvider.notifier)
-                        .loadUserPartRequests();
-                  },
                   onPressed: _reloadAdvertisements,
                   child: const Text('Réessayer'),
                 ),
@@ -202,7 +182,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
           );
         }
 
-        if (filteredRequests.isEmpty) {
         if (allItems.isEmpty) {
           return Center(
             child: Column(
@@ -215,7 +194,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Aucune recherches',
                   'Aucune recherche',
                   style: TextStyle(
                     fontSize: 18,
@@ -225,7 +203,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Ici vous trouverez vos recherches en cours. Pour le moment, aucune recherche n\'est en cours.',
                   'Ici vous trouverez vos recherches et annonces en cours.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -249,17 +226,6 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            await ref
-                .read(partRequestControllerProvider.notifier)
-                .loadUserPartRequests();
-          },
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            itemCount: filteredRequests.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final request = filteredRequests[index];
-              return _RequestCard(request: request);
             _reloadAdvertisements();
           },
           child: ListView.separated(
@@ -335,8 +301,6 @@ class _UnifiedItemCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          request.vehicleInfo.isNotEmpty
-                              ? request.vehicleInfo
                           item.vehicleInfo.isNotEmpty
                               ? item.vehicleInfo
                               : 'Véhicule non spécifié',
@@ -436,9 +400,6 @@ class _UnifiedItemCard extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
     final isAdvertisement = item.type == 'advertisement';
     final result = await context.showDestructiveDialog(
-      title: 'Supprimer la demande',
-      message:
-          'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
       title: isAdvertisement ? 'Supprimer l\'annonce' : 'Supprimer la demande',
       message:
           'Êtes-vous sûr de vouloir supprimer ${isAdvertisement ? 'cette annonce' : 'cette demande'} ? Cette action est irréversible.',

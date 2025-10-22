@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../../../../core/utils/haptic_helper.dart';
-import '../../../../../core/constants/app_constants.dart';
 import '../../../domain/entities/user_settings.dart';
 import '../../../../../core/services/notification_service.dart';
 
@@ -130,11 +128,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
                   // Section Contact
                   _buildContactSection(),
-
-                  const SizedBox(height: 24),
-
-                  // Section Légal
-                  _buildLegalSection(),
 
                   const SizedBox(height: 24),
 
@@ -458,157 +451,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildLegalSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.privacy_tip_outlined,
-                  color: AppTheme.primaryBlue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Légal et Confidentialité',
-                style: TextStyle(
-                  color: AppTheme.darkBlue,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Privacy Policy
-          _buildLegalTile(
-            icon: Icons.shield_outlined,
-            title: 'Politique de confidentialité',
-            subtitle: 'Comment nous utilisons vos données',
-            onTap: () {
-              HapticHelper.selection();
-              context.push('/privacy');
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // Terms of Service (Web)
-          _buildLegalTile(
-            icon: Icons.description_outlined,
-            title: 'Conditions générales',
-            subtitle: 'Conditions d\'utilisation du service',
-            onTap: () async {
-              HapticHelper.selection();
-              final uri = Uri.parse(AppConstants.termsOfServiceUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // Contact Support
-          _buildLegalTile(
-            icon: Icons.email_outlined,
-            title: 'Nous contacter',
-            subtitle: AppConstants.supportEmail,
-            onTap: () async {
-              HapticHelper.selection();
-              final uri = Uri.parse('mailto:${AppConstants.supportEmail}');
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegalTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.lightGray),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: AppTheme.primaryBlue,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: AppTheme.darkBlue,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: AppTheme.gray,
-                      fontSize: 13,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppTheme.gray,
-              size: 20,
-            ),
-          ],
-        ),
       ),
     );
   }
