@@ -124,7 +124,6 @@ class ConversationsRemoteDataSourceImpl
           unread_count_for_user,
           unread_count_for_seller,
           total_messages,
-          sellers!inner(avatar_url),
           part_requests_with_responses (
             vehicle_brand,
             vehicle_model,
@@ -184,10 +183,14 @@ class ConversationsRemoteDataSourceImpl
         // Récupérer les informations du particulier
         final userInfo = await _getUserInfo(json['user_id']);
 
-        // Modifier le JSON pour inclure notre unreadCount calculé et les infos utilisateur
+        // Récupérer les informations du vendeur (avatar, etc.)
+        final sellerInfo = await _getSellerInfo(json['seller_id']);
+
+        // Modifier le JSON pour inclure notre unreadCount calculé et les infos utilisateur/vendeur
         final modifiedJson = Map<String, dynamic>.from(json);
         modifiedJson['unread_count'] = unreadCount;
         modifiedJson['user_info'] = userInfo;
+        modifiedJson['seller_info'] = sellerInfo;
 
         conversations.add(
             Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
@@ -244,8 +247,7 @@ class ConversationsRemoteDataSourceImpl
                 last_message_created_at,
                 unread_count_for_user,
                 unread_count_for_seller,
-                total_messages,
-                sellers!inner(avatar_url)
+                total_messages
               ''')
               .inFilter('user_id', allUserIds)
               .order('last_message_at', ascending: false);
@@ -286,8 +288,7 @@ class ConversationsRemoteDataSourceImpl
             last_message_created_at,
             unread_count_for_user,
             unread_count_for_seller,
-            total_messages,
-            sellers!inner(avatar_url)
+            total_messages
           ''').eq('user_id', userId).order('last_message_at', ascending: false);
 
       final conversations = <Conversation>[];
@@ -1051,14 +1052,17 @@ class ConversationsRemoteDataSourceImpl
       if (senderId == userId) {
         // L'expéditeur est le demandeur → destinataire = répondeur (seller)
         recipientId = sellerId;
-        debugPrint('📤 Notification: demandeur → répondeur ($userId → $sellerId)');
+        debugPrint(
+            '📤 Notification: demandeur → répondeur ($userId → $sellerId)');
       } else if (senderId == sellerId) {
         // L'expéditeur est le répondeur → destinataire = demandeur (user)
         recipientId = userId;
-        debugPrint('📤 Notification: répondeur → demandeur ($sellerId → $userId)');
+        debugPrint(
+            '📤 Notification: répondeur → demandeur ($sellerId → $userId)');
       } else {
         // Fallback: utiliser l'ancienne logique basée sur senderType
-        debugPrint('⚠️ senderId ne correspond ni à userId ni à sellerId, fallback sur senderType');
+        debugPrint(
+            '⚠️ senderId ne correspond ni à userId ni à sellerId, fallback sur senderType');
         if (senderType == 'user') {
           recipientId = sellerId;
         } else {

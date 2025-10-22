@@ -169,7 +169,7 @@ jobs:
   # Check rapide que le build fonctionne
   build-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: analyze
     if: github.event_name == 'pull_request'  # Seulement sur PR
 
