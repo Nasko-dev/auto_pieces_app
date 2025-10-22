@@ -833,6 +833,8 @@ CreatePartAdvertisementParams _$CreatePartAdvertisementParamsFromJson(
 
 /// @nodoc
 mixin _$CreatePartAdvertisementParams {
+  String? get particulierId =>
+      throw _privateConstructorUsedError; // ID du particulier (si null, utilise auth.uid())
   String get partType =>
       throw _privateConstructorUsedError; // 'engine' ou 'body' depuis le front
   String get partName => throw _privateConstructorUsedError;
@@ -869,7 +871,8 @@ abstract class $CreatePartAdvertisementParamsCopyWith<$Res> {
           CreatePartAdvertisementParams>;
   @useResult
   $Res call(
-      {String partType,
+      {String? particulierId,
+      String partType,
       String partName,
       String? vehiclePlate,
       String? vehicleBrand,
@@ -902,6 +905,7 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? particulierId = freezed,
     Object? partType = null,
     Object? partName = null,
     Object? vehiclePlate = freezed,
@@ -919,6 +923,10 @@ class _$CreatePartAdvertisementParamsCopyWithImpl<$Res,
     Object? lowStockThreshold = freezed,
   }) {
     return _then(_value.copyWith(
+      particulierId: freezed == particulierId
+          ? _value.particulierId
+          : particulierId // ignore: cast_nullable_to_non_nullable
+              as String?,
       partType: null == partType
           ? _value.partType
           : partType // ignore: cast_nullable_to_non_nullable
@@ -993,7 +1001,8 @@ abstract class _$$CreatePartAdvertisementParamsImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String partType,
+      {String? particulierId,
+      String partType,
       String partName,
       String? vehiclePlate,
       String? vehicleBrand,
@@ -1025,6 +1034,7 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? particulierId = freezed,
     Object? partType = null,
     Object? partName = null,
     Object? vehiclePlate = freezed,
@@ -1042,6 +1052,10 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
     Object? lowStockThreshold = freezed,
   }) {
     return _then(_$CreatePartAdvertisementParamsImpl(
+      particulierId: freezed == particulierId
+          ? _value.particulierId
+          : particulierId // ignore: cast_nullable_to_non_nullable
+              as String?,
       partType: null == partType
           ? _value.partType
           : partType // ignore: cast_nullable_to_non_nullable
@@ -1111,7 +1125,8 @@ class __$$CreatePartAdvertisementParamsImplCopyWithImpl<$Res>
 class _$CreatePartAdvertisementParamsImpl
     implements _CreatePartAdvertisementParams {
   const _$CreatePartAdvertisementParamsImpl(
-      {required this.partType,
+      {this.particulierId,
+      required this.partType,
       required this.partName,
       this.vehiclePlate,
       this.vehicleBrand,
@@ -1132,6 +1147,9 @@ class _$CreatePartAdvertisementParamsImpl
           Map<String, dynamic> json) =>
       _$$CreatePartAdvertisementParamsImplFromJson(json);
 
+  @override
+  final String? particulierId;
+// ID du particulier (si null, utilise auth.uid())
   @override
   final String partType;
 // 'engine' ou 'body' depuis le front
@@ -1175,6 +1193,7 @@ class _$CreatePartAdvertisementParamsImpl
   @override
   String toString() {
     return 'CreatePartAdvertisementParams(partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail, quantityTotal: $quantityTotal, lowStockThreshold: $lowStockThreshold)';
+    return 'CreatePartAdvertisementParams(particulierId: $particulierId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, contactPhone: $contactPhone, contactEmail: $contactEmail)';
   }
 
   @override
@@ -1182,6 +1201,8 @@ class _$CreatePartAdvertisementParamsImpl
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreatePartAdvertisementParamsImpl &&
+            (identical(other.particulierId, particulierId) ||
+                other.particulierId == particulierId) &&
             (identical(other.partType, partType) ||
                 other.partType == partType) &&
             (identical(other.partName, partName) ||
@@ -1216,6 +1237,7 @@ class _$CreatePartAdvertisementParamsImpl
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      particulierId,
       partType,
       partName,
       vehiclePlate,
@@ -1253,7 +1275,8 @@ class _$CreatePartAdvertisementParamsImpl
 abstract class _CreatePartAdvertisementParams
     implements CreatePartAdvertisementParams {
   const factory _CreatePartAdvertisementParams(
-      {required final String partType,
+      {final String? particulierId,
+      required final String partType,
       required final String partName,
       final String? vehiclePlate,
       final String? vehicleBrand,
@@ -1272,6 +1295,8 @@ abstract class _CreatePartAdvertisementParams
   factory _CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) =
       _$CreatePartAdvertisementParamsImpl.fromJson;
 
+  @override
+  String? get particulierId; // ID du particulier (si null, utilise auth.uid())
   @override
   String get partType; // 'engine' ou 'body' depuis le front
   @override

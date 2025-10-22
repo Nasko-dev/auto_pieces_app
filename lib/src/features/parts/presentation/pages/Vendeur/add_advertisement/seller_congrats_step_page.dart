@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../../core/theme/app_theme.dart';
 import 'seller_shared_widgets.dart';
 
@@ -230,7 +231,10 @@ class SellerCongratsStepPage extends StatelessWidget {
               const SizedBox(height: 12),
               SellerSharedWidgets.buildGhostButton(
                 label: 'Retour à l\'accueil',
-                onPressed: onFinish,
+                onPressed: () {
+                  // Navigation vers l'accueil vendeur
+                  context.go('/seller/home');
+                },
               ),
             ],
           ),

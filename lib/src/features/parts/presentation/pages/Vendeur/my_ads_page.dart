@@ -10,6 +10,7 @@ import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
 import '../../../domain/entities/part_request.dart';
+import '../../../../../core/services/notification_service.dart';
 
 part 'my_ads_page.freezed.dart';
 
@@ -43,6 +44,21 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
   List<PartAdvertisement> get advertisements {
     return ref.watch(partAdvertisementControllerProvider).advertisements;
+  String _selectedFilter = 'all';
+  // Variable supprimée car non utilisée
+
+  List<PartAdvertisement> get filteredAds {
+    final advertisements =
+        ref.watch(partAdvertisementControllerProvider).advertisements;
+
+    final filtered = switch (_selectedFilter) {
+      'active' => advertisements.where((ad) => ad.status == 'active').toList(),
+      'sold' => advertisements.where((ad) => ad.status == 'sold').toList(),
+      'paused' => advertisements.where((ad) => ad.status == 'paused').toList(),
+      _ => advertisements,
+    };
+
+    return filtered;
   }
 
   List<PartRequest> get sellerRequests {
@@ -119,6 +135,55 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               const SellerMenu(),
             ],
           ),
+          // Filtres
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const SizedBox(width: 4),
+                  _buildFilterChip(
+                      'Toutes',
+                      'all',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .length),
+                  const SizedBox(width: 8),
+                  _buildFilterChip(
+                      'Actives',
+                      'active',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'active')
+                          .length),
+                  const SizedBox(width: 8),
+                  _buildFilterChip(
+                      'Vendues',
+                      'sold',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'sold')
+                          .length),
+                  const SizedBox(width: 8),
+                  _buildFilterChip(
+                      'Pausées',
+                      'paused',
+                      ref
+                          .watch(partAdvertisementControllerProvider)
+                          .advertisements
+                          .where((a) => a.status == 'paused')
+                          .length),
+                  const SizedBox(width: 4),
+                ],
+              ),
+            ),
+          ),
+
           // Liste des annonces et demandes
           Expanded(
             child: Consumer(
@@ -198,6 +263,14 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Section Annonces et Demandes
+                          Text(
+                            'Mes Annonces (${unifiedItems.length})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.darkBlue,
+                            ),
+                          ),
                           const SizedBox(height: 16),
 
                           // Liste unifiée des annonces et demandes
@@ -247,6 +320,65 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       ),
     );
   }
+
+  Widget _buildFilterChip(String label, String value, int count) {
+    final isSelected = _selectedFilter == value;
+
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryBlue.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade600,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Méthodes supprimées car non utilisées (toggleAdStatus, markAsSold, showDeleteConfirmation, deleteAdvertisement)
 }
 
 // Widget unifié pour afficher une annonce ou une demande
@@ -266,13 +398,168 @@ class _UnifiedItemCard extends StatelessWidget {
 }
 
 // Widget pour afficher une annonce
-class _AdvertisementCard extends StatelessWidget {
+class _AdvertisementCard extends ConsumerWidget {
   final PartAdvertisement advertisement;
 
   const _AdvertisementCard({required this.advertisement});
 
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160, // Aligner à droite du bouton
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer l\'annonce ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer l\'annonce "${advertisement.partName}" ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                // Appeler la méthode de suppression du controller
+                final success = await ref
+                    .read(partAdvertisementControllerProvider.notifier)
+                    .deleteAdvertisement(advertisement.id);
+
+                if (context.mounted) {
+                  if (success) {
+                    notificationService.success(
+                      context,
+                      'Annonce supprimée avec succès',
+                    );
+                  } else {
+                    final errorMsg =
+                        ref.read(partAdvertisementControllerProvider).error ??
+                            'Erreur lors de la suppression';
+                    notificationService.error(
+                      context,
+                      errorMsg,
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     Color statusColor;
     String statusText;
     IconData statusIcon;
@@ -317,6 +604,7 @@ class _AdvertisementCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Informations véhicule et statut
+            // Badge "ANNONCE" en haut à droite avec menu 3 points
             Row(
               children: [
                 Expanded(
@@ -330,6 +618,32 @@ class _AdvertisementCard extends StatelessWidget {
                   ),
                 ),
                 // Badge Statut
+                // Badge ANNONCE
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.store, color: AppTheme.primaryBlue, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        'ANNONCE',
+                        style: TextStyle(
+                          color: AppTheme.primaryBlue,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Statut
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -352,6 +666,25 @@ class _AdvertisementCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 4),
+                // Menu 3 points
+                Builder(
+                  builder: (BuildContext buttonContext) {
+                    return IconButton(
+                      icon: Icon(Icons.more_vert,
+                          color: AppTheme.darkGray, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        final button =
+                            buttonContext.findRenderObject() as RenderBox;
+                        _showOptionsMenu(context, ref, button);
+                      },
+                      tooltip: 'Options',
+                    );
+                  },
                 ),
               ],
             ),
@@ -740,13 +1073,150 @@ class _StockBadge extends ConsumerWidget {
 }
 
 // Widget pour afficher une demande vendeur
-class _RequestCard extends StatelessWidget {
+class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({required this.request});
 
+  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonSize = button.size;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx + buttonSize.width - 160,
+        position.dy + buttonSize.height,
+        position.dx + buttonSize.width,
+        position.dy + buttonSize.height,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: [
+        // Bouton Modifier (fictif)
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                notificationService.info(
+                  context,
+                  'Fonctionnalité à venir',
+                );
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Modifier',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Bouton Supprimer
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          onTap: () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                _showDeleteConfirmation(context, ref);
+              }
+            });
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Supprimer la demande ?',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppTheme.darkGray,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+
+                // Fonctionnalité en cours de développement
+                notificationService.info(
+                  context,
+                  'Fonctionnalité en cours de développement',
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -818,6 +1288,25 @@ class _RequestCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+              const SizedBox(width: 4),
+              // Menu 3 points
+              Builder(
+                builder: (BuildContext buttonContext) {
+                  return IconButton(
+                    icon: Icon(Icons.more_vert,
+                        color: AppTheme.darkGray, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      final button =
+                          buttonContext.findRenderObject() as RenderBox;
+                      _showOptionsMenu(context, ref, button);
+                    },
+                    tooltip: 'Options',
+                  );
+                },
               ),
             ],
           ),

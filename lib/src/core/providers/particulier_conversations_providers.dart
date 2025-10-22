@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/realtime_service.dart';
 import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/entities/particulier_conversation.dart';
+import '../../features/parts/domain/services/particulier_conversation_grouping_service.dart';
 import 'part_request_providers.dart';
 
 part 'particulier_conversations_providers.freezed.dart';
@@ -299,4 +300,36 @@ final particulierConversationsControllerProvider = StateNotifierProvider<
 
 final realtimeServiceProvider = Provider<RealtimeService>((ref) {
   return RealtimeService();
+});
+
+// Provider pour le service de groupement
+final particulierConversationGroupingServiceProvider = Provider((ref) {
+  return ParticulierConversationGroupingService();
+});
+
+// Provider pour les groupes de conversations (groupés par véhicule)
+final particulierConversationGroupsProvider = Provider((ref) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+  final groupingService =
+      ref.watch(particulierConversationGroupingServiceProvider);
+
+  return groupingService.groupConversations(conversationsState.conversations);
+});
+
+// Provider pour le compteur de messages non lus d'une conversation spécifique
+final particulierConversationUnreadCountProvider =
+    Provider.family<int, String>((ref, conversationId) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+
+  try {
+    final conversation = conversationsState.conversations.firstWhere(
+      (conv) => conv.id == conversationId,
+    );
+    return conversation.unreadCount;
+  } catch (e) {
+    // Si la conversation n'est pas trouvée, retourner 0
+    return 0;
+  }
 });

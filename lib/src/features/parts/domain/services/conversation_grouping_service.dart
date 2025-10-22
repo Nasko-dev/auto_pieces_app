@@ -21,6 +21,14 @@ class ConversationGroupingService {
     // Convertir en ConversationGroup et trier
     final groups = grouped.entries.map((entry) {
       final conversations = entry.value;
+
+      // Trier les conversations par date du dernier message (plus récent en premier)
+      conversations.sort((a, b) {
+        final aDate = a.lastMessageCreatedAt ?? a.lastMessageAt;
+        final bDate = b.lastMessageCreatedAt ?? b.lastMessageAt;
+        return bDate.compareTo(aDate);
+      });
+
       final firstConv = conversations.first;
 
       // Calculer le nombre total de messages non lus
@@ -58,7 +66,7 @@ class ConversationGroupingService {
   }
 
   static String _generateGroupKey(Conversation conversation) {
-    // Créer une clé unique basée sur : pièce + véhicule
+    // Créer une clé unique basée sur : véhicule uniquement (marque + modèle + année)
     final parts = <String>[];
 
     // Ajouter les informations de la pièce
@@ -74,18 +82,21 @@ class ConversationGroupingService {
 
     // Ajouter les informations du véhicule
     if (conversation.vehicleBrand != null) {
-      parts.add(conversation.vehicleBrand!.toLowerCase());
-    }
-    if (conversation.vehicleModel != null) {
-      parts.add(conversation.vehicleModel!.toLowerCase());
-    }
-    if (conversation.vehicleYear != null) {
-      parts.add(conversation.vehicleYear.toString());
+      parts.add(conversation.vehicleBrand!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
     }
 
-    // Si pas d'infos, utiliser l'ID de la demande
-    if (parts.isEmpty) {
-      parts.add('demande-${conversation.requestId}');
+    if (conversation.vehicleModel != null) {
+      parts.add(conversation.vehicleModel!.toLowerCase().replaceAll(' ', '_'));
+    } else {
+      parts.add('inconnu');
+    }
+
+    if (conversation.vehicleYear != null) {
+      parts.add(conversation.vehicleYear.toString());
+    } else {
+      parts.add('inconnu');
     }
 
     return parts.join('_');

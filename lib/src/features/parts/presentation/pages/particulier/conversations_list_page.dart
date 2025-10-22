@@ -8,9 +8,7 @@ import '../../../../../core/services/device_service.dart';
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/app_menu.dart';
-import '../../widgets/conversation_item_widget.dart';
-import '../../../../../core/services/notification_service.dart';
-import '../../../../../shared/presentation/widgets/ios_dialog.dart';
+import '../../widgets/particulier/particulier_conversation_group_card.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -74,7 +72,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(particulierConversationsControllerProvider);
-    final conversations = state.conversations;
+    final conversationGroups = ref.watch(particulierConversationGroupsProvider);
     final isLoading = state.isLoading;
     final error = state.error;
 
@@ -102,7 +100,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                     .read(particulierConversationsControllerProvider.notifier)
                     .loadConversations();
               },
-              child: _buildBody(conversations, isLoading, error),
+              child: _buildBody(conversationGroups, isLoading, error),
             ),
           ),
         ],
@@ -110,8 +108,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
-  Widget _buildBody(List conversations, bool isLoading, String? error) {
-    if (isLoading && conversations.isEmpty) {
+  Widget _buildBody(List conversationGroups, bool isLoading, String? error) {
+    if (isLoading && conversationGroups.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +122,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       );
     }
 
-    if (error != null && conversations.isEmpty) {
+    if (error != null && conversationGroups.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +160,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       );
     }
 
-    if (conversations.isEmpty) {
+    if (conversationGroups.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +191,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      itemCount: conversations.length,
+      itemCount: conversationGroups.length,
       itemBuilder: (context, index) {
         final conversation = conversations[index];
 
@@ -201,9 +199,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           conversation: conversation,
           onTap: () {
             context.push('/conversations/${conversation.id}');
+        final group = conversationGroups[index];
+
+        return ParticulierConversationGroupCard(
+          group: group,
+          onConversationTap: (conversationId) {
+            context.push('/conversations/$conversationId');
           },
-          onDelete: () => _showDeleteDialog(conversation.id),
-          onBlock: () => _showBlockDialog(conversation.id),
         );
       },
     );

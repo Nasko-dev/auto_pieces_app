@@ -17,6 +17,9 @@
       "Bash(git commit:*)",
       "Bash(dart run build_runner:*)",
       "Bash(xcodebuild:*)"
+      "Bash(git log:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": [],

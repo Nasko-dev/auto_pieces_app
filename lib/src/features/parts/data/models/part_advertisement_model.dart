@@ -163,6 +163,7 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
 @freezed
 class CreatePartAdvertisementParams with _$CreatePartAdvertisementParams {
   const factory CreatePartAdvertisementParams({
+    String? particulierId, // ID du particulier (si null, utilise auth.uid())
     required String partType, // 'engine' ou 'body' depuis le front
     required String partName,
     String? vehiclePlate,

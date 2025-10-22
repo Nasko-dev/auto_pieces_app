@@ -54,12 +54,17 @@ class PartAdvertisementRepositoryImpl implements PartAdvertisementRepository {
   @override
   Future<Either<Failure, List<PartAdvertisement>>>
       getMyPartAdvertisements() async {
+  Future<Either<Failure, List<PartAdvertisement>>> getMyPartAdvertisements({
+    String? particulierId,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure('Pas de connexion internet'));
     }
 
     try {
-      final models = await remoteDataSource.getMyPartAdvertisements();
+      final models = await remoteDataSource.getMyPartAdvertisements(
+        particulierId: particulierId,
+      );
       final entities = models.map((model) => model.toEntity()).toList();
       return Right(entities);
     } on ServerException catch (e) {

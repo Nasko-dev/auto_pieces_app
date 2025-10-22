@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/device_service.dart';
 import '../models/part_advertisement_model.dart';
 
 abstract class PartAdvertisementRemoteDataSource {
@@ -9,7 +10,12 @@ abstract class PartAdvertisementRemoteDataSource {
 
   Future<PartAdvertisementModel> getPartAdvertisementById(String id);
 
-  Future<List<PartAdvertisementModel>> getMyPartAdvertisements();
+  Future<List<PartAdvertisementModel>> getMyPartAdvertisements({
+    String? particulierId, // ID du particulier (si null, utilise auth.uid())
+  });
+
+  Future<String?>
+      getParticulierIdFromDeviceId(); // Récupère l'ID stable du particulier
 
   Future<List<PartAdvertisementModel>> searchPartAdvertisements(
     SearchPartAdvertisementsParams params,
@@ -38,18 +44,25 @@ abstract class PartAdvertisementRemoteDataSource {
 class PartAdvertisementRemoteDataSourceImpl
     implements PartAdvertisementRemoteDataSource {
   final SupabaseClient client;
+  final DeviceService deviceService;
 
-  PartAdvertisementRemoteDataSourceImpl({required this.client});
+  PartAdvertisementRemoteDataSourceImpl({
+    required this.client,
+    required this.deviceService,
+  });
 
   @override
   Future<PartAdvertisementModel> createPartAdvertisement(
     CreatePartAdvertisementParams params,
   ) async {
     try {
-      // ID utilisateur disponible mais utilisé temporairement avec ID fixe
+      // Si pas de particulierId fourni, récupérer l'ID stable via device_id
+      String? particulierId =
+          params.particulierId ?? await getParticulierIdFromDeviceId();
 
       // Utiliser la fonction SQL create_part_advertisement
       final response = await client.rpc('create_part_advertisement', params: {
+        'p_particulier_id': particulierId, // Utilise l'ID stable calculé
         'p_part_type': params.partType,
         'p_part_name': params.partName,
         'p_vehicle_plate': params.vehiclePlate,
@@ -79,6 +92,7 @@ class PartAdvertisementRemoteDataSourceImpl
       final adData = responseList.first as Map<String, dynamic>;
       return PartAdvertisementModel.fromSupabase(
           adData); // ✅ FIX: Utiliser fromSupabase pour le snake_case
+      return PartAdvertisementModel.fromSupabase(adData);
     } catch (e) {
       throw ServerException('Erreur lors de la création: $e');
     }
@@ -100,20 +114,46 @@ class PartAdvertisementRemoteDataSourceImpl
   }
 
   @override
-  Future<List<PartAdvertisementModel>> getMyPartAdvertisements() async {
+  Future<String?> getParticulierIdFromDeviceId() async {
     try {
-      // Utiliser l'ID de l'utilisateur actuellement connecté
-      final currentUserId = client.auth.currentUser?.id;
+      final deviceId = await deviceService.getDeviceId();
 
-      if (currentUserId == null) {
+      final particulierResponse = await client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (particulierResponse != null) {
+        return particulierResponse['id'] as String;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<PartAdvertisementModel>> getMyPartAdvertisements({
+    String? particulierId,
+  }) async {
+    try {
+      // Si pas de particulierId fourni, essayer de le récupérer via device_id
+      String? userId = particulierId ?? await getParticulierIdFromDeviceId();
+      // Si toujours null, utiliser auth.uid()
+      userId ??= client.auth.currentUser?.id;
+
+      if (userId == null) {
         throw ServerException('Utilisateur non connecté');
       }
 
-      // Récupérer les annonces de l'utilisateur connecté
+      // Récupérer les annonces de l'utilisateur
       final response = await client
           .from('part_advertisements')
           .select()
-          .eq('user_id', currentUserId)
+          .eq('user_id', userId)
           .order('created_at', ascending: false);
 
       return (response as List)
@@ -176,6 +216,22 @@ class PartAdvertisementRemoteDataSourceImpl
   Future<void> deletePartAdvertisement(String id) async {
     try {
       await client.from('part_advertisements').delete().eq('id', id);
+      // Récupérer le device_id
+      final deviceId = await deviceService.getDeviceId();
+
+      // Utiliser la fonction SQL qui bypass RLS de manière sécurisée
+      final response = await client.rpc(
+        'delete_part_advertisement_by_device',
+        params: {
+          'p_ad_id': id,
+          'p_device_id': deviceId,
+        },
+      );
+
+      if (response == false) {
+        throw ServerException(
+            'Vous n\'êtes pas autorisé à supprimer cette annonce');
+      }
     } catch (e) {
       throw ServerException('Erreur lors de la suppression: $e');
     }

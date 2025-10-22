@@ -45,15 +45,17 @@ class SellerSharedWidgets {
     required VoidCallback? onPressed,
     bool enabled = true,
     bool isLoading = false,
+    Color? backgroundColor,
   }) {
+    final bgColor = backgroundColor ?? AppTheme.primaryBlue;
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
         onPressed: enabled && !isLoading ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryBlue,
-          disabledBackgroundColor: const Color(0xFFB9CCFF),
+          backgroundColor: bgColor,
+          disabledBackgroundColor: bgColor.withValues(alpha: 0.4),
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(

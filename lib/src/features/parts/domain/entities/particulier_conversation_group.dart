@@ -1,30 +1,28 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'conversation.dart';
+import 'particulier_conversation.dart';
 
-part 'conversation_group.freezed.dart';
+part 'particulier_conversation_group.freezed.dart';
 
 @freezed
-class ConversationGroup with _$ConversationGroup {
-  const factory ConversationGroup({
-    required String groupKey, // Ex: "phare-avant_renault-clio_2015"
-    required String partName, // Ex: "Phare avant"
+class ParticulierConversationGroup with _$ParticulierConversationGroup {
+  const factory ParticulierConversationGroup({
+    required String groupKey, // Ex: "renault_clio_2015"
     required String vehicleInfo, // Ex: "Renault Clio 2015"
     String? vehicleBrand,
     String? vehicleModel,
     int? vehicleYear,
-    String? partType, // "engine" ou "body"
-    required List<Conversation> conversations,
+    String? vehiclePlate,
+    required List<ParticulierConversation> conversations,
     @Default(0) int totalUnreadCount,
-  }) = _ConversationGroup;
+  }) = _ParticulierConversationGroup;
 
-  const ConversationGroup._();
+  const ParticulierConversationGroup._();
 
   // Helpers
   int get conversationCount => conversations.length;
   bool get hasUnreadMessages => totalUnreadCount > 0;
 
   String get displayTitle {
-    // Afficher uniquement les informations du véhicule
     if (vehicleInfo.isNotEmpty) {
       return vehicleInfo;
     }
