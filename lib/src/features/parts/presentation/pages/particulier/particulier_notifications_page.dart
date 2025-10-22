@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/particulier_notifications_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
 import '../../../../../core/utils/haptic_helper.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
@@ -335,45 +337,48 @@ class _ParticulierNotificationsPageState
         '📋 [ParticulierNotifications] Pièces: ${partRequest.partNames.join(', ')}');
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      debugPrint(
-          '👤 [ParticulierNotifications] Current user ID (seller): $userId');
+      // Récupérer le vrai ID du particulier basé sur le device_id (pas l'auth ID)
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
 
-      if (userId == null) {
+      // Récupérer l'ID du particulier correspondant à ce device_id
+      final particulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id, first_name, last_name')
+          .eq('device_id', deviceId)
+          .maybeSingle();
+
+      if (particulierResponse == null) {
         debugPrint(
-            '❌ [ParticulierNotifications] Erreur: Utilisateur non connecté');
-        notificationService.error(context, 'Erreur : Utilisateur non connecté');
+            '❌ [ParticulierNotifications] Erreur: Particulier non trouvé pour ce device');
+        if (mounted) {
+          notificationService.error(
+              context, 'Erreur : Profil particulier non trouvé');
+        }
         return;
       }
 
-      // Charger les infos du particulier répondeur depuis la base de données
+      final sellerId = particulierResponse['id'] as String;
+      final firstName = particulierResponse['first_name'];
+      final lastName = particulierResponse['last_name'];
+
+      debugPrint(
+          '👤 [ParticulierNotifications] Particulier ID (via device_id): $sellerId');
+      debugPrint('👤 [ParticulierNotifications] Device ID: $deviceId');
+
+      // Charger les infos du particulier répondeur
       String sellerName = 'Particulier';
-      String? sellerCompany;
-
-      try {
-        final particulierInfo = await Supabase.instance.client
-            .from('particuliers')
-            .select('first_name, last_name')
-            .eq('id', userId)
-            .maybeSingle();
-
-        if (particulierInfo != null) {
-          final firstName = particulierInfo['first_name'];
-          final lastName = particulierInfo['last_name'];
-          if (firstName != null || lastName != null) {
-            sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
-            if (sellerName.isEmpty) {
-              sellerName = 'Particulier';
-            }
-          }
+      if (firstName != null || lastName != null) {
+        sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+        if (sellerName.isEmpty) {
+          sellerName = 'Particulier';
         }
-      } catch (e) {
-        debugPrint(
-            '⚠️ [ParticulierNotifications] Erreur chargement nom particulier: $e');
-        // Garder la valeur par défaut
       }
 
       debugPrint('📝 [ParticulierNotifications] Seller name: $sellerName');
+
+      String? sellerCompany;
 
       final dataSource = ConversationsRemoteDataSourceImpl(
         supabaseClient: Supabase.instance.client,
@@ -389,12 +394,12 @@ class _ParticulierNotificationsPageState
           '🚀 [ParticulierNotifications] Appel createOrGetConversation...');
       debugPrint('   - requestId: ${partRequest.id}');
       debugPrint('   - userId (demandeur): ${partRequest.userId}');
-      debugPrint('   - sellerId (répondeur): $userId');
+      debugPrint('   - sellerId (répondeur): $sellerId');
 
       final conversation = await dataSource.createOrGetConversation(
         requestId: partRequest.id,
         userId: partRequest.userId!,
-        sellerId: userId,
+        sellerId: sellerId,
         sellerName: sellerName,
         sellerCompany: sellerCompany,
         requestTitle: partRequest.partNames.join(', '),
