@@ -344,7 +344,8 @@ class ParticulierConversationsController
       await _repository.incrementUnreadCountForUser(
         conversationId: conversationId,
       );
-      loadConversations();
+      // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
+      _loadSingleConversationQuietly(conversationId);
     } catch (e) {
       // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
     }
@@ -355,8 +356,8 @@ class ParticulierConversationsController
       await _repository.markParticulierMessagesAsRead(
         conversationId: conversationId,
       );
-      // Refresh pour récupérer le nouveau compteur
-      loadConversations();
+      // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
+      _loadSingleConversationQuietly(conversationId);
     } catch (e) {
       // Ignorer les erreurs de lecture pour éviter de bloquer l'UI
     }
