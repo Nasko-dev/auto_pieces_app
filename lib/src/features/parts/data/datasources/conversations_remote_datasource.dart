@@ -227,7 +227,7 @@ class ConversationsRemoteDataSourceImpl
         }
 
         if (allUserIds.isNotEmpty) {
-          // SIMPLE : Récupérer toutes les conversations où l'utilisateur participe (user_id OU seller_id)
+          // AMÉLIORATION : Récupérer toutes les conversations où l'utilisateur participe (user_id OU seller_id)
           final response = await _supabaseClient
               .from('conversations')
               .select('''
@@ -249,25 +249,46 @@ class ConversationsRemoteDataSourceImpl
                 unread_count_for_seller,
                 total_messages
               ''')
-              .inFilter('user_id', allUserIds)
+              .or('user_id.in.(${allUserIds.join(',')}),seller_id.in.(${allUserIds.join(',')})')
               .order('last_message_at', ascending: false);
 
           final conversations = <Conversation>[];
           for (final json in response) {
-            // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
-            final sellerInfo = await _getSellerInfo(json['seller_id']);
+            final conversationUserId = json['user_id'] as String;
+            final conversationSellerId = json['seller_id'] as String;
+
+            // Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
+            String otherPersonId;
+            if (allUserIds.contains(conversationUserId)) {
+              // L'utilisateur actuel est le demandeur → afficher le répondeur
+              otherPersonId = conversationSellerId;
+            } else {
+              // L'utilisateur actuel est le répondeur → afficher le demandeur
+              otherPersonId = conversationUserId;
+            }
+
+            // Charger les infos de l'autre personne (seller ou particulier)
+            final otherPersonInfo = await _getPersonInfo(otherPersonId);
+
             final modifiedJson = Map<String, dynamic>.from(json);
-            modifiedJson['seller_info'] = sellerInfo;
-            // Un particulier utilise unread_count_for_user
-            modifiedJson['unread_count'] =
-                (json['unread_count_for_user'] as int?) ?? 0;
+            modifiedJson['seller_info'] = otherPersonInfo;
+
+            // Un particulier utilise unread_count_for_user si demandeur, sinon unread_count_for_seller
+            if (allUserIds.contains(conversationUserId)) {
+              // L'utilisateur est le demandeur
+              modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
+            } else {
+              // L'utilisateur est le répondeur
+              modifiedJson['unread_count'] = (json['unread_count_for_seller'] as int?) ?? 0;
+            }
+
             conversations.add(Conversation.fromJson(
                 _mapSupabaseToConversation(modifiedJson)));
           }
           return conversations;
         } else {}
       } catch (particulierError) {
-        // Ignorer l'erreur silencieusement
+        debugPrint('⚠️ Erreur récupération conversations par device_id: $particulierError');
       }
 
       // Fallback : recherche directe par l'auth ID actuel
@@ -289,17 +310,34 @@ class ConversationsRemoteDataSourceImpl
             unread_count_for_user,
             unread_count_for_seller,
             total_messages
-          ''').eq('user_id', userId).order('last_message_at', ascending: false);
+          ''').or('user_id.eq.$userId,seller_id.eq.$userId').order('last_message_at', ascending: false);
 
       final conversations = <Conversation>[];
       for (final json in response) {
-        // SIMPLE : Récupérer les infos du vendeur et utiliser le compteur particulier
-        final sellerInfo = await _getSellerInfo(json['seller_id']);
+        final conversationUserId = json['user_id'] as String;
+        final conversationSellerId = json['seller_id'] as String;
+
+        // Déterminer qui est l'AUTRE personne
+        String otherPersonId;
+        if (userId == conversationUserId) {
+          otherPersonId = conversationSellerId;
+        } else {
+          otherPersonId = conversationUserId;
+        }
+
+        // Charger les infos de l'autre personne
+        final otherPersonInfo = await _getPersonInfo(otherPersonId);
+
         final modifiedJson = Map<String, dynamic>.from(json);
-        modifiedJson['seller_info'] = sellerInfo;
-        // Un particulier utilise unread_count_for_user
-        modifiedJson['unread_count'] =
-            (json['unread_count_for_user'] as int?) ?? 0;
+        modifiedJson['seller_info'] = otherPersonInfo;
+
+        // Déterminer quel compteur utiliser
+        if (userId == conversationUserId) {
+          modifiedJson['unread_count'] = (json['unread_count_for_user'] as int?) ?? 0;
+        } else {
+          modifiedJson['unread_count'] = (json['unread_count_for_seller'] as int?) ?? 0;
+        }
+
         conversations.add(
             Conversation.fromJson(_mapSupabaseToConversation(modifiedJson)));
       }
@@ -750,6 +788,46 @@ class ConversationsRemoteDataSourceImpl
     return null;
   }
 
+  /// Récupère les informations d'une personne (seller ou particulier)
+  /// Cherche d'abord dans la table sellers, puis dans particuliers si non trouvé
+  Future<Map<String, dynamic>?> _getPersonInfo(String personId) async {
+    try {
+      // Essayer d'abord dans la table sellers
+      final sellerResponse = await _supabaseClient
+          .from('sellers')
+          .select('id, first_name, last_name, company_name, phone, avatar_url, address, city')
+          .eq('id', personId)
+          .maybeSingle();
+
+      if (sellerResponse != null) {
+        return sellerResponse;
+      }
+
+      // Si pas trouvé dans sellers, chercher dans particuliers
+      final particulierResponse = await _supabaseClient
+          .from('particuliers')
+          .select('id, first_name, last_name, phone, avatar_url, device_id')
+          .eq('id', personId)
+          .maybeSingle();
+
+      if (particulierResponse != null) {
+        // Adapter le format pour correspondre à celui des sellers
+        return {
+          'id': particulierResponse['id'],
+          'first_name': particulierResponse['first_name'],
+          'last_name': particulierResponse['last_name'],
+          'company_name': null, // Les particuliers n'ont pas de company_name
+          'phone': particulierResponse['phone'],
+          'avatar_url': particulierResponse['avatar_url'],
+          'is_particulier': true, // Flag pour identifier que c'est un particulier
+        };
+      }
+    } catch (e) {
+      debugPrint('⚠️ Erreur récupération infos personne $personId: $e');
+    }
+    return null;
+  }
+
   Map<String, dynamic> _mapSupabaseToConversation(Map<String, dynamic> json) {
     // Extraire les données du véhicule depuis part_requests_with_responses
     String? vehicleBrand;
@@ -781,12 +859,36 @@ class ConversationsRemoteDataSourceImpl
 
     // Extraire les informations complètes du vendeur depuis seller_info
     String? sellerPhone;
+    String? sellerName;
+    String? sellerCompany;
     if (json['seller_info'] != null) {
       final sellerInfo = json['seller_info'] as Map<String, dynamic>;
       sellerPhone = sellerInfo['phone'];
 
       // Mettre à jour l'avatar depuis seller_info si pas déjà récupéré
       sellerAvatarUrl ??= sellerInfo['avatar_url'];
+
+      // Construire le nom du vendeur/particulier depuis les données fraîches
+      final firstName = sellerInfo['first_name'];
+      final lastName = sellerInfo['last_name'];
+      sellerCompany = sellerInfo['company_name'];
+
+      // Priorité 1: company_name (pour les vendeurs professionnels)
+      if (sellerCompany != null && sellerCompany.isNotEmpty) {
+        sellerName = sellerCompany;
+      } else if (firstName != null || lastName != null) {
+        // Priorité 2: first_name + last_name (pour particuliers et vendeurs sans company)
+        sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+        if (sellerName.isEmpty) {
+          sellerName = 'Vendeur'; // Fallback si pas de nom
+        }
+      } else {
+        sellerName = 'Vendeur'; // Fallback final
+      }
+    } else {
+      // Fallback vers les données stockées dans la conversation (si seller_info pas disponible)
+      sellerName = json['seller_name'];
+      sellerCompany = json['seller_company'];
     }
 
     // Extraire les informations du particulier depuis user_info
@@ -815,8 +917,8 @@ class ConversationsRemoteDataSourceImpl
       'lastMessageAt': json['last_message_at'],
       'createdAt': json['created_at'],
       'updatedAt': json['updated_at'],
-      'sellerName': json['seller_name'],
-      'sellerCompany': json['seller_company'],
+      'sellerName': sellerName ?? 'Vendeur',
+      'sellerCompany': sellerCompany,
       'sellerAvatarUrl': sellerAvatarUrl,
       'sellerPhone': sellerPhone,
       'userName': userName,
