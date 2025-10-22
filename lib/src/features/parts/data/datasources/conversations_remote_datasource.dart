@@ -184,17 +184,25 @@ class ConversationsRemoteDataSourceImpl
         final conversationUserId = json['user_id'] as String;
         final conversationSellerId = json['seller_id'] as String;
 
+        debugPrint('🔍 DEBUG LISTE CONVERSATIONS VENDEUR:');
+        debugPrint('  🏪 sellerId (moi, vendeur actuel): $sellerId');
+        debugPrint('  👤 conversationUserId (demandeur): $conversationUserId');
+        debugPrint('  🏪 conversationSellerId (répondeur): $conversationSellerId');
+
         String otherPersonId;
         if (sellerId == conversationUserId) {
           // L'utilisateur actuel est le demandeur → afficher le répondeur
           otherPersonId = conversationSellerId;
+          debugPrint('  ✅ Je suis le DEMANDEUR → afficher répondeur: $otherPersonId');
         } else {
           // L'utilisateur actuel est le répondeur → afficher le demandeur
           otherPersonId = conversationUserId;
+          debugPrint('  ✅ Je suis le RÉPONDEUR → afficher demandeur: $otherPersonId');
         }
 
         // Charger les infos de l'AUTRE personne (pas soi-même)
         final otherPersonInfo = await _getPersonInfo(otherPersonId);
+        debugPrint('  📦 Infos chargées pour $otherPersonId: ${otherPersonInfo?['first_name']} ${otherPersonInfo?['last_name']} (company: ${otherPersonInfo?['company_name']})');
 
         // Modifier le JSON pour inclure notre unreadCount calculé et les infos de l'autre personne
         final modifiedJson = Map<String, dynamic>.from(json);
@@ -266,18 +274,26 @@ class ConversationsRemoteDataSourceImpl
             final conversationUserId = json['user_id'] as String;
             final conversationSellerId = json['seller_id'] as String;
 
+            debugPrint('🔍 DEBUG LISTE CONVERSATIONS PARTICULIER:');
+            debugPrint('  📋 allUserIds (IDs du device actuel): ${allUserIds.join(", ")}');
+            debugPrint('  👤 conversationUserId (demandeur): $conversationUserId');
+            debugPrint('  🏪 conversationSellerId (répondeur): $conversationSellerId');
+
             // Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
             String otherPersonId;
             if (allUserIds.contains(conversationUserId)) {
               // L'utilisateur actuel est le demandeur → afficher le répondeur
               otherPersonId = conversationSellerId;
+              debugPrint('  ✅ Je suis le DEMANDEUR → afficher répondeur: $otherPersonId');
             } else {
               // L'utilisateur actuel est le répondeur → afficher le demandeur
               otherPersonId = conversationUserId;
+              debugPrint('  ✅ Je suis le RÉPONDEUR → afficher demandeur: $otherPersonId');
             }
 
             // Charger les infos de l'autre personne (seller ou particulier)
             final otherPersonInfo = await _getPersonInfo(otherPersonId);
+            debugPrint('  📦 Infos chargées pour $otherPersonId: ${otherPersonInfo?['first_name']} ${otherPersonInfo?['last_name']} (company: ${otherPersonInfo?['company_name']})');
 
             final modifiedJson = Map<String, dynamic>.from(json);
             modifiedJson['seller_info'] = otherPersonInfo;
@@ -326,16 +342,24 @@ class ConversationsRemoteDataSourceImpl
         final conversationUserId = json['user_id'] as String;
         final conversationSellerId = json['seller_id'] as String;
 
+        debugPrint('🔍 DEBUG LISTE CONVERSATIONS PARTICULIER (FALLBACK):');
+        debugPrint('  👤 userId (moi, auth ID): $userId');
+        debugPrint('  👤 conversationUserId (demandeur): $conversationUserId');
+        debugPrint('  🏪 conversationSellerId (répondeur): $conversationSellerId');
+
         // Déterminer qui est l'AUTRE personne
         String otherPersonId;
         if (userId == conversationUserId) {
           otherPersonId = conversationSellerId;
+          debugPrint('  ✅ Je suis le DEMANDEUR → afficher répondeur: $otherPersonId');
         } else {
           otherPersonId = conversationUserId;
+          debugPrint('  ✅ Je suis le RÉPONDEUR → afficher demandeur: $otherPersonId');
         }
 
         // Charger les infos de l'autre personne
         final otherPersonInfo = await _getPersonInfo(otherPersonId);
+        debugPrint('  📦 Infos chargées pour $otherPersonId: ${otherPersonInfo?['first_name']} ${otherPersonInfo?['last_name']} (company: ${otherPersonInfo?['company_name']})');
 
         final modifiedJson = Map<String, dynamic>.from(json);
         modifiedJson['seller_info'] = otherPersonInfo;
@@ -784,6 +808,8 @@ class ConversationsRemoteDataSourceImpl
   /// Cherche d'abord dans la table sellers, puis dans particuliers si non trouvé
   Future<Map<String, dynamic>?> _getPersonInfo(String personId) async {
     try {
+      debugPrint('  🔎 _getPersonInfo: Recherche infos pour personId=$personId');
+
       // Essayer d'abord dans la table sellers
       final sellerResponse = await _supabaseClient
           .from('sellers')
@@ -792,8 +818,11 @@ class ConversationsRemoteDataSourceImpl
           .maybeSingle();
 
       if (sellerResponse != null) {
+        debugPrint('  ✅ Trouvé dans SELLERS: ${sellerResponse['first_name']} ${sellerResponse['last_name']} (company: ${sellerResponse['company_name']})');
         return sellerResponse;
       }
+
+      debugPrint('  ⏭️ Pas trouvé dans sellers, recherche dans particuliers...');
 
       // Si pas trouvé dans sellers, chercher dans particuliers
       final particulierResponse = await _supabaseClient
@@ -803,6 +832,7 @@ class ConversationsRemoteDataSourceImpl
           .maybeSingle();
 
       if (particulierResponse != null) {
+        debugPrint('  ✅ Trouvé dans PARTICULIERS: ${particulierResponse['first_name']} ${particulierResponse['last_name']}');
         // Adapter le format pour correspondre à celui des sellers
         return {
           'id': particulierResponse['id'],
@@ -814,8 +844,10 @@ class ConversationsRemoteDataSourceImpl
           'is_particulier': true, // Flag pour identifier que c'est un particulier
         };
       }
+
+      debugPrint('  ❌ Personne non trouvée dans aucune table pour $personId');
     } catch (e) {
-      debugPrint('⚠️ Erreur récupération infos personne $personId: $e');
+      debugPrint('  ⚠️ Erreur récupération infos personne $personId: $e');
     }
     return null;
   }
