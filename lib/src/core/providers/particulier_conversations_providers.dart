@@ -23,10 +23,21 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     @Default(0) int demandesCount, // Count rapide des demandes
     @Default(0) int annoncesCount, // Count rapide des annonces
     @Default(false) bool isLoadingAnnonces, // Chargement en cours des annonces
+    DateTime? lastLoadedAt, // Timestamp du dernier chargement pour cache intelligent
   }) = _ParticulierConversationsState;
 
   int get unreadCount =>
       conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
+
+  // ✅ CACHE: Vérifier si les données sont encore fraîches (< 5 minutes)
+  bool get isFresh {
+    if (lastLoadedAt == null) return false;
+    final age = DateTime.now().difference(lastLoadedAt!);
+    return age.inMinutes < 5;
+  }
+
+  // ✅ CACHE: Vérifier si on doit recharger
+  bool get shouldReload => conversations.isEmpty || !isFresh;
 }
 
 class ParticulierConversationsController
@@ -177,6 +188,7 @@ class ParticulierConversationsController
                   conversations: demandes,
                   isLoading: false,
                   error: null,
+                  lastLoadedAt: DateTime.now(), // ✅ CACHE: Timestamp du chargement
                 );
 
                 // 3. Précharger les "Annonces" après 2 secondes si elles existent

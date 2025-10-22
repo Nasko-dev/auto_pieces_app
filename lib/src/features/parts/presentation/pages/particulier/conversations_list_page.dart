@@ -21,20 +21,29 @@ class ConversationsListPage extends ConsumerStatefulWidget {
 }
 
 class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   bool _showOnlyUnread = false;
   late TabController _tabController;
+
+  // ✅ KEEPALIVE: Garder la page en vie lors de la navigation
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Charger les conversations au démarrage et initialiser le realtime
+    // ✅ SMART RELOAD: Charger seulement si nécessaire
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller =
           ref.read(particulierConversationsControllerProvider.notifier);
-      controller.loadConversations();
+      final state = ref.read(particulierConversationsControllerProvider);
+
+      // Ne charger que si vide ou données anciennes (> 5 minutes)
+      if (state.shouldReload) {
+        controller.loadConversations();
+      }
 
       // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
       _initializeRealtimeWithCorrectIds(controller);
@@ -85,6 +94,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // ✅ KEEPALIVE: Nécessaire pour AutomaticKeepAliveClientMixin
+
     final state = ref.watch(particulierConversationsControllerProvider);
     final demandesGroups = ref.watch(demandesConversationGroupsProvider);
     final annoncesGroups = ref.watch(annoncesConversationGroupsProvider);

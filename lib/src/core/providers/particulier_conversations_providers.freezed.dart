@@ -25,7 +25,9 @@ mixin _$ParticulierConversationsState {
       throw _privateConstructorUsedError; // Count rapide des demandes
   int get annoncesCount =>
       throw _privateConstructorUsedError; // Count rapide des annonces
-  bool get isLoadingAnnonces => throw _privateConstructorUsedError;
+  bool get isLoadingAnnonces =>
+      throw _privateConstructorUsedError; // Chargement en cours des annonces
+  DateTime? get lastLoadedAt => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -49,7 +51,8 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       String? activeConversationId,
       int demandesCount,
       int annoncesCount,
-      bool isLoadingAnnonces});
+      bool isLoadingAnnonces,
+      DateTime? lastLoadedAt});
 }
 
 /// @nodoc
@@ -75,6 +78,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? demandesCount = null,
     Object? annoncesCount = null,
     Object? isLoadingAnnonces = null,
+    Object? lastLoadedAt = freezed,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -105,6 +109,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.isLoadingAnnonces
           : isLoadingAnnonces // ignore: cast_nullable_to_non_nullable
               as bool,
+      lastLoadedAt: freezed == lastLoadedAt
+          ? _value.lastLoadedAt
+          : lastLoadedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -125,7 +133,8 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       String? activeConversationId,
       int demandesCount,
       int annoncesCount,
-      bool isLoadingAnnonces});
+      bool isLoadingAnnonces,
+      DateTime? lastLoadedAt});
 }
 
 /// @nodoc
@@ -150,6 +159,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? demandesCount = null,
     Object? annoncesCount = null,
     Object? isLoadingAnnonces = null,
+    Object? lastLoadedAt = freezed,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -180,6 +190,10 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.isLoadingAnnonces
           : isLoadingAnnonces // ignore: cast_nullable_to_non_nullable
               as bool,
+      lastLoadedAt: freezed == lastLoadedAt
+          ? _value.lastLoadedAt
+          : lastLoadedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -195,7 +209,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       this.activeConversationId,
       this.demandesCount = 0,
       this.annoncesCount = 0,
-      this.isLoadingAnnonces = false})
+      this.isLoadingAnnonces = false,
+      this.lastLoadedAt})
       : _conversations = conversations,
         super._();
 
@@ -226,10 +241,13 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
   @override
   @JsonKey()
   final bool isLoadingAnnonces;
+// Chargement en cours des annonces
+  @override
+  final DateTime? lastLoadedAt;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount, isLoadingAnnonces: $isLoadingAnnonces)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount, isLoadingAnnonces: $isLoadingAnnonces, lastLoadedAt: $lastLoadedAt)';
   }
 
   @override
@@ -243,7 +261,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       ..add(DiagnosticsProperty('activeConversationId', activeConversationId))
       ..add(DiagnosticsProperty('demandesCount', demandesCount))
       ..add(DiagnosticsProperty('annoncesCount', annoncesCount))
-      ..add(DiagnosticsProperty('isLoadingAnnonces', isLoadingAnnonces));
+      ..add(DiagnosticsProperty('isLoadingAnnonces', isLoadingAnnonces))
+      ..add(DiagnosticsProperty('lastLoadedAt', lastLoadedAt));
   }
 
   @override
@@ -263,7 +282,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
             (identical(other.annoncesCount, annoncesCount) ||
                 other.annoncesCount == annoncesCount) &&
             (identical(other.isLoadingAnnonces, isLoadingAnnonces) ||
-                other.isLoadingAnnonces == isLoadingAnnonces));
+                other.isLoadingAnnonces == isLoadingAnnonces) &&
+            (identical(other.lastLoadedAt, lastLoadedAt) ||
+                other.lastLoadedAt == lastLoadedAt));
   }
 
   @override
@@ -275,7 +296,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       activeConversationId,
       demandesCount,
       annoncesCount,
-      isLoadingAnnonces);
+      isLoadingAnnonces,
+      lastLoadedAt);
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -297,7 +319,8 @@ abstract class _ParticulierConversationsState
       final String? activeConversationId,
       final int demandesCount,
       final int annoncesCount,
-      final bool isLoadingAnnonces}) = _$ParticulierConversationsStateImpl;
+      final bool isLoadingAnnonces,
+      final DateTime? lastLoadedAt}) = _$ParticulierConversationsStateImpl;
   const _ParticulierConversationsState._() : super._();
 
   @override
@@ -313,7 +336,9 @@ abstract class _ParticulierConversationsState
   @override
   int get annoncesCount; // Count rapide des annonces
   @override
-  bool get isLoadingAnnonces;
+  bool get isLoadingAnnonces; // Chargement en cours des annonces
+  @override
+  DateTime? get lastLoadedAt;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
