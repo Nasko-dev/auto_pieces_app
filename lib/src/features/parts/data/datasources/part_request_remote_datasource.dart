@@ -977,33 +977,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       for (final convData in conversations) {
         try {
-          // Récupérer les messages de cette conversation
-          final messagesData = await _supabase
-              .from('messages')
-              .select('*')
-              .eq('conversation_id', convData['id'])
-              .order('created_at', ascending: true);
-
-          // Convertir les messages
-          final messages = messagesData.map<ParticulierMessage>((msgData) {
-            return ParticulierMessage(
-              id: msgData['id'],
-              conversationId: msgData['conversation_id'],
-              senderId: msgData['sender_id'],
-              senderName: msgData['sender_name'] ?? 'Utilisateur',
-              content: msgData['content'],
-              type: MessageType.values.firstWhere(
-                (type) => type.name == (msgData['message_type'] ?? 'text'),
-                orElse: () => MessageType.text,
-              ),
-              isFromParticulier: msgData['sender_type'] == 'user',
-              isRead: msgData['is_read'] ?? false,
-              createdAt: DateTime.parse(msgData['created_at']),
-              offerPrice: msgData['offer_price']?.toDouble(),
-              offerDeliveryDays: msgData['offer_delivery_days'],
-              offerAvailability: msgData['offer_availability'],
-            );
-          }).toList();
+          // ✅ OPTIMISATION: Ne plus charger tous les messages ici
+          // Les messages seront chargés seulement à l'ouverture de la conversation
+          // On utilise last_message_content de la table conversations pour l'aperçu
 
           // CORRECTION: Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
           final conversationUserId = convData['user_id'];
@@ -1102,9 +1078,9 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             partRequest: partRequest,
             sellerName: sellerName,
             sellerId: convData['seller_id'],
-            messages: messages,
-            lastMessageAt: messages.isNotEmpty
-                ? messages.last.createdAt
+            messages: [], // ✅ OPTIMISATION: Liste vide, messages chargés à l'ouverture
+            lastMessageAt: convData['last_message_at'] != null
+                ? DateTime.parse(convData['last_message_at'])
                 : DateTime.parse(convData['created_at']),
             status: ConversationStatus.values.firstWhere(
               (status) => status.name == (convData['status'] ?? 'pending'),
@@ -1128,6 +1104,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             updatedAt: DateTime.parse(convData['updated_at']),
             sellerCompany: sellerCompanyName,
             sellerAvatarUrl: sellerAvatarUrl,
+            lastMessageContent: convData['last_message_content'], // ✅ OPTIMISATION: Aperçu du dernier message
           );
 
           result.add(conversation);

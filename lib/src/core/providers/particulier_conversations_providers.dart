@@ -78,8 +78,11 @@ class ParticulierConversationsController
           schema: 'public',
           table: 'conversations',
           callback: (payload) {
-            // Refresh quand une conversation est mise à jour (ex: unread_count)
-            loadConversations();
+            // ✅ OPTIMISATION: Mettre à jour seulement la conversation concernée
+            final conversationId = payload.newRecord['id'] as String?;
+            if (conversationId != null) {
+              _loadSingleConversationQuietly(conversationId);
+            }
           },
         );
 
@@ -166,6 +169,29 @@ class ParticulierConversationsController
         }
       },
     );
+  }
+
+  // ✅ OPTIMISATION: Charger seulement une conversation spécifique
+  Future<void> _loadSingleConversationQuietly(String conversationId) async {
+    try {
+      final result = await _repository.getParticulierConversationById(conversationId);
+
+      result.fold(
+        (failure) => null,
+        (updatedConversation) {
+          if (mounted) {
+            // Mettre à jour seulement cette conversation dans la liste
+            final updatedList = state.conversations.map((conv) {
+              return conv.id == conversationId ? updatedConversation : conv;
+            }).toList();
+
+            state = state.copyWith(conversations: updatedList);
+          }
+        },
+      );
+    } catch (e) {
+      // Ignorer les erreurs pour éviter de bloquer le realtime
+    }
   }
 
   Future<void> loadConversationDetails(String conversationId) async {

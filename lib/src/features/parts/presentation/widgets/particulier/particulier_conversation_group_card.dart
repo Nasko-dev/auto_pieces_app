@@ -162,10 +162,9 @@ class _ParticulierConversationGroupCardState
       particulierConversationUnreadCountProvider(conversation.id),
     );
     final hasUnread = localUnreadCount > 0;
-    // Récupérer le dernier message depuis la liste de messages
-    final lastMessage = conversation.messages.isNotEmpty
-        ? conversation.messages.last.content
-        : null;
+    // ✅ OPTIMISATION: Récupérer le dernier message depuis lastMessageContent
+    // au lieu de charger tous les messages
+    final lastMessage = conversation.lastMessageContent;
     final lastMessageTime = conversation.lastMessageAt;
 
     return Material(
