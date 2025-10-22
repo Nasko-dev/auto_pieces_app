@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart'
@@ -18,6 +19,7 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../../../core/utils/haptic_helper.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -129,14 +131,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
 
     try {
-      // Charger la conversation directement pour obtenir le sellerId
+      // Charger la conversation pour obtenir userId ET sellerId
       final convResponse = await Supabase.instance.client
           .from('conversations')
-          .select('seller_id')
+          .select('user_id, seller_id')
           .eq('id', widget.conversationId)
           .maybeSingle();
 
-      if (convResponse == null || convResponse['seller_id'] == null) {
+      if (convResponse == null) {
         if (mounted) {
           setState(() {
             _isLoadingSellerInfo = false;
@@ -145,13 +147,47 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         return;
       }
 
-      final sellerId = convResponse['seller_id'] as String;
+      final conversationUserId = convResponse['user_id'] as String;
+      final conversationSellerId = convResponse['seller_id'] as String;
+
+      // Déterminer qui est l'utilisateur actuel (vous) via device_id
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      final currentParticulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId)
+          .maybeSingle();
+
+      final currentParticulierId = currentParticulierResponse?['id'] as String?;
+
+      // Déterminer qui est l'AUTRE personne (celle qu'on veut afficher)
+      String otherPersonId;
+      if (currentParticulierId == conversationUserId ||
+          currentParticulierId == conversationSellerId) {
+        // Vous êtes l'un des participants, afficher l'autre
+        if (currentParticulierId == conversationUserId) {
+          otherPersonId = conversationSellerId;
+          debugPrint(
+              '💡 Vous êtes le demandeur, affichage répondeur: $otherPersonId');
+        } else {
+          otherPersonId = conversationUserId;
+          debugPrint(
+              '💡 Vous êtes le répondeur, affichage demandeur: $otherPersonId');
+        }
+      } else {
+        // Fallback: afficher le sellerId par défaut
+        otherPersonId = conversationSellerId;
+        debugPrint('💡 Fallback: affichage sellerId: $otherPersonId');
+      }
 
       // Essayer d'abord dans sellers (vendeur pro)
       final sellerResponse = await Supabase.instance.client
           .from('sellers')
           .select('id, first_name, last_name, company_name, phone, avatar_url')
-          .eq('id', sellerId)
+          .eq('id', otherPersonId)
           .maybeSingle();
 
       if (sellerResponse != null && mounted) {
@@ -170,7 +206,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final particulierResponse = await Supabase.instance.client
           .from('particuliers')
           .select('id, first_name, last_name, phone, avatar_url, device_id')
-          .eq('id', sellerId)
+          .eq('id', otherPersonId)
           .maybeSingle();
 
       if (particulierResponse != null && mounted) {
@@ -192,7 +228,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         });
       } else if (mounted) {
         debugPrint(
-            '⚠️ Aucun vendeur/particulier trouvé pour sellerId: $sellerId');
+            '⚠️ Aucun vendeur/particulier trouvé pour otherPersonId: $otherPersonId');
         setState(() {
           _isLoadingSellerInfo = false;
         });
