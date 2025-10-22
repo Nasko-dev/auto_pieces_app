@@ -76,5 +76,10 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+
+	<!-- Export Compliance (OBLIGATOIRE pour App Store) -->
+	<!-- L'app utilise uniquement HTTPS standard (pas de crypto custom) -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
