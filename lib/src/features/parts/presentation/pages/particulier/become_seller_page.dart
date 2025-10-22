@@ -46,6 +46,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   void initState() {
     super.initState();
 
+    // Si c'est un vendeur, forcer la re-vérification des limitations
     if (widget.mode == SellerMode.vendeur) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final notifier = ref.read(vehicleSearchProvider.notifier);
@@ -301,6 +302,11 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
             0 => ChoiceStepPage(
                 onChoiceSelected: _onChoiceSelected,
               ),
+            1 => SellPartStepPage(
+                selectedCategory: _selectedChoice,
+                onPartSubmitted: _onPartSubmitted,
+              ),
+            2 => PlateStepPage(
             1 => SubTypeStepPage(
                 selectedCategory: _selectedChoice,
                 onSubTypeSelected: _onSubTypeSelected,

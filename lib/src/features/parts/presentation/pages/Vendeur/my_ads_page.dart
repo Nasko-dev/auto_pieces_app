@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
@@ -41,6 +42,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     });
   }
 
+  List<PartAdvertisement> get advertisements {
+    return ref.watch(partAdvertisementControllerProvider).advertisements;
   String _selectedFilter = 'all';
   // Variable supprimée car non utilisée
 
@@ -67,13 +70,13 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
   // Liste unifiée d'annonces et de demandes
   List<UnifiedItem> get unifiedItems {
-    final advertisements = filteredAds;
+    final ads = advertisements;
     final requests = sellerRequests;
 
     List<UnifiedItem> items = [];
 
     // Ajouter les annonces
-    for (final ad in advertisements) {
+    for (final ad in ads) {
       items.add(UnifiedItem.advertisement(ad));
     }
 
@@ -223,7 +226,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 }
 
                 // Check if both ads and requests are empty
-                if (filteredAds.isEmpty && sellerRequests.isEmpty) {
+                if (advertisements.isEmpty && sellerRequests.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -600,12 +603,13 @@ class _AdvertisementCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Informations véhicule et statut
             // Badge "ANNONCE" en haut à droite avec menu 3 points
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    advertisement.partName,
+                    _buildVehicleInfo(advertisement),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -613,6 +617,7 @@ class _AdvertisementCard extends ConsumerWidget {
                     ),
                   ),
                 ),
+                // Badge Statut
                 // Badge ANNONCE
                 Container(
                   padding:
@@ -684,41 +689,33 @@ class _AdvertisementCard extends ConsumerWidget {
               ],
             ),
 
-            const SizedBox(height: 12),
-
-            // Prix et informations véhicule
-            Row(
-              children: [
-                Text(
-                  '${advertisement.price?.toStringAsFixed(0) ?? '0'}€',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryBlue,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _timeAgo(advertisement.createdAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 8),
 
-            // Informations véhicule
+            // Nom de la pièce
             Text(
-              _buildVehicleInfo(advertisement),
+              advertisement.partName,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
+
+            const SizedBox(height: 4),
+
+            // Date de création
+            Text(
+              _timeAgo(advertisement.createdAt),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Stock disponible (cliquable)
+            _StockBadge(advertisement: advertisement),
           ],
         ),
       ),
@@ -757,6 +754,320 @@ class _AdvertisementCard extends ConsumerWidget {
       return '${difference.inHours}h';
     } else {
       return '${difference.inMinutes}min';
+    }
+  }
+}
+
+// Widget badge de stock cliquable
+class _StockBadge extends ConsumerWidget {
+  final PartAdvertisement advertisement;
+
+  const _StockBadge({required this.advertisement});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stock = advertisement.quantityAvailable;
+    Color stockColor;
+    String stockLabel;
+
+    if (stock == 0) {
+      stockColor = AppTheme.error;
+      stockLabel = 'Rupture de stock';
+    } else if (stock <= 2) {
+      stockColor = AppTheme.warning;
+      stockLabel = 'Stock limité';
+    } else {
+      stockColor = AppTheme.success;
+      stockLabel = 'En stock';
+    }
+
+    return GestureDetector(
+      onTap: () => _showStockDialog(context, ref),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: stockColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: stockColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inventory_2, color: stockColor, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              '$stockLabel : ',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              '$stock',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: stockColor,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.edit, color: stockColor, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStockDialog(BuildContext context, WidgetRef ref) {
+    int currentStock = advertisement.quantityAvailable;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 36,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Titre
+                  const Text(
+                    'Gérer le stock',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Nom de la pièce
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      advertisement.partName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Compteur avec boutons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Bouton -
+                      GestureDetector(
+                        onTap: currentStock > 0
+                            ? () {
+                                HapticFeedback.lightImpact();
+                                setState(() {
+                                  currentStock--;
+                                });
+                              }
+                            : null,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: currentStock > 0
+                                ? AppTheme.error.withValues(alpha: 0.1)
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.remove,
+                            color: currentStock > 0
+                                ? AppTheme.error
+                                : Colors.grey[400],
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+
+                      // Affichage du stock
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$currentStock',
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+
+                      // Bouton +
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            currentStock++;
+                          });
+                        },
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppTheme.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: AppTheme.success,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Boutons d'action
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        // Bouton Valider
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              HapticFeedback.mediumImpact();
+                              Navigator.of(bottomSheetContext).pop();
+                              await _updateStock(context, ref, currentStock);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Valider',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Bouton Annuler
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.of(bottomSheetContext).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey[700],
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Annuler',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _updateStock(
+      BuildContext context, WidgetRef ref, int newStock) async {
+    try {
+      // Appeler le controller pour mettre à jour le stock
+      final success = await ref
+          .read(partAdvertisementControllerProvider.notifier)
+          .updateStock(advertisement.id, newStock);
+
+      if (context.mounted) {
+        if (success) {
+          notificationService.success(
+            context,
+            'Stock mis à jour',
+            subtitle: 'Nouveau stock : $newStock',
+          );
+        } else {
+          final error = ref.read(partAdvertisementControllerProvider).error;
+          notificationService.error(
+            context,
+            'Erreur',
+            subtitle: error ?? 'Erreur lors de la mise à jour du stock',
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        notificationService.error(
+          context,
+          'Erreur',
+          subtitle: e.toString(),
+        );
+      }
     }
   }
 }

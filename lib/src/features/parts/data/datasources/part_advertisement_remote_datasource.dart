@@ -33,6 +33,12 @@ abstract class PartAdvertisementRemoteDataSource {
   Future<void> incrementViewCount(String id);
 
   Future<void> incrementContactCount(String id);
+
+  Future<PartAdvertisementModel> decrementStock(String id, int quantity);
+
+  Future<PartAdvertisementModel> incrementStock(String id, int quantity);
+
+  Future<PartAdvertisementModel> updateStock(String id, int newQuantity);
 }
 
 class PartAdvertisementRemoteDataSourceImpl
@@ -84,6 +90,8 @@ class PartAdvertisementRemoteDataSourceImpl
 
       // Convertir le premier (et seul) élément en PartAdvertisementModel
       final adData = responseList.first as Map<String, dynamic>;
+      return PartAdvertisementModel.fromSupabase(
+          adData); // ✅ FIX: Utiliser fromSupabase pour le snake_case
       return PartAdvertisementModel.fromSupabase(adData);
     } catch (e) {
       throw ServerException('Erreur lors de la création: $e');
@@ -207,6 +215,7 @@ class PartAdvertisementRemoteDataSourceImpl
   @override
   Future<void> deletePartAdvertisement(String id) async {
     try {
+      await client.from('part_advertisements').delete().eq('id', id);
       // Récupérer le device_id
       final deviceId = await deviceService.getDeviceId();
 
@@ -255,6 +264,64 @@ class PartAdvertisementRemoteDataSourceImpl
       await client.rpc('increment_contact_count', params: {'ad_id': id});
     } catch (e) {
       // Pas critique, on peut ignorer l'erreur
+    }
+  }
+
+  @override
+  Future<PartAdvertisementModel> decrementStock(String id, int quantity) async {
+    try {
+      final response = await client.rpc('decrement_stock', params: {
+        'p_advertisement_id': id,
+        'p_quantity': quantity,
+      });
+
+      if (response == null) {
+        throw ServerException('Erreur lors du décrement du stock');
+      }
+
+      // La fonction retourne un JSON avec les infos mises à jour
+      // On refetch l'annonce complète pour avoir toutes les données
+      return await getPartAdvertisementById(id);
+    } catch (e) {
+      throw ServerException('Erreur lors du décrement: $e');
+    }
+  }
+
+  @override
+  Future<PartAdvertisementModel> incrementStock(String id, int quantity) async {
+    try {
+      final response = await client.rpc('increment_stock', params: {
+        'p_advertisement_id': id,
+        'p_quantity': quantity,
+      });
+
+      if (response == null) {
+        throw ServerException('Erreur lors de l\'incrémentation du stock');
+      }
+
+      // Refetch l'annonce complète
+      return await getPartAdvertisementById(id);
+    } catch (e) {
+      throw ServerException('Erreur lors de l\'incrémentation: $e');
+    }
+  }
+
+  @override
+  Future<PartAdvertisementModel> updateStock(String id, int newQuantity) async {
+    try {
+      final response = await client.rpc('update_stock', params: {
+        'p_advertisement_id': id,
+        'p_new_quantity': newQuantity,
+      });
+
+      if (response == null) {
+        throw ServerException('Erreur lors de la mise à jour du stock');
+      }
+
+      // Refetch l'annonce complète
+      return await getPartAdvertisementById(id);
+    } catch (e) {
+      throw ServerException('Erreur lors de la mise à jour: $e');
     }
   }
 }

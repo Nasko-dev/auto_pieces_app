@@ -69,6 +69,17 @@ class ConversationGroupingService {
     // Créer une clé unique basée sur : véhicule uniquement (marque + modèle + année)
     final parts = <String>[];
 
+    // Ajouter les informations de la pièce
+    if (conversation.requestTitle != null &&
+        conversation.requestTitle!.isNotEmpty) {
+      // Nettoyer le titre (enlever caractères spéciaux, mettre en minuscules)
+      final cleanTitle = conversation.requestTitle!
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+          .replaceAll(RegExp(r'\s+'), '-');
+      parts.add(cleanTitle);
+    }
+
     // Ajouter les informations du véhicule
     if (conversation.vehicleBrand != null) {
       parts.add(conversation.vehicleBrand!.toLowerCase().replaceAll(' ', '_'));

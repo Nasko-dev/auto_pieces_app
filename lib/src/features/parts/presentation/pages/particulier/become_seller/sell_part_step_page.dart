@@ -158,8 +158,37 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
 
   void _handleSubmit() {
     final hasText = _partController.text.trim().isNotEmpty;
-    final hasParts = _selectedParts.isNotEmpty;
 
+    if (_isCompleteVehicle || _isCompleteMotor || _isCompleteBody) {
+      // Mode véhicule complet, moteur complet ou carrosserie complète : toujours valide
+      return true;
+    } else if (_hasMultiple) {
+      // Mode "Plus de 5 pièces" : il faut au moins 6 pièces dans la liste (5 tags + 1 en cours minimum)
+      // Compter les pièces déjà ajoutées + celle en cours de saisie
+      final totalParts = _selectedParts.length + (hasText ? 1 : 0);
+      return totalParts >= 6;
+    } else {
+      // Mode "Moins de 5 pièces" : valide si du texte dans le champ
+      return hasText;
+    }
+  }
+
+  void _handleSubmit() {
+    if (_isCompleteVehicle) {
+      // Mode véhicule complet
+      widget.onPartSubmitted('Véhicule complet', false);
+    } else if (_isCompleteMotor) {
+      // Mode moteur complet
+      widget.onPartSubmitted('Moteur complet', false);
+    } else if (_isCompleteBody) {
+      // Mode carrosserie intérieure complète
+      widget.onPartSubmitted('Carrosserie intérieure complète', false);
+    } else if (_hasMultiple) {
+      // En mode multiple, envoyer la liste des parts comme une chaîne séparée par des virgules
+      final allParts = _selectedParts.toList();
+      if (_partController.text.isNotEmpty &&
+          !allParts.contains(_partController.text)) {
+        allParts.add(_partController.text);
     if (widget.hasMultiple) {
       // Mode multiple (+5 pièces)
       if (hasParts || hasText) {
@@ -258,6 +287,16 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Champ de recherche de pièce (toujours visible)
+                      _buildPartSearchField(),
+                      if (_hasMultiple && _selectedParts.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildSelectedPartsTags(),
+                      ],
+                      const SizedBox(height: 24),
+
+                      // Options spécifiques à la catégorie
+                      _buildCategoryOptions(),
                       _buildPartSearchField(),
                       if (widget.hasMultiple && _selectedParts.isNotEmpty) ...[
                         const SizedBox(height: 16),
@@ -338,6 +377,21 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
           child: TextField(
             controller: _partController,
             focusNode: _focusNode,
+            enabled:
+                !_isCompleteVehicle && !_isCompleteMotor && !_isCompleteBody,
+            textInputAction:
+                _hasMultiple ? TextInputAction.done : TextInputAction.done,
+            onSubmitted: _hasMultiple
+                ? (value) {
+                    if (value.trim().isNotEmpty &&
+                        !_selectedParts.contains(value.trim())) {
+                      setState(() {
+                        _selectedParts.add(value.trim());
+                        _partController.clear();
+                      });
+                    }
+                  }
+                : null,
             textInputAction: TextInputAction.done,
             style: const TextStyle(
               fontSize: 16,
@@ -345,7 +399,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
               color: AppTheme.darkGray,
             ),
             decoration: InputDecoration(
-              hintText: 'Ex: Moteur, Pare-choc avant, Phare...',
+              hintText: _hasMultiple
+                  ? 'Tapez une pièce et appuyez sur Entrée...'
+                  : 'Ex: Moteur, Pare-choc avant, Phare...',
               hintStyle: TextStyle(
                 color: AppTheme.gray.withValues(alpha: 0.6),
               ),
@@ -354,6 +410,20 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                 color: _getCategoryColor(),
                 size: 22,
               ),
+              suffixIcon: _hasMultiple && _partController.text.trim().isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.add_circle, color: _getCategoryColor()),
+                      onPressed: () {
+                        final text = _partController.text.trim();
+                        if (text.isNotEmpty && !_selectedParts.contains(text)) {
+                          setState(() {
+                            _selectedParts.add(text);
+                            _partController.clear();
+                          });
+                        }
+                      },
+                    )
+                  : null,
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
@@ -476,6 +546,203 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMultipleCheckbox() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Pour catégorie MOTEUR : options de quantité
+        if (widget.selectedCategory == 'moteur' ||
+            widget.selectedCategory == 'engine') ...[
+          _buildOptionCheckbox(
+            value: _hasMultiple,
+            label: 'J\'ai plus que 5 pièces',
+            description:
+                'Vous avez plusieurs pièces moteur à vendre (plus de 5)',
+            icon: Icons.inventory_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = value ?? false;
+                _isCompleteMotor = false;
+                if (!_hasMultiple) {
+                  _selectedParts.clear();
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: !_hasMultiple && !_isCompleteMotor,
+            label: 'J\'ai moins de 5 pièces',
+            description:
+                'Vous avez quelques pièces moteur à vendre (moins de 5)',
+            icon: Icons.settings_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = false;
+                _isCompleteMotor = false;
+                _selectedParts.clear();
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: _isCompleteMotor,
+            label: 'Moteur complet',
+            description:
+                'Vous vendez le moteur complet avec tous ses composants',
+            icon: Icons.engineering_outlined,
+            onChanged: _onCompleteMotorChanged,
+          ),
+        ],
+
+        // Pour catégorie CARROSSERIE : options standards
+        if (widget.selectedCategory == 'carrosserie' ||
+            widget.selectedCategory == 'body') ...[
+          _buildOptionCheckbox(
+            value: _hasMultiple,
+            label: 'J\'ai plusieurs pièces à vendre',
+            description: 'Ajoutez plusieurs pièces en même temps',
+            icon: Icons.inventory_2_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = value ?? false;
+                if (!_hasMultiple) {
+                  _selectedParts.clear();
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: _isCompleteBody,
+            label: 'Carrosserie complète',
+            description:
+                'Vous vendez toute la carrosserie ou l\'intérieur complet',
+            icon: Icons.car_repair_outlined,
+            onChanged: _onCompleteBodyChanged,
+          ),
+        ],
+
+        // Pour catégorie LES DEUX : véhicule complet
+        if (widget.selectedCategory == 'lesdeux') ...[
+          _buildOptionCheckbox(
+            value: _hasMultiple,
+            label: 'J\'ai plusieurs pièces à vendre',
+            description: 'Ajoutez plusieurs pièces en même temps',
+            icon: Icons.inventory_2_outlined,
+            onChanged: (value) {
+              setState(() {
+                _hasMultiple = value ?? false;
+                if (!_hasMultiple) {
+                  _selectedParts.clear();
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildOptionCheckbox(
+            value: _isCompleteVehicle,
+            label: 'Véhicule complet',
+            description: 'Vous vendez le véhicule en entier pour pièces',
+            icon: Icons.directions_car_outlined,
+            onChanged: _onCompleteVehicleChanged,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildOptionCheckbox({
+    required bool value,
+    required String label,
+    required String description,
+    required IconData icon,
+    required Function(bool?) onChanged,
+  }) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: value
+              ? _getCategoryColor().withValues(alpha: 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: value
+                ? _getCategoryColor().withValues(alpha: 0.3)
+                : AppColors.grey200,
+            width: value ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icône
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: value
+                    ? _getCategoryColor().withValues(alpha: 0.15)
+                    : AppTheme.lightGray,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: value ? _getCategoryColor() : AppTheme.gray,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Texte
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: value ? _getCategoryColor() : AppTheme.darkGray,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.gray.withValues(alpha: 0.8),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Checkbox
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: onChanged,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                side: BorderSide(
+                  color: value ? _getCategoryColor() : AppTheme.gray,
+                  width: 2,
+                ),
+                activeColor: _getCategoryColor(),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
