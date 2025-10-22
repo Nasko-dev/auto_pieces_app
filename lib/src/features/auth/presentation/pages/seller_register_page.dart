@@ -1,10 +1,13 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../controllers/seller_auth_controller.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/haptic_helper.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class SellerRegisterPage extends ConsumerStatefulWidget {
   const SellerRegisterPage({super.key});
@@ -333,38 +336,44 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     ),
                     SizedBox(width: 12 * s),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _acceptTerms = !_acceptTerms;
-                          });
-                        },
-                        child: Text.rich(
-                          TextSpan(
-                            text: 'J\'accepte les ',
-                            style: body(14),
-                            children: [
-                              TextSpan(
-                                text: 'conditions générales',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14 * s,
-                                  fontWeight: FontWeight.w600,
-                                  color: _primaryBlue,
-                                  decoration: TextDecoration.underline,
-                                ),
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'J\'accepte les ',
+                          style: body(14),
+                          children: [
+                            TextSpan(
+                              text: 'conditions générales',
+                              style: GoogleFonts.inter(
+                                fontSize: 14 * s,
+                                fontWeight: FontWeight.w600,
+                                color: _primaryBlue,
+                                decoration: TextDecoration.underline,
                               ),
-                              const TextSpan(text: ' et la '),
-                              TextSpan(
-                                text: 'politique de confidentialité',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14 * s,
-                                  fontWeight: FontWeight.w600,
-                                  color: _primaryBlue,
-                                  decoration: TextDecoration.underline,
-                                ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  HapticHelper.light();
+                                  final uri = Uri.parse(AppConstants.termsOfServiceUrl);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  }
+                                },
+                            ),
+                            const TextSpan(text: ' et la '),
+                            TextSpan(
+                              text: 'politique de confidentialité',
+                              style: GoogleFonts.inter(
+                                fontSize: 14 * s,
+                                fontWeight: FontWeight.w600,
+                                color: _primaryBlue,
+                                decoration: TextDecoration.underline,
                               ),
-                            ],
-                          ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  HapticHelper.light();
+                                  context.push('/privacy');
+                                },
+                            ),
+                          ],
                         ),
                       ),
                     ),
