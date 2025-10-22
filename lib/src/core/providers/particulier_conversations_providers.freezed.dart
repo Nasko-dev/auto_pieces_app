@@ -23,7 +23,9 @@ mixin _$ParticulierConversationsState {
   String? get activeConversationId => throw _privateConstructorUsedError;
   int get demandesCount =>
       throw _privateConstructorUsedError; // Count rapide des demandes
-  int get annoncesCount => throw _privateConstructorUsedError;
+  int get annoncesCount =>
+      throw _privateConstructorUsedError; // Count rapide des annonces
+  bool get isLoadingAnnonces => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -46,7 +48,8 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       String? error,
       String? activeConversationId,
       int demandesCount,
-      int annoncesCount});
+      int annoncesCount,
+      bool isLoadingAnnonces});
 }
 
 /// @nodoc
@@ -71,6 +74,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? activeConversationId = freezed,
     Object? demandesCount = null,
     Object? annoncesCount = null,
+    Object? isLoadingAnnonces = null,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -97,6 +101,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.annoncesCount
           : annoncesCount // ignore: cast_nullable_to_non_nullable
               as int,
+      isLoadingAnnonces: null == isLoadingAnnonces
+          ? _value.isLoadingAnnonces
+          : isLoadingAnnonces // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -116,7 +124,8 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       String? error,
       String? activeConversationId,
       int demandesCount,
-      int annoncesCount});
+      int annoncesCount,
+      bool isLoadingAnnonces});
 }
 
 /// @nodoc
@@ -140,6 +149,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? activeConversationId = freezed,
     Object? demandesCount = null,
     Object? annoncesCount = null,
+    Object? isLoadingAnnonces = null,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -166,6 +176,10 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.annoncesCount
           : annoncesCount // ignore: cast_nullable_to_non_nullable
               as int,
+      isLoadingAnnonces: null == isLoadingAnnonces
+          ? _value.isLoadingAnnonces
+          : isLoadingAnnonces // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -180,7 +194,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       this.error,
       this.activeConversationId,
       this.demandesCount = 0,
-      this.annoncesCount = 0})
+      this.annoncesCount = 0,
+      this.isLoadingAnnonces = false})
       : _conversations = conversations,
         super._();
 
@@ -207,10 +222,14 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
   @override
   @JsonKey()
   final int annoncesCount;
+// Count rapide des annonces
+  @override
+  @JsonKey()
+  final bool isLoadingAnnonces;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount, isLoadingAnnonces: $isLoadingAnnonces)';
   }
 
   @override
@@ -223,7 +242,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       ..add(DiagnosticsProperty('error', error))
       ..add(DiagnosticsProperty('activeConversationId', activeConversationId))
       ..add(DiagnosticsProperty('demandesCount', demandesCount))
-      ..add(DiagnosticsProperty('annoncesCount', annoncesCount));
+      ..add(DiagnosticsProperty('annoncesCount', annoncesCount))
+      ..add(DiagnosticsProperty('isLoadingAnnonces', isLoadingAnnonces));
   }
 
   @override
@@ -241,7 +261,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
             (identical(other.demandesCount, demandesCount) ||
                 other.demandesCount == demandesCount) &&
             (identical(other.annoncesCount, annoncesCount) ||
-                other.annoncesCount == annoncesCount));
+                other.annoncesCount == annoncesCount) &&
+            (identical(other.isLoadingAnnonces, isLoadingAnnonces) ||
+                other.isLoadingAnnonces == isLoadingAnnonces));
   }
 
   @override
@@ -252,7 +274,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       error,
       activeConversationId,
       demandesCount,
-      annoncesCount);
+      annoncesCount,
+      isLoadingAnnonces);
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -273,7 +296,8 @@ abstract class _ParticulierConversationsState
       final String? error,
       final String? activeConversationId,
       final int demandesCount,
-      final int annoncesCount}) = _$ParticulierConversationsStateImpl;
+      final int annoncesCount,
+      final bool isLoadingAnnonces}) = _$ParticulierConversationsStateImpl;
   const _ParticulierConversationsState._() : super._();
 
   @override
@@ -287,7 +311,9 @@ abstract class _ParticulierConversationsState
   @override
   int get demandesCount; // Count rapide des demandes
   @override
-  int get annoncesCount;
+  int get annoncesCount; // Count rapide des annonces
+  @override
+  bool get isLoadingAnnonces;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.

@@ -22,6 +22,7 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     String? activeConversationId,
     @Default(0) int demandesCount, // Count rapide des demandes
     @Default(0) int annoncesCount, // Count rapide des annonces
+    @Default(false) bool isLoadingAnnonces, // Chargement en cours des annonces
   }) = _ParticulierConversationsState;
 
   int get unreadCount =>
@@ -194,17 +195,28 @@ class ParticulierConversationsController
 
   // ✅ OPTIMISATION: Précharger les annonces en arrière-plan
   Future<void> _preloadAnnonces(List<ParticulierConversation> demandes) async {
+    if (mounted) {
+      state = state.copyWith(isLoadingAnnonces: true);
+    }
+
     final annoncesResult = await _repository.getParticulierConversations(
       filterType: 'annonces',
     );
 
     annoncesResult.fold(
-      (failure) => null, // Ignorer les erreurs du préchargement
+      (failure) {
+        if (mounted) {
+          state = state.copyWith(isLoadingAnnonces: false);
+        }
+      },
       (annonces) {
         if (mounted) {
           // Fusionner demandes + annonces
           final allConversations = [...demandes, ...annonces];
-          state = state.copyWith(conversations: allConversations);
+          state = state.copyWith(
+            conversations: allConversations,
+            isLoadingAnnonces: false,
+          );
         }
       },
     );

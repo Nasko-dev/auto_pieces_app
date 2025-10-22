@@ -193,7 +193,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
 
   Widget _buildConversationList(
       List conversationGroups, bool isLoading, String? error) {
-    if (isLoading && conversationGroups.isEmpty) {
+    final state = ref.watch(particulierConversationsControllerProvider);
+
+    // Afficher loading si en cours de chargement général OU si annonces en cours de chargement
+    final isLoadingContent = (isLoading && conversationGroups.isEmpty) ||
+                             (state.isLoadingAnnonces && conversationGroups.isEmpty);
+
+    if (isLoadingContent) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
