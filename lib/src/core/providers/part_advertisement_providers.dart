@@ -116,3 +116,17 @@ final deletePartAdvertisementProvider = FutureProvider.family<void, String>(
     );
   },
 );
+
+// Provider pour détecter si le particulier a des annonces actives
+final hasActiveAdvertisementsProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  final repository = ref.watch(partAdvertisementRepositoryProvider);
+
+  final result = await repository.getMyPartAdvertisements();
+
+  return result.fold(
+    (failure) =>
+        false, // En cas d'erreur, on considère qu'il n'y a pas d'annonces
+    (advertisements) => advertisements.any((ad) => ad.status == 'active'),
+  );
+});

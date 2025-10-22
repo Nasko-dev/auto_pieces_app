@@ -24,7 +24,9 @@ mixin _$ParticulierConversation {
   DateTime get lastMessageAt => throw _privateConstructorUsedError;
   ConversationStatus get status => throw _privateConstructorUsedError;
   bool get hasUnreadMessages => throw _privateConstructorUsedError;
-  int get unreadCount => throw _privateConstructorUsedError;
+  int get unreadCount =>
+      throw _privateConstructorUsedError; // Nouveau: indique si le particulier est le demandeur (true) ou le répondeur (false)
+  bool get isRequester => throw _privateConstructorUsedError;
   double? get latestOfferPrice => throw _privateConstructorUsedError;
   int? get latestOfferDeliveryDays => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -61,6 +63,7 @@ abstract class $ParticulierConversationCopyWith<$Res> {
       ConversationStatus status,
       bool hasUnreadMessages,
       int unreadCount,
+      bool isRequester,
       double? latestOfferPrice,
       int? latestOfferDeliveryDays,
       DateTime? createdAt,
@@ -101,6 +104,7 @@ class _$ParticulierConversationCopyWithImpl<$Res,
     Object? status = null,
     Object? hasUnreadMessages = null,
     Object? unreadCount = null,
+    Object? isRequester = null,
     Object? latestOfferPrice = freezed,
     Object? latestOfferDeliveryDays = freezed,
     Object? createdAt = freezed,
@@ -150,6 +154,10 @@ class _$ParticulierConversationCopyWithImpl<$Res,
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
+      isRequester: null == isRequester
+          ? _value.isRequester
+          : isRequester // ignore: cast_nullable_to_non_nullable
+              as bool,
       latestOfferPrice: freezed == latestOfferPrice
           ? _value.latestOfferPrice
           : latestOfferPrice // ignore: cast_nullable_to_non_nullable
@@ -227,6 +235,7 @@ abstract class _$$ParticulierConversationImplCopyWith<$Res>
       ConversationStatus status,
       bool hasUnreadMessages,
       int unreadCount,
+      bool isRequester,
       double? latestOfferPrice,
       int? latestOfferDeliveryDays,
       DateTime? createdAt,
@@ -267,6 +276,7 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
     Object? status = null,
     Object? hasUnreadMessages = null,
     Object? unreadCount = null,
+    Object? isRequester = null,
     Object? latestOfferPrice = freezed,
     Object? latestOfferDeliveryDays = freezed,
     Object? createdAt = freezed,
@@ -316,6 +326,10 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
           ? _value.unreadCount
           : unreadCount // ignore: cast_nullable_to_non_nullable
               as int,
+      isRequester: null == isRequester
+          ? _value.isRequester
+          : isRequester // ignore: cast_nullable_to_non_nullable
+              as bool,
       latestOfferPrice: freezed == latestOfferPrice
           ? _value.latestOfferPrice
           : latestOfferPrice // ignore: cast_nullable_to_non_nullable
@@ -377,6 +391,7 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
       required this.status,
       this.hasUnreadMessages = false,
       this.unreadCount = 0,
+      this.isRequester = true,
       this.latestOfferPrice,
       this.latestOfferDeliveryDays,
       this.createdAt,
@@ -417,6 +432,10 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
   @override
   @JsonKey()
   final int unreadCount;
+// Nouveau: indique si le particulier est le demandeur (true) ou le répondeur (false)
+  @override
+  @JsonKey()
+  final bool isRequester;
   @override
   final double? latestOfferPrice;
   @override
@@ -451,7 +470,7 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
 
   @override
   String toString() {
-    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone)';
+    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, isRequester: $isRequester, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone)';
   }
 
   @override
@@ -474,6 +493,8 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
                 other.hasUnreadMessages == hasUnreadMessages) &&
             (identical(other.unreadCount, unreadCount) ||
                 other.unreadCount == unreadCount) &&
+            (identical(other.isRequester, isRequester) ||
+                other.isRequester == isRequester) &&
             (identical(other.latestOfferPrice, latestOfferPrice) ||
                 other.latestOfferPrice == latestOfferPrice) &&
             (identical(
@@ -511,6 +532,7 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
         status,
         hasUnreadMessages,
         unreadCount,
+        isRequester,
         latestOfferPrice,
         latestOfferDeliveryDays,
         createdAt,
@@ -545,6 +567,7 @@ abstract class _ParticulierConversation implements ParticulierConversation {
       required final ConversationStatus status,
       final bool hasUnreadMessages,
       final int unreadCount,
+      final bool isRequester,
       final double? latestOfferPrice,
       final int? latestOfferDeliveryDays,
       final DateTime? createdAt,
@@ -574,7 +597,9 @@ abstract class _ParticulierConversation implements ParticulierConversation {
   @override
   bool get hasUnreadMessages;
   @override
-  int get unreadCount;
+  int get unreadCount; // Nouveau: indique si le particulier est le demandeur (true) ou le répondeur (false)
+  @override
+  bool get isRequester;
   @override
   double? get latestOfferPrice;
   @override

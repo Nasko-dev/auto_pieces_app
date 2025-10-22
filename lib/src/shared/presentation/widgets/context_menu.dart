@@ -158,3 +158,55 @@ class EditDeleteContextMenu extends StatelessWidget {
     );
   }
 }
+
+/// Menu contextuel pré-configuré pour les annonces (modifier/renommer/supprimer)
+class EditRenameDeleteContextMenu extends StatelessWidget {
+  const EditRenameDeleteContextMenu({
+    super.key,
+    required this.onEdit,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  final VoidCallback onEdit;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return ContextMenu(
+      items: const [
+        ContextMenuItem(
+          value: 'edit',
+          label: 'Modifier',
+          icon: Icons.edit_outlined,
+        ),
+        ContextMenuItem(
+          value: 'rename',
+          label: 'Renommer',
+          icon: Icons.drive_file_rename_outline,
+        ),
+        ContextMenuItem(
+          value: 'delete',
+          label: 'Supprimer',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+          showDividerBefore: true,
+        ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'edit':
+            onEdit();
+            break;
+          case 'rename':
+            onRename();
+            break;
+          case 'delete':
+            onDelete();
+            break;
+        }
+      },
+    );
+  }
+}

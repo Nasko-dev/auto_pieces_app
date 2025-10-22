@@ -4,10 +4,12 @@ import 'shared_widgets.dart';
 
 class CongratsStepPage extends StatelessWidget {
   final VoidCallback onFinish;
+  final VoidCallback? onNameAdvertisement;
 
   const CongratsStepPage({
     super.key,
     required this.onFinish,
+    this.onNameAdvertisement,
   });
 
   @override
@@ -50,10 +52,17 @@ class CongratsStepPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const Spacer(),
-          BecomeSellerSharedWidgets.buildPrimaryButton(
+          if (onNameAdvertisement != null) ...[
+            BecomeSellerSharedWidgets.buildPrimaryButton(
+              label: 'Nommer l\'annonce',
+              onPressed: onNameAdvertisement,
+              enabled: true,
+            ),
+            const SizedBox(height: 12),
+          ],
+          BecomeSellerSharedWidgets.buildGhostButton(
             label: 'Terminer',
             onPressed: onFinish,
-            enabled: true,
           ),
         ],
       ),

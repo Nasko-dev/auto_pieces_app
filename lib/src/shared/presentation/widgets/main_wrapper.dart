@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/particulier_conversations_providers.dart';
+import '../../../core/providers/part_advertisement_providers.dart';
+import '../../../core/providers/particulier_notifications_providers.dart';
 import '../../../core/services/global_message_notification_service.dart';
 import 'auth_wrapper.dart';
 
@@ -39,24 +41,71 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     super.dispose();
   }
 
-  int _getCurrentIndex(BuildContext context) {
+  int _getCurrentIndex(BuildContext context, bool hasActiveAds) {
     final location = GoRouterState.of(context).matchedLocation;
-    switch (location) {
-      case '/home':
-        return 0;
-      case '/requests':
-        return 1;
-      case '/messages-clients':
-        return 2;
-      case '/become-seller':
-        return 3;
-      default:
-        return 0;
+
+    if (!hasActiveAds) {
+      // Sans annonces: Accueil(0), Recherches(1), Messages(2), Vendeur(3)
+      // Vérifier si on est dans une conversation (route /conversations/:id)
+      if (location.startsWith('/conversations/')) {
+        return 2; // Messages
+      }
+
+      switch (location) {
+        case '/home':
+          return 0;
+        case '/requests':
+          return 1;
+        case '/messages-clients':
+        case '/conversations':
+          return 2;
+        case '/become-seller':
+        case '/create-advertisement':
+          return 3;
+        default:
+          return 0;
+      }
+    } else {
+      // Avec annonces: Accueil(0), Recherches(1), Notifications(2), Messages(3), Vendeur(4)
+      // Vérifier si on est dans une conversation (route /conversations/:id)
+      if (location.startsWith('/conversations/')) {
+        return 3; // Messages
+      }
+
+      switch (location) {
+        case '/home':
+          return 0;
+        case '/requests':
+          return 1;
+        case '/notifications-particulier':
+          return 2;
+        case '/messages-clients':
+        case '/conversations':
+          return 3;
+        case '/become-seller':
+        case '/create-advertisement':
+          return 4;
+        default:
+          return 0;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Vérifier si le particulier a des annonces actives
+    final hasActiveAdsAsync = ref.watch(hasActiveAdvertisementsProvider);
+    final hasActiveAds = hasActiveAdsAsync.value ?? false;
+
+    // Récupérer le nombre de notifications non lues (si annonces actives)
+    final notificationsState = hasActiveAds
+        ? ref.watch(particulierNotificationsControllerProvider)
+        : null;
+    final unreadNotifications = notificationsState?.mapOrNull(
+          loaded: (state) => state.unreadCount,
+        ) ??
+        0;
+
     return AuthWrapper(
       child: Scaffold(
         body: widget.child,
@@ -86,6 +135,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     label: 'Accueil',
                     route: '/home',
                     index: 0,
+                    hasActiveAds: hasActiveAds,
                   ),
                   _buildNavItem(
                     context: context,
@@ -94,14 +144,28 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     label: 'Recherches',
                     route: '/requests',
                     index: 1,
+                    hasActiveAds: hasActiveAds,
                   ),
+                  // Item conditionnel: Tableau (uniquement si annonces actives)
+                  if (hasActiveAds)
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.insert_chart_outlined,
+                      selectedIcon: Icons.insert_chart_rounded,
+                      label: 'Tableau',
+                      route: '/notifications-particulier',
+                      index: 2,
+                      hasActiveAds: hasActiveAds,
+                      hasUnread: unreadNotifications > 0,
+                    ),
                   _buildNavItem(
                     context: context,
                     icon: Icons.forum_outlined,
                     selectedIcon: Icons.forum_rounded,
                     label: 'Messages',
                     route: '/messages-clients',
-                    index: 2,
+                    index: hasActiveAds ? 3 : 2,
+                    hasActiveAds: hasActiveAds,
                     hasUnread: ref
                             .watch(particulierConversationsControllerProvider)
                             .unreadCount >
@@ -113,7 +177,8 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                     selectedIcon: Icons.storefront_rounded,
                     label: 'Vendeur',
                     route: '/become-seller',
-                    index: 3,
+                    index: hasActiveAds ? 4 : 3,
+                    hasActiveAds: hasActiveAds,
                   ),
                 ],
               ),
@@ -131,9 +196,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     required String label,
     required String route,
     required int index,
+    required bool hasActiveAds,
     bool hasUnread = false,
   }) {
-    final isSelected = _getCurrentIndex(context) == index;
+    final isSelected = _getCurrentIndex(context, hasActiveAds) == index;
 
     return Expanded(
       child: Material(

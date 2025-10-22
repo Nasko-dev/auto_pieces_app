@@ -17,6 +17,8 @@ class ParticulierConversation with _$ParticulierConversation {
     required ConversationStatus status,
     @Default(false) bool hasUnreadMessages,
     @Default(0) int unreadCount,
+    // Nouveau: indique si le particulier est le demandeur (true) ou le répondeur (false)
+    @Default(true) bool isRequester,
     double? latestOfferPrice,
     int? latestOfferDeliveryDays,
     DateTime? createdAt,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/device_service.dart';
@@ -188,18 +189,58 @@ class PartAdvertisementRemoteDataSourceImpl
     Map<String, dynamic> updates,
   ) async {
     try {
-      final response = await client
-          .from('part_advertisements')
-          .update({
-            ...updates,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', id)
-          .select()
-          .single();
+      debugPrint('📡 [DataSource] Début updatePartAdvertisement');
+      debugPrint('📡 [DataSource] ID: $id');
+      debugPrint('📡 [DataSource] Updates: $updates');
 
-      return PartAdvertisementModel.fromSupabase(response);
+      // Récupérer le device_id
+      final deviceId = await deviceService.getDeviceId();
+      debugPrint('📡 [DataSource] Device ID: $deviceId');
+
+      // Convertir les updates en JSONB
+      final updatesJson = updates.map((key, value) {
+        if (value is DateTime) {
+          return MapEntry(key, value.toIso8601String());
+        }
+        return MapEntry(key, value);
+      });
+      debugPrint('📡 [DataSource] Updates JSON: $updatesJson');
+
+      // Utiliser la fonction SQL qui bypass RLS de manière sécurisée
+      final response = await client.rpc(
+        'update_part_advertisement_by_device',
+        params: {
+          'p_ad_id': id,
+          'p_device_id': deviceId,
+          'p_updates': updatesJson,
+        },
+      );
+      debugPrint('📡 [DataSource] Réponse RPC reçue: $response');
+
+      if (response == null) {
+        debugPrint('❌ [DataSource] Réponse null');
+        throw ServerException('Aucune réponse de la fonction');
+      }
+
+      // La fonction retourne un tableau d'objets
+      final responseList = response as List<dynamic>;
+      debugPrint(
+          '📡 [DataSource] Response list length: ${responseList.length}');
+
+      if (responseList.isEmpty) {
+        debugPrint(
+            '❌ [DataSource] Liste vide - annonce non trouvée ou non autorisée');
+        throw ServerException(
+            'Vous n\'êtes pas autorisé à modifier cette annonce ou elle n\'existe pas');
+      }
+
+      // Convertir le premier (et seul) élément en PartAdvertisementModel
+      final adData = responseList.first as Map<String, dynamic>;
+      debugPrint('✅ [DataSource] Données annonce récupérées: ${adData['id']}');
+
+      return PartAdvertisementModel.fromSupabase(adData);
     } catch (e) {
+      debugPrint('❌ [DataSource] Exception: $e');
       throw ServerException('Erreur lors de la mise à jour: $e');
     }
   }

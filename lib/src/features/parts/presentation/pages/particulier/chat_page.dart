@@ -25,10 +25,12 @@ import '../../../../../core/theme/app_theme.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
+  final String? prefilledMessage;
 
   const ChatPage({
     super.key,
     required this.conversationId,
+    this.prefilledMessage,
   });
 
   @override
@@ -52,6 +54,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Informer le service global que cette conversation est active
     GlobalMessageNotificationService()
         .setActiveConversation(widget.conversationId);
+
+    // Pré-remplir le message si fourni
+    if (widget.prefilledMessage != null) {
+      _messageController.text = widget.prefilledMessage!;
+    }
 
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -140,15 +147,45 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
       final sellerId = convResponse['seller_id'] as String;
 
-      final response = await Supabase.instance.client
+      // Essayer d'abord dans sellers (vendeur pro)
+      final sellerResponse = await Supabase.instance.client
           .from('sellers')
           .select('id, first_name, last_name, company_name, phone, avatar_url')
           .eq('id', sellerId)
-          .limit(1);
+          .maybeSingle();
 
-      if (response.isNotEmpty && mounted) {
+      if (sellerResponse != null && mounted) {
+        // Vendeur pro trouvé
         setState(() {
-          _sellerInfo = response.first;
+          _sellerInfo = sellerResponse;
+          _isLoadingSellerInfo = false;
+        });
+        return;
+      }
+
+      // Si pas trouvé dans sellers, chercher dans particuliers
+      final particulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id, name, device_id')
+          .eq('id', sellerId)
+          .maybeSingle();
+
+      if (particulierResponse != null && mounted) {
+        // Particulier trouvé - formater les données comme un vendeur pour compatibilité
+        setState(() {
+          _sellerInfo = {
+            'id': particulierResponse['id'],
+            'first_name': particulierResponse['name'],
+            'last_name': null,
+            'company_name': null,
+            'phone': null,
+            'avatar_url': null,
+            'is_particulier': true, // Flag pour identifier un particulier
+          };
+          _isLoadingSellerInfo = false;
+        });
+      } else if (mounted) {
+        setState(() {
           _isLoadingSellerInfo = false;
         });
       }
@@ -472,13 +509,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  void _sendMessage(String content) {
+  void _sendMessage(String content) async {
     if (content.trim().isEmpty) return;
 
-    ref.read(conversationsControllerProvider.notifier).sendMessage(
+    await ref.read(conversationsControllerProvider.notifier).sendMessage(
           conversationId: widget.conversationId,
           content: content.trim(),
         );
+
+    // Invalider le provider de la liste des conversations pour rafraîchir l'affichage
+    ref.invalidate(particulierConversationsControllerProvider);
 
     _messageController.clear();
   }
@@ -670,6 +710,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final companyName = _sellerInfo?['company_name'];
     final firstName = _sellerInfo?['first_name'];
     final lastName = _sellerInfo?['last_name'];
+    final isParticulier = _sellerInfo?['is_particulier'] == true;
 
     if (companyName != null && companyName.isNotEmpty) {
       return companyName;
@@ -679,7 +720,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         conversation!.sellerName!.isNotEmpty) {
       return conversation!.sellerName!;
     } else {
-      return 'Vendeur Professionnel';
+      // Si on sait que c'est un particulier, afficher "Particulier", sinon "Vendeur Professionnel"
+      return isParticulier ? 'Particulier' : 'Vendeur Professionnel';
     }
   }
 
