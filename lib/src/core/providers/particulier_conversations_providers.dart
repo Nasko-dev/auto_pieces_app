@@ -191,11 +191,23 @@ class ParticulierConversationsController
                   lastLoadedAt: DateTime.now(), // ✅ CACHE: Timestamp du chargement
                 );
 
-                // 3. Précharger les "Annonces" après 2 secondes si elles existent
-                if (counts['annonces'] != null && counts['annonces']! > 0) {
+                // 3. Précharger les "Annonces" après 2 secondes si elles existent ET pas déjà chargées
+                final annoncesCount = counts['annonces'] ?? 0;
+                // Vérifier dans l'état actuel combien d'annonces on a déjà
+                final currentAnnoncesLoaded = state.conversations.where((c) => !c.isRequester).length;
+
+                debugPrint('📊 [Preload] Annonces count: $annoncesCount, déjà chargées: $currentAnnoncesLoaded');
+
+                if (annoncesCount > 0 && currentAnnoncesLoaded == 0) {
+                  // Précharger seulement si aucune annonce n'est encore chargée
                   Future.delayed(const Duration(seconds: 2), () {
-                    _preloadAnnonces(demandes);
+                    if (mounted) {
+                      debugPrint('🔄 [Preload] Lancement préchargement annonces');
+                      _preloadAnnonces(demandes);
+                    }
                   });
+                } else {
+                  debugPrint('⏭️ [Preload] Skip préchargement, annonces déjà présentes');
                 }
               }
             },
