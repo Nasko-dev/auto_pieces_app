@@ -20,12 +20,16 @@ class ConversationsListPage extends ConsumerStatefulWidget {
       _ConversationsListPageState();
 }
 
-class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
+class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
+    with SingleTickerProviderStateMixin {
   bool _showOnlyUnread = false;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+
     // Charger les conversations au démarrage et initialiser le realtime
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller =
@@ -35,6 +39,12 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
       _initializeRealtimeWithCorrectIds(controller);
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
@@ -76,20 +86,18 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(particulierConversationsControllerProvider);
-    final allConversationGroups =
-        ref.watch(particulierConversationGroupsProvider);
+    final demandesGroups = ref.watch(demandesConversationGroupsProvider);
+    final annoncesGroups = ref.watch(annoncesConversationGroupsProvider);
     final isLoading = state.isLoading;
     final error = state.error;
 
-    // Filtrer les groupes selon le filtre actif
-    final conversationGroups = _showOnlyUnread
-        ? allConversationGroups
-            .where((group) => group.hasUnreadMessages)
-            .toList()
-        : allConversationGroups;
+    final hasDemandes = demandesGroups.isNotEmpty;
+    final hasAnnonces = annoncesGroups.isNotEmpty;
+    final showTabs = hasDemandes && hasAnnonces;
 
     // Calculer le nombre total de messages non lus
-    final totalUnreadCount = allConversationGroups.fold<int>(
+    final allGroups = ref.watch(particulierConversationGroupsProvider);
+    final totalUnreadCount = allGroups.fold<int>(
       0,
       (sum, group) => sum + group.totalUnreadCount,
     );
@@ -111,7 +119,19 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               const AppMenu(),
             ],
           ),
-          // Widget de filtres (Tous / Non lus)
+          // TabBar conditionnelle (seulement si les 2 types existent)
+          if (showTabs)
+            TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: const [
+                Tab(text: 'Demandes'),
+                Tab(text: 'Annonces'),
+              ],
+            ),
+          // Widget de filtres (Tous / Non lus) - EN DESSOUS des onglets
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: ConversationFilterChips(
@@ -131,7 +151,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                     .read(particulierConversationsControllerProvider.notifier)
                     .loadConversations();
               },
-              child: _buildBody(conversationGroups, isLoading, error),
+              child: showTabs
+                  ? _buildTabBarView(
+                      demandesGroups, annoncesGroups, isLoading, error)
+                  : _buildSingleList(
+                      hasDemandes ? demandesGroups : annoncesGroups,
+                      isLoading,
+                      error),
             ),
           ),
         ],
@@ -139,7 +165,33 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
-  Widget _buildBody(List conversationGroups, bool isLoading, String? error) {
+  Widget _buildTabBarView(
+      List demandesGroups, List annoncesGroups, bool isLoading, String? error) {
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        // Onglet Demandes
+        _buildConversationList(_filterByUnread(demandesGroups), isLoading, error),
+        // Onglet Annonces
+        _buildConversationList(_filterByUnread(annoncesGroups), isLoading, error),
+      ],
+    );
+  }
+
+  Widget _buildSingleList(
+      List conversationGroups, bool isLoading, String? error) {
+    return _buildConversationList(
+        _filterByUnread(conversationGroups), isLoading, error);
+  }
+
+  List _filterByUnread(List groups) {
+    return _showOnlyUnread
+        ? groups.where((group) => group.hasUnreadMessages).toList()
+        : groups;
+  }
+
+  Widget _buildConversationList(
+      List conversationGroups, bool isLoading, String? error) {
     if (isLoading && conversationGroups.isEmpty) {
       return const Center(
         child: Column(

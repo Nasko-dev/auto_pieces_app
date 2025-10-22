@@ -333,3 +333,41 @@ final particulierConversationUnreadCountProvider =
     return 0;
   }
 });
+
+// Provider pour les conversations "Demandes" (isRequester = true)
+final demandesConversationsProvider = Provider((ref) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+
+  return conversationsState.conversations
+      .where((conv) => conv.isRequester)
+      .toList();
+});
+
+// Provider pour les conversations "Annonces" (isRequester = false)
+final annoncesConversationsProvider = Provider((ref) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+
+  return conversationsState.conversations
+      .where((conv) => !conv.isRequester)
+      .toList();
+});
+
+// Provider pour les groupes "Demandes"
+final demandesConversationGroupsProvider = Provider((ref) {
+  final demandesConversations = ref.watch(demandesConversationsProvider);
+  final groupingService =
+      ref.watch(particulierConversationGroupingServiceProvider);
+
+  return groupingService.groupConversations(demandesConversations);
+});
+
+// Provider pour les groupes "Annonces"
+final annoncesConversationGroupsProvider = Provider((ref) {
+  final annoncesConversations = ref.watch(annoncesConversationsProvider);
+  final groupingService =
+      ref.watch(particulierConversationGroupingServiceProvider);
+
+  return groupingService.groupConversations(annoncesConversations);
+});
