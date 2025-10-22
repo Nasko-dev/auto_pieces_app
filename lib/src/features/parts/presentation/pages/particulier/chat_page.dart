@@ -156,6 +156,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
       if (sellerResponse != null && mounted) {
         // Vendeur pro trouvé
+        debugPrint(
+            '✅ Vendeur pro trouvé: ${sellerResponse['company_name'] ?? '${sellerResponse['first_name']} ${sellerResponse['last_name']}'}');
+        debugPrint('   Avatar URL: ${sellerResponse['avatar_url']}');
         setState(() {
           _sellerInfo = sellerResponse;
           _isLoadingSellerInfo = false;
@@ -166,25 +169,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       // Si pas trouvé dans sellers, chercher dans particuliers
       final particulierResponse = await Supabase.instance.client
           .from('particuliers')
-          .select('id, name, device_id')
+          .select('id, first_name, last_name, phone, avatar_url, device_id')
           .eq('id', sellerId)
           .maybeSingle();
 
       if (particulierResponse != null && mounted) {
         // Particulier trouvé - formater les données comme un vendeur pour compatibilité
+        debugPrint(
+            '✅ Particulier trouvé: ${particulierResponse['first_name']} ${particulierResponse['last_name']}');
+        debugPrint('   Avatar URL: ${particulierResponse['avatar_url']}');
         setState(() {
           _sellerInfo = {
             'id': particulierResponse['id'],
-            'first_name': particulierResponse['name'],
-            'last_name': null,
+            'first_name': particulierResponse['first_name'],
+            'last_name': particulierResponse['last_name'],
             'company_name': null,
-            'phone': null,
-            'avatar_url': null,
+            'phone': particulierResponse['phone'],
+            'avatar_url': particulierResponse['avatar_url'],
             'is_particulier': true, // Flag pour identifier un particulier
           };
           _isLoadingSellerInfo = false;
         });
       } else if (mounted) {
+        debugPrint(
+            '⚠️ Aucun vendeur/particulier trouvé pour sellerId: $sellerId');
         setState(() {
           _isLoadingSellerInfo = false;
         });
@@ -638,6 +646,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final avatarUrl =
         _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
 
+    debugPrint('🖼️ Avatar URL: $avatarUrl');
+    debugPrint('   _sellerInfo avatar: ${_sellerInfo?['avatar_url']}');
+    debugPrint('   conversation avatar: ${conversation?.sellerAvatarUrl}');
+
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
       return Container(
@@ -706,23 +718,40 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   String _getSellerDisplayName(dynamic conversation) {
-    // Priorité : données chargées directement > données de conversation
+    // Priorité 1 : données chargées en direct (_sellerInfo)
     final companyName = _sellerInfo?['company_name'];
     final firstName = _sellerInfo?['first_name'];
     final lastName = _sellerInfo?['last_name'];
     final isParticulier = _sellerInfo?['is_particulier'] == true;
 
     if (companyName != null && companyName.isNotEmpty) {
+      debugPrint('📝 Nom vendeur (company): $companyName');
       return companyName;
-    } else if (firstName != null || lastName != null) {
-      return '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    } else if (firstName != null && firstName.isNotEmpty) {
+      final fullName = (lastName != null && lastName.isNotEmpty)
+          ? '$firstName $lastName'
+          : firstName;
+      debugPrint('📝 Nom vendeur (prénom/nom): $fullName');
+      return fullName;
+    }
+
+    // Priorité 2 : données de la conversation (fallback)
+    if (conversation?.sellerCompany != null &&
+        conversation!.sellerCompany!.isNotEmpty) {
+      debugPrint(
+          '📝 Nom vendeur (conversation company): ${conversation!.sellerCompany}');
+      return conversation!.sellerCompany!;
     } else if (conversation?.sellerName != null &&
         conversation!.sellerName!.isNotEmpty) {
+      debugPrint(
+          '📝 Nom vendeur (conversation name): ${conversation!.sellerName}');
       return conversation!.sellerName!;
-    } else {
-      // Si on sait que c'est un particulier, afficher "Particulier", sinon "Vendeur Professionnel"
-      return isParticulier ? 'Particulier' : 'Vendeur Professionnel';
     }
+
+    // Priorité 3 : valeur par défaut selon le type
+    final defaultName = isParticulier ? 'Particulier' : 'Vendeur Professionnel';
+    debugPrint('📝 Nom vendeur (défaut): $defaultName');
+    return defaultName;
   }
 
   Future<void> _makePhoneCall(dynamic conversation) async {
