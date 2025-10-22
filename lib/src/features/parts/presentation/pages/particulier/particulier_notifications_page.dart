@@ -98,7 +98,7 @@ class _ParticulierNotificationsPageState
           icon: const Icon(Icons.chevron_left, color: AppTheme.white),
           onPressed: () {
             HapticHelper.light();
-            context.pop();
+            context.go('/home');
           },
         ),
         title: const Text(
@@ -244,7 +244,7 @@ class _ParticulierNotificationsPageState
           ElevatedButton.icon(
             onPressed: () {
               HapticHelper.light();
-              context.pop();
+              context.go('/home');
             },
             icon: const Icon(Icons.chevron_left),
             label: const Text('Retour'),
@@ -414,13 +414,6 @@ class _ParticulierNotificationsPageState
       debugPrint('   - User ID: ${conversation.userId}');
       debugPrint('   - Seller ID: ${conversation.sellerId}');
 
-      // Refresh immédiat pour retirer la demande de la liste
-      debugPrint('🔄 [ParticulierNotifications] Refresh des notifications (avant navigation)');
-      ref.read(particulierNotificationsControllerProvider.notifier).refresh();
-
-      // Petit délai pour laisser le refresh s'exécuter
-      await Future.delayed(const Duration(milliseconds: 300));
-
       if (!mounted) {
         debugPrint(
             '⚠️ [ParticulierNotifications] Widget non monté, abandon navigation');
@@ -444,6 +437,9 @@ class _ParticulierNotificationsPageState
       context.push(
         '/conversations/${conversation.id}?prefilled=$encodedMessage',
       );
+
+      debugPrint('🔄 [ParticulierNotifications] Refresh des notifications');
+      ref.read(particulierNotificationsControllerProvider.notifier).refresh();
 
       debugPrint('✅ [ParticulierNotifications] Fin _acceptAndRespond - Succès');
     } catch (e, stackTrace) {
