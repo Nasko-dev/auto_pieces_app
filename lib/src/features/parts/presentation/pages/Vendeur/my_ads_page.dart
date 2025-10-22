@@ -719,6 +719,11 @@ class _AdvertisementCard extends ConsumerWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+
+            const SizedBox(height: 12),
+
+            // Indicateur de stock
+            _buildStockIndicator(advertisement),
           ],
         ),
       ),
@@ -758,6 +763,84 @@ class _AdvertisementCard extends ConsumerWidget {
     } else {
       return '${difference.inMinutes}min';
     }
+  }
+
+  Widget _buildStockIndicator(PartAdvertisement ad) {
+    Color stockColor;
+    IconData stockIcon;
+    String stockText;
+    Color backgroundColor;
+
+    // Déterminer le statut du stock
+    if (ad.stockType == 'unlimited') {
+      stockColor = AppTheme.success;
+      backgroundColor = AppTheme.success.withValues(alpha: 0.1);
+      stockIcon = Icons.all_inclusive;
+      stockText = 'Stock illimité';
+    } else if (ad.isOutOfStock) {
+      stockColor = AppTheme.error;
+      backgroundColor = AppTheme.error.withValues(alpha: 0.1);
+      stockIcon = Icons.remove_circle_outline;
+      stockText = 'Épuisé';
+    } else if (ad.isLowStock) {
+      stockColor = AppTheme.warning;
+      backgroundColor = AppTheme.warning.withValues(alpha: 0.1);
+      stockIcon = Icons.warning_amber;
+      stockText = 'Stock bas (${ad.availableQuantity})';
+    } else {
+      stockColor = AppTheme.success;
+      backgroundColor = AppTheme.success.withValues(alpha: 0.1);
+      stockIcon = Icons.check_circle_outline;
+      stockText = ad.stockType == 'single'
+        ? 'En stock'
+        : 'En stock (${ad.availableQuantity})';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: stockColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(stockIcon, color: stockColor, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            stockText,
+            style: TextStyle(
+              color: stockColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          // Afficher info réservation si applicable
+          if (ad.reservedQuantity > 0 && ad.stockType != 'unlimited') ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '${ad.reservedQuantity} réservé${ad.reservedQuantity > 1 ? 's' : ''}',
+                style: TextStyle(
+                  color: stockColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
