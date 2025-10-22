@@ -346,8 +346,33 @@ class _ParticulierNotificationsPageState
         return;
       }
 
+      // Charger les infos du particulier répondeur depuis la base de données
       String sellerName = 'Particulier';
       String? sellerCompany;
+
+      try {
+        final particulierInfo = await Supabase.instance.client
+            .from('particuliers')
+            .select('first_name, last_name')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (particulierInfo != null) {
+          final firstName = particulierInfo['first_name'];
+          final lastName = particulierInfo['last_name'];
+          if (firstName != null || lastName != null) {
+            sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+            if (sellerName.isEmpty) {
+              sellerName = 'Particulier';
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint(
+            '⚠️ [ParticulierNotifications] Erreur chargement nom particulier: $e');
+        // Garder la valeur par défaut
+      }
+
       debugPrint('📝 [ParticulierNotifications] Seller name: $sellerName');
 
       final dataSource = ConversationsRemoteDataSourceImpl(
