@@ -43,7 +43,8 @@ void main() {
   );
 
   group('GetSellerSettings', () {
-    test('doit retourner SellerSettings quand les paramètres existent', () async {
+    test('doit retourner SellerSettings quand les paramètres existent',
+        () async {
       // arrange
       when(mockRepository.getSellerSettings(tSellerId))
           .thenAnswer((_) async => Right(tSellerSettings));
@@ -74,10 +75,11 @@ void main() {
       verify(mockRepository.getSellerSettings(tSellerId));
     });
 
-    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.getSellerSettings(tSellerId))
-          .thenAnswer((_) async => const Left(AuthFailure('Vendeur non connecté')));
+      when(mockRepository.getSellerSettings(tSellerId)).thenAnswer(
+          (_) async => const Left(AuthFailure('Vendeur non connecté')));
 
       // act
       final result = await usecase(tSellerId);
@@ -87,10 +89,11 @@ void main() {
       verify(mockRepository.getSellerSettings(tSellerId));
     });
 
-    test('doit retourner ValidationFailure quand le vendeur n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand le vendeur n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.getSellerSettings(tSellerId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Vendeur non trouvé')));
+      when(mockRepository.getSellerSettings(tSellerId)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Vendeur non trouvé')));
 
       // act
       final result = await usecase(tSellerId);
@@ -113,10 +116,11 @@ void main() {
       verify(mockRepository.getSellerSettings(tSellerId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getSellerSettings(tSellerId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getSellerSettings(tSellerId)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tSellerId);
@@ -135,7 +139,8 @@ void main() {
       await usecase(tSellerId);
 
       // assert
-      final captured = verify(mockRepository.getSellerSettings(captureAny)).captured;
+      final captured =
+          verify(mockRepository.getSellerSettings(captureAny)).captured;
       expect(captured.first, tSellerId);
     });
 
@@ -164,7 +169,8 @@ void main() {
       );
     });
 
-    test('doit retourner les paramètres avec toutes les propriétés correctes', () async {
+    test('doit retourner les paramètres avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getSellerSettings(tSellerId))
           .thenAnswer((_) async => Right(tSellerSettings));
@@ -243,7 +249,8 @@ void main() {
       );
     });
 
-    test('doit gérer les paramètres avec statuts de vérification différents', () async {
+    test('doit gérer les paramètres avec statuts de vérification différents',
+        () async {
       // arrange
       final unverifiedSettings = SellerSettings(
         sellerId: tSellerId,
@@ -288,7 +295,8 @@ void main() {
       );
     });
 
-    test('doit gérer les paramètres avec différents niveaux de notifications', () async {
+    test('doit gérer les paramètres avec différents niveaux de notifications',
+        () async {
       // arrange
       final allNotificationsSettings = SellerSettings(
         sellerId: tSellerId,
@@ -354,8 +362,10 @@ void main() {
       const seller1Id = 'seller1';
       const seller2Id = 'seller2';
 
-      final settings1 = SellerSettings(sellerId: seller1Id, email: 'seller1@example.com');
-      final settings2 = SellerSettings(sellerId: seller2Id, email: 'seller2@example.com');
+      final settings1 =
+          SellerSettings(sellerId: seller1Id, email: 'seller1@example.com');
+      final settings2 =
+          SellerSettings(sellerId: seller2Id, email: 'seller2@example.com');
 
       when(mockRepository.getSellerSettings(seller1Id))
           .thenAnswer((_) async => Right(settings1));
@@ -373,7 +383,8 @@ void main() {
       verify(mockRepository.getSellerSettings(seller2Id));
     });
 
-    test('doit retourner les mêmes paramètres à chaque appel (cohérence)', () async {
+    test('doit retourner les mêmes paramètres à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.getSellerSettings(tSellerId))
           .thenAnswer((_) async => Right(tSellerSettings));
@@ -398,7 +409,8 @@ void main() {
       ];
 
       for (final validId in validIds) {
-        final settings = SellerSettings(sellerId: validId, email: '$validId@example.com');
+        final settings =
+            SellerSettings(sellerId: validId, email: '$validId@example.com');
         when(mockRepository.getSellerSettings(validId))
             .thenAnswer((_) async => Right(settings));
 
@@ -408,7 +420,8 @@ void main() {
       }
     });
 
-    test('doit gérer les paramètres avec informations de société complètes', () async {
+    test('doit gérer les paramètres avec informations de société complètes',
+        () async {
       // arrange
       final companySettings = SellerSettings(
         sellerId: tSellerId,

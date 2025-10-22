@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/haptic_helper.dart';
+import '../../../../../core/constants/app_constants.dart';
 
 class HelpPage extends ConsumerWidget {
   const HelpPage({super.key});
@@ -38,9 +40,9 @@ class HelpPage extends ConsumerWidget {
           children: [
             // Section principale
             _buildWelcomeCard(),
-            
+
             const SizedBox(height: 24),
-            
+
             // FAQ Sections
             _buildFAQSection(
               'Comment ça marche ?',
@@ -60,9 +62,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Gestion des demandes',
               Icons.description_outlined,
@@ -81,9 +83,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Messagerie',
               Icons.chat_bubble_outline,
@@ -98,9 +100,9 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildFAQSection(
               'Sécurité et paiement',
               Icons.security_outlined,
@@ -119,12 +121,17 @@ class HelpPage extends ConsumerWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Contact Support
             _buildContactCard(),
-            
+
+            const SizedBox(height: 20),
+
+            // Legal Section
+            _buildLegalCard(context),
+
             const SizedBox(height: 20),
           ],
         ),
@@ -355,6 +362,139 @@ class HelpPage extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLegalCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.privacy_tip_outlined,
+                  color: AppTheme.primaryBlue,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Informations légales',
+                  style: TextStyle(
+                    color: AppTheme.darkBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Consultez nos politiques et conditions d\'utilisation',
+            style: TextStyle(
+              color: AppTheme.gray,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Privacy Policy button
+          _buildLegalButton(
+            context: context,
+            icon: Icons.shield_outlined,
+            title: 'Politique de confidentialité',
+            onTap: () {
+              HapticHelper.selection();
+              context.push('/privacy');
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Terms of Service button
+          _buildLegalButton(
+            context: context,
+            icon: Icons.description_outlined,
+            title: 'Conditions générales',
+            onTap: () async {
+              HapticHelper.selection();
+              final uri = Uri.parse(AppConstants.termsOfServiceUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalButton({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.lightGray.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.gray.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: AppTheme.primaryBlue,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: AppTheme.darkBlue,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppTheme.gray,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }

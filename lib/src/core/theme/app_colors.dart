@@ -6,11 +6,11 @@ class AppColors {
   static const Color success = Color(0xFF34C759);
   static const Color warning = Color(0xFFFF9500);
   static const Color error = Color(0xFFFF3B30);
-  
+
   static const Color background = Color(0xFFF2F2F7);
   static const Color surface = Colors.white;
   static const Color onSurface = Color(0xFF1C1C1E);
-  
+
   static const Color grey100 = Color(0xFFF2F2F7);
   static const Color grey200 = Color(0xFFE5E5EA);
   static const Color grey300 = Color(0xFFD1D1D6);

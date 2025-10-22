@@ -252,8 +252,10 @@ void main() {
     group('Error handling', () {
       test('should handle repository contract correctly', () {
         // Verify all methods return Either<Failure, T>
-        expect(repository.loginAsParticulier(), isA<Future<Either<Failure, User>>>());
-        expect(repository.getCurrentUser(), isA<Future<Either<Failure, User>>>());
+        expect(repository.loginAsParticulier(),
+            isA<Future<Either<Failure, User>>>());
+        expect(
+            repository.getCurrentUser(), isA<Future<Either<Failure, User>>>());
         expect(repository.logout(), isA<Future<Either<Failure, void>>>());
         expect(repository.isLoggedIn(), isA<Future<Either<Failure, bool>>>());
       });

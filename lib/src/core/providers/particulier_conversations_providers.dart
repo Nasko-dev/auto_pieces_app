@@ -21,10 +21,12 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     String? activeConversationId,
   }) = _ParticulierConversationsState;
 
-  int get unreadCount => conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
+  int get unreadCount =>
+      conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
 }
 
-class ParticulierConversationsController extends StateNotifier<ParticulierConversationsState> {
+class ParticulierConversationsController
+    extends StateNotifier<ParticulierConversationsState> {
   final PartRequestRepository _repository;
   final RealtimeService _realtimeService;
   Timer? _pollingTimer;
@@ -35,9 +37,9 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   ParticulierConversationsController({
     required PartRequestRepository repository,
     required RealtimeService realtimeService,
-  }) : _repository = repository,
-       _realtimeService = realtimeService,
-       super(const ParticulierConversationsState()) {
+  })  : _repository = repository,
+        _realtimeService = realtimeService,
+        super(const ParticulierConversationsState()) {
     _initializeRealtimeSubscriptions();
     // Le polling sera démarré dans initializeRealtime() avec les bons IDs
   }
@@ -45,7 +47,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   void _initializeRealtimeSubscriptions() {
     _realtimeService.startSubscriptions();
   }
-  
+
   // Abonnement global aux messages - même structure que le vendeur
   void initializeRealtime(String userId) async {
     if (_isRealtimeInitialized) {
@@ -59,7 +61,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   // S'abonner globalement aux messages - exactement comme le vendeur
   void _subscribeToGlobalMessages(String userId) async {
-    
     // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
     final channel = Supabase.instance.client
         .channel('global_particulier_messages_$userId')
@@ -80,7 +81,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
             loadConversations();
           },
         );
-    
+
     channel.subscribe();
   }
 
@@ -90,8 +91,9 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
-    if (conversationId == null || senderId == null || senderType == null) return;
-
+    if (conversationId == null || senderId == null || senderType == null) {
+      return;
+    }
 
     // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
     if (senderId == userId) {
@@ -114,9 +116,9 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   void _startIntelligentPolling() {
     if (_isPollingActive) return;
-    
+
     _isPollingActive = true;
-    
+
     _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (mounted) {
         _loadConversationsQuietly();
@@ -125,11 +127,10 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> loadConversations() async {
-    
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _repository.getParticulierConversations();
-    
+
     result.fold(
       (failure) {
         if (mounted) {
@@ -140,7 +141,6 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         }
       },
       (conversations) {
-
         if (mounted) {
           state = state.copyWith(
             conversations: conversations,
@@ -154,7 +154,7 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   Future<void> _loadConversationsQuietly() async {
     final result = await _repository.getParticulierConversations();
-    
+
     result.fold(
       (failure) => null,
       (conversations) {
@@ -167,11 +167,10 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
     );
   }
 
-
   Future<void> loadConversationDetails(String conversationId) async {
-    
-    final result = await _repository.getParticulierConversationById(conversationId);
-    
+    final result =
+        await _repository.getParticulierConversationById(conversationId);
+
     result.fold(
       (failure) {
         if (mounted) {
@@ -179,12 +178,11 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
         }
       },
       (conversation) {
-        
         // Mettre à jour la conversation dans la liste
-        final updatedConversations = state.conversations.map((c) => 
-          c.id == conversationId ? conversation : c
-        ).toList();
-        
+        final updatedConversations = state.conversations
+            .map((c) => c.id == conversationId ? conversation : c)
+            .toList();
+
         if (mounted) {
           state = state.copyWith(
             conversations: updatedConversations,
@@ -196,12 +194,11 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> sendMessage(String conversationId, String content) async {
-    
     final result = await _repository.sendParticulierMessage(
       conversationId: conversationId,
       content: content,
     );
-    
+
     result.fold(
       (failure) {
         throw Exception(failure.message);
@@ -215,15 +212,12 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
 
   // ✅ DB-BASED: Marquer conversation comme active et remettre compteur DB à 0
   void markConversationAsRead(String conversationId) {
-
     // Marquer en DB
     _markConversationAsReadInDB(conversationId);
 
     // Marquer comme conversation active
     state = state.copyWith(activeConversationId: conversationId);
-
   }
-
 
   void _incrementUnreadCountForUserOnly(String conversationId) async {
     try {
@@ -260,31 +254,25 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    
     // TODO: Implémenter la suppression côté repository
     // Pour l'instant, on simule en retirant de la liste locale
-    final updatedConversations = state.conversations
-        .where((c) => c.id != conversationId)
-        .toList();
-    
+    final updatedConversations =
+        state.conversations.where((c) => c.id != conversationId).toList();
+
     if (mounted) {
       state = state.copyWith(conversations: updatedConversations);
     }
-    
   }
-  
+
   Future<void> blockConversation(String conversationId) async {
-    
     // TODO: Implémenter le blocage côté repository
     // Pour l'instant, on simule en retirant de la liste locale
-    final updatedConversations = state.conversations
-        .where((c) => c.id != conversationId)
-        .toList();
-    
+    final updatedConversations =
+        state.conversations.where((c) => c.id != conversationId).toList();
+
     if (mounted) {
       state = state.copyWith(conversations: updatedConversations);
     }
-    
   }
 
   @override
@@ -296,12 +284,12 @@ class ParticulierConversationsController extends StateNotifier<ParticulierConver
   }
 }
 
-final particulierConversationsControllerProvider = 
-    StateNotifierProvider<ParticulierConversationsController, ParticulierConversationsState>(
+final particulierConversationsControllerProvider = StateNotifierProvider<
+    ParticulierConversationsController, ParticulierConversationsState>(
   (ref) {
     final repository = ref.read(partRequestRepositoryProvider);
     final realtimeService = ref.read(realtimeServiceProvider);
-    
+
     return ParticulierConversationsController(
       repository: repository,
       realtimeService: realtimeService,

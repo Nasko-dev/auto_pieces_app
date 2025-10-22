@@ -92,7 +92,9 @@ void main() {
         expect(testSeller.displayName, 'Pièces Auto SARL');
       });
 
-      test('should return full name when no company but has first and last name', () {
+      test(
+          'should return full name when no company but has first and last name',
+          () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',
@@ -184,7 +186,8 @@ void main() {
     });
 
     group('hasCompanyInfo getter', () {
-      test('should return true when both companyName and siret are provided', () {
+      test('should return true when both companyName and siret are provided',
+          () {
         expect(testSeller.hasCompanyInfo, true);
       });
 
@@ -210,7 +213,8 @@ void main() {
         expect(seller.hasCompanyInfo, false);
       });
 
-      test('should return false when both companyName and siret are missing', () {
+      test('should return false when both companyName and siret are missing',
+          () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',
@@ -247,7 +251,8 @@ void main() {
     });
 
     group('hasPersonalInfo getter', () {
-      test('should return true when both firstName and lastName are provided', () {
+      test('should return true when both firstName and lastName are provided',
+          () {
         expect(testSeller.hasPersonalInfo, true);
       });
 
@@ -273,7 +278,8 @@ void main() {
         expect(seller.hasPersonalInfo, false);
       });
 
-      test('should return false when both firstName and lastName are missing', () {
+      test('should return false when both firstName and lastName are missing',
+          () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',
@@ -284,7 +290,8 @@ void main() {
         expect(seller.hasPersonalInfo, false);
       });
 
-      test('should return true when firstName and lastName are empty strings', () {
+      test('should return true when firstName and lastName are empty strings',
+          () {
         final seller = testSeller.copyWith(
           firstName: '',
           lastName: '',
@@ -314,7 +321,8 @@ void main() {
         expect(testSeller.isCompleteProfile, true);
       });
 
-      test('should return false when has neither company nor personal info', () {
+      test('should return false when has neither company nor personal info',
+          () {
         final seller = Seller(
           id: 'test-id',
           email: 'test@example.com',

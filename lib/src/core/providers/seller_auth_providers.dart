@@ -17,7 +17,8 @@ final networkInfoProvider = Provider<NetworkInfo>((ref) {
 });
 
 // Data source provider
-final sellerAuthRemoteDataSourceProvider = Provider<SellerAuthRemoteDataSource>((ref) {
+final sellerAuthRemoteDataSourceProvider =
+    Provider<SellerAuthRemoteDataSource>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
   return SellerAuthRemoteDataSourceImpl(supabaseClient);
 });
@@ -25,9 +26,10 @@ final sellerAuthRemoteDataSourceProvider = Provider<SellerAuthRemoteDataSource>(
 // Repository provider
 final sellerAuthRepositoryProvider = Provider<SellerAuthRepository>((ref) {
   final remoteDataSource = ref.watch(sellerAuthRemoteDataSourceProvider);
-  final particulierLocalDataSource = ref.watch(particulierAuthLocalDataSourceProvider);
+  final particulierLocalDataSource =
+      ref.watch(particulierAuthLocalDataSourceProvider);
   final networkInfo = ref.watch(networkInfoProvider);
-  
+
   return SellerAuthRepositoryImpl(
     remoteDataSource: remoteDataSource,
     particulierLocalDataSource: particulierLocalDataSource,
@@ -46,13 +48,11 @@ final currentSellerProvider = FutureProvider<Seller?>((ref) async {
   final supabaseClient = ref.watch(supabaseClientProvider);
   final repository = ref.watch(sellerAuthRepositoryProvider);
 
-
   // Vérifier s'il y a un utilisateur connecté
   final currentUser = supabaseClient.auth.currentUser;
   if (currentUser == null) {
     return null;
   }
-
 
   try {
     final result = await repository.getCurrentSeller();
@@ -70,8 +70,8 @@ final currentSellerProvider = FutureProvider<Seller?>((ref) async {
 });
 
 // Provider alternatif - test direct
-final currentSellerProviderAlt = FutureProvider.autoDispose<Seller?>((ref) async {
-
+final currentSellerProviderAlt =
+    FutureProvider.autoDispose<Seller?>((ref) async {
   final supabaseClient = ref.watch(supabaseClientProvider);
   final repository = ref.watch(sellerAuthRepositoryProvider);
 
@@ -79,7 +79,6 @@ final currentSellerProviderAlt = FutureProvider.autoDispose<Seller?>((ref) async
   if (currentUser == null) {
     return null;
   }
-
 
   final result = await repository.getCurrentSeller();
   return result.fold(

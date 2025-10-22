@@ -22,7 +22,8 @@ abstract class BaseConversationController<T> extends StateNotifier<T> {
     }
 
     _isPollingActive = true;
-    Logger.info('⏰ ${logPrefix ?? "Controller"}: Démarrage polling ($interval)');
+    Logger.info(
+        '⏰ ${logPrefix ?? "Controller"}: Démarrage polling ($interval)');
 
     _pollingTimer = Timer.periodic(interval, (timer) async {
       if (mounted) {

@@ -125,8 +125,10 @@ void main() {
 
         expect(model.createdAt, equals(testCreatedAt));
         expect(model.updatedAt, equals(testUpdatedAt));
-        expect(model.createdAt.toIso8601String(), testCreatedAt.toIso8601String());
-        expect(model.updatedAt!.toIso8601String(), testUpdatedAt.toIso8601String());
+        expect(
+            model.createdAt.toIso8601String(), testCreatedAt.toIso8601String());
+        expect(model.updatedAt!.toIso8601String(),
+            testUpdatedAt.toIso8601String());
       });
     });
 

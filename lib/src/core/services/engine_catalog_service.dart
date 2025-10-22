@@ -32,7 +32,8 @@ class EngineCatalogService {
           .map((item) => item['fuel_type'] as String)
           .toList();
     } catch (e) {
-      throw Exception('Erreur lors de la récupération des types de carburant: $e');
+      throw Exception(
+          'Erreur lors de la récupération des types de carburant: $e');
     }
   }
 
@@ -52,14 +53,12 @@ class EngineCatalogService {
 
       if (response == null) return [];
 
-      return (response as List)
-          .map((item) {
-            final engineCode = item['engine_code'] as String;
-            final power = item['power'] as int?;
-            // Formater: "2.0 TDI (150 cv)" ou "2.0 TDI" si pas de puissance
-            return power != null ? '$engineCode ($power cv)' : engineCode;
-          })
-          .toList();
+      return (response as List).map((item) {
+        final engineCode = item['engine_code'] as String;
+        final power = item['power'] as int?;
+        // Formater: "2.0 TDI (150 cv)" ou "2.0 TDI" si pas de puissance
+        return power != null ? '$engineCode ($power cv)' : engineCode;
+      }).toList();
     } catch (e) {
       throw Exception('Erreur lors de la récupération des moteurs: $e');
     }

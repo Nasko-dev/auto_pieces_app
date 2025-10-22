@@ -60,7 +60,10 @@ void main() {
         final dio = dioClient.dio;
 
         expect(dio.interceptors.length, greaterThan(0));
-        expect(dio.interceptors.any((interceptor) => interceptor is LogInterceptor), isTrue);
+        expect(
+            dio.interceptors
+                .any((interceptor) => interceptor is LogInterceptor),
+            isTrue);
       });
     });
 
@@ -118,11 +121,13 @@ void main() {
         );
       });
 
-      test('should not throw when removing non-existent Authorization header', () {
+      test('should not throw when removing non-existent Authorization header',
+          () {
         expect(() => dioClient.removeAuthToken(), returnsNormally);
       });
 
-      test('should only remove Authorization header and keep other headers', () {
+      test('should only remove Authorization header and keep other headers',
+          () {
         const testToken = 'test-token';
 
         // Set auth token
@@ -130,16 +135,21 @@ void main() {
 
         // Verify initial state
         expect(dioClient.dio.options.headers['Authorization'], isNotNull);
-        expect(dioClient.dio.options.headers['Content-Type'], equals('application/json'));
-        expect(dioClient.dio.options.headers['Accept'], equals('application/json'));
+        expect(dioClient.dio.options.headers['Content-Type'],
+            equals('application/json'));
+        expect(dioClient.dio.options.headers['Accept'],
+            equals('application/json'));
 
         // Remove auth token
         dioClient.removeAuthToken();
 
         // Verify only Authorization was removed
-        expect(dioClient.dio.options.headers.containsKey('Authorization'), isFalse);
-        expect(dioClient.dio.options.headers['Content-Type'], equals('application/json'));
-        expect(dioClient.dio.options.headers['Accept'], equals('application/json'));
+        expect(dioClient.dio.options.headers.containsKey('Authorization'),
+            isFalse);
+        expect(dioClient.dio.options.headers['Content-Type'],
+            equals('application/json'));
+        expect(dioClient.dio.options.headers['Accept'],
+            equals('application/json'));
       });
     });
 
@@ -154,8 +164,10 @@ void main() {
         dioClient.removeAuthToken();
 
         // Verify default headers are still intact
-        expect(dioClient.dio.options.headers['Content-Type'], equals('application/json'));
-        expect(dioClient.dio.options.headers['Accept'], equals('application/json'));
+        expect(dioClient.dio.options.headers['Content-Type'],
+            equals('application/json'));
+        expect(dioClient.dio.options.headers['Accept'],
+            equals('application/json'));
       });
     });
 
@@ -172,8 +184,10 @@ void main() {
 
         // Verify base configuration unchanged
         expect(dioClient.dio.options.baseUrl, equals(originalBaseUrl));
-        expect(dioClient.dio.options.connectTimeout, equals(originalConnectTimeout));
-        expect(dioClient.dio.options.receiveTimeout, equals(originalReceiveTimeout));
+        expect(dioClient.dio.options.connectTimeout,
+            equals(originalConnectTimeout));
+        expect(dioClient.dio.options.receiveTimeout,
+            equals(originalReceiveTimeout));
       });
     });
   });

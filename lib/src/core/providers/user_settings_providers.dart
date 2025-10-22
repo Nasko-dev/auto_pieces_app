@@ -15,7 +15,8 @@ final deviceServiceProvider = Provider<DeviceService>((ref) {
 });
 
 // DataSource
-final userSettingsRemoteDataSourceProvider = Provider<UserSettingsRemoteDataSource>((ref) {
+final userSettingsRemoteDataSourceProvider =
+    Provider<UserSettingsRemoteDataSource>((ref) {
   return UserSettingsRemoteDataSourceImpl(
     Supabase.instance.client,
     ref.watch(deviceServiceProvider),
@@ -55,8 +56,8 @@ final particulierProfileStatusProvider = FutureProvider<bool>((ref) async {
 
       final displayName = settings.displayName;
       return displayName == null ||
-             displayName.isEmpty ||
-             displayName == 'Utilisateur';
+          displayName.isEmpty ||
+          displayName == 'Utilisateur';
     },
   );
 });
@@ -77,15 +78,14 @@ final particulierSettingsStatusProvider = FutureProvider<bool>((ref) async {
 
       // Vérifier la localisation (adresse ET ville ET code postal)
       final hasLocation = settings.address != null &&
-                         settings.address!.isNotEmpty &&
-                         settings.city != null &&
-                         settings.city!.isNotEmpty &&
-                         settings.postalCode != null &&
-                         settings.postalCode!.isNotEmpty;
+          settings.address!.isNotEmpty &&
+          settings.city != null &&
+          settings.city!.isNotEmpty &&
+          settings.postalCode != null &&
+          settings.postalCode!.isNotEmpty;
 
       // Vérifier le téléphone
-      final hasPhone = settings.phone != null &&
-                      settings.phone!.isNotEmpty;
+      final hasPhone = settings.phone != null && settings.phone!.isNotEmpty;
 
       // Retourner true si une des informations manque
       return !hasLocation || !hasPhone;
@@ -95,8 +95,10 @@ final particulierSettingsStatusProvider = FutureProvider<bool>((ref) async {
 
 /// Provider combiné pour vérifier si les 3 points doivent afficher l'alerte
 final particulierMenuStatusProvider = FutureProvider<bool>((ref) async {
-  final profileStatus = await ref.watch(particulierProfileStatusProvider.future);
-  final settingsStatus = await ref.watch(particulierSettingsStatusProvider.future);
+  final profileStatus =
+      await ref.watch(particulierProfileStatusProvider.future);
+  final settingsStatus =
+      await ref.watch(particulierSettingsStatusProvider.future);
 
   // Afficher l'alerte sur les 3 points si profil OU paramètres nécessitent une action
   return profileStatus || settingsStatus;

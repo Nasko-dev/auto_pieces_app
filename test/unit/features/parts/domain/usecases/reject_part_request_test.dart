@@ -68,7 +68,9 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner SellerRejection sans raison quand aucune raison n\'est fournie', () async {
+    test(
+        'doit retourner SellerRejection sans raison quand aucune raison n\'est fournie',
+        () async {
       // arrange
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((_) async => Right(tRejectionWithoutReason));
@@ -81,10 +83,11 @@ void main() {
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(AuthFailure('Vendeur non connecté')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer(
+          (_) async => const Left(AuthFailure('Vendeur non connecté')));
 
       // act
       final result = await usecase(tValidParams);
@@ -94,10 +97,11 @@ void main() {
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit retourner ValidationFailure quand la demande n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la demande n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Demande non trouvée')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Demande non trouvée')));
 
       // act
       final result = await usecase(tValidParams);
@@ -107,16 +111,19 @@ void main() {
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit retourner ValidationFailure quand le vendeur a déjà rejeté cette demande', () async {
+    test(
+        'doit retourner ValidationFailure quand le vendeur a déjà rejeté cette demande',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Vous avez déjà rejeté cette demande')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer((_) async =>
+          const Left(ValidationFailure('Vous avez déjà rejeté cette demande')));
 
       // act
       final result = await usecase(tValidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Vous avez déjà rejeté cette demande')));
+      expect(result,
+          const Left(ValidationFailure('Vous avez déjà rejeté cette demande')));
       verify(mockRepository.rejectPartRequest(any));
     });
 
@@ -133,10 +140,11 @@ void main() {
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tValidParams);
@@ -146,7 +154,8 @@ void main() {
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit appeler le repository avec un objet SellerRejection correct', () async {
+    test('doit appeler le repository avec un objet SellerRejection correct',
+        () async {
       // arrange
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((_) async => Right(tRejection));
@@ -155,7 +164,8 @@ void main() {
       await usecase(tValidParams);
 
       // assert
-      final captured = verify(mockRepository.rejectPartRequest(captureAny)).captured;
+      final captured =
+          verify(mockRepository.rejectPartRequest(captureAny)).captured;
       final capturedRejection = captured.first as SellerRejection;
       expect(capturedRejection.sellerId, tSellerId);
       expect(capturedRejection.partRequestId, tPartRequestId);
@@ -202,14 +212,27 @@ void main() {
       await usecase(tValidParams);
 
       // assert
-      final captured = verify(mockRepository.rejectPartRequest(captureAny)).captured;
+      final captured =
+          verify(mockRepository.rejectPartRequest(captureAny)).captured;
       final capturedRejection = captured.first as SellerRejection;
       final afterCall = DateTime.now();
 
-      expect(capturedRejection.rejectedAt.isAfter(beforeCall.subtract(const Duration(seconds: 1))), true);
-      expect(capturedRejection.rejectedAt.isBefore(afterCall.add(const Duration(seconds: 1))), true);
-      expect(capturedRejection.createdAt.isAfter(beforeCall.subtract(const Duration(seconds: 1))), true);
-      expect(capturedRejection.updatedAt.isAfter(beforeCall.subtract(const Duration(seconds: 1))), true);
+      expect(
+          capturedRejection.rejectedAt
+              .isAfter(beforeCall.subtract(const Duration(seconds: 1))),
+          true);
+      expect(
+          capturedRejection.rejectedAt
+              .isBefore(afterCall.add(const Duration(seconds: 1))),
+          true);
+      expect(
+          capturedRejection.createdAt
+              .isAfter(beforeCall.subtract(const Duration(seconds: 1))),
+          true);
+      expect(
+          capturedRejection.updatedAt
+              .isAfter(beforeCall.subtract(const Duration(seconds: 1))),
+          true);
     });
 
     test('doit gérer les rejets avec des raisons longues', () async {
@@ -251,8 +274,10 @@ void main() {
         reason: 'Raison vendeur 2',
       );
 
-      final rejection1 = tRejection.copyWith(sellerId: 'seller1', reason: 'Raison vendeur 1');
-      final rejection2 = tRejection.copyWith(sellerId: 'seller2', reason: 'Raison vendeur 2');
+      final rejection1 =
+          tRejection.copyWith(sellerId: 'seller1', reason: 'Raison vendeur 1');
+      final rejection2 =
+          tRejection.copyWith(sellerId: 'seller2', reason: 'Raison vendeur 2');
 
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((invocation) async {
@@ -288,8 +313,10 @@ void main() {
         reason: 'Refus demande 2',
       );
 
-      final rejection1 = tRejection.copyWith(partRequestId: 'request1', reason: 'Refus demande 1');
-      final rejection2 = tRejection.copyWith(partRequestId: 'request2', reason: 'Refus demande 2');
+      final rejection1 = tRejection.copyWith(
+          partRequestId: 'request1', reason: 'Refus demande 1');
+      final rejection2 = tRejection.copyWith(
+          partRequestId: 'request2', reason: 'Refus demande 2');
 
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((invocation) async {
@@ -311,7 +338,8 @@ void main() {
       verify(mockRepository.rejectPartRequest(any)).called(2);
     });
 
-    test('doit maintenir la cohérence des données dans SellerRejection.create', () async {
+    test('doit maintenir la cohérence des données dans SellerRejection.create',
+        () async {
       // arrange
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((_) async => Right(tRejection));
@@ -320,7 +348,8 @@ void main() {
       await usecase(tValidParams);
 
       // assert
-      final captured = verify(mockRepository.rejectPartRequest(captureAny)).captured;
+      final captured =
+          verify(mockRepository.rejectPartRequest(captureAny)).captured;
       final capturedRejection = captured.first as SellerRejection;
 
       // Vérifier que toutes les dates sont cohérentes
@@ -333,29 +362,38 @@ void main() {
       expect(capturedRejection.reason, tReason);
     });
 
-    test('doit retourner ValidationFailure si le vendeur essaie de rejeter sa propre demande', () async {
+    test(
+        'doit retourner ValidationFailure si le vendeur essaie de rejeter sa propre demande',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Impossible de rejeter sa propre demande')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer((_) async =>
+          const Left(
+              ValidationFailure('Impossible de rejeter sa propre demande')));
 
       // act
       final result = await usecase(tValidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Impossible de rejeter sa propre demande')));
+      expect(
+          result,
+          const Left(
+              ValidationFailure('Impossible de rejeter sa propre demande')));
       verify(mockRepository.rejectPartRequest(any));
     });
 
-    test('doit gérer les rejets avec des caractères spéciaux dans la raison', () async {
+    test('doit gérer les rejets avec des caractères spéciaux dans la raison',
+        () async {
       // arrange
-      const specialCharReason = 'Raison avec émojis 🚗 et accents éàù & caractères spéciaux !@#\$%^&*()';
+      const specialCharReason =
+          'Raison avec émojis 🚗 et accents éàù & caractères spéciaux !@#\$%^&*()';
       final specialCharParams = RejectPartRequestParams(
         sellerId: tSellerId,
         partRequestId: tPartRequestId,
         reason: specialCharReason,
       );
 
-      final specialCharRejection = tRejection.copyWith(reason: specialCharReason);
+      final specialCharRejection =
+          tRejection.copyWith(reason: specialCharReason);
 
       when(mockRepository.rejectPartRequest(any))
           .thenAnswer((_) async => Right(specialCharRejection));
@@ -383,16 +421,18 @@ void main() {
       verify(mockRepository.rejectPartRequest(any)).called(1);
     });
 
-    test('doit retourner ValidationFailure quand la demande est déjà fermée', () async {
+    test('doit retourner ValidationFailure quand la demande est déjà fermée',
+        () async {
       // arrange
-      when(mockRepository.rejectPartRequest(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Cette demande est déjà fermée')));
+      when(mockRepository.rejectPartRequest(any)).thenAnswer((_) async =>
+          const Left(ValidationFailure('Cette demande est déjà fermée')));
 
       // act
       final result = await usecase(tValidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Cette demande est déjà fermée')));
+      expect(result,
+          const Left(ValidationFailure('Cette demande est déjà fermée')));
       verify(mockRepository.rejectPartRequest(any));
     });
   });

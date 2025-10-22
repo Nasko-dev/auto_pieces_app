@@ -8,7 +8,8 @@ class LocationService {
       // Vérifier si le service de localisation est activé
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        return LocationResult.error('Le service de localisation est désactivé. Veuillez l\'activer dans les paramètres.');
+        return LocationResult.error(
+            'Le service de localisation est désactivé. Veuillez l\'activer dans les paramètres.');
       }
 
       // Vérifier les permissions
@@ -21,7 +22,8 @@ class LocationService {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        return LocationResult.error('Permission de localisation refusée définitivement. Veuillez l\'autoriser dans les paramètres de l\'app.');
+        return LocationResult.error(
+            'Permission de localisation refusée définitivement. Veuillez l\'autoriser dans les paramètres de l\'app.');
       }
 
       // Récupérer la position
@@ -75,30 +77,35 @@ class LocationService {
   /// Formate l'adresse à partir d'un Placemark
   static String _formatAddress(Placemark placemark) {
     List<String> addressParts = [];
-    
+
     // Utiliser les propriétés disponibles du Placemark
     if (placemark.street != null && placemark.street!.isNotEmpty) {
       addressParts.add(placemark.street!);
     }
-    
+
     if (addressParts.isEmpty) {
-      if (placemark.thoroughfare != null && placemark.thoroughfare!.isNotEmpty) {
+      if (placemark.thoroughfare != null &&
+          placemark.thoroughfare!.isNotEmpty) {
         addressParts.add(placemark.thoroughfare!);
       }
     }
-    
+
     if (addressParts.isEmpty) {
       if (placemark.name != null && placemark.name!.isNotEmpty) {
         addressParts.add(placemark.name!);
       }
     }
-    
-    return addressParts.join(' ').isEmpty ? 'Adresse non disponible' : addressParts.join(' ');
+
+    return addressParts.join(' ').isEmpty
+        ? 'Adresse non disponible'
+        : addressParts.join(' ');
   }
 
   /// Calcule la distance entre deux points en kilomètres
-  static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000; // Conversion en km
+  static double calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) /
+        1000; // Conversion en km
   }
 }
 

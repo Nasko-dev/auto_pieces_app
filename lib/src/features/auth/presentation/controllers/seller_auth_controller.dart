@@ -53,7 +53,6 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
     String? companyName,
     String? phone,
   }) async {
-    
     state = const SellerAuthState.loading();
 
     final params = SellerRegisterParams(
@@ -215,7 +214,8 @@ class SellerAuthController extends StateNotifier<SellerAuthState> {
 }
 
 // Providers
-final sellerAuthControllerProvider = StateNotifierProvider<SellerAuthController, SellerAuthState>((ref) {
+final sellerAuthControllerProvider =
+    StateNotifierProvider<SellerAuthController, SellerAuthState>((ref) {
   final sellerRegister = ref.watch(sellerRegisterProvider);
   final sellerLogin = ref.watch(sellerLoginProvider);
   final sellerForgotPassword = ref.watch(sellerForgotPasswordProvider);
@@ -257,19 +257,18 @@ final getCurrentSellerProvider = Provider<GetCurrentSeller>((ref) {
   return GetCurrentSeller(repository);
 });
 
-
 // Extension pour faciliter l'utilisation
 extension SellerAuthStateX on SellerAuthState {
   bool get isLoading => this is _Loading;
   bool get isAuthenticated => this is _Authenticated;
   bool get isError => this is _Error;
   bool get isUnauthenticated => this is _Unauthenticated;
-  
+
   Seller? get seller => mapOrNull(
-    authenticated: (state) => state.seller,
-  );
-  
+        authenticated: (state) => state.seller,
+      );
+
   String? get errorMessage => mapOrNull(
-    error: (state) => state.message,
-  );
+        error: (state) => state.message,
+      );
 }

@@ -30,7 +30,7 @@ class CarPartsList {
     'Turbo',
     'Collecteur d\'admission',
     'Collecteur d\'échappement',
-    
+
     // Transmission
     'Boîte de vitesses',
     'Embrayage',
@@ -42,7 +42,7 @@ class CarPartsList {
     'Différentiel',
     'Cardans',
     'Soufflets de cardan',
-    
+
     // Suspension
     'Amortisseurs',
     'Ressorts',
@@ -52,7 +52,7 @@ class CarPartsList {
     'Rotules',
     'Triangle de suspension',
     'Biellette de barre stabilisatrice',
-    
+
     // Direction
     'Crémaillère de direction',
     'Pompe de direction assistée',
@@ -60,7 +60,7 @@ class CarPartsList {
     'Biellette de direction',
     'Volant',
     'Colonne de direction',
-    
+
     // Freinage
     'Plaquettes de frein',
     'Disques de frein',
@@ -71,7 +71,7 @@ class CarPartsList {
     'Liquide de frein',
     'Flexible de frein',
     'Frein à main',
-    
+
     // Carrosserie
     'Pare-chocs avant',
     'Pare-chocs arrière',
@@ -93,7 +93,7 @@ class CarPartsList {
     'Pare-brise',
     'Lunette arrière',
     'Vitres latérales',
-    
+
     // Intérieur
     'Sièges avant',
     'Sièges arrière',
@@ -110,7 +110,7 @@ class CarPartsList {
     'Autoradio',
     'Climatisation',
     'Chauffage',
-    
+
     // Électrique
     'Batterie',
     'Alternateur',
@@ -125,7 +125,7 @@ class CarPartsList {
     'Éclairage intérieur',
     'Calculateur moteur',
     'Capteurs',
-    
+
     // Pneumatiques et jantes
     'Pneus',
     'Jantes',
@@ -133,21 +133,21 @@ class CarPartsList {
     'Valves',
     'Écrous de roue',
   ];
-  
+
   /// Recherche des pièces correspondant à la requête
   static List<String> searchParts(String query) {
     if (query.isEmpty) return [];
-    
+
     final queryLower = query.toLowerCase();
     return _allParts
         .where((part) => part.toLowerCase().contains(queryLower))
         .take(10)
         .toList();
   }
-  
+
   /// Obtient toutes les pièces disponibles
   static List<String> getAllParts() => List.from(_allParts);
-  
+
   /// Obtient les pièces par catégorie
   static List<String> getPartsByCategory(String category) {
     switch (category.toLowerCase()) {

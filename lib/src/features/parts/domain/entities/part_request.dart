@@ -7,26 +7,27 @@ class PartRequest with _$PartRequest {
   const factory PartRequest({
     required String id,
     String? userId,
-    
+
     // Informations du véhicule
     String? vehiclePlate,
     String? vehicleBrand,
     String? vehicleModel,
     int? vehicleYear,
     String? vehicleEngine,
-    
+
     // Type de pièce recherchée
     required String partType, // 'engine' ou 'body'
     required List<String> partNames,
     String? additionalInfo,
-    
+
     // Métadonnées
     @Default('active') String status, // 'active', 'closed', 'fulfilled'
     @Default(false) bool isAnonymous,
-    @Default(false) bool isSellerRequest, // Indique si la demande vient d'un vendeur
+    @Default(false)
+    bool isSellerRequest, // Indique si la demande vient d'un vendeur
     @Default(0) int responseCount,
     @Default(0) int pendingResponseCount,
-    
+
     // Timestamps
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -61,14 +62,15 @@ class CreatePartRequestParams with _$CreatePartRequestParams {
     String? vehicleModel,
     int? vehicleYear,
     String? vehicleEngine,
-    
+
     // Type de pièce recherchée
     required String partType,
     required List<String> partNames,
     String? additionalInfo,
-    
+
     // Métadonnées
     @Default(false) bool isAnonymous,
-    @Default(false) bool isSellerRequest, // Indique si la demande vient d'un vendeur
+    @Default(false)
+    bool isSellerRequest, // Indique si la demande vient d'un vendeur
   }) = _CreatePartRequestParams;
 }

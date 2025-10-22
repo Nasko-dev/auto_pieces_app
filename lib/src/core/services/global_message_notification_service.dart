@@ -8,7 +8,8 @@ import '../../shared/presentation/widgets/ios_notification_fixed.dart';
 
 /// Service global pour afficher les notifications de messages partout dans l'app
 class GlobalMessageNotificationService {
-  static final GlobalMessageNotificationService _instance = GlobalMessageNotificationService._internal();
+  static final GlobalMessageNotificationService _instance =
+      GlobalMessageNotificationService._internal();
   factory GlobalMessageNotificationService() => _instance;
   GlobalMessageNotificationService._internal();
 
@@ -19,8 +20,10 @@ class GlobalMessageNotificationService {
   String? _activeConversationId;
   bool _isInitialized = false;
   String? _currentSellerId; // ID vendeur si l'utilisateur est vendeur
-  String? _currentParticulierId; // ID particulier si l'utilisateur est particulier
-  final Set<String> _myConversationIds = {}; // IDs des conversations de l'utilisateur
+  String?
+      _currentParticulierId; // ID particulier si l'utilisateur est particulier
+  final Set<String> _myConversationIds =
+      {}; // IDs des conversations de l'utilisateur
 
   /// Initialiser le service avec le contexte de l'app
   Future<void> initialize(BuildContext context) async {
@@ -32,7 +35,8 @@ class GlobalMessageNotificationService {
     _context = context;
     _isInitialized = true;
 
-    debugPrint('🚀 [GlobalNotification] Initialisation du service global de notifications');
+    debugPrint(
+        '🚀 [GlobalNotification] Initialisation du service global de notifications');
 
     // Récupérer les IDs vendeur/particulier
     await _fetchUserIds();
@@ -78,9 +82,11 @@ class GlobalMessageNotificationService {
 
         if (particulierResponse != null) {
           _currentParticulierId = particulierResponse['id'] as String;
-          debugPrint('✅ [GlobalNotification] ID Particulier (via device_id): $_currentParticulierId');
+          debugPrint(
+              '✅ [GlobalNotification] ID Particulier (via device_id): $_currentParticulierId');
         } else {
-          debugPrint('⚠️  [GlobalNotification] Aucun particulier trouvé pour device_id: $deviceId');
+          debugPrint(
+              '⚠️  [GlobalNotification] Aucun particulier trouvé pour device_id: $deviceId');
         }
       } catch (e) {
         debugPrint('❌ [GlobalNotification] Erreur device_id: $e');
@@ -123,9 +129,8 @@ class GlobalMessageNotificationService {
               .select('id')
               .eq('device_id', deviceId);
 
-          final allUserIds = allParticuliersWithDevice
-              .map((p) => p['id'] as String)
-              .toList();
+          final allUserIds =
+              allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
           // Ajouter l'utilisateur actuel s'il n'est pas dans la liste
           if (!allUserIds.contains(_currentParticulierId)) {
@@ -144,7 +149,8 @@ class GlobalMessageNotificationService {
             }
           }
         } catch (e) {
-          debugPrint('⚠️  [GlobalNotification] Erreur device_id, fallback user_id: $e');
+          debugPrint(
+              '⚠️  [GlobalNotification] Erreur device_id, fallback user_id: $e');
           // Fallback: récupérer seulement avec user_id
           final particConvs = await _supabase
               .from('conversations')
@@ -157,7 +163,8 @@ class GlobalMessageNotificationService {
         }
       }
 
-      debugPrint('✅ [GlobalNotification] ${_myConversationIds.length} conversations chargées');
+      debugPrint(
+          '✅ [GlobalNotification] ${_myConversationIds.length} conversations chargées');
     } catch (e) {
       debugPrint('❌ [GlobalNotification] Erreur chargement conversations: $e');
     }
@@ -166,12 +173,15 @@ class GlobalMessageNotificationService {
   /// Définir quelle conversation est actuellement active (pour éviter les doublons)
   void setActiveConversation(String? conversationId) {
     _activeConversationId = conversationId;
-    debugPrint('📍 [GlobalNotification] Conversation active: ${conversationId ?? "aucune"}');
+    debugPrint(
+        '📍 [GlobalNotification] Conversation active: ${conversationId ?? "aucune"}');
 
     // Ajouter cette conversation à notre liste si elle n'y est pas déjà
-    if (conversationId != null && !_myConversationIds.contains(conversationId)) {
+    if (conversationId != null &&
+        !_myConversationIds.contains(conversationId)) {
       _myConversationIds.add(conversationId);
-      debugPrint('➕ [GlobalNotification] Nouvelle conversation ajoutée: $conversationId');
+      debugPrint(
+          '➕ [GlobalNotification] Nouvelle conversation ajoutée: $conversationId');
     }
   }
 
@@ -183,7 +193,8 @@ class GlobalMessageNotificationService {
       return;
     }
 
-    debugPrint('🔔 [GlobalNotification] Abonnement aux messages pour user: $userId');
+    debugPrint(
+        '🔔 [GlobalNotification] Abonnement aux messages pour user: $userId');
     debugPrint('   Seller ID: $_currentSellerId');
     debugPrint('   Particulier ID: $_currentParticulierId');
 
@@ -205,13 +216,15 @@ class GlobalMessageNotificationService {
       if (error != null) {
         debugPrint('❌ [GlobalNotification] Erreur subscription: $error');
       } else {
-        debugPrint('✅ [GlobalNotification] Subscription activée - Status: $status');
+        debugPrint(
+            '✅ [GlobalNotification] Subscription activée - Status: $status');
       }
     });
   }
 
   /// Gérer un nouveau message reçu
-  void _handleNewMessage(Map<String, dynamic> messageData, String currentAuthUserId) {
+  void _handleNewMessage(
+      Map<String, dynamic> messageData, String currentAuthUserId) {
     try {
       final conversationId = messageData['conversation_id'] as String?;
       final senderId = messageData['sender_id'] as String?;
@@ -224,20 +237,23 @@ class GlobalMessageNotificationService {
 
       // Vérifier si cette conversation nous appartient
       if (!_myConversationIds.contains(conversationId)) {
-        debugPrint('⏭️  [GlobalNotification] Conversation non pertinente ignorée (ID: $conversationId)');
+        debugPrint(
+            '⏭️  [GlobalNotification] Conversation non pertinente ignorée (ID: $conversationId)');
         return;
       }
 
       // Ne pas afficher si c'est notre propre message
       // Vérifier à la fois contre notre ID vendeur ET notre ID particulier
       if (senderId == _currentSellerId || senderId == _currentParticulierId) {
-        debugPrint('⏭️  [GlobalNotification] Notre propre message ignoré (senderId: $senderId)');
+        debugPrint(
+            '⏭️  [GlobalNotification] Notre propre message ignoré (senderId: $senderId)');
         return;
       }
 
       // Ne pas afficher si on est déjà dans cette conversation
       if (_activeConversationId == conversationId) {
-        debugPrint('⏭️  [GlobalNotification] Déjà dans la conversation, notification ignorée');
+        debugPrint(
+            '⏭️  [GlobalNotification] Déjà dans la conversation, notification ignorée');
         return;
       }
 
@@ -249,14 +265,14 @@ class GlobalMessageNotificationService {
 
       // Récupérer les infos de l'expéditeur
       _getSenderInfo(senderId, content, conversationId, senderId);
-
     } catch (e) {
       debugPrint('❌ [GlobalNotification] Erreur: $e');
     }
   }
 
   /// Récupérer les informations de l'expéditeur et afficher la notification
-  Future<void> _getSenderInfo(String senderId, String content, String conversationId, String messageSenderId) async {
+  Future<void> _getSenderInfo(String senderId, String content,
+      String conversationId, String messageSenderId) async {
     try {
       // Essayer de récupérer depuis sellers
       final sellerResponse = await _supabase
@@ -280,12 +296,12 @@ class GlobalMessageNotificationService {
             .maybeSingle();
 
         if (particulierResponse != null) {
-          senderName = '${particulierResponse['first_name']} ${particulierResponse['last_name']}';
+          senderName =
+              '${particulierResponse['first_name']} ${particulierResponse['last_name']}';
         }
       }
 
       _showNotification(senderName, content, conversationId);
-
     } catch (e) {
       debugPrint('❌ [GlobalNotification] Erreur récupération expéditeur: $e');
       _showNotification('Nouveau message', content, conversationId);
@@ -304,7 +320,8 @@ class GlobalMessageNotificationService {
     _notificationService.show(
       context: _context!,
       message: title,
-      subtitle: content.length > 50 ? '${content.substring(0, 50)}...' : content,
+      subtitle:
+          content.length > 50 ? '${content.substring(0, 50)}...' : content,
       type: NotificationType.info,
       onTap: () => _navigateToConversation(conversationId),
     );
@@ -314,7 +331,8 @@ class GlobalMessageNotificationService {
   void _navigateToConversation(String conversationId) {
     if (_context == null || !(_context! as Element).mounted) return;
 
-    debugPrint('🧭 [GlobalNotification] Navigation vers conversation: $conversationId');
+    debugPrint(
+        '🧭 [GlobalNotification] Navigation vers conversation: $conversationId');
 
     // Déterminer la route selon si on est vendeur ou particulier
     if (_currentSellerId != null) {

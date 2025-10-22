@@ -73,7 +73,8 @@ void main() {
       expect(processedItems, contains('item5'));
     });
 
-    test('devrait traiter immédiatement avec addAll si taille max atteinte', () async {
+    test('devrait traiter immédiatement avec addAll si taille max atteinte',
+        () async {
       batchProcessor = BatchProcessor<String>(
         batchDelay: const Duration(seconds: 10),
         maxBatchSize: 3,
@@ -198,7 +199,8 @@ void main() {
       expect(processedItems, isEmpty);
     });
 
-    test('devrait réinitialiser le timer quand on ajoute un nouvel item', () async {
+    test('devrait réinitialiser le timer quand on ajoute un nouvel item',
+        () async {
       batchProcessor = BatchProcessor<String>(
         batchDelay: const Duration(milliseconds: 300),
         maxBatchSize: 10,

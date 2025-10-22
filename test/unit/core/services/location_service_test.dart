@@ -4,7 +4,6 @@ import 'package:mockito/annotations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
-
 // Note: Ces tests utilisent les méthodes statiques donc les mocks ne fonctionneront
 // pas directement. Les tests vérifieront plutôt la logique et les formats.
 
@@ -94,7 +93,8 @@ void main() {
         const lon2 = -118.2437;
 
         // act
-        final distance = LocationService.calculateDistance(lat1, lon1, lat2, lon2);
+        final distance =
+            LocationService.calculateDistance(lat1, lon1, lat2, lon2);
 
         // assert - distance approximative entre NY et LA (≈ 3944 km)
         expect(distance, greaterThan(3900));
@@ -109,7 +109,8 @@ void main() {
         const lon2 = 2.3532;
 
         // act
-        final distance = LocationService.calculateDistance(lat1, lon1, lat2, lon2);
+        final distance =
+            LocationService.calculateDistance(lat1, lon1, lat2, lon2);
 
         // assert - distance très courte (< 1 km)
         expect(distance, lessThan(1.0));
@@ -219,7 +220,9 @@ void main() {
         expect(result.longitude, lessThanOrEqualTo(180));
       });
 
-      test('doit accepter des valeurs nulles ou vides pour les champs optionnels', () {
+      test(
+          'doit accepter des valeurs nulles ou vides pour les champs optionnels',
+          () {
         // arrange & act
         final result = LocationResult.success(
           latitude: 48.8566,
@@ -234,7 +237,8 @@ void main() {
         expect(result.address, isEmpty);
         expect(result.city, isEmpty);
         expect(result.postalCode, isEmpty);
-        expect(result.country, isNotEmpty); // Country devrait toujours avoir une valeur
+        expect(result.country,
+            isNotEmpty); // Country devrait toujours avoir une valeur
       });
     });
 
@@ -272,7 +276,8 @@ void main() {
         const lon2 = 180.0;
 
         // act
-        final distance = LocationService.calculateDistance(lat1, lon1, lat2, lon2);
+        final distance =
+            LocationService.calculateDistance(lat1, lon1, lat2, lon2);
 
         // assert - distance maximale sur Terre (≈ 20000 km)
         expect(distance, greaterThan(15000));
@@ -281,7 +286,8 @@ void main() {
 
       test('doit gérer les chaînes d\'adresse longues', () {
         // arrange - adresse très longue
-        const longAddress = 'Très très très longue adresse avec beaucoup de détails et de caractères pour tester la gestion des chaînes longues dans le système de géolocalisation';
+        const longAddress =
+            'Très très très longue adresse avec beaucoup de détails et de caractères pour tester la gestion des chaînes longues dans le système de géolocalisation';
 
         final result = LocationResult.success(
           latitude: 48.8566,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,7 +23,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
   final _siretController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
@@ -51,9 +52,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final s = size.width / 390.0;
-    
+
     final authState = ref.watch(sellerAuthControllerProvider);
-    
+
     // Navigation et gestion des états
     ref.listen<SellerAuthState>(sellerAuthControllerProvider, (previous, next) {
       next.when(
@@ -91,14 +92,14 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
           color: _textPrimary,
           letterSpacing: -0.5 * s,
         );
-    
+
     TextStyle h2(double f) => GoogleFonts.inter(
           fontSize: f * s,
           fontWeight: FontWeight.w700,
           color: _textPrimary,
           letterSpacing: -0.2 * s,
         );
-    
+
     TextStyle body(double f) => GoogleFonts.inter(
           fontSize: f * s,
           fontWeight: FontWeight.w500,
@@ -132,7 +133,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20 * s),
-                
+
                 // Logo et titre
                 Center(
                   child: Column(
@@ -153,9 +154,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     ],
                   ),
                 ),
-                
+
                 SizedBox(height: 40 * s),
-                
+
                 // Nom de l'entreprise
                 Text('Nom de l\'entreprise *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -170,9 +171,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Email
                 Text('Email professionnel *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -185,15 +186,16 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez saisir votre email professionnel';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Email non valide';
                     }
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Téléphone
                 Text('Téléphone *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -209,9 +211,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Adresse
                 Text('Adresse de l\'entreprise *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -227,9 +229,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // SIRET
                 Text('Numéro SIRET', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -238,9 +240,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                   hintText: '12345678901234 (optionnel)',
                   scale: s,
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Mot de passe
                 Text('Mot de passe *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -256,7 +258,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                       });
                     },
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                      _obscurePassword
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
                       color: _textSecondary,
                       size: 20 * s,
                     ),
@@ -271,9 +275,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Confirmation mot de passe
                 Text('Confirmer le mot de passe *', style: h2(16)),
                 SizedBox(height: 8 * s),
@@ -289,7 +293,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                       });
                     },
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
                       color: _textSecondary,
                       size: 20 * s,
                     ),
@@ -304,9 +310,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     return null;
                   },
                 ),
-                
+
                 SizedBox(height: 24 * s),
-                
+
                 // Accepter les conditions
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,52 +334,58 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     ),
                     SizedBox(width: 12 * s),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _acceptTerms = !_acceptTerms;
-                          });
-                        },
-                        child: Text.rich(
-                          TextSpan(
-                            text: 'J\'accepte les ',
-                            style: body(14),
-                            children: [
-                              TextSpan(
-                                text: 'conditions générales',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14 * s,
-                                  fontWeight: FontWeight.w600,
-                                  color: _primaryBlue,
-                                  decoration: TextDecoration.underline,
-                                ),
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'J\'accepte les ',
+                          style: body(14),
+                          children: [
+                            TextSpan(
+                              text: 'conditions générales',
+                              style: GoogleFonts.inter(
+                                fontSize: 14 * s,
+                                fontWeight: FontWeight.w600,
+                                color: _primaryBlue,
+                                decoration: TextDecoration.underline,
                               ),
-                              const TextSpan(text: ' et la '),
-                              TextSpan(
-                                text: 'politique de confidentialité',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14 * s,
-                                  fontWeight: FontWeight.w600,
-                                  color: _primaryBlue,
-                                  decoration: TextDecoration.underline,
-                                ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  HapticHelper.selection();
+                                  // TODO: Créer page CGU
+                                  context.push('/privacy');
+                                },
+                            ),
+                            const TextSpan(text: ' et la '),
+                            TextSpan(
+                              text: 'politique de confidentialité',
+                              style: GoogleFonts.inter(
+                                fontSize: 14 * s,
+                                fontWeight: FontWeight.w600,
+                                color: _primaryBlue,
+                                decoration: TextDecoration.underline,
                               ),
-                            ],
-                          ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  HapticHelper.selection();
+                                  context.push('/privacy');
+                                },
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
-                
+
                 SizedBox(height: 32 * s),
-                
+
                 // Bouton d'inscription
                 SizedBox(
                   width: double.infinity,
                   height: 56 * s,
                   child: ElevatedButton(
-                    onPressed: (authState.isLoading || !_acceptTerms) ? null : _handleRegister,
+                    onPressed: (authState.isLoading || !_acceptTerms)
+                        ? null
+                        : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryBlue,
                       foregroundColor: Colors.white,
@@ -381,7 +393,8 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16 * s),
                       ),
-                      disabledBackgroundColor: _primaryBlue.withValues(alpha: 0.6),
+                      disabledBackgroundColor:
+                          _primaryBlue.withValues(alpha: 0.6),
                     ),
                     child: authState.isLoading
                         ? SizedBox(
@@ -389,7 +402,8 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                             height: 24 * s,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : Text(
@@ -401,9 +415,9 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                           ),
                   ),
                 ),
-                
+
                 SizedBox(height: 32 * s),
-                
+
                 // Lien vers connexion
                 Center(
                   child: Wrap(
@@ -419,7 +433,8 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                           context.go('/seller/login');
                         },
                         style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 8 * s, vertical: 4 * s),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8 * s, vertical: 4 * s),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
@@ -435,7 +450,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
                     ],
                   ),
                 ),
-                
+
                 SizedBox(height: 40 * s),
               ],
             ),
@@ -444,7 +459,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
       ),
     );
   }
-  
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
@@ -508,7 +523,7 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final authController = ref.read(sellerAuthControllerProvider.notifier);
-    
+
     await authController.register(
       email: _emailController.text.trim(),
       password: _passwordController.text,

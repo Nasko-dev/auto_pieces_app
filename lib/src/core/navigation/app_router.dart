@@ -28,6 +28,7 @@ import '../../features/parts/presentation/pages/Vendeur/my_ads_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_profile_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_settings_page.dart';
 import '../../features/parts/presentation/pages/seller/seller_help_page.dart';
+import '../../features/settings/presentation/pages/privacy_policy_page.dart';
 import '../../shared/presentation/widgets/seller_wrapper.dart';
 import '../../shared/presentation/pages/under_development_page.dart';
 
@@ -48,18 +49,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     previousLocation = state.matchedLocation;
     return page;
   }
+
   // Utiliser try-catch pour éviter les erreurs au démarrage
   String getInitialLocation() {
     try {
       // Récupérer les infos de session depuis le cache
       final sessionService = ref.read(sessionServiceProvider);
       final supabase = ref.read(session.supabaseClientProvider);
-      
+
       // Vérifier d'abord si Supabase a une session active
       final hasSupabaseSession = supabase.auth.currentSession != null;
       final cachedUserType = sessionService.getCachedUserType();
-      
-      
+
       // Ne rediriger que si BOTH Supabase et le cache sont cohérents
       if (hasSupabaseSession && cachedUserType != null) {
         if (cachedUserType == 'vendeur') {
@@ -81,8 +82,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: getInitialLocation(),
     redirect: (context, state) {
-      
-      
       // Permettre la navigation normale sans re-direction forcée
       // Les pages géreront leur propre auth si nécessaire
       return null;
@@ -151,7 +150,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/:conversationId',
                 name: 'chat',
                 builder: (context, state) {
-                  final conversationId = state.pathParameters['conversationId']!;
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
                   return ChatPage(conversationId: conversationId);
                 },
               ),
@@ -197,9 +197,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               const SettingsPage(),
             ),
           ),
+          GoRoute(
+            path: '/privacy',
+            name: 'privacy',
+            pageBuilder: (context, state) => buildPageWithTransition(
+              state,
+              const PrivacyPolicyPage(),
+            ),
+          ),
         ],
       ),
-      
+
       // Routes vendeurs avec SellerWrapper
       ShellRoute(
         builder: (context, state, child) => SellerWrapper(child: child),
@@ -223,7 +231,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/seller/create-ad',
             name: 'seller-create-ad',
-            builder: (context, state) => const BecomeSellerPage(mode: SellerMode.vendeur),
+            builder: (context, state) =>
+                const BecomeSellerPage(mode: SellerMode.vendeur),
           ),
           GoRoute(
             path: '/seller/create-request',

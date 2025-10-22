@@ -60,7 +60,8 @@ void main() {
         expect(optimizer.getCachedData<String>(stringKey), equals(stringValue));
         expect(optimizer.getCachedData<int>(intKey), equals(intValue));
         expect(optimizer.getCachedData<List<int>>(listKey), equals(listValue));
-        expect(optimizer.getCachedData<Map<String, String>>(mapKey), equals(mapValue));
+        expect(optimizer.getCachedData<Map<String, String>>(mapKey),
+            equals(mapValue));
       });
 
       test('devrait nettoyer les entrées expirées', () {
@@ -123,7 +124,9 @@ void main() {
         expect(optimizer.getCachedData<String>(key), isNull);
       });
 
-      test('devrait nettoyer automatiquement les entrées expirées lors de l\'accès', () async {
+      test(
+          'devrait nettoyer automatiquement les entrées expirées lors de l\'accès',
+          () async {
         const key1 = 'key1';
         const key2 = 'key2';
 
@@ -168,7 +171,8 @@ void main() {
         expect(results[0], equals('expensive_result_1'));
       });
 
-      test('devrait permettre des requêtes séquentielles avec la même clé', () async {
+      test('devrait permettre des requêtes séquentielles avec la même clé',
+          () async {
         const key = 'sequential_key';
         int callCount = 0;
 
@@ -178,9 +182,11 @@ void main() {
         }
 
         // Première requête
-        final result1 = await optimizer.executeWithDeduplication(key, operation);
+        final result1 =
+            await optimizer.executeWithDeduplication(key, operation);
         // Deuxième requête (après que la première soit terminée)
-        final result2 = await optimizer.executeWithDeduplication(key, operation);
+        final result2 =
+            await optimizer.executeWithDeduplication(key, operation);
 
         expect(callCount, equals(2));
         expect(result1, equals('result_1'));
@@ -209,7 +215,8 @@ void main() {
         expect(callCount, equals(0));
       });
 
-      test('devrait exécuter l\'opération et mettre en cache si pas de cache', () async {
+      test('devrait exécuter l\'opération et mettre en cache si pas de cache',
+          () async {
         const key = 'smart_cache_new_key';
         const operationResult = 'operation_result';
         int callCount = 0;
@@ -248,7 +255,8 @@ void main() {
     });
 
     group('Cache Cleanup', () {
-      test('cleanExpiredCache devrait supprimer les entrées expirées', () async {
+      test('cleanExpiredCache devrait supprimer les entrées expirées',
+          () async {
         const key1 = 'expired_key';
         const key2 = 'valid_key';
 
@@ -351,16 +359,19 @@ void main() {
     });
 
     group('Scénarios d\'intégration', () {
-      test('devrait gérer un flux complet de cache avec TTL et nettoyage', () async {
+      test('devrait gérer un flux complet de cache avec TTL et nettoyage',
+          () async {
         const shortKey = 'short_lived';
         const longKey = 'long_lived';
 
         // Ajouter des données avec différents TTL
-        optimizer.cacheData(shortKey, 'short_value', ttl: Duration(milliseconds: 10));
+        optimizer.cacheData(shortKey, 'short_value',
+            ttl: Duration(milliseconds: 10));
         optimizer.cacheData(longKey, 'long_value', ttl: Duration(minutes: 5));
 
         // Vérifier que les deux sont disponibles
-        expect(optimizer.getCachedData<String>(shortKey), equals('short_value'));
+        expect(
+            optimizer.getCachedData<String>(shortKey), equals('short_value'));
         expect(optimizer.getCachedData<String>(longKey), equals('long_value'));
 
         // Attendre l'expiration de la première
@@ -374,7 +385,9 @@ void main() {
         expect(optimizer.getCachedData<String>(longKey), equals('long_value'));
       });
 
-      test('devrait gérer des opérations complexes avec smart cache et déduplication', () async {
+      test(
+          'devrait gérer des opérations complexes avec smart cache et déduplication',
+          () async {
         const key = 'complex_key';
         int operationCount = 0;
 

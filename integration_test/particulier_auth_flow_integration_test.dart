@@ -73,7 +73,8 @@ void main() {
         // Header avec titre
         final headerTitle = find.text('Rechercher une pièce');
         expect(
-          headerTitle.evaluate().isNotEmpty || find.textContaining('Recherche').evaluate().isNotEmpty,
+          headerTitle.evaluate().isNotEmpty ||
+              find.textContaining('Recherche').evaluate().isNotEmpty,
           true,
           reason: 'Le titre de recherche devrait être visible',
         );
@@ -81,7 +82,7 @@ void main() {
         // Input de plaque d'immatriculation ou champ de recherche
         expect(
           find.byType(TextField).evaluate().isNotEmpty ||
-          find.byType(TextFormField).evaluate().isNotEmpty,
+              find.byType(TextFormField).evaluate().isNotEmpty,
           true,
           reason: 'Un champ de saisie devrait être présent',
         );
@@ -159,12 +160,14 @@ void main() {
         // Vérifier qu'on est directement sur HomePage (pas sur welcome)
         // Note : Ce test peut échouer si le cache est vidé entre les tests
         final isOnHomePage = find.byType(HomePage).evaluate().isNotEmpty;
-        final isOnWelcomePage = find.byType(YannkoWelcomePage).evaluate().isNotEmpty;
+        final isOnWelcomePage =
+            find.byType(YannkoWelcomePage).evaluate().isNotEmpty;
 
         expect(
           isOnHomePage || isOnWelcomePage,
           true,
-          reason: 'L\'app devrait afficher soit HomePage (session persistée) soit WelcomePage',
+          reason:
+              'L\'app devrait afficher soit HomePage (session persistée) soit WelcomePage',
         );
       },
       timeout: const Timeout(Duration(seconds: 30)),

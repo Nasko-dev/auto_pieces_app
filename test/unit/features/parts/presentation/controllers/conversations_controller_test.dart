@@ -52,7 +52,8 @@ void main() {
     mockRealtimeService = MockRealtimeService();
 
     // Setup basic stream behavior
-    when(mockRealtimeService.conversationStream).thenAnswer((_) => Stream.empty());
+    when(mockRealtimeService.conversationStream)
+        .thenAnswer((_) => Stream.empty());
 
     controller = ConversationsController(
       getConversations: mockGetConversations,
@@ -133,8 +134,8 @@ void main() {
 
     test('doit gérer les erreurs de chargement des messages', () async {
       // arrange
-      when(mockGetConversationMessages(any))
-          .thenAnswer((_) async => const Left(ServerFailure('Erreur messages')));
+      when(mockGetConversationMessages(any)).thenAnswer(
+          (_) async => const Left(ServerFailure('Erreur messages')));
 
       // act
       await controller.loadConversationMessages('conv1');
@@ -149,7 +150,8 @@ void main() {
   group('setConversationInactive', () {
     test('doit désactiver la conversation active', () async {
       // arrange
-      controller.state = controller.state.copyWith(activeConversationId: 'conv1');
+      controller.state =
+          controller.state.copyWith(activeConversationId: 'conv1');
 
       // act
       controller.setConversationInactive();
@@ -164,7 +166,9 @@ void main() {
     test('doit retourner les messages d\'une conversation', () {
       // arrange
       controller.state = controller.state.copyWith(
-        conversationMessages: {'conv1': [tMessage]},
+        conversationMessages: {
+          'conv1': [tMessage]
+        },
       );
 
       // act
@@ -185,10 +189,13 @@ void main() {
   });
 
   group('Gestion des états de chargement', () {
-    test('doit mettre isLoadingMessages à true pendant le chargement des messages', () async {
+    test(
+        'doit mettre isLoadingMessages à true pendant le chargement des messages',
+        () async {
       // arrange
       final completer = Completer<Either<Failure, List<Message>>>();
-      when(mockGetConversationMessages(any)).thenAnswer((_) => completer.future);
+      when(mockGetConversationMessages(any))
+          .thenAnswer((_) => completer.future);
 
       // act
       final future = controller.loadConversationMessages('conv1');

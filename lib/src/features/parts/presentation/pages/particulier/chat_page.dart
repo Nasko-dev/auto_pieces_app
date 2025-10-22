@@ -8,7 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
-import '../../providers/conversations_providers.dart' hide realtimeServiceProvider;
+import '../../providers/conversations_providers.dart'
+    hide realtimeServiceProvider;
 import '../../../../../shared/presentation/widgets/loading_widget.dart';
 import '../../widgets/message_bubble_widget.dart';
 import '../../widgets/chat_input_widget.dart';
@@ -49,16 +50,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     super.initState();
 
     // Informer le service global que cette conversation est active
-    GlobalMessageNotificationService().setActiveConversation(widget.conversationId);
+    GlobalMessageNotificationService()
+        .setActiveConversation(widget.conversationId);
 
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
 
       // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
       Future.microtask(() {
-        ref.read(particulierConversationsControllerProvider.notifier)
+        ref
+            .read(particulierConversationsControllerProvider.notifier)
             .markConversationAsRead(widget.conversationId);
       });
 
@@ -71,7 +75,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _subscribeToRealtimeMessages() {
-    debugPrint('🔔 [Particulier Realtime] Abonnement aux messages de conversation ${widget.conversationId}');
+    debugPrint(
+        '🔔 [Particulier Realtime] Abonnement aux messages de conversation ${widget.conversationId}');
 
     final realtimeService = ref.read(realtimeServiceProvider);
 
@@ -79,9 +84,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     realtimeService.subscribeToMessages(widget.conversationId);
 
     // Écouter les nouveaux messages via le stream spécifique à cette conversation
-    _messageSubscription = realtimeService.getMessageStreamForConversation(widget.conversationId).listen(
+    _messageSubscription = realtimeService
+        .getMessageStreamForConversation(widget.conversationId)
+        .listen(
       (message) {
-        debugPrint('🎯 [Particulier Realtime] Nouveau message reçu via stream !');
+        debugPrint(
+            '🎯 [Particulier Realtime] Nouveau message reçu via stream !');
         debugPrint('   Message ID: ${message.id}');
         debugPrint('   Sender ID: ${message.senderId}');
         debugPrint('   Content: ${message.content}');
@@ -92,7 +100,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           // Pas besoin de notification locale ici
 
           // Envoyer au controller via la méthode unifiée
-          ref.read(conversationsControllerProvider.notifier)
+          ref
+              .read(conversationsControllerProvider.notifier)
               .handleIncomingMessage(message);
         }
       },
@@ -104,6 +113,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       },
     );
   }
+
   Future<void> _loadSellerInfo() async {
     if (_isLoadingSellerInfo) return;
 
@@ -158,7 +168,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     GlobalMessageNotificationService().setActiveConversation(null);
 
     // ✅ SIMPLE: Désactiver la conversation quand on quitte (avant dispose)
-    ref.read(particulierConversationsControllerProvider.notifier)
+    ref
+        .read(particulierConversationsControllerProvider.notifier)
         .setConversationInactive();
     super.deactivate();
   }
@@ -173,7 +184,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(conversationMessagesProvider(widget.conversationId));
+    final messages =
+        ref.watch(conversationMessagesProvider(widget.conversationId));
     final isLoadingMessages = ref.watch(isLoadingMessagesProvider);
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
@@ -189,9 +201,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
 
     // Trouver la conversation pour le titre - gestion sécurisée
-    final conversationsState = ref.watch(particulierConversationsControllerProvider);
-    final conversation = conversationsState.conversations.where((c) => c.id == widget.conversationId).firstOrNull;
-
+    final conversationsState =
+        ref.watch(particulierConversationsControllerProvider);
+    final conversation = conversationsState.conversations
+        .where((c) => c.id == widget.conversationId)
+        .firstOrNull;
 
     return Scaffold(
       backgroundColor: AppTheme.white,
@@ -261,7 +275,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         children: [
           // Zone des messages
           Expanded(
-            child: _buildMessagesArea(messages, isLoadingMessages, error, conversation),
+            child: _buildMessagesArea(
+                messages, isLoadingMessages, error, conversation),
           ),
 
           // Zone de saisie
@@ -278,7 +293,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  Widget _buildMessagesArea(List<Message> messages, bool isLoading, String? error, dynamic conversation) {
+  Widget _buildMessagesArea(List<Message> messages, bool isLoading,
+      String? error, dynamic conversation) {
     Widget content;
 
     if (isLoading && messages.isEmpty) {
@@ -315,7 +331,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                ref.read(conversationsControllerProvider.notifier)
+                ref
+                    .read(conversationsControllerProvider.notifier)
                     .loadConversationMessages(widget.conversationId);
               },
               child: const Text('Réessayer'),
@@ -352,34 +369,35 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
     } else {
       content = ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        final isLastMessage = index == messages.length - 1;
-        final showDateSeparator = _shouldShowDateSeparator(messages, index);
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          final isLastMessage = index == messages.length - 1;
+          final showDateSeparator = _shouldShowDateSeparator(messages, index);
 
-        return Column(
-          children: [
-            if (showDateSeparator) ...[
-              _buildDateSeparator(message.createdAt),
-              const SizedBox(height: 16),
+          return Column(
+            children: [
+              if (showDateSeparator) ...[
+                _buildDateSeparator(message.createdAt),
+                const SizedBox(height: 16),
+              ],
+              MessageBubbleWidget(
+                message: message,
+                currentUserType: MessageSenderType.user, // Côté particulier
+                currentUserId:
+                    Supabase.instance.client.auth.currentUser?.id ?? '',
+                isLastMessage: isLastMessage,
+                otherUserName: _getSellerDisplayName(conversation),
+                otherUserAvatarUrl: _sellerInfo?['avatar_url'],
+                otherUserCompany: _sellerInfo?['company_name'],
+              ),
+              const SizedBox(height: 12), // Plus d'espace entre messages
             ],
-            MessageBubbleWidget(
-              message: message,
-              currentUserType: MessageSenderType.user, // Côté particulier
-              currentUserId: Supabase.instance.client.auth.currentUser?.id ?? '',
-              isLastMessage: isLastMessage,
-              otherUserName: _getSellerDisplayName(conversation),
-              otherUserAvatarUrl: _sellerInfo?['avatar_url'],
-              otherUserCompany: _sellerInfo?['company_name'],
-            ),
-            const SizedBox(height: 12), // Plus d'espace entre messages
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
     }
 
     // Envelopper le contenu dans un Stack avec le logo en arrière-plan
@@ -430,7 +448,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     String dateText;
     if (messageDate.isAtSameMomentAs(today)) {
       dateText = 'Aujourd\'hui';
-    } else if (messageDate.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
+    } else if (messageDate
+        .isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
       dateText = 'Hier';
     } else {
       dateText = '${date.day}/${date.month}/${date.year}';
@@ -456,11 +475,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _sendMessage(String content) {
     if (content.trim().isEmpty) return;
 
-
     ref.read(conversationsControllerProvider.notifier).sendMessage(
-      conversationId: widget.conversationId,
-      content: content.trim(),
-    );
+          conversationId: widget.conversationId,
+          content: content.trim(),
+        );
 
     _messageController.clear();
   }
@@ -468,13 +486,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _showCloseDialog() async {
     final result = await context.showConfirmationDialog(
       title: 'Fermer la conversation',
-      message: 'Voulez-vous fermer cette conversation ? Vous pourrez toujours la rouvrir plus tard.',
+      message:
+          'Voulez-vous fermer cette conversation ? Vous pourrez toujours la rouvrir plus tard.',
       confirmText: 'Fermer',
       cancelText: 'Annuler',
     );
 
     if (result == true && mounted) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .closeConversation(widget.conversationId);
 
       if (mounted) {
@@ -486,13 +506,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _showDeleteDialog() async {
     final result = await context.showDestructiveDialog(
       title: 'Supprimer la conversation',
-      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
+      message:
+          'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
       destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 
     if (result == true && mounted) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .deleteConversation(widget.conversationId);
 
       if (mounted) {
@@ -510,13 +532,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _showBlockDialog() async {
     final result = await context.showWarningDialog(
       title: 'Bloquer le vendeur',
-      message: 'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
+      message:
+          'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
       confirmText: 'Bloquer',
       cancelText: 'Annuler',
     );
 
     if (result == true && mounted) {
-      ref.read(conversationsControllerProvider.notifier)
+      ref
+          .read(conversationsControllerProvider.notifier)
           .blockConversation(widget.conversationId);
 
       if (mounted) {
@@ -571,7 +595,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildSellerAvatar(dynamic conversation) {
-    final avatarUrl = _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
+    final avatarUrl =
+        _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
@@ -614,7 +639,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF405DE6), Color(0xFF5851DB)], // Gradient Instagram bleu
+          colors: [
+            Color(0xFF405DE6),
+            Color(0xFF5851DB)
+          ], // Gradient Instagram bleu
         ),
         shape: BoxShape.circle,
         border: Border.all(
@@ -647,7 +675,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return companyName;
     } else if (firstName != null || lastName != null) {
       return '${firstName ?? ''} ${lastName ?? ''}'.trim();
-    } else if (conversation?.sellerName != null && conversation!.sellerName!.isNotEmpty) {
+    } else if (conversation?.sellerName != null &&
+        conversation!.sellerName!.isNotEmpty) {
       return conversation!.sellerName!;
     } else {
       return 'Vendeur Professionnel';
@@ -659,7 +688,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-
       // Nettoyer le numéro (enlever espaces, tirets, etc.)
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
       final uri = Uri(scheme: 'tel', path: cleanPhone);
@@ -683,7 +711,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final phoneNumber = _sellerInfo?['phone'] ?? conversation?.sellerPhone;
 
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-
       // Pour l'appel vidéo, essayer WhatsApp d'abord
       final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
       final whatsappUri = Uri.parse('https://wa.me/$cleanPhone');
@@ -709,7 +736,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Future<void> _takePhoto() async {
-
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? photo = await picker.pickImage(
@@ -728,7 +754,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Future<void> _pickFromGallery() async {
-
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -747,7 +772,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Future<void> _sendImageMessage(File imageFile) async {
-
     try {
       final conversationId = widget.conversationId;
       final userId = ref.read(currentUserProvider)?.id;
@@ -767,7 +791,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         imageFile: imageFile,
       );
 
-
       // Envoyer le message via le provider
       await ref.read(conversationsControllerProvider.notifier).sendMessage(
         conversationId: conversationId,
@@ -781,7 +804,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
 
       _showSuccessSnackBar('Image envoyée !');
-
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'envoi de l\'image');
     }

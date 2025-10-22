@@ -76,7 +76,9 @@ void main() {
   );
 
   group('createPartAdvertisement', () {
-    test('doit retourner PartAdvertisement quand l\'appel réussit avec connexion', () async {
+    test(
+        'doit retourner PartAdvertisement quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.createPartAdvertisement(tCreateParams))
@@ -93,7 +95,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -106,7 +109,8 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.createPartAdvertisement(tCreateParams))
@@ -121,7 +125,9 @@ void main() {
       verify(mockRemoteDataSource.createPartAdvertisement(tCreateParams));
     });
 
-    test('doit retourner ServerFailure avec message générique pour une exception générale', () async {
+    test(
+        'doit retourner ServerFailure avec message générique pour une exception générale',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.createPartAdvertisement(tCreateParams))
@@ -131,14 +137,19 @@ void main() {
       final result = await repository.createPartAdvertisement(tCreateParams);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur inconnue: Exception: Erreur inattendue')));
+      expect(
+          result,
+          const Left(
+              ServerFailure('Erreur inconnue: Exception: Erreur inattendue')));
       verify(mockNetworkInfo.isConnected);
       verify(mockRemoteDataSource.createPartAdvertisement(tCreateParams));
     });
   });
 
   group('getPartAdvertisementById', () {
-    test('doit retourner PartAdvertisement quand l\'appel réussit avec connexion', () async {
+    test(
+        'doit retourner PartAdvertisement quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getPartAdvertisementById(tId))
@@ -155,7 +166,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -168,7 +180,8 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getPartAdvertisementById(tId))
@@ -185,7 +198,8 @@ void main() {
   });
 
   group('getMyPartAdvertisements', () {
-    test('doit retourner une liste d\'annonces quand l\'appel réussit', () async {
+    test('doit retourner une liste d\'annonces quand l\'appel réussit',
+        () async {
       // arrange
       final models = [tPartAdvertisementModel];
       final entities = [tPartAdvertisement];
@@ -207,7 +221,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -240,7 +255,8 @@ void main() {
   });
 
   group('searchPartAdvertisements', () {
-    test('doit retourner une liste d\'annonces filtrées quand l\'appel réussit', () async {
+    test('doit retourner une liste d\'annonces filtrées quand l\'appel réussit',
+        () async {
       // arrange
       final models = [tPartAdvertisementModel];
       final entities = [tPartAdvertisement];
@@ -262,7 +278,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -297,7 +314,8 @@ void main() {
   group('updatePartAdvertisement', () {
     const tUpdates = {'price': 2000.0, 'description': 'Prix négociable'};
 
-    test('doit retourner PartAdvertisement mise à jour quand l\'appel réussit', () async {
+    test('doit retourner PartAdvertisement mise à jour quand l\'appel réussit',
+        () async {
       // arrange
       final updatedModel = tPartAdvertisementModel.copyWith(
         price: 2000.0,
@@ -318,7 +336,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -331,7 +350,8 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.updatePartAdvertisement(tId, tUpdates))
@@ -365,7 +385,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -378,7 +399,8 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deletePartAdvertisement(tId))
@@ -398,8 +420,7 @@ void main() {
     test('doit retourner void quand le marquage réussit', () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-      when(mockRemoteDataSource.markAsSold(tId))
-          .thenAnswer((_) async {});
+      when(mockRemoteDataSource.markAsSold(tId)).thenAnswer((_) async {});
 
       // act
       final result = await repository.markAsSold(tId);
@@ -412,7 +433,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -425,7 +447,8 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand ServerException est lancée', () async {
+    test('doit retourner ServerFailure quand ServerException est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.markAsSold(tId))
@@ -459,7 +482,9 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner Right(null) sans erreur quand il n\'y a pas de connexion', () async {
+    test(
+        'doit retourner Right(null) sans erreur quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -472,7 +497,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner Right(null) sans erreur quand une exception est lancée', () async {
+    test(
+        'doit retourner Right(null) sans erreur quand une exception est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.incrementViewCount(tId))
@@ -506,7 +533,9 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner Right(null) sans erreur quand il n\'y a pas de connexion', () async {
+    test(
+        'doit retourner Right(null) sans erreur quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -519,7 +548,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner Right(null) sans erreur quand une exception est lancée', () async {
+    test(
+        'doit retourner Right(null) sans erreur quand une exception est lancée',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.incrementContactCount(tId))

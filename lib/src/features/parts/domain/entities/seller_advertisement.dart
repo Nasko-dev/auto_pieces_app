@@ -49,5 +49,6 @@ extension AdvertisementStatusX on AdvertisementStatus {
   }
 
   bool get canEdit => this != AdvertisementStatus.sold;
-  bool get canTogglePause => this == AdvertisementStatus.active || this == AdvertisementStatus.paused;
+  bool get canTogglePause =>
+      this == AdvertisementStatus.active || this == AdvertisementStatus.paused;
 }

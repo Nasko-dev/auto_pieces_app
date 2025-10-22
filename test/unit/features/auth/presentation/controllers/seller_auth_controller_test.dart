@@ -71,7 +71,8 @@ void main() {
       const tEmail = 'test@example.com';
       const tPassword = 'password123';
 
-      test('doit mettre l\'état en loading puis authenticated en cas de succès', () async {
+      test('doit mettre l\'état en loading puis authenticated en cas de succès',
+          () async {
         // arrange
         when(mockSellerLogin(any)).thenAnswer((_) async => Right(tSeller));
 
@@ -94,13 +95,15 @@ void main() {
       test('doit mettre l\'état en error en cas d\'échec', () async {
         // arrange
         const tFailure = AuthFailure('Identifiants incorrects');
-        when(mockSellerLogin(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockSellerLogin(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.login(email: tEmail, password: tPassword);
 
         // assert
-        expect(controller.state, const SellerAuthState.error('Identifiants incorrects'));
+        expect(controller.state,
+            const SellerAuthState.error('Identifiants incorrects'));
       });
 
       test('doit appeler le use case avec les bons paramètres', () async {
@@ -128,7 +131,8 @@ void main() {
       const tCompanyName = 'Test Company';
       const tPhone = '+33123456789';
 
-      test('doit mettre l\'état en loading puis authenticated en cas de succès', () async {
+      test('doit mettre l\'état en loading puis authenticated en cas de succès',
+          () async {
         // arrange
         when(mockSellerRegister(any)).thenAnswer((_) async => Right(tSeller));
 
@@ -155,7 +159,8 @@ void main() {
       test('doit mettre l\'état en error en cas d\'échec', () async {
         // arrange
         const tFailure = ValidationFailure('Email déjà utilisé');
-        when(mockSellerRegister(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockSellerRegister(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.register(
@@ -165,7 +170,8 @@ void main() {
         );
 
         // assert
-        expect(controller.state, const SellerAuthState.error('Email déjà utilisé'));
+        expect(controller.state,
+            const SellerAuthState.error('Email déjà utilisé'));
       });
 
       test('doit appeler le use case avec les bons paramètres', () async {
@@ -197,7 +203,9 @@ void main() {
     });
 
     group('logout', () {
-      test('doit mettre l\'état en loading puis unauthenticated en cas de succès', () async {
+      test(
+          'doit mettre l\'état en loading puis unauthenticated en cas de succès',
+          () async {
         // arrange
         when(mockSellerLogout(any)).thenAnswer((_) async => const Right(null));
 
@@ -217,7 +225,8 @@ void main() {
       test('doit mettre l\'état en error en cas d\'échec', () async {
         // arrange
         const tFailure = ServerFailure('Erreur serveur');
-        when(mockSellerLogout(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockSellerLogout(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.logout();
@@ -228,7 +237,9 @@ void main() {
     });
 
     group('getCurrentSeller', () {
-      test('doit mettre l\'état en loading puis authenticated si vendeur trouvé', () async {
+      test(
+          'doit mettre l\'état en loading puis authenticated si vendeur trouvé',
+          () async {
         // arrange
         when(mockGetCurrentSeller(any)).thenAnswer((_) async => Right(tSeller));
 
@@ -244,10 +255,12 @@ void main() {
         expect(controller.state, SellerAuthState.authenticated(tSeller));
       });
 
-      test('doit mettre l\'état en unauthenticated si aucun vendeur trouvé', () async {
+      test('doit mettre l\'état en unauthenticated si aucun vendeur trouvé',
+          () async {
         // arrange
         const tFailure = AuthFailure('Non authentifié');
-        when(mockGetCurrentSeller(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockGetCurrentSeller(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.getCurrentSeller();
@@ -260,9 +273,12 @@ void main() {
     group('forgotPassword', () {
       const tEmail = 'test@example.com';
 
-      test('doit mettre l\'état en loading puis unauthenticated en cas de succès', () async {
+      test(
+          'doit mettre l\'état en loading puis unauthenticated en cas de succès',
+          () async {
         // arrange
-        when(mockSellerForgotPassword(any)).thenAnswer((_) async => const Right(null));
+        when(mockSellerForgotPassword(any))
+            .thenAnswer((_) async => const Right(null));
 
         // act
         final future = controller.forgotPassword(tEmail);
@@ -279,18 +295,21 @@ void main() {
       test('doit mettre l\'état en error en cas d\'échec', () async {
         // arrange
         const tFailure = ValidationFailure('Email non trouvé');
-        when(mockSellerForgotPassword(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockSellerForgotPassword(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.forgotPassword(tEmail);
 
         // assert
-        expect(controller.state, const SellerAuthState.error('Email non trouvé'));
+        expect(
+            controller.state, const SellerAuthState.error('Email non trouvé'));
       });
     });
 
     group('checkAuthStatus', () {
-      test('doit mettre l\'état en authenticated si vendeur connecté', () async {
+      test('doit mettre l\'état en authenticated si vendeur connecté',
+          () async {
         // arrange
         when(mockGetCurrentSeller(any)).thenAnswer((_) async => Right(tSeller));
 
@@ -304,7 +323,8 @@ void main() {
       test('doit mettre l\'état en unauthenticated si erreur', () async {
         // arrange
         const tFailure = AuthFailure('Token expiré');
-        when(mockGetCurrentSeller(any)).thenAnswer((_) async => const Left(tFailure));
+        when(mockGetCurrentSeller(any))
+            .thenAnswer((_) async => const Left(tFailure));
 
         // act
         await controller.checkAuthStatus();
@@ -350,7 +370,8 @@ void main() {
         );
 
         // Test avec une ServerFailure
-        when(mockSellerLogin(any)).thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
+        when(mockSellerLogin(any)).thenAnswer(
+            (_) async => const Left(ServerFailure('Erreur serveur')));
         controller.login(email: 'test', password: 'test');
 
         // On peut pas tester directement _mapFailureToMessage car c'est privé,
@@ -386,7 +407,8 @@ void main() {
       expect(state.errorMessage, 'Erreur test');
     });
 
-    test('isUnauthenticated doit retourner true pour Unauthenticated state', () {
+    test('isUnauthenticated doit retourner true pour Unauthenticated state',
+        () {
       const state = SellerAuthState.unauthenticated();
       expect(state.isUnauthenticated, true);
       expect(state.isLoading, false);

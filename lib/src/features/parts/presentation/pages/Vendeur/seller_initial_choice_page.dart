@@ -24,64 +24,64 @@ class SellerInitialChoicePage extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Que souhaitez-vous faire ?',
-                style: TextStyle(
-                  fontSize: 28,
-                  height: 1.15,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.darkBlue,
-                  letterSpacing: -0.2,
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Que souhaitez-vous faire ?',
+              style: TextStyle(
+                fontSize: 28,
+                height: 1.15,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.darkBlue,
+                letterSpacing: -0.2,
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'En tant que professionnel, vous pouvez :\n• Vendre vos pièces avec une annonce\n• Rechercher des pièces spécifiques',
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                  color: AppTheme.darkGray,
-                ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'En tant que professionnel, vous pouvez :\n• Vendre vos pièces avec une annonce\n• Rechercher des pièces spécifiques',
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                color: AppTheme.darkGray,
               ),
-              const SizedBox(height: 40),
+            ),
+            const SizedBox(height: 40),
 
-              // Option 1: Poster une annonce
-              _buildChoiceCard(
-                context: context,
-                icon: Icons.sell_outlined,
-                title: 'Poster une annonce',
-                subtitle: 'Vendre une pièce • Gestion professionnelle',
-                color: AppTheme.primaryBlue,
-                badge: 'PRO',
-                onTap: () {
-                  // Aller vers le flow d'annonce vendeur existant
-                  context.go('/seller/create-ad');
-                },
-              ),
+            // Option 1: Poster une annonce
+            _buildChoiceCard(
+              context: context,
+              icon: Icons.sell_outlined,
+              title: 'Poster une annonce',
+              subtitle: 'Vendre une pièce • Gestion professionnelle',
+              color: AppTheme.primaryBlue,
+              badge: 'PRO',
+              onTap: () {
+                // Aller vers le flow d'annonce vendeur existant
+                context.go('/seller/create-ad');
+              },
+            ),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-              // Option 2: Faire une demande
-              _buildChoiceCard(
-                context: context,
-                icon: Icons.search,
-                title: 'Rechercher une pièce',
-                subtitle: 'Trouver une pièce • Demande prioritaire',
-                color: AppTheme.success,
-                badge: 'PRO',
-                onTap: () {
-                  // Aller vers le flow de demande vendeur
-                  context.go('/seller/create-request');
-                },
-              ),
+            // Option 2: Faire une demande
+            _buildChoiceCard(
+              context: context,
+              icon: Icons.search,
+              title: 'Rechercher une pièce',
+              subtitle: 'Trouver une pièce • Demande prioritaire',
+              color: AppTheme.success,
+              badge: 'PRO',
+              onTap: () {
+                // Aller vers le flow de demande vendeur
+                context.go('/seller/create-request');
+              },
+            ),
 
-              const Spacer(),
-            ],
-          ),
+            const Spacer(),
+          ],
         ),
+      ),
     );
   }
 
@@ -150,7 +150,8 @@ class SellerInitialChoicePage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color,
                           borderRadius: BorderRadius.circular(6),

@@ -69,14 +69,14 @@ class _TestApiPageState extends State<TestApiPage> {
                     ),
                     const SizedBox(height: 8),
                     Text('Provider ID: ${TecAllianceTestService.providerId}'),
-                    Text('API Key: ${TecAllianceTestService.apiKey.substring(0, 20)}...'),
+                    Text(
+                        'API Key: ${TecAllianceTestService.apiKey.substring(0, 20)}...'),
                     Text('Base URL: ${TecAllianceTestService.baseUrl}'),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -95,7 +95,8 @@ class _TestApiPageState extends State<TestApiPage> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           ),
                           SizedBox(width: 12),
@@ -108,7 +109,6 @@ class _TestApiPageState extends State<TestApiPage> {
                       ),
               ),
             ),
-            
             const SizedBox(height: 16),
             const Text(
               'Logs de test:',
@@ -118,7 +118,6 @@ class _TestApiPageState extends State<TestApiPage> {
               ),
             ),
             const SizedBox(height: 8),
-            
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -141,7 +140,7 @@ class _TestApiPageState extends State<TestApiPage> {
                         itemBuilder: (context, index) {
                           final log = _logs[index];
                           Color textColor = Colors.black87;
-                          
+
                           if (log.contains('✅')) {
                             textColor = Colors.green[700]!;
                           } else if (log.contains('❌')) {
@@ -151,7 +150,7 @@ class _TestApiPageState extends State<TestApiPage> {
                           } else if (log.contains('Status: 200')) {
                             textColor = Colors.green[600]!;
                           }
-                          
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 2),
                             child: Text(

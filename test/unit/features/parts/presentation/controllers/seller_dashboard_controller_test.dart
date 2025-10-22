@@ -1,7 +1,8 @@
 import 'package:cente_pice/src/core/errors/failures.dart';
 import 'package:cente_pice/src/core/usecases/usecase.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/part_request.dart';
-import 'package:cente_pice/src/features/parts/domain/usecases/get_seller_notifications.dart' hide SellerNotification;
+import 'package:cente_pice/src/features/parts/domain/usecases/get_seller_notifications.dart'
+    hide SellerNotification;
 import 'package:cente_pice/src/features/parts/presentation/controllers/seller_dashboard_controller.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +36,8 @@ void main() {
     partType: 'engine',
     partNames: ['moteur'],
     status: 'active',
-    createdAt: DateTime.now().subtract(const Duration(hours: 12)), // Récent (nouveau)
+    createdAt:
+        DateTime.now().subtract(const Duration(hours: 12)), // Récent (nouveau)
     updatedAt: DateTime.now(),
   );
 
@@ -48,7 +50,8 @@ void main() {
     partType: 'body',
     partNames: ['pare-chocs'],
     status: 'active',
-    createdAt: DateTime.now().subtract(const Duration(days: 2)), // Ancien (pas nouveau)
+    createdAt: DateTime.now()
+        .subtract(const Duration(days: 2)), // Ancien (pas nouveau)
     updatedAt: DateTime.now(),
   );
 
@@ -74,7 +77,8 @@ void main() {
       // assert
       expect(controller.state.isLoaded, true);
       expect(controller.state.notifications?.length, 2);
-      expect(controller.state.unreadCount, 1); // Seul tPartRequest1 est récent (< 24h)
+      expect(controller.state.unreadCount,
+          1); // Seul tPartRequest1 est récent (< 24h)
 
       final notifications = controller.state.notifications!;
       expect(notifications[0].partRequest.id, tPartRequest1.id);
@@ -131,7 +135,8 @@ void main() {
       expect(controller.state.unreadCount, 0);
     });
 
-    test('doit calculer correctement le nombre de notifications non lues', () async {
+    test('doit calculer correctement le nombre de notifications non lues',
+        () async {
       // arrange - Toutes les demandes récentes (< 24h)
       final recentPartRequest1 = PartRequest(
         id: '3',
@@ -234,7 +239,8 @@ void main() {
       expect(controller.state.notifications?[0].isNew, false);
     });
 
-    test('doit appeler le usecase une seule fois par loadNotifications', () async {
+    test('doit appeler le usecase une seule fois par loadNotifications',
+        () async {
       // arrange
       when(mockGetSellerNotifications(NoParams()))
           .thenAnswer((_) async => Right(tPartRequestsList));
@@ -298,7 +304,8 @@ void main() {
         partType: 'engine',
         partNames: ['courroie'],
         status: 'active',
-        createdAt: now.subtract(const Duration(hours: 24, minutes: 1)), // Juste au-dessus de 24h
+        createdAt: now.subtract(
+            const Duration(hours: 24, minutes: 1)), // Juste au-dessus de 24h
         updatedAt: now,
       );
 

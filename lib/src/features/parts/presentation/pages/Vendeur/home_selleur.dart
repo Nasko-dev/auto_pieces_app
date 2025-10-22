@@ -74,68 +74,69 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
                     // Ligne de séparation
                     Container(
-               margin: const EdgeInsets.symmetric(horizontal: 20),
-               height: 1,
-               decoration: BoxDecoration(
-                 gradient: LinearGradient(
-                   colors: [
-                     Colors.transparent,
-                     AppTheme.gray.withValues(alpha: 0.3),
-                     Colors.transparent,
-                   ],
-                 ),
-               ),
-             ),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      height: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            AppTheme.gray.withValues(alpha: 0.3),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
 
-             const SizedBox(height: 24),
-             // Texte d'aide
-             const Center(
-               child: Text(
-                 'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
-                 textAlign: TextAlign.center,
-                 style: TextStyle(
-                   fontSize: 16,
-                   fontWeight: FontWeight.w600,
-                   color: AppTheme.darkBlue,
-                 ),
-               ),
-             ),
-             const SizedBox(height: 12),
+                    const SizedBox(height: 24),
+                    // Texte d'aide
+                    const Center(
+                      child: Text(
+                        'Vous pouvez aussi déposer une annonce\nà partir d\'ici',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.darkBlue,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
 
-             // CTA Déposer
-             SizedBox(
-               width: double.infinity,
-               child: ElevatedButton(
-                 onPressed: () {
-                   HapticFeedback.mediumImpact();
-                   context.go('/seller/add');
-                 },
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: AppTheme.primaryBlue,
-                   foregroundColor: AppTheme.white,
-                   padding: const EdgeInsets.symmetric(vertical: 16),
-                   shape: RoundedRectangleBorder(
-                     borderRadius: BorderRadius.circular(12),
-                   ),
-                   elevation: 4,
-                   shadowColor: AppTheme.primaryBlue.withValues(alpha: 0.3),
-                 ),
-                 child: const Row(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                   children: [
-                     Icon(Icons.add_circle_outline, size: 20),
-                     SizedBox(width: 8),
-                     Text(
-                       'Déposer une annonce',
-                       style: TextStyle(
-                         fontSize: 18,
-                         fontWeight: FontWeight.w700,
-                       ),
-                     ),
-                   ],
-                 ),
-               ),
-             ),
+                    // CTA Déposer
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          context.go('/seller/add');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryBlue,
+                          foregroundColor: AppTheme.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                          shadowColor:
+                              AppTheme.primaryBlue.withValues(alpha: 0.3),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Déposer une annonce',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -265,13 +266,12 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   Widget _buildNotificationsContent(SellerDashboardState state) {
     return state.when(
       initial: () => const SizedBox.shrink(),
-      loading:
-          () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: CircularProgressIndicator(color: AppTheme.primaryBlue),
-            ),
-          ),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(color: AppTheme.primaryBlue),
+        ),
+      ),
       loaded: (notifications, unreadCount) {
         if (notifications.isEmpty) {
           return _buildEmptyNotificationsState();
@@ -285,15 +285,13 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _ModernNotificationCard(
                   partRequest: notification.partRequest,
-                  onTap:
-                      () => _navigateToConversationDetail(
-                        notification.partRequest,
-                      ),
-                  onAccept:
-                      () =>
-                          _acceptAndRespond(context, notification.partRequest),
-                  onReject:
-                      () => _rejectRequest(context, notification.partRequest),
+                  onTap: () => _navigateToConversationDetail(
+                    notification.partRequest,
+                  ),
+                  onAccept: () =>
+                      _acceptAndRespond(context, notification.partRequest),
+                  onReject: () =>
+                      _rejectRequest(context, notification.partRequest),
                 ),
               );
             }),
@@ -514,7 +512,8 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
   void _navigateToConversationDetail(PartRequest partRequest) {
     HapticFeedback.lightImpact();
     // TODO: Implémenter navigation vers conversation
-    notificationService.info(context, 'Fonction conversation en cours de développement');
+    notificationService.info(
+        context, 'Fonction conversation en cours de développement');
   }
 
   void _acceptAndRespond(BuildContext context, PartRequest partRequest) async {
@@ -560,14 +559,12 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
       // Naviguer vers la conversation avec message pré-généré
       if (!mounted) return;
-      final partNamesStr =
-          partRequest.partNames.isNotEmpty
-              ? partRequest.partNames.join(', ')
-              : 'des pièces';
-      final vehicleStr =
-          partRequest.vehicleInfo.isNotEmpty
-              ? partRequest.vehicleInfo
-              : 'votre véhicule';
+      final partNamesStr = partRequest.partNames.isNotEmpty
+          ? partRequest.partNames.join(', ')
+          : 'des pièces';
+      final vehicleStr = partRequest.vehicleInfo.isNotEmpty
+          ? partRequest.vehicleInfo
+          : 'votre véhicule';
       final prefilledMessage =
           "Bonjour ! J'ai bien reçu votre demande pour $partNamesStr concernant $vehicleStr. Je vous contacte par rapport à votre demande !";
       final encodedMessage = Uri.encodeComponent(prefilledMessage);
@@ -618,16 +615,21 @@ class _HomeSellerPageState extends ConsumerState<HomeSellerPage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur', subtitle: failure.toString());
+          notificationService.error(context, 'Erreur',
+              subtitle: failure.toString());
         },
         (rejection) {
-          final vehicleText = partRequest.vehicleInfo.isNotEmpty ? partRequest.vehicleInfo : "Véhicule";
-          notificationService.success(context, 'Demande refusée avec succès', subtitle: vehicleText);
+          final vehicleText = partRequest.vehicleInfo.isNotEmpty
+              ? partRequest.vehicleInfo
+              : "Véhicule";
+          notificationService.success(context, 'Demande refusée avec succès',
+              subtitle: vehicleText);
         },
       );
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors du refus', subtitle: e.toString());
+        notificationService.error(context, 'Erreur lors du refus',
+            subtitle: e.toString());
       }
     }
 
@@ -918,9 +920,7 @@ class _ModernNotificationCard extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               Row(
                 children: [
                   Expanded(

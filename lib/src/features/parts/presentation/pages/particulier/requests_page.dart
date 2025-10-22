@@ -41,117 +41,121 @@ class _RequestsPageState extends ConsumerState<RequestsPage> {
 
   Widget _buildBody() {
     return Consumer(
-        builder: (context, ref, child) {
-          final state = ref.watch(partRequestControllerProvider);
+      builder: (context, ref, child) {
+        final state = ref.watch(partRequestControllerProvider);
 
-          // Filtrer pour ne montrer que les demandes particulier (non-vendeur)
-          final filteredRequests = state.requests.where((request) => !request.isSellerRequest).toList();
+        // Filtrer pour ne montrer que les demandes particulier (non-vendeur)
+        final filteredRequests = state.requests
+            .where((request) => !request.isSellerRequest)
+            .toList();
 
+        if (state.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-          if (state.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          
-          if (state.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
+        if (state.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur de chargement',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.error!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     color: Colors.grey[600],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erreur de chargement',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.error!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
-                    },
-                    child: const Text('Réessayer'),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          if (filteredRequests.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucune recherches',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Ici vous trouverez vos recherches en cours. Pour le moment, aucune recherche n\'est en cours.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => context.go('/home'),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Lancer une recherche'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryBlue,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          
-          return RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
-            },
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              itemCount: filteredRequests.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final request = filteredRequests[index];
-                return _RequestCard(request: request);
-              },
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    ref
+                        .read(partRequestControllerProvider.notifier)
+                        .loadUserPartRequests();
+                  },
+                  child: const Text('Réessayer'),
+                ),
+              ],
             ),
           );
-        },
-      );
+        }
+
+        if (filteredRequests.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Aucune recherches',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Ici vous trouverez vos recherches en cours. Pour le moment, aucune recherche n\'est en cours.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => context.go('/home'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Lancer une recherche'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryBlue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref
+                .read(partRequestControllerProvider.notifier)
+                .loadUserPartRequests();
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            itemCount: filteredRequests.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final request = filteredRequests[index];
+              return _RequestCard(request: request);
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -207,7 +211,9 @@ class _RequestCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          request.vehicleInfo.isNotEmpty ? request.vehicleInfo : 'Véhicule non spécifié',
+                          request.vehicleInfo.isNotEmpty
+                              ? request.vehicleInfo
+                              : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -279,7 +285,8 @@ class _RequestCard extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) async {
     final result = await context.showDestructiveDialog(
       title: 'Supprimer la demande',
-      message: 'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
+      message:
+          'Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.',
       destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );

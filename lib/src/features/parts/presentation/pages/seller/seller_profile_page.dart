@@ -61,7 +61,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       (settings) {
         if (settings != null && mounted) {
           setState(() {
-            _companyNameController.text = settings.companyName ?? 'Mon Entreprise';
+            _companyNameController.text =
+                settings.companyName ?? 'Mon Entreprise';
             _notificationsEnabled = settings.notificationsEnabled;
             _emailNotificationsEnabled = settings.emailNotificationsEnabled;
             _avatarUrl = settings.avatarUrl;
@@ -104,30 +105,30 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         centerTitle: true,
       ),
       body: _isLoadingProfile
-        ? const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryBlue,
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryBlue,
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Section Profil
+                  _buildProfileSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Préférences
+                  _buildPreferencesSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Actions
+                  _buildActionsSection(),
+                ],
+              ),
             ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // Section Profil
-                _buildProfileSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Préférences
-                _buildPreferencesSection(),
-
-                const SizedBox(height: 24),
-
-                // Section Actions
-                _buildActionsSection(),
-              ],
-            ),
-          ),
     );
   }
 
@@ -153,9 +154,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
               CircleAvatar(
                 radius: 50,
                 backgroundColor: AppTheme.lightGray,
-                backgroundImage: _avatarUrl != null
-                    ? NetworkImage(_avatarUrl!)
-                    : null,
+                backgroundImage:
+                    _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
                 child: _avatarUrl == null
                     ? Icon(
                         Icons.business,
@@ -182,7 +182,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppTheme.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppTheme.white),
                             ),
                           )
                         : const Icon(
@@ -210,7 +211,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                         autofocus: true,
                       )
@@ -266,7 +268,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
                     backgroundColor: AppTheme.primaryBlue,
                     foregroundColor: AppTheme.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -442,12 +445,14 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
               ),
               Switch(
                 value: _emailNotificationsEnabled && _notificationsEnabled,
-                onChanged: _notificationsEnabled ? (value) {
-                  setState(() {
-                    _emailNotificationsEnabled = value;
-                  });
-                  _saveNotificationPreferences();
-                } : null,
+                onChanged: _notificationsEnabled
+                    ? (value) {
+                        setState(() {
+                          _emailNotificationsEnabled = value;
+                        });
+                        _saveNotificationPreferences();
+                      }
+                    : null,
                 thumbColor: WidgetStateProperty.all(AppTheme.primaryBlue),
               ),
             ],
@@ -554,19 +559,22 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
+          notificationService.error(context, 'Erreur de sauvegarde',
+              subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
             _isEditingName = false;
           });
 
-          notificationService.success(context, 'Nom de l\'entreprise mis à jour');
+          notificationService.success(
+              context, 'Nom de l\'entreprise mis à jour');
         },
       );
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+        notificationService.error(context, 'Erreur inattendue',
+            subtitle: e.toString());
       }
     }
   }
@@ -593,8 +601,7 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         (failure) {
           _loadSellerProfile();
         },
-        (savedSettings) {
-        },
+        (savedSettings) {},
       );
     } catch (e) {
       _loadSellerProfile();
@@ -686,7 +693,9 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors de la sélection de l\'image', subtitle: e.toString());
+        notificationService.error(
+            context, 'Erreur lors de la sélection de l\'image',
+            subtitle: e.toString());
       }
       setState(() {
         _isUploadingImage = false;
@@ -711,7 +720,6 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
         imageFile: imageFile,
       );
 
-
       final sellerSettings = SellerSettings(
         sellerId: currentUser.id,
         email: _userEmail ?? currentUser.email ?? '',
@@ -727,7 +735,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
+          notificationService.error(context, 'Erreur de sauvegarde',
+              subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
@@ -739,7 +748,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
       );
     } catch (e) {
       if (mounted) {
-        notificationService.error(context, 'Erreur lors de l\'upload', subtitle: e.toString());
+        notificationService.error(context, 'Erreur lors de l\'upload',
+            subtitle: e.toString());
       }
     } finally {
       setState(() {
@@ -777,7 +787,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur', subtitle: failure.message);
+          notificationService.error(context, 'Erreur',
+              subtitle: failure.message);
         },
         (savedSettings) {
           setState(() {
@@ -825,7 +836,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
     // Utiliser le nouveau dialog destructive natif
     final result = await context.showDestructiveDialog(
       title: 'Supprimer le compte',
-      message: 'Cette action est irréversible. Toutes vos annonces et données seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
+      message:
+          'Cette action est irréversible. Toutes vos annonces et données seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
       destructiveText: 'Supprimer définitivement',
       cancelText: 'Annuler',
     );
@@ -833,7 +845,8 @@ class _SellerProfilePageState extends ConsumerState<SellerProfilePage> {
     if (result == true && mounted) {
       // TODO: Implémenter suppression de compte vendeur
       if (mounted) {
-        notificationService.error(context, 'Suppression de compte - Fonctionnalité à venir');
+        notificationService.error(
+            context, 'Suppression de compte - Fonctionnalité à venir');
       }
     }
   }

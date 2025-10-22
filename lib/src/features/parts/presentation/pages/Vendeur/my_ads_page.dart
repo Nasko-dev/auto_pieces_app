@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/services/notification_service.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
@@ -15,7 +16,8 @@ part 'my_ads_page.freezed.dart';
 // Classe pour unifier les annonces et les demandes
 @freezed
 class UnifiedItem with _$UnifiedItem {
-  const factory UnifiedItem.advertisement(PartAdvertisement advertisement) = _Advertisement;
+  const factory UnifiedItem.advertisement(PartAdvertisement advertisement) =
+      _Advertisement;
   const factory UnifiedItem.request(PartRequest request) = _Request;
 }
 
@@ -27,48 +29,38 @@ class MyAdsPage extends ConsumerStatefulWidget {
 }
 
 class _MyAdsPageState extends ConsumerState<MyAdsPage> {
-
   @override
   void initState() {
     super.initState();
     // Charger les annonces et demandes au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
+      ref
+          .read(partAdvertisementControllerProvider.notifier)
+          .getMyAdvertisements();
       ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
     });
   }
 
-  String _selectedFilter = 'all';
-  // Variable supprimée car non utilisée
-
-  List<PartAdvertisement> get filteredAds {
-    final advertisements = ref.watch(partAdvertisementControllerProvider).advertisements;
-
-    final filtered = switch (_selectedFilter) {
-      'active' => advertisements.where((ad) => ad.status == 'active').toList(),
-      'sold' => advertisements.where((ad) => ad.status == 'sold').toList(),
-      'paused' => advertisements.where((ad) => ad.status == 'paused').toList(),
-      _ => advertisements,
-    };
-
-    return filtered;
+  List<PartAdvertisement> get advertisements {
+    return ref.watch(partAdvertisementControllerProvider).advertisements;
   }
 
   List<PartRequest> get sellerRequests {
     final allRequests = ref.watch(partRequestControllerProvider).requests;
-    final sellerRequests = allRequests.where((request) => request.isSellerRequest).toList();
+    final sellerRequests =
+        allRequests.where((request) => request.isSellerRequest).toList();
     return sellerRequests;
   }
 
   // Liste unifiée d'annonces et de demandes
   List<UnifiedItem> get unifiedItems {
-    final advertisements = filteredAds;
+    final ads = advertisements;
     final requests = sellerRequests;
 
     List<UnifiedItem> items = [];
 
     // Ajouter les annonces
-    for (final ad in advertisements) {
+    for (final ad in ads) {
       items.add(UnifiedItem.advertisement(ad));
     }
 
@@ -106,13 +98,18 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 icon: const Icon(Icons.refresh, color: AppTheme.darkGray),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-                  ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+                  ref
+                      .read(partAdvertisementControllerProvider.notifier)
+                      .getMyAdvertisements();
+                  ref
+                      .read(partRequestControllerProvider.notifier)
+                      .loadUserPartRequests();
                 },
                 tooltip: 'Actualiser',
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: AppTheme.darkGray),
+                icon: const Icon(Icons.add_circle_outline,
+                    color: AppTheme.darkGray),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   // Navigation vers déposer une annonce
@@ -122,35 +119,12 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
               const SellerMenu(),
             ],
           ),
-          // Filtres
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  const SizedBox(width: 4),
-                  _buildFilterChip('Toutes', 'all', ref.watch(partAdvertisementControllerProvider).advertisements.length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Actives', 'active', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'active').length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Vendues', 'sold', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'sold').length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Pausées', 'paused', ref.watch(partAdvertisementControllerProvider).advertisements.where((a) => a.status == 'paused').length),
-                  const SizedBox(width: 4),
-                ],
-              ),
-            ),
-          ),
-
           // Liste des annonces et demandes
           Expanded(
             child: Consumer(
               builder: (context, ref, child) {
                 final state = ref.watch(partAdvertisementControllerProvider);
                 // Variable supprimée car non utilisée
-
 
                 if (state.isLoading) {
                   return const Center(
@@ -163,7 +137,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                        Icon(Icons.error_outline,
+                            size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
                           'Erreur: ${state.error}',
@@ -173,7 +148,10 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
+                            ref
+                                .read(partAdvertisementControllerProvider
+                                    .notifier)
+                                .getMyAdvertisements();
                           },
                           child: const Text('Réessayer'),
                         ),
@@ -183,12 +161,13 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 }
 
                 // Check if both ads and requests are empty
-                if (filteredAds.isEmpty && sellerRequests.isEmpty) {
+                if (advertisements.isEmpty && sellerRequests.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
+                        Icon(Icons.inventory_2_outlined,
+                            size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
                           'Aucune annonce ou demande',
@@ -201,8 +180,12 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    await ref.read(partAdvertisementControllerProvider.notifier).getMyAdvertisements();
-                    await ref.read(partRequestControllerProvider.notifier).loadUserPartRequests();
+                    await ref
+                        .read(partAdvertisementControllerProvider.notifier)
+                        .getMyAdvertisements();
+                    await ref
+                        .read(partRequestControllerProvider.notifier)
+                        .loadUserPartRequests();
                   },
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -214,51 +197,44 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      // Section Annonces et Demandes
-                      Text(
-                        'Mes Annonces (${unifiedItems.length})',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.darkBlue,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                          // Section Annonces et Demandes
+                          const SizedBox(height: 16),
 
-                      // Liste unifiée des annonces et demandes
-                      if (unifiedItems.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Aucune annonce',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[600],
-                                ),
+                          // Liste unifiée des annonces et demandes
+                          if (unifiedItems.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Vos annonces et demandes apparaîtront ici',
-                                style: TextStyle(color: Colors.grey[500]),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.inventory_2_outlined,
+                                      size: 48, color: Colors.grey[400]),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucune annonce',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Vos annonces et demandes apparaîtront ici',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        )
-                      else
-                        ...unifiedItems.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _UnifiedItemCard(item: item),
-                        )),
+                            )
+                          else
+                            ...unifiedItems.map((item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: _UnifiedItemCard(item: item),
+                                )),
                         ],
                       ),
                     ),
@@ -271,64 +247,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
       ),
     );
   }
-
-  Widget _buildFilterChip(String label, String value, int count) {
-    final isSelected = _selectedFilter == value;
-
-    return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade600,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$count',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  // Méthodes supprimées car non utilisées (toggleAdStatus, markAsSold, showDeleteConfirmation, deleteAdvertisement)
 }
 
 // Widget unifié pour afficher une annonce ou une demande
@@ -340,7 +258,8 @@ class _UnifiedItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return item.when(
-      advertisement: (advertisement) => _AdvertisementCard(advertisement: advertisement),
+      advertisement: (advertisement) =>
+          _AdvertisementCard(advertisement: advertisement),
       request: (request) => _RequestCard(request: request),
     );
   }
@@ -397,12 +316,12 @@ class _AdvertisementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge "ANNONCE" en haut à droite
+            // Informations véhicule et statut
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    advertisement.partName,
+                    _buildVehicleInfo(advertisement),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -410,33 +329,10 @@ class _AdvertisementCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Badge ANNONCE
+                // Badge Statut
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.store, color: AppTheme.primaryBlue, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        'ANNONCE',
-                        style: TextStyle(
-                          color: AppTheme.primaryBlue,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Statut
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -460,41 +356,33 @@ class _AdvertisementCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 12),
-
-            // Prix et informations véhicule
-            Row(
-              children: [
-                Text(
-                  '${advertisement.price?.toStringAsFixed(0) ?? '0'}€',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryBlue,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _timeAgo(advertisement.createdAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 8),
 
-            // Informations véhicule
+            // Nom de la pièce
             Text(
-              _buildVehicleInfo(advertisement),
+              advertisement.partName,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
+
+            const SizedBox(height: 4),
+
+            // Date de création
+            Text(
+              _timeAgo(advertisement.createdAt),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Stock disponible (cliquable)
+            _StockBadge(advertisement: advertisement),
           ],
         ),
       ),
@@ -533,6 +421,320 @@ class _AdvertisementCard extends StatelessWidget {
       return '${difference.inHours}h';
     } else {
       return '${difference.inMinutes}min';
+    }
+  }
+}
+
+// Widget badge de stock cliquable
+class _StockBadge extends ConsumerWidget {
+  final PartAdvertisement advertisement;
+
+  const _StockBadge({required this.advertisement});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stock = advertisement.quantityAvailable;
+    Color stockColor;
+    String stockLabel;
+
+    if (stock == 0) {
+      stockColor = AppTheme.error;
+      stockLabel = 'Rupture de stock';
+    } else if (stock <= 2) {
+      stockColor = AppTheme.warning;
+      stockLabel = 'Stock limité';
+    } else {
+      stockColor = AppTheme.success;
+      stockLabel = 'En stock';
+    }
+
+    return GestureDetector(
+      onTap: () => _showStockDialog(context, ref),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: stockColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: stockColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inventory_2, color: stockColor, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              '$stockLabel : ',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              '$stock',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: stockColor,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.edit, color: stockColor, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStockDialog(BuildContext context, WidgetRef ref) {
+    int currentStock = advertisement.quantityAvailable;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 36,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Titre
+                  const Text(
+                    'Gérer le stock',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Nom de la pièce
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      advertisement.partName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Compteur avec boutons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Bouton -
+                      GestureDetector(
+                        onTap: currentStock > 0
+                            ? () {
+                                HapticFeedback.lightImpact();
+                                setState(() {
+                                  currentStock--;
+                                });
+                              }
+                            : null,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: currentStock > 0
+                                ? AppTheme.error.withValues(alpha: 0.1)
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.remove,
+                            color: currentStock > 0
+                                ? AppTheme.error
+                                : Colors.grey[400],
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+
+                      // Affichage du stock
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$currentStock',
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+
+                      // Bouton +
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            currentStock++;
+                          });
+                        },
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppTheme.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: AppTheme.success,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Boutons d'action
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        // Bouton Valider
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              HapticFeedback.mediumImpact();
+                              Navigator.of(bottomSheetContext).pop();
+                              await _updateStock(context, ref, currentStock);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Valider',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Bouton Annuler
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.of(bottomSheetContext).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey[700],
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Annuler',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _updateStock(
+      BuildContext context, WidgetRef ref, int newStock) async {
+    try {
+      // Appeler le controller pour mettre à jour le stock
+      final success = await ref
+          .read(partAdvertisementControllerProvider.notifier)
+          .updateStock(advertisement.id, newStock);
+
+      if (context.mounted) {
+        if (success) {
+          notificationService.success(
+            context,
+            'Stock mis à jour',
+            subtitle: 'Nouveau stock : $newStock',
+          );
+        } else {
+          final error = ref.read(partAdvertisementControllerProvider).error;
+          notificationService.error(
+            context,
+            'Erreur',
+            subtitle: error ?? 'Erreur lors de la mise à jour du stock',
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        notificationService.error(
+          context,
+          'Erreur',
+          subtitle: e.toString(),
+        );
+      }
     }
   }
 }

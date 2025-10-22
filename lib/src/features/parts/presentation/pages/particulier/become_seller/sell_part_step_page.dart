@@ -224,17 +224,17 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
 
   bool _isFormValid() {
     final hasText = _partController.text.trim().isNotEmpty;
-    final hasParts = _selectedParts.isNotEmpty;
 
     if (_isCompleteVehicle || _isCompleteMotor || _isCompleteBody) {
       // Mode véhicule complet, moteur complet ou carrosserie complète : toujours valide
       return true;
     } else if (_hasMultiple) {
-      // Mode multiple : valide si au moins une pièce sélectionnée OU du texte dans le champ
-      final isValid = hasParts || hasText;
-      return isValid;
+      // Mode "Plus de 5 pièces" : il faut au moins 6 pièces dans la liste (5 tags + 1 en cours minimum)
+      // Compter les pièces déjà ajoutées + celle en cours de saisie
+      final totalParts = _selectedParts.length + (hasText ? 1 : 0);
+      return totalParts >= 6;
     } else {
-      // Mode simple : valide si du texte dans le champ
+      // Mode "Moins de 5 pièces" : valide si du texte dans le champ
       return hasText;
     }
   }
@@ -335,16 +335,13 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Champ de recherche de pièce (sauf pour catégorie moteur)
-                      if (widget.selectedCategory != 'moteur' &&
-                          widget.selectedCategory != 'engine') ...[
-                        _buildPartSearchField(),
-                        if (_hasMultiple && _selectedParts.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _buildSelectedPartsTags(),
-                        ],
-                        const SizedBox(height: 24),
+                      // Champ de recherche de pièce (toujours visible)
+                      _buildPartSearchField(),
+                      if (_hasMultiple && _selectedParts.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildSelectedPartsTags(),
                       ],
+                      const SizedBox(height: 24),
 
                       // Options spécifiques à la catégorie
                       _buildCategoryOptions(),
@@ -461,14 +458,28 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             focusNode: _focusNode,
             enabled:
                 !_isCompleteVehicle && !_isCompleteMotor && !_isCompleteBody,
-            textInputAction: TextInputAction.done,
+            textInputAction:
+                _hasMultiple ? TextInputAction.done : TextInputAction.done,
+            onSubmitted: _hasMultiple
+                ? (value) {
+                    if (value.trim().isNotEmpty &&
+                        !_selectedParts.contains(value.trim())) {
+                      setState(() {
+                        _selectedParts.add(value.trim());
+                        _partController.clear();
+                      });
+                    }
+                  }
+                : null,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: AppTheme.darkGray,
             ),
             decoration: InputDecoration(
-              hintText: 'Ex: Moteur, Pare-choc avant, Phare...',
+              hintText: _hasMultiple
+                  ? 'Tapez une pièce et appuyez sur Entrée...'
+                  : 'Ex: Moteur, Pare-choc avant, Phare...',
               hintStyle: TextStyle(
                 color: AppTheme.gray.withValues(alpha: 0.6),
               ),
@@ -477,6 +488,20 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                 color: _getCategoryColor(),
                 size: 22,
               ),
+              suffixIcon: _hasMultiple && _partController.text.trim().isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.add_circle, color: _getCategoryColor()),
+                      onPressed: () {
+                        final text = _partController.text.trim();
+                        if (text.isNotEmpty && !_selectedParts.contains(text)) {
+                          setState(() {
+                            _selectedParts.add(text);
+                            _partController.clear();
+                          });
+                        }
+                      },
+                    )
+                  : null,
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
@@ -648,6 +673,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             onChanged: (value) {
               setState(() {
                 _hasMultiple = value ?? false;
+                _isCompleteMotor = false;
                 if (!_hasMultiple) {
                   _selectedParts.clear();
                 }
@@ -663,11 +689,9 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
             icon: Icons.settings_outlined,
             onChanged: (value) {
               setState(() {
-                if (value == true) {
-                  _hasMultiple = false;
-                  _isCompleteMotor = false;
-                  _selectedParts.clear();
-                }
+                _hasMultiple = false;
+                _isCompleteMotor = false;
+                _selectedParts.clear();
               });
             },
           ),

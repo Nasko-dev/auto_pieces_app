@@ -109,7 +109,8 @@ void main() {
     });
 
     group('Validation des paramètres', () {
-      test('doit retourner ValidationFailure quand l\'email est vide', () async {
+      test('doit retourner ValidationFailure quand l\'email est vide',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: '',
@@ -122,7 +123,8 @@ void main() {
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure quand le mot de passe est vide', () async {
+      test('doit retourner ValidationFailure quand le mot de passe est vide',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: tEmail,
@@ -131,11 +133,13 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Le mot de passe est requis')));
+        expect(result,
+            const Left(ValidationFailure('Le mot de passe est requis')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure pour un mot de passe trop court', () async {
+      test('doit retourner ValidationFailure pour un mot de passe trop court',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: tEmail,
@@ -144,11 +148,16 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Le mot de passe doit contenir au moins 8 caractères')));
+        expect(
+            result,
+            const Left(ValidationFailure(
+                'Le mot de passe doit contenir au moins 8 caractères')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure quand les mots de passe ne correspondent pas', () async {
+      test(
+          'doit retourner ValidationFailure quand les mots de passe ne correspondent pas',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: tEmail,
@@ -157,11 +166,15 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Les mots de passe ne correspondent pas')));
+        expect(
+            result,
+            const Left(
+                ValidationFailure('Les mots de passe ne correspondent pas')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure pour un format d\'email invalide', () async {
+      test('doit retourner ValidationFailure pour un format d\'email invalide',
+          () async {
         // arrange
         const String invalidEmail = 'invalid-email';
 
@@ -173,13 +186,16 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Format d\'email invalide')));
+        expect(
+            result, const Left(ValidationFailure('Format d\'email invalide')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure pour un mot de passe faible', () async {
+      test('doit retourner ValidationFailure pour un mot de passe faible',
+          () async {
         // arrange
-        const String weakPassword = 'password'; // Pas de majuscule, chiffre ou caractère spécial
+        const String weakPassword =
+            'password'; // Pas de majuscule, chiffre ou caractère spécial
 
         // act
         final result = await usecase(const SellerRegisterParams(
@@ -189,13 +205,15 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure(
-          'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial'
-        )));
+        expect(
+            result,
+            const Left(ValidationFailure(
+                'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure pour un nom d\'entreprise vide', () async {
+      test('doit retourner ValidationFailure pour un nom d\'entreprise vide',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: tEmail,
@@ -205,11 +223,16 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Le nom d\'entreprise ne peut pas être vide')));
+        expect(
+            result,
+            const Left(ValidationFailure(
+                'Le nom d\'entreprise ne peut pas être vide')));
         verifyZeroInteractions(mockRepository);
       });
 
-      test('doit retourner ValidationFailure pour un format de téléphone invalide', () async {
+      test(
+          'doit retourner ValidationFailure pour un format de téléphone invalide',
+          () async {
         // act
         final result = await usecase(const SellerRegisterParams(
           email: tEmail,
@@ -219,7 +242,8 @@ void main() {
         ));
 
         // assert
-        expect(result, const Left(ValidationFailure('Format de téléphone invalide')));
+        expect(result,
+            const Left(ValidationFailure('Format de téléphone invalide')));
         verifyZeroInteractions(mockRepository);
       });
     });
@@ -347,7 +371,8 @@ void main() {
         lastName: anyNamed('lastName'),
         companyName: anyNamed('companyName'),
         phone: anyNamed('phone'),
-      )).thenAnswer((_) async => const Left(ServerFailure('Email déjà utilisé')));
+      )).thenAnswer(
+          (_) async => const Left(ServerFailure('Email déjà utilisé')));
 
       // act
       final result = await usecase(const SellerRegisterParams(

@@ -36,7 +36,8 @@ class TestThrottler {
   void run(void Function() action) {
     final now = DateTime.now();
 
-    if (_lastRun == null || now.difference(_lastRun!).compareTo(interval) >= 0) {
+    if (_lastRun == null ||
+        now.difference(_lastRun!).compareTo(interval) >= 0) {
       _lastRun = now;
       action();
     }
@@ -209,7 +210,8 @@ void main() {
 
     group('Edge cases', () {
       test('should handle very short delays', () async {
-        final shortDebouncer = TestDebouncer(delay: const Duration(milliseconds: 1));
+        final shortDebouncer =
+            TestDebouncer(delay: const Duration(milliseconds: 1));
         bool actionExecuted = false;
 
         shortDebouncer.run(() {
@@ -253,7 +255,8 @@ void main() {
 
     group('Constructor', () {
       test('should initialize with correct interval', () {
-        final testThrottler = TestThrottler(interval: const Duration(seconds: 1));
+        final testThrottler =
+            TestThrottler(interval: const Duration(seconds: 1));
 
         expect(testThrottler.interval, equals(const Duration(seconds: 1)));
         expect(testThrottler.lastRun, isNull);
@@ -356,7 +359,8 @@ void main() {
 
     group('Edge cases', () {
       test('should handle very short intervals', () async {
-        final shortThrottler = TestThrottler(interval: const Duration(milliseconds: 1));
+        final shortThrottler =
+            TestThrottler(interval: const Duration(milliseconds: 1));
         int executionCount = 0;
 
         shortThrottler.run(() {

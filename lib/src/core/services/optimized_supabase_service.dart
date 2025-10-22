@@ -3,7 +3,8 @@ import '../utils/performance_optimizer.dart';
 
 /// Service Supabase optimisé pour 500k+ utilisateurs
 class OptimizedSupabaseService {
-  static final OptimizedSupabaseService _instance = OptimizedSupabaseService._internal();
+  static final OptimizedSupabaseService _instance =
+      OptimizedSupabaseService._internal();
   factory OptimizedSupabaseService() => _instance;
   OptimizedSupabaseService._internal();
 
@@ -18,8 +19,9 @@ class OptimizedSupabaseService {
     String? vehicleBrand,
     bool useCache = true,
   }) async {
-    final cacheKey = 'part_requests_${offset}_${limit}_${partType ?? ''}_${vehicleBrand ?? ''}';
-    
+    final cacheKey =
+        'part_requests_${offset}_${limit}_${partType ?? ''}_${vehicleBrand ?? ''}';
+
     if (useCache) {
       return await _cache.smartCache(
         cacheKey,
@@ -32,14 +34,8 @@ class OptimizedSupabaseService {
   }
 
   Future<List<Map<String, dynamic>>> _fetchPartRequests(
-    int offset, 
-    int limit, 
-    String? partType, 
-    String? vehicleBrand
-  ) async {
-    var query = _supabase
-        .from('part_requests')
-        .select('*');
+      int offset, int limit, String? partType, String? vehicleBrand) async {
+    var query = _supabase.from('part_requests').select('*');
 
     if (partType != null) {
       query = query.eq('part_type', partType);
@@ -65,7 +61,7 @@ class OptimizedSupabaseService {
     if (currentSellerId == null) return [];
 
     final cacheKey = 'seller_conversations_${currentSellerId}_${offset}_$limit';
-    
+
     if (useCache) {
       return await _cache.smartCache(
         cacheKey,
@@ -78,10 +74,7 @@ class OptimizedSupabaseService {
   }
 
   Future<List<Map<String, dynamic>>> _fetchSellerConversations(
-    String sellerId, 
-    int offset, 
-    int limit
-  ) async {
+      String sellerId, int offset, int limit) async {
     return await _supabase
         .from('conversations')
         .select('''
@@ -127,7 +120,7 @@ class OptimizedSupabaseService {
 
     // 2. Invalider les caches liés
     _invalidateConversationCaches(currentUser.id);
-    
+
     return response;
   }
 
@@ -158,7 +151,7 @@ class OptimizedSupabaseService {
 
     // Invalider les caches de conversation
     _invalidateConversationCaches(currentUser.id);
-    
+
     return message;
   }
 
@@ -172,7 +165,7 @@ class OptimizedSupabaseService {
 
     // Utiliser la déduplication pour éviter les créations multiples
     final cacheKey = 'conversation_${requestId}_${currentUser.id}';
-    
+
     return await _cache.executeWithDeduplication(
       cacheKey,
       () async {
@@ -209,7 +202,7 @@ class OptimizedSupabaseService {
     bool useCache = true,
   }) async {
     final cacheKey = 'count_requests_${partType ?? ''}_${vehicleBrand ?? ''}';
-    
+
     if (useCache) {
       return await _cache.smartCache(
         cacheKey,
@@ -221,10 +214,9 @@ class OptimizedSupabaseService {
     }
   }
 
-  Future<int> _fetchCountPartRequests(String? partType, String? vehicleBrand) async {
-    var query = _supabase
-        .from('part_requests')
-        .select('*');
+  Future<int> _fetchCountPartRequests(
+      String? partType, String? vehicleBrand) async {
+    var query = _supabase.from('part_requests').select('*');
 
     if (partType != null) query = query.eq('part_type', partType);
     if (vehicleBrand != null) query = query.eq('vehicle_brand', vehicleBrand);

@@ -61,7 +61,7 @@ class SellerSharedWidgets {
           ),
           textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
-        child: isLoading 
+        child: isLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
@@ -138,7 +138,8 @@ class SellerSharedWidgets {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: hint,
-              prefixIcon: icon != null ? Icon(icon, color: AppTheme.darkGray) : null,
+              prefixIcon:
+                  icon != null ? Icon(icon, color: AppTheme.darkGray) : null,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
               hintStyle: const TextStyle(

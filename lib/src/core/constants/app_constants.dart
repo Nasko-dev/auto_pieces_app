@@ -20,7 +20,8 @@ class AppConstants {
       false; // Désactivé - remplacé par TecAlliance
 
   // TecAlliance API Configuration (dynamique selon l'environnement)
-  static String get tecAllianceProviderId => EnvironmentConfig.tecallianceClientId;
+  static String get tecAllianceProviderId =>
+      EnvironmentConfig.tecallianceClientId;
   static String get tecAllianceApiKey => EnvironmentConfig.tecallianceApiKey;
   static String get tecAllianceBaseUrl => EnvironmentConfig.tecallianceBaseUrl;
   static const bool tecAllianceApiEnabled = true;
@@ -40,4 +41,9 @@ class AppConstants {
   // Part Types
   static const String partTypeMoteur = 'moteur';
   static const String partTypeCarrosserie = 'carrosserie';
+
+  // Legal URLs
+  static const String privacyPolicyUrl = 'https://www.pieceautoenligne.fr/privacy';
+  static const String termsOfServiceUrl = 'https://www.pieceautoenligne.fr/terms';
+  static const String supportEmail = 'contact@pieceautoenligne.fr';
 }

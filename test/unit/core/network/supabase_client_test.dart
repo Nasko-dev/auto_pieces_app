@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Mock classes
 class MockSupabaseClient extends Mock implements SupabaseClient {}
+
 class MockSupabase extends Mock implements Supabase {}
 
 // Test version of SupabaseConfig to avoid actual initialization
@@ -136,7 +137,8 @@ void main() {
         expect(client, isA<SupabaseClient>());
       });
 
-      test('should throw error when accessing client before initialization', () {
+      test('should throw error when accessing client before initialization',
+          () {
         expect(
           () => TestSupabaseConfig.client,
           throwsA(isA<Exception>()),
@@ -164,7 +166,8 @@ void main() {
         expect(TestSupabaseConfig.isInitialized, isFalse);
       });
 
-      test('should maintain initialized state after successful initialization', () async {
+      test('should maintain initialized state after successful initialization',
+          () async {
         const testUrl = 'https://test-project.supabase.co';
         const testAnonKey = 'test-anon-key-123';
 
@@ -210,8 +213,9 @@ void main() {
         expect(
           () => TestSupabaseConfig.initialize(url: '', anonKey: 'test'),
           throwsA(
-            predicate((e) => e is ArgumentError &&
-                           e.toString().contains('URL and anonKey cannot be empty')),
+            predicate((e) =>
+                e is ArgumentError &&
+                e.toString().contains('URL and anonKey cannot be empty')),
           ),
         );
       });

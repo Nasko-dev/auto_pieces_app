@@ -121,12 +121,13 @@ Page<T> slideTransitionPage<T extends Object?>({
 }
 
 enum SlideDirection {
-  leftToRight,  // Retour/navigation arrière
-  rightToLeft,  // Avancer/navigation avant
+  leftToRight, // Retour/navigation arrière
+  rightToLeft, // Avancer/navigation avant
 }
 
 /// Détermine la direction du slide selon la priorité des pages
-SlideDirection _getSlideDirection(String currentLocation, String? previousLocation) {
+SlideDirection _getSlideDirection(
+    String currentLocation, String? previousLocation) {
   if (previousLocation == null) {
     return SlideDirection.rightToLeft; // Par défaut, avancer
   }

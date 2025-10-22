@@ -67,9 +67,11 @@ class _SellerChoiceStepPageState extends State<SellerChoiceStepPage> {
                     icon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.settings, size: 16, color: AppTheme.darkBlue),
+                        Icon(Icons.settings,
+                            size: 16, color: AppTheme.darkBlue),
                         const SizedBox(width: 4),
-                        Icon(Icons.directions_car, size: 16, color: AppTheme.darkBlue),
+                        Icon(Icons.directions_car,
+                            size: 16, color: AppTheme.darkBlue),
                       ],
                     ),
                     onTap: () => setState(() => _choice = 'lesdeux'),

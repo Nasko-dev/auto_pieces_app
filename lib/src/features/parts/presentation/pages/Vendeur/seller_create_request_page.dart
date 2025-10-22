@@ -406,7 +406,8 @@ class _SellerCreateRequestPageState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -695,8 +696,7 @@ class _SellerCreateRequestPageState
         if (info.engineSize != null) engineParts.add(info.engineSize!);
         if (info.fuelType != null) engineParts.add(info.fuelType!);
         if (info.power != null) engineParts.add('${info.power}cv');
-        vehicleEngine =
-            engineParts.isNotEmpty ? engineParts.join(' - ') : null;
+        vehicleEngine = engineParts.isNotEmpty ? engineParts.join(' - ') : null;
       }
     }
 
@@ -780,7 +780,8 @@ class _SellerCreateRequestPageState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppTheme.primaryBlue, width: 2),
+                borderSide:
+                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
               ),
             ),
             onChanged: (value) => setState(() {}),
@@ -844,7 +845,8 @@ class _SellerCreateRequestPageState
       decoration: BoxDecoration(
         color: AppTheme.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+            color: AppTheme.primaryBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -867,7 +869,8 @@ class _SellerCreateRequestPageState
                 color: AppTheme.primaryBlue.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 12, color: AppTheme.primaryBlue),
+              child: const Icon(Icons.close,
+                  size: 12, color: AppTheme.primaryBlue),
             ),
           ),
         ],
@@ -927,12 +930,9 @@ class _SellerCreateRequestPageState
         if (info.engineCode != null) motorisationParts.add(info.engineCode!);
 
         return [
-          if (info.make != null)
-            _buildInfoRow('Marque', info.make!),
-          if (info.model != null)
-            _buildInfoRow('Modèle', info.model!),
-          if (info.year != null)
-            _buildInfoRow('Année', info.year.toString()),
+          if (info.make != null) _buildInfoRow('Marque', info.make!),
+          if (info.model != null) _buildInfoRow('Modèle', info.model!),
+          if (info.year != null) _buildInfoRow('Année', info.year.toString()),
           if (motorisationParts.isNotEmpty)
             _buildInfoRow('Motorisation', motorisationParts.join(' - ')),
         ];
@@ -1019,7 +1019,10 @@ class _TypeCard extends StatelessWidget {
                       : AppTheme.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 24, color: selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
+                child: Icon(icon,
+                    size: 24,
+                    color:
+                        selected ? AppTheme.primaryBlue : AppTheme.primaryBlue),
               ),
               const SizedBox(height: 8),
               Text(

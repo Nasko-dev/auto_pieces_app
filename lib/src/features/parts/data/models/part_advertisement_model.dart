@@ -21,6 +21,11 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
     String? condition,
     @Default([]) List<String> images,
     @Default('active') String status,
+    @Default(1) int quantityTotal,
+    @Default(1) int quantityAvailable,
+    @Default(0) int quantitySold,
+    int? lowStockThreshold,
+    @Default(true) bool autoMarkSoldWhenEmpty,
     @Default(true) bool isNegotiable,
     String? contactPhone,
     String? contactEmail,
@@ -36,7 +41,8 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
 
   const PartAdvertisementModel._();
 
-  factory PartAdvertisementModel.fromJson(Map<String, dynamic> json) => _$PartAdvertisementModelFromJson(json);
+  factory PartAdvertisementModel.fromJson(Map<String, dynamic> json) =>
+      _$PartAdvertisementModelFromJson(json);
 
   // Conversion vers l'entité domain
   PartAdvertisement toEntity() {
@@ -55,6 +61,11 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       condition: condition,
       images: images,
       status: status,
+      quantityTotal: quantityTotal,
+      quantityAvailable: quantityAvailable,
+      quantitySold: quantitySold,
+      lowStockThreshold: lowStockThreshold,
+      autoMarkSoldWhenEmpty: autoMarkSoldWhenEmpty,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -77,6 +88,11 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       condition: entity.condition,
       images: entity.images,
       status: entity.status,
+      quantityTotal: entity.quantityTotal,
+      quantityAvailable: entity.quantityAvailable,
+      quantitySold: entity.quantitySold,
+      lowStockThreshold: entity.lowStockThreshold,
+      autoMarkSoldWhenEmpty: entity.autoMarkSoldWhenEmpty,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt ?? entity.createdAt,
     );
@@ -99,6 +115,11 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       condition: data['condition'] as String?,
       images: (data['images'] as List<dynamic>?)?.cast<String>() ?? [],
       status: data['status'] as String? ?? 'active',
+      quantityTotal: data['quantity_total'] as int? ?? 1,
+      quantityAvailable: data['quantity_available'] as int? ?? 1,
+      quantitySold: data['quantity_sold'] as int? ?? 0,
+      lowStockThreshold: data['low_stock_threshold'] as int?,
+      autoMarkSoldWhenEmpty: data['auto_mark_sold_when_empty'] as bool? ?? true,
       isNegotiable: data['is_negotiable'] as bool? ?? true,
       contactPhone: data['contact_phone'] as String?,
       contactEmail: data['contact_email'] as String?,
@@ -109,7 +130,9 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       contactCount: data['contact_count'] as int? ?? 0,
       createdAt: DateTime.parse(data['created_at'] as String),
       updatedAt: DateTime.parse(data['updated_at'] as String),
-      expiresAt: data['expires_at'] != null ? DateTime.parse(data['expires_at'] as String) : null,
+      expiresAt: data['expires_at'] != null
+          ? DateTime.parse(data['expires_at'] as String)
+          : null,
     );
   }
 
@@ -153,9 +176,11 @@ class CreatePartAdvertisementParams with _$CreatePartAdvertisementParams {
     @Default([]) List<String> images,
     String? contactPhone,
     String? contactEmail,
+    @Default(1) int quantityTotal,
+    int? lowStockThreshold,
   }) = _CreatePartAdvertisementParams;
 
-  factory CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) => 
+  factory CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) =>
       _$CreatePartAdvertisementParamsFromJson(json);
 }
 
@@ -172,6 +197,6 @@ class SearchPartAdvertisementsParams with _$SearchPartAdvertisementsParams {
     @Default(0) int offset,
   }) = _SearchPartAdvertisementsParams;
 
-  factory SearchPartAdvertisementsParams.fromJson(Map<String, dynamic> json) => 
+  factory SearchPartAdvertisementsParams.fromJson(Map<String, dynamic> json) =>
       _$SearchPartAdvertisementsParamsFromJson(json);
 }

@@ -185,7 +185,9 @@ void main() {
   });
 
   group('LocationService error handling', () {
-    test('devrait retourner un message d\'erreur descriptif pour service désactivé', () {
+    test(
+        'devrait retourner un message d\'erreur descriptif pour service désactivé',
+        () {
       final result = LocationResult.error(
         'Le service de localisation est désactivé. Veuillez l\'activer dans les paramètres.',
       );
@@ -195,13 +197,16 @@ void main() {
     });
 
     test('devrait retourner un message d\'erreur pour permission refusée', () {
-      final result = LocationResult.error('Permission de localisation refusée.');
+      final result =
+          LocationResult.error('Permission de localisation refusée.');
 
       expect(result.error, contains('Permission'));
       expect(result.error, contains('refusée'));
     });
 
-    test('devrait retourner un message d\'erreur pour permission refusée définitivement', () {
+    test(
+        'devrait retourner un message d\'erreur pour permission refusée définitivement',
+        () {
       final result = LocationResult.error(
         'Permission de localisation refusée définitivement. Veuillez l\'autoriser dans les paramètres de l\'app.',
       );
@@ -281,8 +286,10 @@ void main() {
     });
 
     test('devrait retourner une valeur positive pour toutes les distances', () {
-      final distance1 = LocationService.calculateDistance(48.8566, 2.3522, 45.7640, 4.8357);
-      final distance2 = LocationService.calculateDistance(-45.7640, -4.8357, -48.8566, -2.3522);
+      final distance1 =
+          LocationService.calculateDistance(48.8566, 2.3522, 45.7640, 4.8357);
+      final distance2 = LocationService.calculateDistance(
+          -45.7640, -4.8357, -48.8566, -2.3522);
       final distance3 = LocationService.calculateDistance(0, 0, 10, 10);
 
       expect(distance1, greaterThan(0));
@@ -319,7 +326,8 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('un résultat error ne devrait jamais avoir de données de localisation', () {
+    test('un résultat error ne devrait jamais avoir de données de localisation',
+        () {
       final result = LocationResult.error('Erreur test');
 
       expect(result.latitude, isNull);

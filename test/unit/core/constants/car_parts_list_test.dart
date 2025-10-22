@@ -146,7 +146,12 @@ void main() {
 
     group('Data consistency', () {
       test('should not have duplicate parts in same category', () {
-        final categories = ['moteur', 'transmission', 'carrosserie', 'freinage'];
+        final categories = [
+          'moteur',
+          'transmission',
+          'carrosserie',
+          'freinage'
+        ];
 
         for (final category in categories) {
           final parts = CarPartsList.getPartsByCategory(category);

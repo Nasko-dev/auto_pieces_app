@@ -86,7 +86,7 @@ class SendNotificationService {
       final response = await _supabase.functions.invoke(
         'send-push-notification',
         body: {
-          'device_ids': [deviceId],  // Nouveau paramètre pour device_id
+          'device_ids': [deviceId], // Nouveau paramètre pour device_id
           'title': fromUserName,
           'message': messagePreview,
           'data': {

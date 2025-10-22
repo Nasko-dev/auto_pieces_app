@@ -17,7 +17,8 @@ class ErrorHandler {
       if (checkNetwork && networkCheck != null) {
         final isConnected = await networkCheck();
         if (!isConnected) {
-          Logger.warning('${context ?? 'Operation'}: Pas de connexion internet');
+          Logger.warning(
+              '${context ?? 'Operation'}: Pas de connexion internet');
           return const Left(NetworkFailure('No internet connection'));
         }
       }
@@ -25,7 +26,6 @@ class ErrorHandler {
       // Exécuter l'opération
       final result = await operation();
       return Right(result);
-
     } on UnauthorizedException {
       Logger.error('${context ?? 'Operation'}: Utilisateur non authentifié');
       return const Left(AuthFailure('User not authenticated'));
@@ -54,9 +54,11 @@ class ErrorHandler {
   }
 
   /// Log une erreur de manière standardisée
-  static void logError(String context, dynamic error, [StackTrace? stackTrace]) {
+  static void logError(String context, dynamic error,
+      [StackTrace? stackTrace]) {
     Logger.error('$context: $error');
-    if (stackTrace != null && const bool.fromEnvironment('dart.vm.product') == false) {
+    if (stackTrace != null &&
+        const bool.fromEnvironment('dart.vm.product') == false) {
       // En mode debug uniquement
       Logger.error('Stack trace: $stackTrace');
     }

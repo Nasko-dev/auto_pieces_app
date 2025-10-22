@@ -9,10 +9,12 @@ final getSellerNotificationsProvider = Provider<GetSellerNotifications>((ref) {
   return GetSellerNotifications(repository);
 });
 
-// Controller provider  
-final sellerDashboardControllerProvider = StateNotifierProvider<SellerDashboardController, SellerDashboardState>((ref) {
+// Controller provider
+final sellerDashboardControllerProvider =
+    StateNotifierProvider<SellerDashboardController, SellerDashboardState>(
+        (ref) {
   final getSellerNotifications = ref.watch(getSellerNotificationsProvider);
-  
+
   return SellerDashboardController(
     getSellerNotifications: getSellerNotifications,
   );

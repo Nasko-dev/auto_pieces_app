@@ -46,7 +46,8 @@ void main() {
   final tUserSettingsModel = UserSettingsModel.fromEntity(tUserSettings);
 
   group('getUserSettings', () {
-    test('doit retourner UserSettings quand l\'appel réussit avec connexion', () async {
+    test('doit retourner UserSettings quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getUserSettings(tUserId))
@@ -80,7 +81,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -93,7 +95,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getUserSettings(tUserId))
@@ -108,7 +112,9 @@ void main() {
       verify(mockRemoteDataSource.getUserSettings(tUserId));
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une exception générique', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une exception générique',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.getUserSettings(tUserId))
@@ -118,7 +124,10 @@ void main() {
       final result = await repository.getUserSettings(tUserId);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
+      expect(
+          result,
+          const Left(
+              ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
       verify(mockNetworkInfo.isConnected);
       verify(mockRemoteDataSource.getUserSettings(tUserId));
     });
@@ -141,7 +150,9 @@ void main() {
   });
 
   group('saveUserSettings', () {
-    test('doit retourner UserSettings sauvegardés quand l\'appel réussit avec connexion', () async {
+    test(
+        'doit retourner UserSettings sauvegardés quand l\'appel réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveUserSettings(any))
@@ -158,7 +169,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -171,7 +183,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveUserSettings(any))
@@ -186,7 +200,9 @@ void main() {
       verify(mockRemoteDataSource.saveUserSettings(any));
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une exception générique', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une exception générique',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveUserSettings(any))
@@ -196,12 +212,16 @@ void main() {
       final result = await repository.saveUserSettings(tUserSettings);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
+      expect(
+          result,
+          const Left(
+              ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
       verify(mockNetworkInfo.isConnected);
       verify(mockRemoteDataSource.saveUserSettings(any));
     });
 
-    test('doit convertir l\'entité en modèle avant de l\'envoyer au datasource', () async {
+    test('doit convertir l\'entité en modèle avant de l\'envoyer au datasource',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.saveUserSettings(any))
@@ -212,7 +232,8 @@ void main() {
 
       // assert
       verify(mockNetworkInfo.isConnected);
-      final captured = verify(mockRemoteDataSource.saveUserSettings(captureAny)).captured;
+      final captured =
+          verify(mockRemoteDataSource.saveUserSettings(captureAny)).captured;
       expect(captured.first, isA<UserSettingsModel>());
       final capturedModel = captured.first as UserSettingsModel;
       expect(capturedModel.userId, tUserSettings.userId);
@@ -238,7 +259,8 @@ void main() {
   });
 
   group('deleteUserSettings', () {
-    test('doit retourner void quand la suppression réussit avec connexion', () async {
+    test('doit retourner void quand la suppression réussit avec connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deleteUserSettings(tUserId))
@@ -255,7 +277,8 @@ void main() {
       verifyNoMoreInteractions(mockNetworkInfo);
     });
 
-    test('doit retourner NetworkFailure quand il n\'y a pas de connexion', () async {
+    test('doit retourner NetworkFailure quand il n\'y a pas de connexion',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
@@ -268,7 +291,9 @@ void main() {
       verifyZeroInteractions(mockRemoteDataSource);
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une ServerFailure', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une ServerFailure',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deleteUserSettings(tUserId))
@@ -283,7 +308,9 @@ void main() {
       verify(mockRemoteDataSource.deleteUserSettings(tUserId));
     });
 
-    test('doit retourner ServerFailure quand le datasource lance une exception générique', () async {
+    test(
+        'doit retourner ServerFailure quand le datasource lance une exception générique',
+        () async {
       // arrange
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteDataSource.deleteUserSettings(tUserId))
@@ -293,7 +320,10 @@ void main() {
       final result = await repository.deleteUserSettings(tUserId);
 
       // assert
-      expect(result, const Left(ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
+      expect(
+          result,
+          const Left(
+              ServerFailure('Erreur serveur: Exception: Erreur inattendue')));
       verify(mockNetworkInfo.isConnected);
       verify(mockRemoteDataSource.deleteUserSettings(tUserId));
     });

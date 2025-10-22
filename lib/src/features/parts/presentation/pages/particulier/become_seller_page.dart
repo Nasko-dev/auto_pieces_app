@@ -19,7 +19,7 @@ enum SellerMode { particulier, vendeur }
 
 class BecomeSellerPage extends ConsumerStatefulWidget {
   final SellerMode mode;
-  
+
   const BecomeSellerPage({
     super.key,
     this.mode = SellerMode.particulier,
@@ -40,7 +40,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
   @override
   void initState() {
     super.initState();
-    
+
     // Si c'est un vendeur, forcer la re-vérification des limitations
     if (widget.mode == SellerMode.vendeur) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -168,7 +168,7 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     if (widget.mode == SellerMode.particulier) {
       context.go('/home');
     } else {
-      context.go('/seller');
+      context.go('/seller/home');
     }
   }
 
@@ -190,7 +190,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   actions: [
                     if (_currentStep > 0)
                       IconButton(
-                        icon: const Icon(Icons.chevron_left, color: AppTheme.darkGray),
+                        icon: const Icon(Icons.chevron_left,
+                            color: AppTheme.darkGray),
                         onPressed: () {
                           HapticHelper.light();
                           _goToPreviousStep();
@@ -204,8 +205,8 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
                   title: 'Déposer une annonce',
                   showBackButton: true,
                   onBackPressed: _currentStep > 0
-                    ? _goToPreviousStep
-                    : () => context.go('/seller/add'),
+                      ? _goToPreviousStep
+                      : () => context.go('/seller/add'),
                 ),
           Expanded(child: _buildBody()),
         ],
@@ -217,26 +218,26 @@ class _BecomeSellerPageState extends ConsumerState<BecomeSellerPage> {
     return SafeArea(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
-          child: Container(
-            key: ValueKey(_currentStep),
-            child: switch (_currentStep) {
-              0 => ChoiceStepPage(
-                  onChoiceSelected: _onChoiceSelected,
-                ),
-              1 => SellPartStepPage(
-                  selectedCategory: _selectedChoice,
-                  onPartSubmitted: _onPartSubmitted,
-                ),
-              2 => PlateStepPage(
-                  onPlateSubmitted: _onPlateSubmitted,
-                  isLoading: _isSubmitting,
-                ),
-              _ => CongratsStepPage(
-                  onFinish: _finishFlow,
-                ),
-            },
-          ),
+        child: Container(
+          key: ValueKey(_currentStep),
+          child: switch (_currentStep) {
+            0 => ChoiceStepPage(
+                onChoiceSelected: _onChoiceSelected,
+              ),
+            1 => SellPartStepPage(
+                selectedCategory: _selectedChoice,
+                onPartSubmitted: _onPartSubmitted,
+              ),
+            2 => PlateStepPage(
+                onPlateSubmitted: _onPlateSubmitted,
+                isLoading: _isSubmitting,
+              ),
+            _ => CongratsStepPage(
+                onFinish: _finishFlow,
+              ),
+          },
         ),
+      ),
     );
   }
 }

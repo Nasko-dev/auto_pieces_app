@@ -101,7 +101,9 @@ void main() {
   final tConversationsList = [tConversation1, tConversation2, tConversation3];
 
   group('GetConversations', () {
-    test('doit retourner une liste de Conversations quand la récupération réussit', () async {
+    test(
+        'doit retourner une liste de Conversations quand la récupération réussit',
+        () async {
       // arrange
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(tConversationsList));
@@ -115,7 +117,8 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner une liste vide quand aucune conversation n\'existe', () async {
+    test('doit retourner une liste vide quand aucune conversation n\'existe',
+        () async {
       // arrange
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => const Right([]));
@@ -132,10 +135,11 @@ void main() {
       verify(mockRepository.getConversations(userId: tUserId));
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.getConversations(userId: tUserId))
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non connecté')));
+      when(mockRepository.getConversations(userId: tUserId)).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non connecté')));
 
       // act
       final result = await usecase(tParams);
@@ -145,10 +149,11 @@ void main() {
       verify(mockRepository.getConversations(userId: tUserId));
     });
 
-    test('doit retourner ValidationFailure quand l\'utilisateur n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand l\'utilisateur n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.getConversations(userId: tUserId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Utilisateur non trouvé')));
+      when(mockRepository.getConversations(userId: tUserId)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Utilisateur non trouvé')));
 
       // act
       final result = await usecase(tParams);
@@ -171,10 +176,11 @@ void main() {
       verify(mockRepository.getConversations(userId: tUserId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getConversations(userId: tUserId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getConversations(userId: tUserId)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tParams);
@@ -193,7 +199,9 @@ void main() {
       await usecase(tParams);
 
       // assert
-      final captured = verify(mockRepository.getConversations(userId: captureAnyNamed('userId'))).captured;
+      final captured = verify(mockRepository.getConversations(
+              userId: captureAnyNamed('userId')))
+          .captured;
       expect(captured.first, tUserId);
     });
 
@@ -222,7 +230,9 @@ void main() {
       );
     });
 
-    test('doit retourner les conversations avec toutes les propriétés correctes', () async {
+    test(
+        'doit retourner les conversations avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(tConversationsList));
@@ -319,7 +329,12 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final statusVariationsList = [activeConv, closedConv, deletedConv, blockedConv];
+      final statusVariationsList = [
+        activeConv,
+        closedConv,
+        deletedConv,
+        blockedConv
+      ];
 
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(statusVariationsList));
@@ -339,7 +354,9 @@ void main() {
       );
     });
 
-    test('doit gérer les conversations avec différents comptes de messages non lus', () async {
+    test(
+        'doit gérer les conversations avec différents comptes de messages non lus',
+        () async {
       // arrange
       final noUnreadConv = Conversation(
         id: 'no_unread',
@@ -377,7 +394,11 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final unreadVariationsList = [noUnreadConv, someUnreadConv, manyUnreadConv];
+      final unreadVariationsList = [
+        noUnreadConv,
+        someUnreadConv,
+        manyUnreadConv
+      ];
 
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(unreadVariationsList));
@@ -401,7 +422,8 @@ void main() {
       );
     });
 
-    test('doit gérer les conversations avec informations incomplètes', () async {
+    test('doit gérer les conversations avec informations incomplètes',
+        () async {
       // arrange
       final minimalConv = Conversation(
         id: 'minimal',
@@ -467,22 +489,27 @@ void main() {
       );
     });
 
-    test('doit gérer les utilisateurs avec de nombreuses conversations', () async {
+    test('doit gérer les utilisateurs avec de nombreuses conversations',
+        () async {
       // arrange
-      final manyConversations = List.generate(50, (index) => Conversation(
-        id: 'conv$index',
-        requestId: 'request$index',
-        userId: tUserId,
-        sellerId: 'seller$index',
-        status: index % 3 == 0 ? ConversationStatus.closed : ConversationStatus.active,
-        sellerName: 'Vendeur $index',
-        requestTitle: 'Demande $index',
-        unreadCount: index % 5, // 0-4 messages non lus
-        totalMessages: index + 1,
-        lastMessageAt: DateTime.now().subtract(Duration(hours: index)),
-        createdAt: DateTime.now().subtract(Duration(days: index + 1)),
-        updatedAt: DateTime.now().subtract(Duration(hours: index)),
-      ));
+      final manyConversations = List.generate(
+          50,
+          (index) => Conversation(
+                id: 'conv$index',
+                requestId: 'request$index',
+                userId: tUserId,
+                sellerId: 'seller$index',
+                status: index % 3 == 0
+                    ? ConversationStatus.closed
+                    : ConversationStatus.active,
+                sellerName: 'Vendeur $index',
+                requestTitle: 'Demande $index',
+                unreadCount: index % 5, // 0-4 messages non lus
+                totalMessages: index + 1,
+                lastMessageAt: DateTime.now().subtract(Duration(hours: index)),
+                createdAt: DateTime.now().subtract(Duration(days: index + 1)),
+                updatedAt: DateTime.now().subtract(Duration(hours: index)),
+              ));
 
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(manyConversations));
@@ -502,13 +529,16 @@ void main() {
           expect(conversations[49].id, 'conv49');
 
           // Vérifier la distribution des statuts
-          final closedCount = conversations.where((c) => c.status == ConversationStatus.closed).length;
+          final closedCount = conversations
+              .where((c) => c.status == ConversationStatus.closed)
+              .length;
           expect(closedCount, greaterThan(10)); // Environ 1/3 des conversations
         },
       );
     });
 
-    test('doit gérer les conversations avec différents types de véhicules', () async {
+    test('doit gérer les conversations avec différents types de véhicules',
+        () async {
       // arrange
       final carConv = Conversation(
         id: 'car1',
@@ -613,7 +643,8 @@ void main() {
       verify(mockRepository.getConversations(userId: user2Id));
     });
 
-    test('doit retourner les mêmes conversations à chaque appel (cohérence)', () async {
+    test('doit retourner les mêmes conversations à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.getConversations(userId: tUserId))
           .thenAnswer((_) async => Right(tConversationsList));
@@ -627,7 +658,8 @@ void main() {
       verify(mockRepository.getConversations(userId: tUserId)).called(2);
     });
 
-    test('doit gérer les conversations triées par date de dernier message', () async {
+    test('doit gérer les conversations triées par date de dernier message',
+        () async {
       // arrange
       final oldConv = Conversation(
         id: 'old',
@@ -663,7 +695,11 @@ void main() {
         (conversations) {
           expect(conversations[0].id, 'recent');
           expect(conversations[1].id, 'old');
-          expect(conversations[0].lastMessageAt.isAfter(conversations[1].lastMessageAt), true);
+          expect(
+              conversations[0]
+                  .lastMessageAt
+                  .isAfter(conversations[1].lastMessageAt),
+              true);
         },
       );
     });

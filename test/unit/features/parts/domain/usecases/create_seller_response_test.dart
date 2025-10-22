@@ -78,7 +78,8 @@ void main() {
       final result = await usecase(invalidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('L\'ID de la demande est requis')));
+      expect(result,
+          const Left(ValidationFailure('L\'ID de la demande est requis')));
       verifyZeroInteractions(mockRepository);
     });
 
@@ -97,7 +98,8 @@ void main() {
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure quand message est trop court', () async {
+    test('doit retourner ValidationFailure quand message est trop court',
+        () async {
       // arrange
       final invalidParams = CreateSellerResponseParams(
         requestId: tRequestId,
@@ -108,11 +110,15 @@ void main() {
       final result = await usecase(invalidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Le message doit contenir au moins 10 caractères')));
+      expect(
+          result,
+          const Left(ValidationFailure(
+              'Le message doit contenir au moins 10 caractères')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure quand le prix est négatif', () async {
+    test('doit retourner ValidationFailure quand le prix est négatif',
+        () async {
       // arrange
       final invalidParams = CreateSellerResponseParams(
         requestId: tRequestId,
@@ -124,11 +130,14 @@ void main() {
       final result = await usecase(invalidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Le prix ne peut pas être négatif')));
+      expect(result,
+          const Left(ValidationFailure('Le prix ne peut pas être négatif')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure quand les jours de livraison sont négatifs', () async {
+    test(
+        'doit retourner ValidationFailure quand les jours de livraison sont négatifs',
+        () async {
       // arrange
       final invalidParams = CreateSellerResponseParams(
         requestId: tRequestId,
@@ -140,11 +149,15 @@ void main() {
       final result = await usecase(invalidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Les jours de livraison ne peuvent pas être négatifs')));
+      expect(
+          result,
+          const Left(ValidationFailure(
+              'Les jours de livraison ne peuvent pas être négatifs')));
       verifyZeroInteractions(mockRepository);
     });
 
-    test('doit retourner ValidationFailure pour une disponibilité invalide', () async {
+    test('doit retourner ValidationFailure pour une disponibilité invalide',
+        () async {
       // arrange
       final invalidParams = CreateSellerResponseParams(
         requestId: tRequestId,
@@ -185,10 +198,11 @@ void main() {
       }
     });
 
-    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand le vendeur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.createSellerResponse(any))
-          .thenAnswer((_) async => const Left(AuthFailure('Vendeur non connecté')));
+      when(mockRepository.createSellerResponse(any)).thenAnswer(
+          (_) async => const Left(AuthFailure('Vendeur non connecté')));
 
       // act
       final result = await usecase(tValidParams);
@@ -211,10 +225,11 @@ void main() {
       verify(mockRepository.createSellerResponse(tValidParams));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.createSellerResponse(any))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.createSellerResponse(any)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tValidParams);
@@ -224,10 +239,11 @@ void main() {
       verify(mockRepository.createSellerResponse(tValidParams));
     });
 
-    test('doit retourner ValidationFailure quand la demande n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la demande n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.createSellerResponse(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Demande non trouvée')));
+      when(mockRepository.createSellerResponse(any)).thenAnswer(
+          (_) async => const Left(ValidationFailure('Demande non trouvée')));
 
       // act
       final result = await usecase(tValidParams);
@@ -237,16 +253,21 @@ void main() {
       verify(mockRepository.createSellerResponse(tValidParams));
     });
 
-    test('doit retourner ValidationFailure pour une réponse déjà existante', () async {
+    test('doit retourner ValidationFailure pour une réponse déjà existante',
+        () async {
       // arrange
-      when(mockRepository.createSellerResponse(any))
-          .thenAnswer((_) async => const Left(ValidationFailure('Vous avez déjà répondu à cette demande')));
+      when(mockRepository.createSellerResponse(any)).thenAnswer((_) async =>
+          const Left(
+              ValidationFailure('Vous avez déjà répondu à cette demande')));
 
       // act
       final result = await usecase(tValidParams);
 
       // assert
-      expect(result, const Left(ValidationFailure('Vous avez déjà répondu à cette demande')));
+      expect(
+          result,
+          const Left(
+              ValidationFailure('Vous avez déjà répondu à cette demande')));
       verify(mockRepository.createSellerResponse(tValidParams));
     });
 
@@ -259,7 +280,8 @@ void main() {
       await usecase(tValidParams);
 
       // assert
-      final captured = verify(mockRepository.createSellerResponse(captureAny)).captured;
+      final captured =
+          verify(mockRepository.createSellerResponse(captureAny)).captured;
       final capturedParams = captured.first as CreateSellerResponseParams;
       expect(capturedParams.requestId, tRequestId);
       expect(capturedParams.message, tMessage);
@@ -342,7 +364,8 @@ void main() {
       verify(mockRepository.createSellerResponse(freeParams));
     });
 
-    test('doit créer une réponse avec des jours de livraison à zéro (immédiat)', () async {
+    test('doit créer une réponse avec des jours de livraison à zéro (immédiat)',
+        () async {
       // arrange
       final immediateParams = CreateSellerResponseParams(
         requestId: tRequestId,
@@ -420,7 +443,8 @@ void main() {
       );
     });
 
-    test('doit gérer la création de réponses pour différentes demandes', () async {
+    test('doit gérer la création de réponses pour différentes demandes',
+        () async {
       // arrange
       final request1Params = CreateSellerResponseParams(
         requestId: 'request1',

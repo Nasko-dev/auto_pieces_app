@@ -51,7 +51,8 @@ class MockSellerAuthRepository implements SellerAuthRepository {
       return Left(ServerFailure('Déjà connecté'));
     }
 
-    if (!_registeredUsers.containsKey(email) || _registeredUsers[email] != password) {
+    if (!_registeredUsers.containsKey(email) ||
+        _registeredUsers[email] != password) {
       return Left(ServerFailure('Identifiants incorrects'));
     }
 
@@ -231,7 +232,8 @@ void main() {
         );
       });
 
-      test('devrait retourner une erreur pour un mot de passe trop court', () async {
+      test('devrait retourner une erreur pour un mot de passe trop court',
+          () async {
         final result = await repository.registerSeller(
           email: 'test@example.com',
           password: '123',
@@ -269,7 +271,8 @@ void main() {
         );
       });
 
-      test('devrait retourner une erreur pour des identifiants incorrects', () async {
+      test('devrait retourner une erreur pour des identifiants incorrects',
+          () async {
         final result = await repository.loginSeller(
           email: 'inexistant@example.com',
           password: 'mauvaismdp',
@@ -377,13 +380,15 @@ void main() {
           password: 'motdepasse123',
         );
 
-        final result = await repository.sendPasswordResetEmail('test@example.com');
+        final result =
+            await repository.sendPasswordResetEmail('test@example.com');
 
         expect(result, isA<Right<Failure, void>>());
       });
 
       test('devrait retourner une erreur pour un email inexistant', () async {
-        final result = await repository.sendPasswordResetEmail('inexistant@example.com');
+        final result =
+            await repository.sendPasswordResetEmail('inexistant@example.com');
 
         expect(result, isA<Left<Failure, void>>());
         result.fold(
@@ -412,7 +417,8 @@ void main() {
         expect(result, isA<Right<Failure, void>>());
       });
 
-      test('devrait retourner une erreur pour un mot de passe actuel incorrect', () async {
+      test('devrait retourner une erreur pour un mot de passe actuel incorrect',
+          () async {
         await repository.registerSeller(
           email: 'test@example.com',
           password: 'motdepasse123',
@@ -544,7 +550,8 @@ void main() {
     });
 
     group('Flux complet', () {
-      test('devrait gérer un cycle complet d\'authentification vendeur', () async {
+      test('devrait gérer un cycle complet d\'authentification vendeur',
+          () async {
         // Enregistrement
         final registerResult = await repository.registerSeller(
           email: 'vendeur@example.com',
@@ -577,7 +584,8 @@ void main() {
           phone: '+33123456789',
           createdAt: DateTime.now(),
         );
-        final updateResult = await repository.updateSellerProfile(updatedSeller);
+        final updateResult =
+            await repository.updateSellerProfile(updatedSeller);
         expect(updateResult, isA<Right<Failure, Seller>>());
 
         // Déconnexion

@@ -54,7 +54,8 @@ void main() {
       expect(remaining, 3);
     });
 
-    test('getRemainingAttempts devrait décrémenter après chaque tentative', () async {
+    test('getRemainingAttempts devrait décrémenter après chaque tentative',
+        () async {
       expect(await rateLimiter.getRemainingAttempts(), 3);
 
       await rateLimiter.recordAttempt();
@@ -88,7 +89,9 @@ void main() {
       expect(timeUntilReset, lessThanOrEqualTo(5));
     });
 
-    test('getTimeUntilReset devrait retourner environ 5 minutes après une tentative', () async {
+    test(
+        'getTimeUntilReset devrait retourner environ 5 minutes après une tentative',
+        () async {
       await rateLimiter.recordAttempt();
 
       final timeUntilReset = await rateLimiter.getTimeUntilReset();
@@ -144,7 +147,8 @@ void main() {
       expect(remaining, greaterThanOrEqualTo(0));
     });
 
-    test('canMakeSearch devrait vérifier et réinitialiser si nécessaire', () async {
+    test('canMakeSearch devrait vérifier et réinitialiser si nécessaire',
+        () async {
       // Enregistrer 3 tentatives
       await rateLimiter.recordAttempt();
       await rateLimiter.recordAttempt();
@@ -154,7 +158,8 @@ void main() {
       expect(await rateLimiter.canMakeSearch(), isFalse);
 
       // Simuler un ancien reset (il y a plus de 5 minutes)
-      final oldTimestamp = DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
+      final oldTimestamp =
+          DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
       await prefs.setInt('plate_search_last_reset', oldTimestamp);
 
       // Devrait autoriser car la fenêtre de temps est écoulée
@@ -164,14 +169,17 @@ void main() {
       expect(await rateLimiter.getRemainingAttempts(), 3);
     });
 
-    test('recordAttempt devrait réinitialiser automatiquement si nécessaire', () async {
+    test('recordAttempt devrait réinitialiser automatiquement si nécessaire',
+        () async {
       // Simuler un ancien reset
-      final oldTimestamp = DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
+      final oldTimestamp =
+          DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
       await prefs.setInt('plate_search_last_reset', oldTimestamp);
 
       // Créer une clé d'attempts pour simuler 3 tentatives existantes
       final today = DateTime.now();
-      final dateKey = '${today.year}_${today.month}_${today.day}_${today.hour ~/ (5 / 60).ceil()}';
+      final dateKey =
+          '${today.year}_${today.month}_${today.day}_${today.hour ~/ (5 / 60).ceil()}';
       await prefs.setInt('plate_search_attempts_$dateKey', 3);
 
       // Enregistrer une nouvelle tentative
@@ -182,13 +190,16 @@ void main() {
       expect(remaining, 2); // 3 - 1
     });
 
-    test('getRemainingAttempts devrait réinitialiser automatiquement si nécessaire', () async {
+    test(
+        'getRemainingAttempts devrait réinitialiser automatiquement si nécessaire',
+        () async {
       await rateLimiter.recordAttempt();
       await rateLimiter.recordAttempt();
       await rateLimiter.recordAttempt();
 
       // Simuler l'expiration de la fenêtre de temps
-      final oldTimestamp = DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
+      final oldTimestamp =
+          DateTime.now().millisecondsSinceEpoch - (6 * 60 * 1000);
       await prefs.setInt('plate_search_last_reset', oldTimestamp);
 
       final remaining = await rateLimiter.getRemainingAttempts();
@@ -201,7 +212,8 @@ void main() {
 
       // Récupérer toutes les clés
       final keys = prefs.getKeys();
-      final attemptKeys = keys.where((k) => k.startsWith('plate_search_attempts_')).toList();
+      final attemptKeys =
+          keys.where((k) => k.startsWith('plate_search_attempts_')).toList();
 
       expect(attemptKeys.length, 1);
     });
@@ -218,7 +230,8 @@ void main() {
       expect(time2, lessThanOrEqualTo(time1));
     });
 
-    test('devrait maintenir l\'intégrité des données entre plusieurs instances', () async {
+    test('devrait maintenir l\'intégrité des données entre plusieurs instances',
+        () async {
       final service1 = RateLimiterService(prefs);
       await service1.recordAttempt();
 

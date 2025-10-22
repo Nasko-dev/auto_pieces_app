@@ -16,7 +16,9 @@ void main() {
         expect(networkInfo, isA<NetworkInfoImpl>());
       });
 
-      test('devrait retourner true pour isConnected (implémentation par défaut)', () async {
+      test(
+          'devrait retourner true pour isConnected (implémentation par défaut)',
+          () async {
         final isConnected = await networkInfo.isConnected;
         expect(isConnected, isTrue);
       });
@@ -40,7 +42,10 @@ void main() {
 
         expect(result1, isA<bool>());
         expect(result2, isA<bool>());
-        expect(result1, equals(result2)); // L'implémentation actuelle retourne toujours true
+        expect(
+            result1,
+            equals(
+                result2)); // L'implémentation actuelle retourne toujours true
       });
     });
 
@@ -95,7 +100,8 @@ void main() {
         expect(result, isTrue);
       });
 
-      test('devrait gérer les vérifications de connectivité répétées', () async {
+      test('devrait gérer les vérifications de connectivité répétées',
+          () async {
         final results = <bool>[];
 
         for (int i = 0; i < 5; i++) {

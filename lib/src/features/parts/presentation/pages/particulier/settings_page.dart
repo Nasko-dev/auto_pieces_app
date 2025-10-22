@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
 import '../../../../../core/utils/haptic_helper.dart';
+import '../../../../../core/constants/app_constants.dart';
 import '../../../domain/entities/user_settings.dart';
 import '../../../../../core/services/notification_service.dart';
 
@@ -21,7 +23,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _cityController = TextEditingController();
   final _postalCodeController = TextEditingController();
   final _phoneController = TextEditingController();
-  
+
   String _selectedCountry = 'France';
   bool _isLoadingLocation = false;
   bool _isLoadingSettings = true;
@@ -60,7 +62,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final getUserSettings = ref.read(getUserSettingsProvider);
     final result = await getUserSettings(currentUser.id);
-    
+
     result.fold(
       (failure) {
         setState(() => _isLoadingSettings = false);
@@ -112,30 +114,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         centerTitle: true,
       ),
       body: _isLoadingSettings
-        ? const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryBlue,
-            ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // Section Localisation
-                _buildLocationSection(),
-                
-                const SizedBox(height: 24),
-                
-                // Section Contact
-                _buildContactSection(),
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryBlue,
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Section Localisation
+                  _buildLocationSection(),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Bouton Sauvegarder
-                _buildSaveButton(),
-              ],
+                  // Section Contact
+                  _buildContactSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Section Légal
+                  _buildLegalSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Bouton Sauvegarder
+                  _buildSaveButton(),
+                ],
+              ),
             ),
-          ),
     );
   }
 
@@ -183,9 +190,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Text(
             'Ces informations aident les vendeurs à calculer les frais de livraison et à proposer des points de retrait proches.',
             style: TextStyle(
@@ -194,9 +201,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               height: 1.4,
             ),
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Pays
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,9 +223,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   border: Border.all(color: AppTheme.gray),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: DropdownButton<String>(
-                  value: _countries.contains(_selectedCountry) ? _selectedCountry : 'France',
+                  value: _countries.contains(_selectedCountry)
+                      ? _selectedCountry
+                      : 'France',
                   isExpanded: true,
                   underline: const SizedBox.shrink(),
                   items: _countries.map((country) {
@@ -238,9 +248,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Adresse avec bouton auto-remplissage
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,20 +268,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const Spacer(),
                   TextButton.icon(
                     onPressed: _isLoadingLocation ? null : _getCurrentLocation,
-                    icon: _isLoadingLocation 
+                    icon: _isLoadingLocation
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppTheme.primaryBlue),
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppTheme.primaryBlue),
                             ),
                           )
                         : const Icon(Icons.my_location, size: 16),
-                    label: Text(_isLoadingLocation ? 'Localisation...' : 'Ma position'),
+                    label: Text(
+                        _isLoadingLocation ? 'Localisation...' : 'Ma position'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppTheme.primaryBlue,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                     ),
                   ),
                 ],
@@ -284,14 +297,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Ville et Code postal
           Row(
             children: [
@@ -316,7 +330,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                   ],
@@ -344,7 +359,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
                     ),
                   ],
@@ -399,9 +415,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Text(
             'Numéro de téléphone pour faciliter les échanges avec les vendeurs (optionnel).',
             style: TextStyle(
@@ -410,9 +426,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               height: 1.4,
             ),
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Téléphone
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,7 +451,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ],
@@ -445,6 +462,156 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildLegalSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.privacy_tip_outlined,
+                  color: AppTheme.primaryBlue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Légal et Confidentialité',
+                style: TextStyle(
+                  color: AppTheme.darkBlue,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Privacy Policy
+          _buildLegalTile(
+            icon: Icons.shield_outlined,
+            title: 'Politique de confidentialité',
+            subtitle: 'Comment nous utilisons vos données',
+            onTap: () {
+              HapticHelper.selection();
+              context.push('/privacy');
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Terms of Service (Web)
+          _buildLegalTile(
+            icon: Icons.description_outlined,
+            title: 'Conditions générales',
+            subtitle: 'Conditions d\'utilisation du service',
+            onTap: () async {
+              HapticHelper.selection();
+              final uri = Uri.parse(AppConstants.termsOfServiceUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // Contact Support
+          _buildLegalTile(
+            icon: Icons.email_outlined,
+            title: 'Nous contacter',
+            subtitle: AppConstants.supportEmail,
+            onTap: () async {
+              HapticHelper.selection();
+              final uri = Uri.parse('mailto:${AppConstants.supportEmail}');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppTheme.lightGray),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: AppTheme.primaryBlue,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppTheme.darkBlue,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.gray,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppTheme.gray,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildSaveButton() {
     return SizedBox(
@@ -478,7 +645,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     try {
       final result = await LocationService.getCurrentLocation();
-      
+
       if (mounted) {
         setState(() {
           _isLoadingLocation = false;
@@ -494,12 +661,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           });
 
           if (context.mounted) {
-            notificationService.success(context, 'Localisation détectée avec succès');
+            notificationService.success(
+                context, 'Localisation détectée avec succès');
           }
         } else {
           // Afficher l'erreur
           if (context.mounted) {
-            notificationService.error(context, 'Erreur de localisation', subtitle: result.error);
+            notificationService.error(context, 'Erreur de localisation',
+                subtitle: result.error);
           }
         }
       }
@@ -508,9 +677,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         setState(() {
           _isLoadingLocation = false;
         });
-        
+
         if (context.mounted) {
-          notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+          notificationService.error(context, 'Erreur inattendue',
+              subtitle: e.toString());
         }
       }
     }
@@ -533,11 +703,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       // Créer l'objet UserSettings
       final userSettings = UserSettings(
         userId: currentUser.id,
-        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-        city: _cityController.text.trim().isEmpty ? null : _cityController.text.trim(),
-        postalCode: _postalCodeController.text.trim().isEmpty ? null : _postalCodeController.text.trim(),
+        address: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
+        city: _cityController.text.trim().isEmpty
+            ? null
+            : _cityController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty
+            ? null
+            : _postalCodeController.text.trim(),
         country: _selectedCountry,
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
         notificationsEnabled: _notificationsEnabled,
         emailNotificationsEnabled: _emailNotificationsEnabled,
         updatedAt: DateTime.now(),
@@ -546,21 +724,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       // Sauvegarder via le use case
       final saveUserSettings = ref.read(saveUserSettingsProvider);
       final result = await saveUserSettings(userSettings);
-      
+
       // L'indicateur de chargement se masque automatiquement
       if (!context.mounted) return;
 
       result.fold(
         (failure) {
-          notificationService.error(context, 'Erreur de sauvegarde', subtitle: failure.message);
+          notificationService.error(context, 'Erreur de sauvegarde',
+              subtitle: failure.message);
         },
         (savedSettings) {
-
           // Invalider les providers pour mettre à jour les indicateurs rouges
           ref.invalidate(particulierSettingsStatusProvider);
           ref.invalidate(particulierMenuStatusProvider);
 
-          notificationService.success(context, 'Paramètres sauvegardés avec succès');
+          notificationService.success(
+              context, 'Paramètres sauvegardés avec succès');
 
           // Rester sur la page paramètres après sauvegarde
           // L'utilisateur peut retourner manuellement s'il le souhaite
@@ -569,7 +748,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     } catch (e) {
       // Masquer l'indicateur de chargement et afficher l'erreur
       if (mounted) {
-        notificationService.error(context, 'Erreur inattendue', subtitle: e.toString());
+        notificationService.error(context, 'Erreur inattendue',
+            subtitle: e.toString());
       }
     }
   }

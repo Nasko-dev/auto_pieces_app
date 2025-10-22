@@ -19,7 +19,8 @@ class MockHttpClient extends http.BaseClient {
 
   List<http.BaseRequest> get requests => List.unmodifiable(_requests);
 
-  http.BaseRequest? get lastRequest => _requests.isNotEmpty ? _requests.last : null;
+  http.BaseRequest? get lastRequest =>
+      _requests.isNotEmpty ? _requests.last : null;
 
   void clearRequests() {
     _requests.clear();
@@ -190,7 +191,8 @@ void main() {
     });
 
     group('testAllEndpoints', () {
-      test('devrait tester tous les endpoints avec toutes les méthodes', () async {
+      test('devrait tester tous les endpoints avec toutes les méthodes',
+          () async {
         // Configurer des réponses par défaut
         mockHttpClient.setDefaultResponse(
           http.Response('{"status": "success"}', 200),
@@ -215,11 +217,11 @@ void main() {
         // Vérifier que toutes les requêtes contiennent la plaque test
         for (final request in mockHttpClient.requests) {
           final hasPlateInUrl = request.url.toString().contains('AB123CD');
-          final hasPlateInBody = request is http.Request &&
-              request.body.contains('AB123CD');
+          final hasPlateInBody =
+              request is http.Request && request.body.contains('AB123CD');
 
           expect(hasPlateInUrl || hasPlateInBody, isTrue,
-                 reason: 'Request should contain test plate: ${request.url}');
+              reason: 'Request should contain test plate: ${request.url}');
         }
       });
 
@@ -247,7 +249,7 @@ void main() {
               .toList();
 
           expect(requestsForEndpoint.length, equals(4),
-                 reason: 'Endpoint $endpoint should be tested with 4 methods');
+              reason: 'Endpoint $endpoint should be tested with 4 methods');
         }
       });
     });
@@ -271,7 +273,8 @@ void main() {
         expect(method1Requests, isNotEmpty);
 
         final request = method1Requests.first;
-        expect(request.url.queryParameters['providerId'], equals('test-provider'));
+        expect(
+            request.url.queryParameters['providerId'], equals('test-provider'));
         expect(request.url.queryParameters['apiKey'], equals('test-api-key'));
         expect(request.url.queryParameters['vrm'], equals('AB123CD'));
       });
@@ -306,8 +309,7 @@ void main() {
         // Trouver les requêtes de méthode 2 (GET avec credentials dans headers)
         final method2Requests = mockHttpClient.requests
             .where((req) =>
-                req.method == 'GET' &&
-                req.headers.containsKey('x-provider-id'))
+                req.method == 'GET' && req.headers.containsKey('x-provider-id'))
             .toList();
 
         expect(method2Requests, isNotEmpty);
@@ -327,8 +329,7 @@ void main() {
 
         final method2Requests = mockHttpClient.requests
             .where((req) =>
-                req.method == 'GET' &&
-                req.headers.containsKey('x-provider-id'))
+                req.method == 'GET' && req.headers.containsKey('x-provider-id'))
             .toList();
 
         for (final request in method2Requests) {
@@ -399,7 +400,7 @@ void main() {
 
         // Ne devrait pas lancer d'exception
         expect(() => TestableTecAllianceTestService.testAllEndpoints(),
-               returnsNormally);
+            returnsNormally);
       });
 
       test('devrait gérer les erreurs HTTP gracieusement', () async {
@@ -409,7 +410,7 @@ void main() {
 
         // Ne devrait pas lancer d'exception
         expect(() => TestableTecAllianceTestService.testAllEndpoints(),
-               returnsNormally);
+            returnsNormally);
       });
 
       test('devrait gérer les erreurs de réseau gracieusement', () async {
@@ -417,7 +418,7 @@ void main() {
         // Le mock client retournera 404 par défaut
 
         expect(() => TestableTecAllianceTestService.testAllEndpoints(),
-               returnsNormally);
+            returnsNormally);
       });
     });
 
@@ -429,12 +430,10 @@ void main() {
 
         await TestableTecAllianceTestService.testAllEndpoints();
 
-        final getMethods = mockHttpClient.requests
-            .where((req) => req.method == 'GET')
-            .length;
-        final postMethods = mockHttpClient.requests
-            .where((req) => req.method == 'POST')
-            .length;
+        final getMethods =
+            mockHttpClient.requests.where((req) => req.method == 'GET').length;
+        final postMethods =
+            mockHttpClient.requests.where((req) => req.method == 'POST').length;
 
         // 7 endpoints × 3 méthodes GET = 21 requêtes GET
         expect(getMethods, equals(21));
@@ -464,7 +463,8 @@ void main() {
             .toList();
 
         for (final request in postRequests) {
-          expect(request.headers['content-type'], startsWith('application/json'));
+          expect(
+              request.headers['content-type'], startsWith('application/json'));
           expect(request.headers['accept'], equals('application/json'));
         }
       });
@@ -480,7 +480,8 @@ void main() {
 
         // Vérifier que toutes les URLs commencent par le bon domaine
         for (final request in mockHttpClient.requests) {
-          expect(request.url.toString(), startsWith('https://test.example.com/'));
+          expect(
+              request.url.toString(), startsWith('https://test.example.com/'));
         }
       });
 
@@ -507,7 +508,7 @@ void main() {
               .toList();
 
           expect(matchingRequests.length, equals(4),
-                 reason: 'Should have 4 requests for path $expectedPath');
+              reason: 'Should have 4 requests for path $expectedPath');
         }
       });
     });

@@ -51,10 +51,11 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.saveUserSettings(tUserSettings))
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non autorisé')));
+      when(mockRepository.saveUserSettings(tUserSettings)).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non autorisé')));
 
       // act
       final result = await usecase(tUserSettings);
@@ -64,16 +65,19 @@ void main() {
       verify(mockRepository.saveUserSettings(tUserSettings));
     });
 
-    test('doit retourner ValidationFailure quand les données sont invalides', () async {
+    test('doit retourner ValidationFailure quand les données sont invalides',
+        () async {
       // arrange
-      when(mockRepository.saveUserSettings(tUserSettings))
-          .thenAnswer((_) async => const Left(ValidationFailure('Nom d\'affichage invalide')));
+      when(mockRepository.saveUserSettings(tUserSettings)).thenAnswer(
+          (_) async =>
+              const Left(ValidationFailure('Nom d\'affichage invalide')));
 
       // act
       final result = await usecase(tUserSettings);
 
       // assert
-      expect(result, const Left(ValidationFailure('Nom d\'affichage invalide')));
+      expect(
+          result, const Left(ValidationFailure('Nom d\'affichage invalide')));
       verify(mockRepository.saveUserSettings(tUserSettings));
     });
 
@@ -90,10 +94,11 @@ void main() {
       verify(mockRepository.saveUserSettings(tUserSettings));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.saveUserSettings(tUserSettings))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.saveUserSettings(tUserSettings)).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tUserSettings);
@@ -112,7 +117,8 @@ void main() {
       await usecase(tUserSettings);
 
       // assert
-      final captured = verify(mockRepository.saveUserSettings(captureAny)).captured;
+      final captured =
+          verify(mockRepository.saveUserSettings(captureAny)).captured;
       expect(captured.first, tUserSettings);
     });
 
@@ -141,7 +147,8 @@ void main() {
       );
     });
 
-    test('doit sauvegarder avec toutes les propriétés correctement transmises', () async {
+    test('doit sauvegarder avec toutes les propriétés correctement transmises',
+        () async {
       // arrange
       when(mockRepository.saveUserSettings(tUserSettings))
           .thenAnswer((_) async => Right(tUserSettings));
@@ -203,7 +210,8 @@ void main() {
       );
     });
 
-    test('doit gérer la mise à jour des préférences de notifications', () async {
+    test('doit gérer la mise à jour des préférences de notifications',
+        () async {
       // arrange
       final updatedSettings = tUserSettings.copyWith(
         notificationsEnabled: false,
@@ -298,8 +306,10 @@ void main() {
       const user1Id = 'user1';
       const user2Id = 'user2';
 
-      final settings1 = UserSettings(userId: user1Id, displayName: 'Utilisateur 1');
-      final settings2 = UserSettings(userId: user2Id, displayName: 'Utilisateur 2');
+      final settings1 =
+          UserSettings(userId: user1Id, displayName: 'Utilisateur 1');
+      final settings2 =
+          UserSettings(userId: user2Id, displayName: 'Utilisateur 2');
 
       when(mockRepository.saveUserSettings(settings1))
           .thenAnswer((_) async => Right(settings1));
@@ -333,7 +343,8 @@ void main() {
       result.fold(
         (failure) => fail('Ne devrait pas échouer'),
         (settings) {
-          expect(settings.avatarUrl, 'https://newcdn.example.com/avatars/new_photo.jpg');
+          expect(settings.avatarUrl,
+              'https://newcdn.example.com/avatars/new_photo.jpg');
         },
       );
     });

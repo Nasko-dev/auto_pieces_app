@@ -13,7 +13,8 @@ import '../../domain/usecases/manage_conversation.dart';
 import '../../../../core/services/realtime_service.dart';
 
 // DataSource Provider
-final conversationsDataSourceProvider = Provider<ConversationsRemoteDataSource>((ref) {
+final conversationsDataSourceProvider =
+    Provider<ConversationsRemoteDataSource>((ref) {
   return ConversationsRemoteDataSourceImpl(
     supabaseClient: Supabase.instance.client,
   );
@@ -67,7 +68,8 @@ final realtimeServiceProvider = Provider<RealtimeService>((ref) {
 });
 
 // Controller Provider Principal
-final conversationsControllerProvider = StateNotifierProvider<ConversationsController, ConversationsState>((ref) {
+final conversationsControllerProvider =
+    StateNotifierProvider<ConversationsController, ConversationsState>((ref) {
   return ConversationsController(
     getConversations: ref.read(getConversationsUseCaseProvider),
     getConversationMessages: ref.read(getConversationMessagesUseCaseProvider),
@@ -95,12 +97,14 @@ final totalUnreadCountProvider = Provider((ref) {
   return state.totalUnreadCount;
 });
 
-final conversationMessagesProvider = Provider.family<List<Message>, String>((ref, conversationId) {
+final conversationMessagesProvider =
+    Provider.family<List<Message>, String>((ref, conversationId) {
   final state = ref.watch(conversationsControllerProvider);
   return state.conversationMessages[conversationId] ?? [];
 });
 
-final conversationUnreadCountProvider = Provider.family<int, String>((ref, conversationId) {
+final conversationUnreadCountProvider =
+    Provider.family<int, String>((ref, conversationId) {
   final state = ref.watch(conversationsControllerProvider);
   // ✅ DB-BASED: Utiliser le compteur DB directement de la conversation
   try {

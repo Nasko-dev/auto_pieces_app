@@ -22,7 +22,8 @@ void main() {
       );
     });
 
-    testWidgets('doit afficher un message texte de l\'utilisateur actuel', (tester) async {
+    testWidgets('doit afficher un message texte de l\'utilisateur actuel',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -41,7 +42,8 @@ void main() {
       expect(find.byType(MessageBubbleWidget), findsOneWidget);
     });
 
-    testWidgets('doit aligner le message à droite pour l\'utilisateur actuel', (tester) async {
+    testWidgets('doit aligner le message à droite pour l\'utilisateur actuel',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -60,7 +62,8 @@ void main() {
       expect(align.alignment, Alignment.centerRight);
     });
 
-    testWidgets('doit aligner le message à gauche pour un autre utilisateur', (tester) async {
+    testWidgets('doit aligner le message à gauche pour un autre utilisateur',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -79,7 +82,9 @@ void main() {
       expect(align.alignment, Alignment.centerLeft);
     });
 
-    testWidgets('doit afficher l\'avatar pour les messages d\'autres utilisateurs', (tester) async {
+    testWidgets(
+        'doit afficher l\'avatar pour les messages d\'autres utilisateurs',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -97,7 +102,9 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget); // Avatar par défaut
     });
 
-    testWidgets('ne doit pas afficher l\'avatar pour les messages de l\'utilisateur actuel', (tester) async {
+    testWidgets(
+        'ne doit pas afficher l\'avatar pour les messages de l\'utilisateur actuel',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -116,7 +123,9 @@ void main() {
       expect(find.byIcon(Icons.business), findsNothing);
     });
 
-    testWidgets('doit afficher les indicateurs de lecture pour le dernier message', (tester) async {
+    testWidgets(
+        'doit afficher les indicateurs de lecture pour le dernier message',
+        (tester) async {
       // arrange
       final readMessage = testMessage.copyWith(isRead: true);
 
@@ -154,7 +163,8 @@ void main() {
       );
 
       // assert
-      expect(find.byIcon(Icons.done), findsOneWidget); // Message envoyé mais non lu
+      expect(find.byIcon(Icons.done),
+          findsOneWidget); // Message envoyé mais non lu
     });
 
     testWidgets('doit formater l\'heure correctement', (tester) async {
@@ -201,7 +211,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -220,7 +230,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: offerMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -246,7 +256,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: singleDayOffer,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -271,7 +281,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: partialOffer,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -295,7 +305,8 @@ void main() {
         );
       });
 
-      testWidgets('doit afficher l\'image avec le contenu texte', (tester) async {
+      testWidgets('doit afficher l\'image avec le contenu texte',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -303,7 +314,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -314,7 +325,8 @@ void main() {
         expect(find.text('Voici la photo de la pièce'), findsOneWidget);
       });
 
-      testWidgets('doit afficher un message d\'erreur si pas d\'attachement', (tester) async {
+      testWidgets('doit afficher un message d\'erreur si pas d\'attachement',
+          (tester) async {
         // arrange
         final noAttachmentMessage = imageMessage.copyWith(attachments: []);
 
@@ -325,7 +337,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: noAttachmentMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -336,7 +348,8 @@ void main() {
         expect(find.byIcon(Icons.broken_image), findsOneWidget);
       });
 
-      testWidgets('doit être cliquable pour affichage plein écran', (tester) async {
+      testWidgets('doit être cliquable pour affichage plein écran',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -344,14 +357,15 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
         );
 
         // act - trouver l'image et taper dessus
-        await tester.tap(find.byType(GestureDetector).first, warnIfMissed: false);
+        await tester.tap(find.byType(GestureDetector).first,
+            warnIfMissed: false);
         await tester.pumpAndSettle();
 
         // assert - vérifier que les widgets existent sans forcer l'ouverture du dialog
@@ -367,14 +381,15 @@ void main() {
               body: MessageBubbleWidget(
                 message: imageMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
         );
 
         // act - test d'interaction de base (sans forcer l'ouverture de dialog)
-        await tester.tap(find.byType(GestureDetector).first, warnIfMissed: false);
+        await tester.tap(find.byType(GestureDetector).first,
+            warnIfMissed: false);
         await tester.pumpAndSettle();
 
         // assert - vérifier que le widget est toujours présent
@@ -391,7 +406,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
-              currentUserId: 'seller-123',
+                currentUserId: 'seller-123',
                 otherUserAvatarUrl: 'https://example.com/avatar.jpg',
               ),
             ),
@@ -401,10 +416,12 @@ void main() {
         // assert
         expect(find.byType(Image), findsOneWidget);
         final image = tester.widget<Image>(find.byType(Image));
-        expect((image.image as NetworkImage).url, 'https://example.com/avatar.jpg');
+        expect((image.image as NetworkImage).url,
+            'https://example.com/avatar.jpg');
       });
 
-      testWidgets('doit afficher l\'avatar par défaut si URL vide', (tester) async {
+      testWidgets('doit afficher l\'avatar par défaut si URL vide',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -412,7 +429,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage,
                 currentUserType: MessageSenderType.seller,
-              currentUserId: 'seller-123',
+                currentUserId: 'seller-123',
                 otherUserAvatarUrl: '',
               ),
             ),
@@ -423,9 +440,11 @@ void main() {
         expect(find.byIcon(Icons.person), findsOneWidget);
       });
 
-      testWidgets('doit afficher l\'icône business pour les vendeurs', (tester) async {
+      testWidgets('doit afficher l\'icône business pour les vendeurs',
+          (tester) async {
         // arrange
-        final sellerMessage = testMessage.copyWith(senderType: MessageSenderType.seller);
+        final sellerMessage =
+            testMessage.copyWith(senderType: MessageSenderType.seller);
 
         // act
         await tester.pumpWidget(
@@ -434,7 +453,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: sellerMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123', // User voit un vendeur
+                currentUserId: 'user-123', // User voit un vendeur
               ),
             ),
           ),
@@ -446,7 +465,9 @@ void main() {
     });
 
     group('Couleurs et styles', () {
-      testWidgets('doit utiliser les bonnes couleurs pour l\'utilisateur actuel', (tester) async {
+      testWidgets(
+          'doit utiliser les bonnes couleurs pour l\'utilisateur actuel',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -462,14 +483,16 @@ void main() {
 
         // assert
         final containers = find.byWidgetPredicate((widget) =>
-          widget is Container &&
-          widget.decoration is BoxDecoration &&
-          (widget.decoration as BoxDecoration).color == const Color(0xFF3B82F6)
-        );
+            widget is Container &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration as BoxDecoration).color ==
+                const Color(0xFF3B82F6));
         expect(containers, findsAtLeastNWidgets(1));
       });
 
-      testWidgets('doit utiliser les bonnes couleurs pour les autres utilisateurs', (tester) async {
+      testWidgets(
+          'doit utiliser les bonnes couleurs pour les autres utilisateurs',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -477,7 +500,8 @@ void main() {
               body: MessageBubbleWidget(
                 message: testMessage, // senderId: 'user1'
                 currentUserType: MessageSenderType.seller,
-                currentUserId: 'seller-123', // ID différent du senderId du message
+                currentUserId:
+                    'seller-123', // ID différent du senderId du message
               ),
             ),
           ),
@@ -485,10 +509,10 @@ void main() {
 
         // assert
         final containers = find.byWidgetPredicate((widget) =>
-          widget is Container &&
-          widget.decoration is BoxDecoration &&
-          (widget.decoration as BoxDecoration).color == const Color(0xFFF3F4F6)
-        );
+            widget is Container &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration as BoxDecoration).color ==
+                const Color(0xFFF3F4F6));
         expect(containers, findsAtLeastNWidgets(1));
       });
     });
@@ -504,7 +528,7 @@ void main() {
                 child: MessageBubbleWidget(
                   message: testMessage,
                   currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                  currentUserId: 'user-123',
                 ),
               ),
             ),
@@ -515,10 +539,8 @@ void main() {
         expect(find.byType(MessageBubbleWidget), findsOneWidget);
 
         // Vérifier qu'une contrainte existe plutôt que sa valeur exacte
-        final containers = find.byWidgetPredicate((widget) =>
-          widget is Container &&
-          widget.constraints != null
-        );
+        final containers = find.byWidgetPredicate(
+            (widget) => widget is Container && widget.constraints != null);
 
         if (containers.evaluate().isNotEmpty) {
           final container = tester.widget<Container>(containers.first);
@@ -542,10 +564,8 @@ void main() {
 
         // assert
         final container = tester.widget<Container>(
-          find.byWidgetPredicate((widget) =>
-            widget is Container &&
-            widget.margin != null
-          ),
+          find.byWidgetPredicate(
+              (widget) => widget is Container && widget.margin != null),
         );
         final margin = container.margin as EdgeInsets;
         expect(margin.left, 80); // Message de l'utilisateur actuel
@@ -565,7 +585,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: emptyMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
@@ -575,10 +595,12 @@ void main() {
         expect(find.text(''), findsOneWidget);
       });
 
-      testWidgets('doit gérer les messages avec contenu très long', (tester) async {
+      testWidgets('doit gérer les messages avec contenu très long',
+          (tester) async {
         // arrange
         final longMessage = testMessage.copyWith(
-          content: 'Ceci est un message très très long qui contient beaucoup de texte pour tester le comportement du widget avec des contenus longs et voir comment il s\'adapte.',
+          content:
+              'Ceci est un message très très long qui contient beaucoup de texte pour tester le comportement du widget avec des contenus longs et voir comment il s\'adapte.',
         );
 
         // act
@@ -588,14 +610,15 @@ void main() {
               body: MessageBubbleWidget(
                 message: longMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),
         );
 
         // assert
-        expect(find.textContaining('Ceci est un message très très long'), findsOneWidget);
+        expect(find.textContaining('Ceci est un message très très long'),
+            findsOneWidget);
       });
 
       testWidgets('doit gérer les timestamps futurs', (tester) async {
@@ -611,7 +634,7 @@ void main() {
               body: MessageBubbleWidget(
                 message: futureMessage,
                 currentUserType: MessageSenderType.user,
-              currentUserId: 'user-123',
+                currentUserId: 'user-123',
               ),
             ),
           ),

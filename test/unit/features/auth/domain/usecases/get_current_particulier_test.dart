@@ -34,7 +34,8 @@ void main() {
   );
 
   group('GetCurrentParticulier', () {
-    test('doit retourner un Particulier quand la récupération réussit', () async {
+    test('doit retourner un Particulier quand la récupération réussit',
+        () async {
       // arrange
       when(mockRepository.getCurrentParticulier())
           .thenAnswer((_) async => Right(tParticulier));
@@ -48,10 +49,11 @@ void main() {
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas connecté',
+        () async {
       // arrange
-      when(mockRepository.getCurrentParticulier())
-          .thenAnswer((_) async => const Left(AuthFailure('Utilisateur non connecté')));
+      when(mockRepository.getCurrentParticulier()).thenAnswer(
+          (_) async => const Left(AuthFailure('Utilisateur non connecté')));
 
       // act
       final result = await usecase(NoParams());
@@ -74,10 +76,11 @@ void main() {
       verify(mockRepository.getCurrentParticulier());
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getCurrentParticulier())
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getCurrentParticulier()).thenAnswer(
+          (_) async => const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(NoParams());
@@ -87,10 +90,11 @@ void main() {
       verify(mockRepository.getCurrentParticulier());
     });
 
-    test('doit retourner CacheFailure si l\'utilisateur n\'est pas en cache', () async {
+    test('doit retourner CacheFailure si l\'utilisateur n\'est pas en cache',
+        () async {
       // arrange
-      when(mockRepository.getCurrentParticulier())
-          .thenAnswer((_) async => const Left(CacheFailure('Aucun utilisateur en cache')));
+      when(mockRepository.getCurrentParticulier()).thenAnswer(
+          (_) async => const Left(CacheFailure('Aucun utilisateur en cache')));
 
       // act
       final result = await usecase(NoParams());
@@ -137,7 +141,8 @@ void main() {
       );
     });
 
-    test('doit retourner le particulier avec toutes les propriétés correctes', () async {
+    test('doit retourner le particulier avec toutes les propriétés correctes',
+        () async {
       // arrange
       when(mockRepository.getCurrentParticulier())
           .thenAnswer((_) async => Right(tParticulier));
@@ -177,7 +182,8 @@ void main() {
       verify(mockRepository.getCurrentParticulier()).called(2);
     });
 
-    test('doit retourner le même particulier à chaque appel (cohérence)', () async {
+    test('doit retourner le même particulier à chaque appel (cohérence)',
+        () async {
       // arrange
       when(mockRepository.getCurrentParticulier())
           .thenAnswer((_) async => Right(tParticulier));

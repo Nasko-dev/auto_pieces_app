@@ -26,6 +26,11 @@ _$PartAdvertisementModelImpl _$$PartAdvertisementModelImplFromJson(
               .toList() ??
           const [],
       status: json['status'] as String? ?? 'active',
+      quantityTotal: (json['quantityTotal'] as num?)?.toInt() ?? 1,
+      quantityAvailable: (json['quantityAvailable'] as num?)?.toInt() ?? 1,
+      quantitySold: (json['quantitySold'] as num?)?.toInt() ?? 0,
+      lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt(),
+      autoMarkSoldWhenEmpty: json['autoMarkSoldWhenEmpty'] as bool? ?? true,
       isNegotiable: json['isNegotiable'] as bool? ?? true,
       contactPhone: json['contactPhone'] as String?,
       contactEmail: json['contactEmail'] as String?,
@@ -58,6 +63,11 @@ Map<String, dynamic> _$$PartAdvertisementModelImplToJson(
       'condition': instance.condition,
       'images': instance.images,
       'status': instance.status,
+      'quantityTotal': instance.quantityTotal,
+      'quantityAvailable': instance.quantityAvailable,
+      'quantitySold': instance.quantitySold,
+      'lowStockThreshold': instance.lowStockThreshold,
+      'autoMarkSoldWhenEmpty': instance.autoMarkSoldWhenEmpty,
       'isNegotiable': instance.isNegotiable,
       'contactPhone': instance.contactPhone,
       'contactEmail': instance.contactEmail,
@@ -90,6 +100,8 @@ _$CreatePartAdvertisementParamsImpl
               const [],
           contactPhone: json['contactPhone'] as String?,
           contactEmail: json['contactEmail'] as String?,
+          quantityTotal: (json['quantityTotal'] as num?)?.toInt() ?? 1,
+          lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt(),
         );
 
 Map<String, dynamic> _$$CreatePartAdvertisementParamsImplToJson(
@@ -108,6 +120,8 @@ Map<String, dynamic> _$$CreatePartAdvertisementParamsImplToJson(
       'images': instance.images,
       'contactPhone': instance.contactPhone,
       'contactEmail': instance.contactEmail,
+      'quantityTotal': instance.quantityTotal,
+      'lowStockThreshold': instance.lowStockThreshold,
     };
 
 _$SearchPartAdvertisementsParamsImpl

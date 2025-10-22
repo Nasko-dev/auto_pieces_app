@@ -14,7 +14,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('doit afficher le widget avec les paramètres par défaut', (tester) async {
+    testWidgets('doit afficher le widget avec les paramètres par défaut',
+        (tester) async {
       // arrange
       // ignore: unused_local_variable
       String? sentMessage;
@@ -37,7 +38,8 @@ void main() {
       expect(find.text('Message...'), findsOneWidget); // hint text
     });
 
-    testWidgets('doit afficher les boutons par défaut sans texte', (tester) async {
+    testWidgets('doit afficher les boutons par défaut sans texte',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -57,10 +59,12 @@ void main() {
       expect(find.byIcon(Icons.camera_alt_outlined), findsOneWidget);
       expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
-      expect(find.byIcon(Icons.send), findsNothing); // Pas de bouton send sans texte
+      expect(find.byIcon(Icons.send),
+          findsNothing); // Pas de bouton send sans texte
     });
 
-    testWidgets('doit afficher le bouton send quand il y a du texte', (tester) async {
+    testWidgets('doit afficher le bouton send quand il y a du texte',
+        (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -83,7 +87,8 @@ void main() {
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
     });
 
-    testWidgets('doit masquer les boutons galerie/offre quand il y a du texte', (tester) async {
+    testWidgets('doit masquer les boutons galerie/offre quand il y a du texte',
+        (tester) async {
       // arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -108,7 +113,8 @@ void main() {
       expect(find.byIcon(Icons.send), findsOneWidget);
     });
 
-    testWidgets('doit appeler onSend quand on appuie sur le bouton send', (tester) async {
+    testWidgets('doit appeler onSend quand on appuie sur le bouton send',
+        (tester) async {
       // arrange
       // ignore: unused_local_variable
       String? sentMessage;
@@ -132,7 +138,8 @@ void main() {
       expect(sentMessage, 'Test message');
     });
 
-    testWidgets('doit appeler onSend quand on soumet le TextField', (tester) async {
+    testWidgets('doit appeler onSend quand on soumet le TextField',
+        (tester) async {
       // arrange
       // ignore: unused_local_variable
       String? sentMessage;
@@ -171,11 +178,13 @@ void main() {
       );
 
       // act
-      await tester.enterText(find.byType(TextField), '   '); // Espaces seulement
+      await tester.enterText(
+          find.byType(TextField), '   '); // Espaces seulement
       await tester.pump();
 
       // assert
-      expect(find.byIcon(Icons.send), findsNothing); // Pas de bouton send pour texte vide
+      expect(find.byIcon(Icons.send),
+          findsNothing); // Pas de bouton send pour texte vide
 
       // act - essayer de soumettre
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -184,7 +193,8 @@ void main() {
       expect(sentMessage, null); // Aucun message envoyé
     });
 
-    testWidgets('doit appeler onCamera quand on clique sur le bouton caméra', (tester) async {
+    testWidgets('doit appeler onCamera quand on clique sur le bouton caméra',
+        (tester) async {
       // arrange
       bool cameraCalled = false;
       await tester.pumpWidget(
@@ -206,7 +216,8 @@ void main() {
       expect(cameraCalled, true);
     });
 
-    testWidgets('doit appeler onGallery quand on clique sur le bouton galerie', (tester) async {
+    testWidgets('doit appeler onGallery quand on clique sur le bouton galerie',
+        (tester) async {
       // arrange
       bool galleryCalled = false;
       await tester.pumpWidget(
@@ -228,7 +239,8 @@ void main() {
       expect(galleryCalled, true);
     });
 
-    testWidgets('doit appeler onOffer quand on clique sur le bouton offre', (tester) async {
+    testWidgets('doit appeler onOffer quand on clique sur le bouton offre',
+        (tester) async {
       // arrange
       bool offerCalled = false;
       await tester.pumpWidget(
@@ -250,7 +262,8 @@ void main() {
       expect(offerCalled, true);
     });
 
-    testWidgets('ne doit pas afficher le bouton offre si onOffer est null', (tester) async {
+    testWidgets('ne doit pas afficher le bouton offre si onOffer est null',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -268,7 +281,8 @@ void main() {
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
     });
 
-    testWidgets('doit désactiver les inputs quand isLoading=true', (tester) async {
+    testWidgets('doit désactiver les inputs quand isLoading=true',
+        (tester) async {
       // arrange & act
       await tester.pumpWidget(
         MaterialApp(
@@ -287,7 +301,8 @@ void main() {
       expect(textField.enabled, false);
     });
 
-    testWidgets('doit afficher le loading indicator quand isLoading=true', (tester) async {
+    testWidgets('doit afficher le loading indicator quand isLoading=true',
+        (tester) async {
       // arrange
       controller.text = 'Test message'; // Pour que le bouton send soit visible
 
@@ -309,7 +324,8 @@ void main() {
       expect(find.byIcon(Icons.send), findsNothing);
     });
 
-    testWidgets('ne doit pas envoyer de message pendant le loading', (tester) async {
+    testWidgets('ne doit pas envoyer de message pendant le loading',
+        (tester) async {
       // arrange
       // ignore: unused_local_variable
       String? sentMessage;
@@ -359,7 +375,8 @@ void main() {
     });
 
     group('Styling et couleurs', () {
-      testWidgets('doit utiliser les bonnes couleurs pour le bouton offre', (tester) async {
+      testWidgets('doit utiliser les bonnes couleurs pour le bouton offre',
+          (tester) async {
         // arrange & act
         await tester.pumpWidget(
           MaterialApp(
@@ -376,15 +393,16 @@ void main() {
         // assert
         final offerButton = tester.widget<Container>(
           find.byWidgetPredicate((widget) =>
-            widget is Container &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == const Color(0xFF34C759)
-          ),
+              widget is Container &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).color ==
+                  const Color(0xFF34C759)),
         );
         expect(offerButton, isNotNull);
       });
 
-      testWidgets('doit utiliser les bonnes couleurs pour le bouton send', (tester) async {
+      testWidgets('doit utiliser les bonnes couleurs pour le bouton send',
+          (tester) async {
         // arrange
         await tester.pumpWidget(
           MaterialApp(
@@ -404,10 +422,10 @@ void main() {
         // assert
         final sendButton = tester.widget<AnimatedContainer>(
           find.byWidgetPredicate((widget) =>
-            widget is AnimatedContainer &&
-            widget.decoration is BoxDecoration &&
-            (widget.decoration as BoxDecoration).color == const Color(0xFF3B82F6)
-          ),
+              widget is AnimatedContainer &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).color ==
+                  const Color(0xFF3B82F6)),
         );
         expect(sendButton, isNotNull);
       });
@@ -435,7 +453,8 @@ void main() {
         expect(find.byType(AnimatedContainer), findsOneWidget);
       });
 
-      testWidgets('doit gérer les changements d\'état du texte', (tester) async {
+      testWidgets('doit gérer les changements d\'état du texte',
+          (tester) async {
         // arrange
         await tester.pumpWidget(
           MaterialApp(

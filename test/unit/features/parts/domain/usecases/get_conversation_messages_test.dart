@@ -21,7 +21,8 @@ void main() {
   });
 
   const tConversationId = 'conversation123';
-  final tParams = GetConversationMessagesParams(conversationId: tConversationId);
+  final tParams =
+      GetConversationMessagesParams(conversationId: tConversationId);
 
   final tMessage1 = Message(
     id: 'message1',
@@ -67,9 +68,11 @@ void main() {
   final tMessagesList = [tMessage1, tMessage2, tMessage3];
 
   group('GetConversationMessages', () {
-    test('doit retourner une liste de Messages quand la récupération réussit', () async {
+    test('doit retourner une liste de Messages quand la récupération réussit',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(tMessagesList));
 
       // act
@@ -77,13 +80,16 @@ void main() {
 
       // assert
       expect(result, Right(tMessagesList));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
       verifyNoMoreInteractions(mockRepository);
     });
 
-    test('doit retourner une liste vide quand aucun message n\'existe', () async {
+    test('doit retourner une liste vide quand aucun message n\'existe',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => const Right([]));
 
       // act
@@ -95,38 +101,49 @@ void main() {
         (failure) => fail('Ne devrait pas échouer'),
         (messages) => expect(messages.isEmpty, true),
       );
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
     });
 
-    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé', () async {
+    test('doit retourner AuthFailure quand l\'utilisateur n\'est pas autorisé',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
-          .thenAnswer((_) async => const Left(AuthFailure('Accès non autorisé à cette conversation')));
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
+          .thenAnswer((_) async => const Left(
+              AuthFailure('Accès non autorisé à cette conversation')));
 
       // act
       final result = await usecase(tParams);
 
       // assert
-      expect(result, const Left(AuthFailure('Accès non autorisé à cette conversation')));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      expect(result,
+          const Left(AuthFailure('Accès non autorisé à cette conversation')));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
     });
 
-    test('doit retourner ValidationFailure quand la conversation n\'existe pas', () async {
+    test('doit retourner ValidationFailure quand la conversation n\'existe pas',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
-          .thenAnswer((_) async => const Left(ValidationFailure('Conversation non trouvée')));
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
+          .thenAnswer((_) async =>
+              const Left(ValidationFailure('Conversation non trouvée')));
 
       // act
       final result = await usecase(tParams);
 
       // assert
       expect(result, const Left(ValidationFailure('Conversation non trouvée')));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
     });
 
     test('doit retourner ServerFailure en cas d\'erreur serveur', () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => const Left(ServerFailure('Erreur serveur')));
 
       // act
@@ -134,39 +151,48 @@ void main() {
 
       // assert
       expect(result, const Left(ServerFailure('Erreur serveur')));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
     });
 
-    test('doit retourner NetworkFailure quand il y a un problème réseau', () async {
+    test('doit retourner NetworkFailure quand il y a un problème réseau',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
-          .thenAnswer((_) async => const Left(NetworkFailure('Pas de connexion internet')));
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
+          .thenAnswer((_) async =>
+              const Left(NetworkFailure('Pas de connexion internet')));
 
       // act
       final result = await usecase(tParams);
 
       // assert
       expect(result, const Left(NetworkFailure('Pas de connexion internet')));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
     });
 
     test('doit appeler le repository avec le bon conversationId', () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(tMessagesList));
 
       // act
       await usecase(tParams);
 
       // assert
-      final captured = verify(mockRepository.getConversationMessages(conversationId: captureAnyNamed('conversationId'))).captured;
+      final captured = verify(mockRepository.getConversationMessages(
+              conversationId: captureAnyNamed('conversationId')))
+          .captured;
       expect(captured.first, tConversationId);
     });
 
     test('doit propager les échecs du repository', () async {
       // arrange
       const failure = CacheFailure('Erreur de cache');
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => const Left(failure));
 
       // act
@@ -178,7 +204,8 @@ void main() {
 
     test('doit gérer les exceptions du repository', () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenThrow(Exception('Erreur inattendue'));
 
       // act & assert
@@ -188,9 +215,11 @@ void main() {
       );
     });
 
-    test('doit retourner les messages avec toutes les propriétés correctes', () async {
+    test('doit retourner les messages avec toutes les propriétés correctes',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(tMessagesList));
 
       // act
@@ -271,7 +300,8 @@ void main() {
 
       final mixedMessagesList = [textMessage, imageMessage, offerMessage];
 
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(mixedMessagesList));
 
       // act
@@ -297,7 +327,8 @@ void main() {
       );
     });
 
-    test('doit gérer les messages avec statuts de lecture différents', () async {
+    test('doit gérer les messages avec statuts de lecture différents',
+        () async {
       // arrange
       final unreadMessage = Message(
         id: 'unread1',
@@ -324,7 +355,8 @@ void main() {
 
       final readStatusList = [unreadMessage, readMessage];
 
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(readStatusList));
 
       // act
@@ -345,20 +377,29 @@ void main() {
 
     test('doit gérer les conversations avec de nombreux messages', () async {
       // arrange
-      final manyMessages = List.generate(100, (index) => Message(
-        id: 'message$index',
-        conversationId: tConversationId,
-        senderId: index % 2 == 0 ? 'user123' : 'seller456',
-        senderType: index % 2 == 0 ? MessageSenderType.user : MessageSenderType.seller,
-        content: 'Message numéro $index',
-        messageType: MessageType.text,
-        isRead: index < 80, // Les 80 premiers sont lus
-        readAt: index < 80 ? DateTime.now().subtract(Duration(minutes: 100 - index)) : null,
-        createdAt: DateTime.now().subtract(Duration(minutes: 100 - index)),
-        updatedAt: DateTime.now().subtract(Duration(minutes: 100 - index)),
-      ));
+      final manyMessages = List.generate(
+          100,
+          (index) => Message(
+                id: 'message$index',
+                conversationId: tConversationId,
+                senderId: index % 2 == 0 ? 'user123' : 'seller456',
+                senderType: index % 2 == 0
+                    ? MessageSenderType.user
+                    : MessageSenderType.seller,
+                content: 'Message numéro $index',
+                messageType: MessageType.text,
+                isRead: index < 80, // Les 80 premiers sont lus
+                readAt: index < 80
+                    ? DateTime.now().subtract(Duration(minutes: 100 - index))
+                    : null,
+                createdAt:
+                    DateTime.now().subtract(Duration(minutes: 100 - index)),
+                updatedAt:
+                    DateTime.now().subtract(Duration(minutes: 100 - index)),
+              ));
 
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(manyMessages));
 
       // act
@@ -404,7 +445,8 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right([messageWithMetadata]));
 
       // act
@@ -427,12 +469,16 @@ void main() {
       const conversation1Id = 'conv1';
       const conversation2Id = 'conv2';
 
-      final params1 = GetConversationMessagesParams(conversationId: conversation1Id);
-      final params2 = GetConversationMessagesParams(conversationId: conversation2Id);
+      final params1 =
+          GetConversationMessagesParams(conversationId: conversation1Id);
+      final params2 =
+          GetConversationMessagesParams(conversationId: conversation2Id);
 
-      when(mockRepository.getConversationMessages(conversationId: conversation1Id))
+      when(mockRepository.getConversationMessages(
+              conversationId: conversation1Id))
           .thenAnswer((_) async => Right([tMessage1]));
-      when(mockRepository.getConversationMessages(conversationId: conversation2Id))
+      when(mockRepository.getConversationMessages(
+              conversationId: conversation2Id))
           .thenAnswer((_) async => const Right([]));
 
       // act
@@ -450,13 +496,17 @@ void main() {
         (failure) => fail('Ne devrait pas échouer'),
         (messages) => expect(messages.isEmpty, true),
       );
-      verify(mockRepository.getConversationMessages(conversationId: conversation1Id));
-      verify(mockRepository.getConversationMessages(conversationId: conversation2Id));
+      verify(mockRepository.getConversationMessages(
+          conversationId: conversation1Id));
+      verify(mockRepository.getConversationMessages(
+          conversationId: conversation2Id));
     });
 
-    test('doit retourner les mêmes messages à chaque appel (cohérence)', () async {
+    test('doit retourner les mêmes messages à chaque appel (cohérence)',
+        () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(tMessagesList));
 
       // act
@@ -465,7 +515,9 @@ void main() {
 
       // assert
       expect(result1, equals(result2));
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId)).called(2);
+      verify(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
+          .called(2);
     });
 
     test('doit gérer les messages avec offres variées', () async {
@@ -499,7 +551,8 @@ void main() {
 
       final variousOffersList = [offerWithoutPrice, offerZeroPrice];
 
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(variousOffersList));
 
       // act
@@ -522,7 +575,8 @@ void main() {
 
     test('doit déléguer entièrement au repository', () async {
       // arrange
-      when(mockRepository.getConversationMessages(conversationId: tConversationId))
+      when(mockRepository.getConversationMessages(
+              conversationId: tConversationId))
           .thenAnswer((_) async => Right(tMessagesList));
 
       // act
@@ -531,7 +585,8 @@ void main() {
       // assert
       expect(result, Right(tMessagesList));
       // Vérifier que l'use case ne fait que déléguer au repository
-      verify(mockRepository.getConversationMessages(conversationId: tConversationId));
+      verify(mockRepository.getConversationMessages(
+          conversationId: tConversationId));
       verifyNoMoreInteractions(mockRepository);
     });
   });

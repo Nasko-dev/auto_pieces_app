@@ -16,7 +16,8 @@ class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
 
   @override
-  ConsumerState<ConversationsListPage> createState() => _ConversationsListPageState();
+  ConsumerState<ConversationsListPage> createState() =>
+      _ConversationsListPageState();
 }
 
 class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
@@ -25,37 +26,35 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     super.initState();
     // Charger les conversations au démarrage et initialiser le realtime
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+      final controller =
+          ref.read(particulierConversationsControllerProvider.notifier);
       controller.loadConversations();
-      
+
       // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
       _initializeRealtimeWithCorrectIds(controller);
     });
   }
-
 
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final deviceService = DeviceService(prefs);
       final deviceId = await deviceService.getDeviceId();
-      
+
       // Récupérer les vrais IDs particulier
       final allParticuliersWithDevice = await Supabase.instance.client
           .from('particuliers')
           .select('id')
           .eq('device_id', deviceId);
-          
-      final allUserIds = allParticuliersWithDevice
-          .map((p) => p['id'] as String)
-          .toList();
-          
-      
+
+      final allUserIds =
+          allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
       if (allUserIds.isNotEmpty) {
         final primaryUserId = allUserIds.first;
         controller.initializeRealtime(primaryUserId);
       }
-      
+
       // Fallback vers auth ID si aucun trouvé
       if (allUserIds.isEmpty) {
         final authUserId = Supabase.instance.client.auth.currentUser?.id;
@@ -79,7 +78,6 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     final isLoading = state.isLoading;
     final error = state.error;
 
-
     return Scaffold(
       body: Column(
         children: [
@@ -89,7 +87,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: () {
-                  ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+                  ref
+                      .read(particulierConversationsControllerProvider.notifier)
+                      .loadConversations();
                 },
               ),
               const AppMenu(),
@@ -98,7 +98,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
-                await ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+                await ref
+                    .read(particulierConversationsControllerProvider.notifier)
+                    .loadConversations();
               },
               child: _buildBody(conversations, isLoading, error),
             ),
@@ -142,13 +144,15 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               error,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                ref.read(particulierConversationsControllerProvider.notifier).loadConversations();
+                ref
+                    .read(particulierConversationsControllerProvider.notifier)
+                    .loadConversations();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Réessayer'),
@@ -192,7 +196,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       itemCount: conversations.length,
       itemBuilder: (context, index) {
         final conversation = conversations[index];
-        
+
         return ConversationItemWidget(
           conversation: conversation,
           onTap: () {
@@ -208,13 +212,15 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   void _showDeleteDialog(String conversationId) async {
     final result = await context.showDestructiveDialog(
       title: 'Supprimer la conversation',
-      message: 'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
+      message:
+          'Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.',
       destructiveText: 'Supprimer',
       cancelText: 'Annuler',
     );
 
     if (result == true && mounted) {
-      ref.read(particulierConversationsControllerProvider.notifier)
+      ref
+          .read(particulierConversationsControllerProvider.notifier)
           .deleteConversation(conversationId);
 
       if (mounted) {
@@ -226,13 +232,15 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   void _showBlockDialog(String conversationId) async {
     final result = await context.showWarningDialog(
       title: 'Bloquer le vendeur',
-      message: 'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
+      message:
+          'Êtes-vous sûr de vouloir bloquer ce vendeur ? Vous ne recevrez plus de messages de sa part.',
       confirmText: 'Bloquer',
       cancelText: 'Annuler',
     );
 
     if (result == true && mounted) {
-      ref.read(particulierConversationsControllerProvider.notifier)
+      ref
+          .read(particulierConversationsControllerProvider.notifier)
           .blockConversation(conversationId);
 
       if (mounted) {

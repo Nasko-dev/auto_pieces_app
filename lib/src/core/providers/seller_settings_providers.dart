@@ -8,14 +8,16 @@ import '../../features/parts/domain/usecases/get_seller_settings.dart';
 import '../../features/parts/domain/usecases/save_seller_settings.dart';
 
 // DataSource
-final sellerSettingsRemoteDataSourceProvider = Provider<SellerSettingsRemoteDataSource>((ref) {
+final sellerSettingsRemoteDataSourceProvider =
+    Provider<SellerSettingsRemoteDataSource>((ref) {
   return SellerSettingsRemoteDataSourceImpl(
     Supabase.instance.client,
   );
 });
 
 // Repository
-final sellerSettingsRepositoryProvider = Provider<SellerSettingsRepository>((ref) {
+final sellerSettingsRepositoryProvider =
+    Provider<SellerSettingsRepository>((ref) {
   return SellerSettingsRepositoryImpl(
     remoteDataSource: ref.watch(sellerSettingsRemoteDataSourceProvider),
     networkInfo: ref.watch(networkInfoProvider),

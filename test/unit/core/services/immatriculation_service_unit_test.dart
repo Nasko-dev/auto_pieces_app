@@ -10,8 +10,8 @@ class MockHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    final response = onRequest?.call(request) ??
-        http.Response('{"vehicles": []}', 200);
+    final response =
+        onRequest?.call(request) ?? http.Response('{"vehicles": []}', 200);
 
     return http.StreamedResponse(
       Stream.fromIterable([response.bodyBytes]),
@@ -73,7 +73,7 @@ void main() {
         for (final plate in invalidPlates) {
           final result = await service.getVehicleInfoFromPlate(plate);
           expect(result.isLeft(), isTrue,
-                 reason: 'Plaque $plate devrait être invalide');
+              reason: 'Plaque $plate devrait être invalide');
         }
       });
     });
@@ -119,12 +119,12 @@ void main() {
       });
 
       test('devrait gérer dispose sur multiples instances', () {
-        final services = List.generate(3, (index) =>
-          ImmatriculationService(
-            apiUsername: 'user$index',
-            httpClient: MockHttpClient(),
-          )
-        );
+        final services = List.generate(
+            3,
+            (index) => ImmatriculationService(
+                  apiUsername: 'user$index',
+                  httpClient: MockHttpClient(),
+                ));
 
         for (final service in services) {
           expect(() => service.dispose(), returnsNormally);

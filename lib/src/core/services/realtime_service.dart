@@ -13,16 +13,19 @@ class RealtimeService {
 
   // Streams pour les messages et conversations
   final Map<String, StreamController<Message>> _messageStreamControllers = {};
-  final StreamController<Map<String, dynamic>> _conversationStreamController = 
+  final StreamController<Map<String, dynamic>> _conversationStreamController =
       StreamController<Map<String, dynamic>>.broadcast();
 
-  Stream<Message> get messageStream => throw UnimplementedError('Utiliser getMessageStreamForConversation');
-  Stream<Map<String, dynamic>> get conversationStream => _conversationStreamController.stream;
-  
+  Stream<Message> get messageStream =>
+      throw UnimplementedError('Utiliser getMessageStreamForConversation');
+  Stream<Map<String, dynamic>> get conversationStream =>
+      _conversationStreamController.stream;
+
   // Obtenir le stream pour une conversation spécifique
   Stream<Message> getMessageStreamForConversation(String conversationId) {
     if (!_messageStreamControllers.containsKey(conversationId)) {
-      _messageStreamControllers[conversationId] = StreamController<Message>.broadcast();
+      _messageStreamControllers[conversationId] =
+          StreamController<Message>.broadcast();
     }
     return _messageStreamControllers[conversationId]!.stream;
   }
@@ -33,21 +36,23 @@ class RealtimeService {
       'id': json['id'],
       'conversationId': json['conversation_id'],
       'senderId': json['sender_id'],
-      'senderType': json['sender_type'],  // Garder la string, Message.fromJson se chargera de la conversion
+      'senderType': json[
+          'sender_type'], // Garder la string, Message.fromJson se chargera de la conversion
       'content': json['content'],
-      'messageType': json['message_type'],  // Garder la string, Message.fromJson se chargera de la conversion
+      'messageType': json[
+          'message_type'], // Garder la string, Message.fromJson se chargera de la conversion
       'attachments': json['attachments'] ?? [],
       'metadata': json['metadata'] ?? {},
       'isRead': json['is_read'] ?? false,
-      'readAt': json['read_at'] != null 
-          ? (json['read_at'] is DateTime 
+      'readAt': json['read_at'] != null
+          ? (json['read_at'] is DateTime
               ? (json['read_at'] as DateTime).toIso8601String()
               : json['read_at'])
           : null,
-      'createdAt': json['created_at'] is DateTime 
+      'createdAt': json['created_at'] is DateTime
           ? (json['created_at'] as DateTime).toIso8601String()
           : json['created_at'],
-      'updatedAt': json['updated_at'] is DateTime 
+      'updatedAt': json['updated_at'] is DateTime
           ? (json['updated_at'] as DateTime).toIso8601String()
           : json['updated_at'],
       'offerPrice': json['offer_price']?.toDouble(),
@@ -57,19 +62,19 @@ class RealtimeService {
   }
 
   /// S'abonner aux changements de messages en temps réel pour une conversation spécifique
-  Future<void> subscribeToMessagesForConversation(String? conversationId) async {
+  Future<void> subscribeToMessagesForConversation(
+      String? conversationId) async {
     try {
       // Se désabonner du channel existant si nécessaire
       if (_messagesChannel != null) {
         await _messagesChannel!.unsubscribe();
         _messagesChannel = null;
       }
-      
+
       if (conversationId == null) {
         return;
       }
-      
-      
+
       _messagesChannel = _supabase
           .channel('messages_channel_$conversationId')
           .onPostgresChanges(
@@ -85,14 +90,13 @@ class RealtimeService {
               // Mapper et envoyer le message au stream spécifique
               try {
                 final message = _mapSupabaseToMessage(payload.newRecord);
-                
+
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
                   _messageStreamControllers[conversationId]!.add(message);
-                } else {
-                }
+                } else {}
               } catch (e) {
-      // Ignorer l'erreur silencieusement
+                // Ignorer l'erreur silencieusement
               }
             },
           )
@@ -108,19 +112,19 @@ class RealtimeService {
               // Pour les updates, envoyer aussi au stream spécifique
               try {
                 final message = _mapSupabaseToMessage(payload.newRecord);
-                
+
                 // Envoyer au stream de cette conversation spécifique
                 if (_messageStreamControllers.containsKey(conversationId)) {
                   _messageStreamControllers[conversationId]!.add(message);
                 }
               } catch (e) {
-      // Ignorer l'erreur silencieusement
+                // Ignorer l'erreur silencieusement
               }
             },
           );
 
       _messagesChannel!.subscribe();
-      
+
       // Test de diagnostic Realtime
     } catch (e) {
       // Ignorer l'erreur silencieusement
@@ -135,12 +139,11 @@ class RealtimeService {
         await _conversationsChannel!.unsubscribe();
         _conversationsChannel = null;
       }
-      
+
       if (userId == null) {
         return;
       }
-      
-      
+
       _conversationsChannel = _supabase
           .channel('conversations_channel_$userId')
           .onPostgresChanges(
@@ -177,7 +180,7 @@ class RealtimeService {
           );
 
       _conversationsChannel!.subscribe();
-      
+
       // Test de diagnostic Realtime
     } catch (e) {
       // Ignorer l'erreur silencieusement
@@ -188,13 +191,13 @@ class RealtimeService {
   Future<void> startRealtimeSubscriptions() async {
     // Les abonnements seront configurés dynamiquement selon le contexte
   }
-  
+
   /// S'abonner aux messages d'une conversation spécifique
   Future<void> subscribeToMessages(String conversationId) async {
     await subscribeToMessagesForConversation(conversationId);
   }
-  
-  /// S'abonner aux conversations d'un utilisateur spécifique  
+
+  /// S'abonner aux conversations d'un utilisateur spécifique
   Future<void> subscribeToConversations(String userId) async {
     await subscribeToConversationsForUser(userId);
   }
@@ -206,12 +209,11 @@ class RealtimeService {
 
   /// Arrêter tous les abonnements
   Future<void> stopRealtimeSubscriptions() async {
-    
     if (_messagesChannel != null) {
       await _messagesChannel!.unsubscribe();
       _messagesChannel = null;
     }
-    
+
     if (_conversationsChannel != null) {
       await _conversationsChannel!.unsubscribe();
       _conversationsChannel = null;
@@ -225,11 +227,11 @@ class RealtimeService {
       controller.close();
     }
     _messageStreamControllers.clear();
-    
+
     _conversationStreamController.close();
     stopRealtimeSubscriptions();
   }
-  
+
   /// Nettoyer le stream d'une conversation spécifique
   void disposeConversationStream(String conversationId) {
     if (_messageStreamControllers.containsKey(conversationId)) {

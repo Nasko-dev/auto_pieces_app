@@ -64,7 +64,8 @@ void main() {
 
           // Chercher les indicateurs de contenu
           final hasList = find.byType(ListView).evaluate().isNotEmpty;
-          final hasEmptyState = find.text('Aucune conversation').evaluate().isNotEmpty;
+          final hasEmptyState =
+              find.text('Aucune conversation').evaluate().isNotEmpty;
 
           expect(
             hasList || hasEmptyState,
@@ -257,7 +258,8 @@ void main() {
                 expect(
                   find.byType(ConversationsListPage),
                   findsOneWidget,
-                  reason: 'Devrait revenir sur la liste après navigation retour',
+                  reason:
+                      'Devrait revenir sur la liste après navigation retour',
                 );
               }
             }
@@ -298,7 +300,8 @@ void main() {
           final emptyIcon = find.byIcon(Icons.chat_bubble_outline);
           final emptyText = find.text('Aucune conversation');
 
-          if (emptyIcon.evaluate().isNotEmpty || emptyText.evaluate().isNotEmpty) {
+          if (emptyIcon.evaluate().isNotEmpty ||
+              emptyText.evaluate().isNotEmpty) {
             // Vérifier que le message d'état vide est bien affiché
             expect(
               emptyText,

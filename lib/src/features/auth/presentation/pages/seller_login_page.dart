@@ -39,9 +39,9 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final s = size.width / 390.0;
-    
+
     final authState = ref.watch(sellerAuthControllerProvider);
-    
+
     // Navigation et gestion des états
     ref.listen<SellerAuthState>(sellerAuthControllerProvider, (previous, next) {
       next.when(
@@ -66,26 +66,26 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
     });
 
     TextStyle h1(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w800,
-      height: 1.0,
-      color: _textPrimary,
-      letterSpacing: -0.5 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w800,
+          height: 1.0,
+          color: _textPrimary,
+          letterSpacing: -0.5 * s,
+        );
 
     TextStyle h2(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w700,
-      color: _textPrimary,
-      letterSpacing: -0.2 * s,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w700,
+          color: _textPrimary,
+          letterSpacing: -0.2 * s,
+        );
 
     TextStyle body(double f) => GoogleFonts.inter(
-      fontSize: f * s,
-      fontWeight: FontWeight.w500,
-      height: 1.35,
-      color: _textSecondary,
-    );
+          fontSize: f * s,
+          fontWeight: FontWeight.w500,
+          height: 1.35,
+          color: _textSecondary,
+        );
 
     return Scaffold(
       backgroundColor: _bg,
@@ -228,7 +228,8 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16 * s),
                       ),
-                      disabledBackgroundColor: _primaryBlue.withValues(alpha: 0.6),
+                      disabledBackgroundColor:
+                          _primaryBlue.withValues(alpha: 0.6),
                     ),
                     child: authState.isLoading
                         ? SizedBox(
@@ -355,7 +356,7 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final authController = ref.read(sellerAuthControllerProvider.notifier);
-    
+
     await authController.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,

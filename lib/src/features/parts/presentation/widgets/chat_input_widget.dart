@@ -149,12 +149,14 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: !widget.isLoading ? () {
-                            final text = widget.controller.text.trim();
-                            if (text.isNotEmpty) {
-                              widget.onSend(text);
-                            }
-                          } : null,
+                          onTap: !widget.isLoading
+                              ? () {
+                                  final text = widget.controller.text.trim();
+                                  if (text.isNotEmpty) {
+                                    widget.onSend(text);
+                                  }
+                                }
+                              : null,
                           child: Center(
                             child: widget.isLoading
                                 ? const SizedBox(
@@ -162,7 +164,8 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
                                     ),
                                   )
                                 : const Icon(
@@ -194,10 +197,9 @@ class _ChatInputWidgetState extends State<ChatInputWidget> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color:
-            isPrimary
-                ? const Color(0xFF34C759) // Vert pour l'offre
-                : Colors.grey.shade100,
+        color: isPrimary
+            ? const Color(0xFF34C759) // Vert pour l'offre
+            : Colors.grey.shade100,
         shape: BoxShape.circle,
         border: Border.all(
           color: isPrimary ? const Color(0xFF34C759) : Colors.grey.shade300,

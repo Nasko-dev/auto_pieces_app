@@ -20,7 +20,8 @@ class NotificationNavigationService {
   ) async {
     try {
       final type = notificationData['type'];
-      final conversationId = notificationData['conversation_group_id'] ?? notificationData['conversation_id'];
+      final conversationId = notificationData['conversation_group_id'] ??
+          notificationData['conversation_id'];
 
       if (context == null || !context.mounted) {
         return;
@@ -151,8 +152,8 @@ class NotificationNavigationService {
     try {
       final type = notificationData['type'];
       final conversationId = notificationData['conversation_group_id'] ??
-                           notificationData['conversation_id'] ??
-                           notificationData['conversationId'];
+          notificationData['conversation_id'] ??
+          notificationData['conversationId'];
 
       // Déterminer le type d'utilisateur actuel
       final userType = await _getCurrentUserType();

@@ -73,7 +73,8 @@ class IOSAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
-    final shouldShowBackButton = automaticallyImplyLeading && canPop && leading == null;
+    final shouldShowBackButton =
+        automaticallyImplyLeading && canPop && leading == null;
 
     return Container(
       decoration: BoxDecoration(
@@ -94,19 +95,18 @@ class IOSAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: padding ?? const EdgeInsets.symmetric(horizontal: 8),
           child: NavigationToolbar(
             // Bouton retour iOS avec chevron
-            leading: shouldShowBackButton
-                ? _buildBackButton(context)
-                : leading,
+            leading: shouldShowBackButton ? _buildBackButton(context) : leading,
 
             // Titre centré
             middle: Text(
               title,
-              style: titleStyle ?? const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.black,
-                letterSpacing: -0.41,
-              ),
+              style: titleStyle ??
+                  const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.black,
+                    letterSpacing: -0.41,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
