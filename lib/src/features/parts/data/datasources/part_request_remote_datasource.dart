@@ -896,20 +896,22 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       // ✅ OPTIMISATION: Compter rapidement sans charger les données
       // Count des demandes (où je suis demandeur)
-      final demandesCount = await _supabase
+      final demandesResponse = await _supabase
           .from('conversations')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .inFilter('user_id', allUserIds);
+          .select('id')
+          .inFilter('user_id', allUserIds)
+          .count(CountOption.exact);
 
       // Count des annonces (où je suis répondeur)
-      final annoncesCount = await _supabase
+      final annoncesResponse = await _supabase
           .from('conversations')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .inFilter('seller_id', allUserIds);
+          .select('id')
+          .inFilter('seller_id', allUserIds)
+          .count(CountOption.exact);
 
-      final counts = {
-        'demandes': demandesCount.count ?? 0,
-        'annonces': annoncesCount.count ?? 0,
+      final counts = <String, int>{
+        'demandes': demandesResponse.count,
+        'annonces': annoncesResponse.count,
       };
 
       debugPrint('📊 [Counts] Demandes: ${counts['demandes']}, Annonces: ${counts['annonces']}');
