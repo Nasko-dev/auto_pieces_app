@@ -961,9 +961,30 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             );
           }).toList();
 
-          // Récupérer les infos du répondeur (seller_id peut pointer vers sellers OU particuliers)
-          final sellerId = convData['seller_id'];
-          String sellerName = 'Répondeur inconnu';
+          // CORRECTION: Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
+          final conversationUserId = convData['user_id'];
+          final conversationSellerId = convData['seller_id'];
+
+          debugPrint('🔍 [Liste Conv] Détermination autre personne:');
+          debugPrint('   📋 allUserIds (moi): $allUserIds');
+          debugPrint('   👤 conversationUserId (demandeur): $conversationUserId');
+          debugPrint('   🏪 conversationSellerId (répondeur): $conversationSellerId');
+
+          // Déterminer qui est l'autre personne
+          String otherPersonId;
+          if (allUserIds.contains(conversationUserId)) {
+            // L'utilisateur actuel est le demandeur → afficher le répondeur
+            otherPersonId = conversationSellerId;
+            debugPrint(
+                '   💡 [Liste Conv] Je suis DEMANDEUR → afficher répondeur: $otherPersonId');
+          } else {
+            // L'utilisateur actuel est le répondeur → afficher le demandeur
+            otherPersonId = conversationUserId;
+            debugPrint(
+                '   💡 [Liste Conv] Je suis RÉPONDEUR → afficher demandeur: $otherPersonId');
+          }
+
+          String sellerName = 'Autre personne';
           String? sellerCompanyName;
           String? sellerAvatarUrl;
 
@@ -972,7 +993,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             final sellerData = await _supabase
                 .from('sellers')
                 .select('first_name, last_name, company_name, avatar_url')
-                .eq('id', sellerId)
+                .eq('id', otherPersonId)
                 .maybeSingle();
 
             if (sellerData != null) {
@@ -983,12 +1004,14 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               if (sellerName.isEmpty) sellerName = 'Vendeur';
               sellerCompanyName = sellerData['company_name'];
               sellerAvatarUrl = sellerData['avatar_url'];
+              debugPrint(
+                  '   ✅ [Liste Conv] Vendeur trouvé: $sellerName (company: $sellerCompanyName)');
             } else {
               // Sinon c'est un particulier
               final particulierData = await _supabase
                   .from('particuliers')
                   .select('first_name, last_name, avatar_url')
-                  .eq('id', sellerId)
+                  .eq('id', otherPersonId)
                   .maybeSingle();
 
               if (particulierData != null) {
@@ -999,8 +1022,11 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
                   sellerName = 'Particulier';
                 }
                 sellerAvatarUrl = particulierData['avatar_url'];
+                debugPrint(
+                    '   ✅ [Liste Conv] Particulier trouvé: $sellerName');
               } else {
                 sellerName = 'Particulier';
+                debugPrint('   ❌ [Liste Conv] Personne non trouvée pour ID: $otherPersonId');
               }
             }
           } catch (e) {
