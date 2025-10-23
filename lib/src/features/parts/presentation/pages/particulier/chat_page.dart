@@ -43,7 +43,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
-  int _previousMessageCount = 0;
 
   // Cache local pour les données vendeur
   Map<String, dynamic>? _sellerInfo;
@@ -309,27 +308,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
 
-    // ✅ FIX: Auto-scroll intelligent - seulement si déjà près du bas
-    if (messages.length > _previousMessageCount) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients) {
-          final position = _scrollController.position;
-          final maxScroll = position.maxScrollExtent;
-          final currentScroll = position.pixels;
-
-          // ✅ Scroll seulement si on est dans les 100px du bas (utilisateur suit la conversation)
-          // Sinon, l'utilisateur est en train de lire des anciens messages - ne pas déranger
-          const scrollThreshold = 100.0;
-          final isNearBottom = (maxScroll - currentScroll) < scrollThreshold;
-
-          if (isNearBottom) {
-            _scrollController.jumpTo(maxScroll);
-          }
-        }
-      });
-      _previousMessageCount = messages.length;
-    }
-
     // Trouver la conversation pour le titre - gestion sécurisée
     final conversationsState =
         ref.watch(particulierConversationsControllerProvider);
@@ -498,21 +476,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
       );
     } else {
+      // ✅ FIX: Inverser l'ordre pour utiliser reverse: true
+      final reversedMessages = messages.reversed.toList();
+
       content = ListView.builder(
         controller: _scrollController,
+        reverse: true, // ✅ Les messages s'affichent naturellement en bas
         padding: const EdgeInsets.all(16),
-        itemCount: messages.length,
+        itemCount: reversedMessages.length,
         itemBuilder: (context, index) {
-          final message = messages[index];
-          final isLastMessage = index == messages.length - 1;
-          final showDateSeparator = _shouldShowDateSeparator(messages, index);
+          final message = reversedMessages[index];
+          // Le dernier message est maintenant le premier dans la liste inversée
+          final isLastMessage = index == 0;
+          final showDateSeparator = _shouldShowDateSeparator(reversedMessages, index);
 
           return Column(
             children: [
-              if (showDateSeparator) ...[
-                _buildDateSeparator(message.createdAt),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: 12), // Espacé en haut au lieu du bas
               MessageBubbleWidget(
                 message: message,
                 currentUserType: MessageSenderType.user, // Côté particulier
@@ -522,7 +502,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 otherUserAvatarUrl: _sellerInfo?['avatar_url'],
                 otherUserCompany: _sellerInfo?['company_name'],
               ),
-              const SizedBox(height: 12), // Plus d'espace entre messages
+              if (showDateSeparator) ...[
+                const SizedBox(height: 16),
+                _buildDateSeparator(message.createdAt),
+              ],
             ],
           );
         },
