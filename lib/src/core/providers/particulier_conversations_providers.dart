@@ -134,10 +134,10 @@ class ParticulierConversationsController
     }
 
     // ✅ CRITICAL FIX: Vérifier que ce n'est pas notre propre message
-    // Le senderId est l'auth ID, il faut comparer avec l'auth ID actuel
-    final currentAuthId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentAuthId != null && senderId == currentAuthId) {
-      debugPrint('   ❌ C\'est notre propre message (auth ID match) - ignoré');
+    // Le senderId dans la table messages est l'ID particulier (pas l'auth ID)
+    // Le userId passé en paramètre est notre ID particulier
+    if (senderId == userId) {
+      debugPrint('   ❌ C\'est notre propre message (particulier ID match) - ignoré');
       return;
     }
 
