@@ -38,7 +38,9 @@ mixin _$ParticulierConversation {
       throw _privateConstructorUsedError; // Nouvelles données vendeur pour l'AppBar Instagram
   String? get sellerCompany => throw _privateConstructorUsedError;
   String? get sellerAvatarUrl => throw _privateConstructorUsedError;
-  String? get sellerPhone => throw _privateConstructorUsedError;
+  String? get sellerPhone =>
+      throw _privateConstructorUsedError; // Dernier message pour affichage dans la liste (pas besoin de charger tous les messages)
+  String? get lastMessageContent => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversation
   /// with the given fields replaced by the non-null parameter values.
@@ -74,7 +76,8 @@ abstract class $ParticulierConversationCopyWith<$Res> {
       bool? hasNewMessages,
       String? sellerCompany,
       String? sellerAvatarUrl,
-      String? sellerPhone});
+      String? sellerPhone,
+      String? lastMessageContent});
 
   $PartRequestCopyWith<$Res> get partRequest;
 }
@@ -116,6 +119,7 @@ class _$ParticulierConversationCopyWithImpl<$Res,
     Object? sellerCompany = freezed,
     Object? sellerAvatarUrl = freezed,
     Object? sellerPhone = freezed,
+    Object? lastMessageContent = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -202,6 +206,10 @@ class _$ParticulierConversationCopyWithImpl<$Res,
           ? _value.sellerPhone
           : sellerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
+      lastMessageContent: freezed == lastMessageContent
+          ? _value.lastMessageContent
+          : lastMessageContent // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -246,7 +254,8 @@ abstract class _$$ParticulierConversationImplCopyWith<$Res>
       bool? hasNewMessages,
       String? sellerCompany,
       String? sellerAvatarUrl,
-      String? sellerPhone});
+      String? sellerPhone,
+      String? lastMessageContent});
 
   @override
   $PartRequestCopyWith<$Res> get partRequest;
@@ -288,6 +297,7 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
     Object? sellerCompany = freezed,
     Object? sellerAvatarUrl = freezed,
     Object? sellerPhone = freezed,
+    Object? lastMessageContent = freezed,
   }) {
     return _then(_$ParticulierConversationImpl(
       id: null == id
@@ -374,6 +384,10 @@ class __$$ParticulierConversationImplCopyWithImpl<$Res>
           ? _value.sellerPhone
           : sellerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
+      lastMessageContent: freezed == lastMessageContent
+          ? _value.lastMessageContent
+          : lastMessageContent // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -402,7 +416,8 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
       this.hasNewMessages,
       this.sellerCompany,
       this.sellerAvatarUrl,
-      this.sellerPhone})
+      this.sellerPhone,
+      this.lastMessageContent})
       : _messages = messages,
         _partNames = partNames;
 
@@ -467,10 +482,13 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
   final String? sellerAvatarUrl;
   @override
   final String? sellerPhone;
+// Dernier message pour affichage dans la liste (pas besoin de charger tous les messages)
+  @override
+  final String? lastMessageContent;
 
   @override
   String toString() {
-    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, isRequester: $isRequester, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone)';
+    return 'ParticulierConversation(id: $id, partRequest: $partRequest, sellerName: $sellerName, sellerId: $sellerId, messages: $messages, lastMessageAt: $lastMessageAt, status: $status, hasUnreadMessages: $hasUnreadMessages, unreadCount: $unreadCount, isRequester: $isRequester, latestOfferPrice: $latestOfferPrice, latestOfferDeliveryDays: $latestOfferDeliveryDays, createdAt: $createdAt, updatedAt: $updatedAt, vehiclePlate: $vehiclePlate, partType: $partType, partNames: $partNames, hasNewMessages: $hasNewMessages, sellerCompany: $sellerCompany, sellerAvatarUrl: $sellerAvatarUrl, sellerPhone: $sellerPhone, lastMessageContent: $lastMessageContent)';
   }
 
   @override
@@ -517,7 +535,9 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
             (identical(other.sellerAvatarUrl, sellerAvatarUrl) ||
                 other.sellerAvatarUrl == sellerAvatarUrl) &&
             (identical(other.sellerPhone, sellerPhone) ||
-                other.sellerPhone == sellerPhone));
+                other.sellerPhone == sellerPhone) &&
+            (identical(other.lastMessageContent, lastMessageContent) ||
+                other.lastMessageContent == lastMessageContent));
   }
 
   @override
@@ -543,7 +563,8 @@ class _$ParticulierConversationImpl implements _ParticulierConversation {
         hasNewMessages,
         sellerCompany,
         sellerAvatarUrl,
-        sellerPhone
+        sellerPhone,
+        lastMessageContent
       ]);
 
   /// Create a copy of ParticulierConversation
@@ -578,7 +599,8 @@ abstract class _ParticulierConversation implements ParticulierConversation {
       final bool? hasNewMessages,
       final String? sellerCompany,
       final String? sellerAvatarUrl,
-      final String? sellerPhone}) = _$ParticulierConversationImpl;
+      final String? sellerPhone,
+      final String? lastMessageContent}) = _$ParticulierConversationImpl;
 
   @override
   String get id;
@@ -621,7 +643,10 @@ abstract class _ParticulierConversation implements ParticulierConversation {
   @override
   String? get sellerAvatarUrl;
   @override
-  String? get sellerPhone;
+  String?
+      get sellerPhone; // Dernier message pour affichage dans la liste (pas besoin de charger tous les messages)
+  @override
+  String? get lastMessageContent;
 
   /// Create a copy of ParticulierConversation
   /// with the given fields replaced by the non-null parameter values.

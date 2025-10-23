@@ -24,6 +24,7 @@ class GlobalMessageNotificationService {
       _currentParticulierId; // ID particulier si l'utilisateur est particulier
   final Set<String> _myConversationIds =
       {}; // IDs des conversations de l'utilisateur
+  RealtimeChannel? _messageChannel; // ✅ FIX: Garder référence pour éviter les duplicatas
 
   /// Initialiser le service avec le contexte de l'app
   Future<void> initialize(BuildContext context) async {
@@ -44,7 +45,7 @@ class GlobalMessageNotificationService {
     // Charger les IDs de conversations
     await _loadMyConversations();
 
-    _subscribeToAllMessages();
+    await _subscribeToAllMessages();
   }
 
   /// Récupérer les IDs réels de l'utilisateur (vendeur et/ou particulier)
@@ -186,11 +187,18 @@ class GlobalMessageNotificationService {
   }
 
   /// S'abonner à TOUS les messages de l'utilisateur connecté
-  void _subscribeToAllMessages() {
+  Future<void> _subscribeToAllMessages() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) {
       debugPrint('❌ [GlobalNotification] Pas d\'utilisateur connecté');
       return;
+    }
+
+    // ✅ FIX: Nettoyer l'ancien channel s'il existe pour éviter les duplicatas
+    if (_messageChannel != null) {
+      debugPrint('🧹 [GlobalNotification] Nettoyage de l\'ancien channel...');
+      await _supabase.removeChannel(_messageChannel!);
+      _messageChannel = null;
     }
 
     debugPrint(
@@ -199,7 +207,7 @@ class GlobalMessageNotificationService {
     debugPrint('   Particulier ID: $_currentParticulierId');
 
     // Créer un channel global qui écoute TOUS les messages
-    final channel = _supabase
+    _messageChannel = _supabase
         .channel('global_notifications_$userId')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
@@ -212,7 +220,7 @@ class GlobalMessageNotificationService {
           },
         );
 
-    channel.subscribe((status, error) {
+    _messageChannel!.subscribe((status, error) {
       if (error != null) {
         debugPrint('❌ [GlobalNotification] Erreur subscription: $error');
       } else {
@@ -345,10 +353,19 @@ class GlobalMessageNotificationService {
   }
 
   /// Nettoyer les ressources
-  void dispose() {
+  Future<void> dispose() async {
     debugPrint('🧹 [GlobalNotification] Nettoyage du service');
+
+    // ✅ FIX: Nettoyer le channel realtime
+    if (_messageChannel != null) {
+      debugPrint('🧹 [GlobalNotification] Suppression du channel realtime...');
+      await _supabase.removeChannel(_messageChannel!);
+      _messageChannel = null;
+    }
+
     _isInitialized = false;
     _context = null;
     _activeConversationId = null;
+    _myConversationIds.clear();
   }
 }

@@ -19,7 +19,7 @@
       "Bash(dart run build_runner:*)",
       "Bash(git checkout:*)",
       "Bash(dart analyze)",
-      "Bash(supabase db push:*)"
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": [],

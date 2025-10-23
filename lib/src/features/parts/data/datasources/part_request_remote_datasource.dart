@@ -8,7 +8,6 @@ import '../models/seller_rejection_model.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
-import '../../domain/entities/particulier_message.dart';
 import '../../domain/entities/conversation_enums.dart';
 
 abstract class PartRequestRemoteDataSource {
@@ -67,7 +66,10 @@ abstract class PartRequestRemoteDataSource {
   Future<List<SellerRejection>> getSellerRejections(String sellerId);
 
   // Particulier Conversations
-  Future<List<ParticulierConversation>> getParticulierConversations();
+  Future<Map<String, int>> getConversationsCounts(); // {'demandes': X, 'annonces': Y}
+  Future<List<ParticulierConversation>> getParticulierConversations({
+    String? filterType, // 'demandes', 'annonces', ou null pour tout
+  });
   Future<ParticulierConversation> getParticulierConversationById(
       String conversationId);
   Future<void> sendParticulierMessage({
@@ -76,6 +78,7 @@ abstract class PartRequestRemoteDataSource {
   });
   Future<void> markParticulierConversationAsRead(String conversationId);
   Future<void> incrementUnreadCountForUser({required String conversationId});
+  Future<void> incrementUnreadCountForSeller({required String conversationId});
   Future<void> markParticulierMessagesAsRead({required String conversationId});
 }
 
@@ -739,6 +742,31 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      // CORRECTION: Récupérer le vrai ID du particulier via device_id
+      List<String> allParticulierIds = [];
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        // Récupérer tous les IDs particulier associés à ce device
+        final particuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allParticulierIds =
+            particuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        debugPrint(
+            '🔍 [Notifications] IDs particuliers du device: $allParticulierIds');
+      } catch (e) {
+        debugPrint(
+            '⚠️ [Notifications] Erreur récupération device_id, fallback auth ID: $e');
+        // Fallback vers auth ID si erreur
+        allParticulierIds = [currentUser.id];
+      }
+
       // Utiliser part_requests_with_responses pour avoir toutes les données du véhicule
       final result = await _supabase
           .from('part_requests_with_responses')
@@ -746,23 +774,28 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .eq('status', 'active')
           .order('created_at', ascending: false);
 
-      // Récupérer les refus de ce vendeur pour filtrer
+      // Récupérer les refus de ce particulier (tous ses IDs) pour filtrer
       final rejections = await _supabase
           .from('seller_rejections')
           .select('part_request_id')
-          .eq('seller_id', currentUser.id);
+          .inFilter('seller_id', allParticulierIds);
 
       final rejectedIds =
           rejections.map((r) => r['part_request_id'] as String).toSet();
 
-      // Récupérer les conversations de ce vendeur pour filtrer les demandes déjà contactées
+      debugPrint('🚫 [Notifications] Demandes refusées: ${rejectedIds.length}');
+
+      // Récupérer les conversations de ce particulier pour filtrer les demandes déjà contactées
       final conversations = await _supabase
           .from('conversations')
           .select('request_id')
-          .eq('seller_id', currentUser.id);
+          .inFilter('seller_id', allParticulierIds);
 
       final contactedIds =
           conversations.map((c) => c['request_id'] as String).toSet();
+
+      debugPrint(
+          '✅ [Notifications] Demandes déjà répondues: ${contactedIds.length}');
 
       // Filtrer les demandes pour exclure celles refusées, contactées ET ses propres demandes
       final filteredResult = result.where((json) {
@@ -772,15 +805,29 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         // Exclure si refusée, déjà contactée, ou si c'est sa propre demande
         return !rejectedIds.contains(requestId) &&
             !contactedIds.contains(requestId) &&
-            requestUserId != currentUser.id;
+            !allParticulierIds.contains(requestUserId);
       }).toList();
 
-      final models = filteredResult.map((json) {
-        return PartRequestModel.fromJson(json);
-      }).toList();
+      debugPrint(
+          '📊 [Notifications] Demandes filtrées affichées: ${filteredResult.length}');
+
+      // Convertir en modèles avec gestion d'erreur détaillée
+      final List<PartRequestModel> models = [];
+      for (int i = 0; i < filteredResult.length; i++) {
+        try {
+          final model = PartRequestModel.fromJson(filteredResult[i]);
+          models.add(model);
+        } catch (e) {
+          debugPrint('❌ [Notifications] Erreur conversion demande $i: $e');
+          debugPrint('   Données JSON: ${filteredResult[i]}');
+        }
+      }
+
+      debugPrint('✅ [Notifications] ${models.length} demandes converties avec succès');
 
       return models;
     } catch (e) {
+      debugPrint('❌ [Notifications] Erreur globale: $e');
       throw ServerException(e.toString());
     }
   }
@@ -814,7 +861,71 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
   // Particulier Conversations
   @override
-  Future<List<ParticulierConversation>> getParticulierConversations() async {
+  Future<Map<String, int>> getConversationsCounts() async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // Récupérer les IDs du particulier
+      List<String> allUserIds = [];
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // ✅ OPTIMISATION: Compter rapidement sans charger les données
+      // Count des demandes (où je suis demandeur)
+      final demandesResponse = await _supabase
+          .from('conversations')
+          .select('id')
+          .inFilter('user_id', allUserIds)
+          .count(CountOption.exact);
+
+      // Count des annonces (où je suis répondeur)
+      final annoncesResponse = await _supabase
+          .from('conversations')
+          .select('id')
+          .inFilter('seller_id', allUserIds)
+          .count(CountOption.exact);
+
+      final counts = <String, int>{
+        'demandes': demandesResponse.count,
+        'annonces': annoncesResponse.count,
+      };
+
+      debugPrint('📊 [Counts] Demandes: ${counts['demandes']}, Annonces: ${counts['annonces']}');
+
+      return counts;
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<ParticulierConversation>> getParticulierConversations({
+    String? filterType,
+  }) async {
     try {
       final currentUser = _supabase.auth.currentUser;
       if (currentUser == null) {
@@ -851,13 +962,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         allUserIds = [currentUser.id];
       }
 
-      // Récupérer les conversations où le particulier est SOIT demandeur (user_id) SOIT répondeur (seller_id)
-      // Note: On ne fait plus le join avec sellers car seller_id peut pointer vers particuliers
-      debugPrint('📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds');
+      debugPrint(
+          '📊 [GetParticulierConversations] Récupération conversations pour user IDs: $allUserIds (filterType: $filterType)');
 
-      final conversationsAsRequester = await _supabase
-          .from('conversations')
-          .select('''
+      // ✅ OPTIMISATION: Charger seulement le type demandé
+      List<dynamic> conversationsAsRequester = [];
+      List<dynamic> conversationsAsResponder = [];
+
+      // Si filterType est 'demandes' ou null, charger les conversations comme demandeur
+      if (filterType == null || filterType == 'demandes') {
+        conversationsAsRequester = await _supabase
+            .from('conversations')
+            .select('''
             *,
             part_requests!inner(
               id,
@@ -871,14 +987,18 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               updated_at
             )
           ''')
-          .inFilter('user_id', allUserIds)
-          .order('last_message_at', ascending: false);
+            .inFilter('user_id', allUserIds)
+            .order('last_message_at', ascending: false);
 
-      debugPrint('✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
+        debugPrint(
+            '✅ [GetParticulierConversations] Conversations comme demandeur: ${conversationsAsRequester.length}');
+      }
 
-      final conversationsAsResponder = await _supabase
-          .from('conversations')
-          .select('''
+      // Si filterType est 'annonces' ou null, charger les conversations comme répondeur
+      if (filterType == null || filterType == 'annonces') {
+        conversationsAsResponder = await _supabase
+            .from('conversations')
+            .select('''
             *,
             part_requests!inner(
               id,
@@ -892,10 +1012,12 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               updated_at
             )
           ''')
-          .inFilter('seller_id', allUserIds)
-          .order('last_message_at', ascending: false);
+            .inFilter('seller_id', allUserIds)
+            .order('last_message_at', ascending: false);
 
-      debugPrint('✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+        debugPrint(
+            '✅ [GetParticulierConversations] Conversations comme répondeur: ${conversationsAsResponder.length}');
+      }
 
       // Fusionner et dédupliquer les conversations
       final allConversationsMap = <String, dynamic>{};
@@ -908,7 +1030,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         }
       }
 
-      debugPrint('📦 [GetParticulierConversations] Total conversations après fusion: ${allConversationsMap.length}');
+      debugPrint(
+          '📦 [GetParticulierConversations] Total conversations après fusion: ${allConversationsMap.length}');
 
       final conversations = allConversationsMap.values.toList()
         ..sort((a, b) {
@@ -922,79 +1045,120 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         });
 
       // Debug: afficher les IDs des conversations
-      debugPrint('🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
+      debugPrint(
+          '🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
+
+      // ✅ OPTIMISATION CRITIQUE: Précharger TOUS les vendeurs et particuliers en 2 requêtes
+      // Au lieu de N+2 requêtes (1 sellers + 1 particuliers par conversation)
+      final Set<String> allOtherPersonIds = {};
+
+      for (final convData in conversations) {
+        final conversationUserId = convData['user_id'];
+        final conversationSellerId = convData['seller_id'];
+
+        // Déterminer qui est l'autre personne
+        if (allUserIds.contains(conversationUserId)) {
+          allOtherPersonIds.add(conversationSellerId);
+        } else {
+          allOtherPersonIds.add(conversationUserId);
+        }
+      }
+
+      debugPrint('🚀 [OPTIMISATION] Préchargement ${allOtherPersonIds.length} personnes en 2 requêtes au lieu de ${allOtherPersonIds.length * 2}');
+
+      // Précharger TOUS les vendeurs en UNE requête
+      final Map<String, Map<String, dynamic>> sellersMap = {};
+      if (allOtherPersonIds.isNotEmpty) {
+        final allSellers = await _supabase
+            .from('sellers')
+            .select('id, first_name, last_name, company_name, avatar_url')
+            .inFilter('id', allOtherPersonIds.toList());
+
+        for (final seller in allSellers) {
+          sellersMap[seller['id']] = seller;
+        }
+        debugPrint('✅ [OPTIMISATION] ${sellersMap.length} vendeurs préchargés');
+      }
+
+      // Précharger TOUS les particuliers en UNE requête
+      final Map<String, Map<String, dynamic>> particuliersMap = {};
+      if (allOtherPersonIds.isNotEmpty) {
+        final allParticuliers = await _supabase
+            .from('particuliers')
+            .select('id, first_name, last_name, avatar_url')
+            .inFilter('id', allOtherPersonIds.toList());
+
+        for (final particulier in allParticuliers) {
+          particuliersMap[particulier['id']] = particulier;
+        }
+        debugPrint('✅ [OPTIMISATION] ${particuliersMap.length} particuliers préchargés');
+      }
 
       List<ParticulierConversation> result = [];
 
       for (final convData in conversations) {
         try {
-          // Récupérer les messages de cette conversation
-          final messagesData = await _supabase
-              .from('messages')
-              .select('*')
-              .eq('conversation_id', convData['id'])
-              .order('created_at', ascending: true);
+          // ✅ OPTIMISATION: Ne plus charger tous les messages ici
+          // Les messages seront chargés seulement à l'ouverture de la conversation
+          // On utilise last_message_content de la table conversations pour l'aperçu
 
-          // Convertir les messages
-          final messages = messagesData.map<ParticulierMessage>((msgData) {
-            return ParticulierMessage(
-              id: msgData['id'],
-              conversationId: msgData['conversation_id'],
-              senderId: msgData['sender_id'],
-              senderName: msgData['sender_name'] ?? 'Utilisateur',
-              content: msgData['content'],
-              type: MessageType.values.firstWhere(
-                (type) => type.name == (msgData['message_type'] ?? 'text'),
-                orElse: () => MessageType.text,
-              ),
-              isFromParticulier: msgData['sender_type'] == 'user',
-              isRead: msgData['is_read'] ?? false,
-              createdAt: DateTime.parse(msgData['created_at']),
-              offerPrice: msgData['offer_price']?.toDouble(),
-              offerDeliveryDays: msgData['offer_delivery_days'],
-              offerAvailability: msgData['offer_availability'],
-            );
-          }).toList();
+          // CORRECTION: Déterminer qui est l'AUTRE personne (pas l'utilisateur actuel)
+          final conversationUserId = convData['user_id'];
+          final conversationSellerId = convData['seller_id'];
 
-          // Récupérer les infos du répondeur (seller_id peut pointer vers sellers OU particuliers)
-          final sellerId = convData['seller_id'];
-          String sellerName = 'Répondeur inconnu';
+          debugPrint('🔍 [Liste Conv] Détermination autre personne:');
+          debugPrint('   📋 allUserIds (moi): $allUserIds');
+          debugPrint('   👤 conversationUserId (demandeur): $conversationUserId');
+          debugPrint('   🏪 conversationSellerId (répondeur): $conversationSellerId');
+
+          // Déterminer qui est l'autre personne
+          String otherPersonId;
+          if (allUserIds.contains(conversationUserId)) {
+            // L'utilisateur actuel est le demandeur → afficher le répondeur
+            otherPersonId = conversationSellerId;
+            debugPrint(
+                '   💡 [Liste Conv] Je suis DEMANDEUR → afficher répondeur: $otherPersonId');
+          } else {
+            // L'utilisateur actuel est le répondeur → afficher le demandeur
+            otherPersonId = conversationUserId;
+            debugPrint(
+                '   💡 [Liste Conv] Je suis RÉPONDEUR → afficher demandeur: $otherPersonId');
+          }
+
+          String sellerName = 'Autre personne';
           String? sellerCompanyName;
           String? sellerAvatarUrl;
 
-          try {
-            // Essayer d'abord dans la table sellers
-            final sellerData = await _supabase
-                .from('sellers')
-                .select('first_name, last_name, company_name, avatar_url')
-                .eq('id', sellerId)
-                .maybeSingle();
+          // ✅ OPTIMISATION: Lookup O(1) au lieu de requête DB
+          final sellerData = sellersMap[otherPersonId];
+          if (sellerData != null) {
+            // C'est un vendeur
+            sellerName =
+                '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                    .trim();
+            if (sellerName.isEmpty) sellerName = 'Vendeur';
+            sellerCompanyName = sellerData['company_name'];
+            sellerAvatarUrl = sellerData['avatar_url'];
+            debugPrint(
+                '   ✅ [Liste Conv] Vendeur trouvé (cache): $sellerName (company: $sellerCompanyName)');
+          } else {
+            // Sinon c'est un particulier
+            final particulierData = particuliersMap[otherPersonId];
 
-            if (sellerData != null) {
-              // C'est un vendeur
-              sellerName =
-                  '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
-                      .trim();
-              if (sellerName.isEmpty) sellerName = 'Vendeur';
-              sellerCompanyName = sellerData['company_name'];
-              sellerAvatarUrl = sellerData['avatar_url'];
-            } else {
-              // Sinon c'est un particulier
-              final particulierData = await _supabase
-                  .from('particuliers')
-                  .select('name')
-                  .eq('id', sellerId)
-                  .maybeSingle();
-
-              if (particulierData != null) {
-                sellerName = particulierData['name'] ?? 'Particulier';
-              } else {
+            if (particulierData != null) {
+              final firstName = particulierData['first_name'];
+              final lastName = particulierData['last_name'];
+              sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+              if (sellerName.isEmpty) {
                 sellerName = 'Particulier';
               }
+              sellerAvatarUrl = particulierData['avatar_url'];
+              debugPrint(
+                  '   ✅ [Liste Conv] Particulier trouvé (cache): $sellerName');
+            } else {
+              sellerName = 'Particulier';
+              debugPrint('   ❌ [Liste Conv] Personne non trouvée pour ID: $otherPersonId');
             }
-          } catch (e) {
-            // En cas d'erreur, on met une valeur par défaut
-            sellerName = 'Répondeur';
           }
 
           // Récupérer les infos de la demande de pièce
@@ -1015,30 +1179,29 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           final userId = convData['user_id'];
           final isRequester = allUserIds.contains(userId);
 
+          // ✅ FIX: Utiliser le BON compteur selon le rôle
+          // Si on est le demandeur (user_id) → lire unread_count_for_user
+          // Si on est le répondeur (seller_id) → lire unread_count_for_seller
+          final int dbUnreadCount = isRequester
+              ? (convData['unread_count_for_user'] as int? ?? 0)
+              : (convData['unread_count_for_seller'] as int? ?? 0);
+
           // Créer la conversation
           final conversation = ParticulierConversation(
             id: convData['id'],
             partRequest: partRequest,
             sellerName: sellerName,
             sellerId: convData['seller_id'],
-            messages: messages,
-            lastMessageAt: messages.isNotEmpty
-                ? messages.last.createdAt
+            messages: [], // ✅ OPTIMISATION: Liste vide, messages chargés à l'ouverture
+            lastMessageAt: convData['last_message_at'] != null
+                ? DateTime.parse(convData['last_message_at'])
                 : DateTime.parse(convData['created_at']),
             status: ConversationStatus.values.firstWhere(
               (status) => status.name == (convData['status'] ?? 'pending'),
               orElse: () => ConversationStatus.active,
             ),
-            hasUnreadMessages: () {
-              final dbUnreadCount =
-                  convData['unread_count_for_user'] as int? ?? 0;
-              return dbUnreadCount > 0;
-            }(),
-            unreadCount: () {
-              final dbUnreadCount =
-                  convData['unread_count_for_user'] as int? ?? 0;
-              return dbUnreadCount;
-            }(),
+            hasUnreadMessages: dbUnreadCount > 0,
+            unreadCount: dbUnreadCount,
             isRequester: isRequester, // true = demandeur, false = répondeur
             vehiclePlate: partRequestData['vehicle_plate'],
             partType: partRequestData['part_type'],
@@ -1047,6 +1210,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             updatedAt: DateTime.parse(convData['updated_at']),
             sellerCompany: sellerCompanyName,
             sellerAvatarUrl: sellerAvatarUrl,
+            lastMessageContent: convData['last_message_content'], // ✅ OPTIMISATION: Aperçu du dernier message
           );
 
           result.add(conversation);
@@ -1070,26 +1234,169 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // TODO: Implémenter la récupération de la conversation depuis Supabase
-      // Pour l'instant, créer une conversation factice
+      // Récupérer l'ID persistant du particulier (même logique que getParticulierConversations)
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Charger la conversation avec les infos du part_request
+      final convData = await _supabase
+          .from('conversations')
+          .select('''
+            id,
+            user_id,
+            seller_id,
+            request_id,
+            status,
+            last_message_at,
+            last_message_content,
+            last_message_sender_type,
+            created_at,
+            updated_at,
+            unread_count_for_user,
+            unread_count_for_seller,
+            part_requests!inner(
+              id,
+              part_type,
+              part_names,
+              vehicle_brand,
+              vehicle_model,
+              vehicle_year,
+              vehicle_plate,
+              created_at,
+              updated_at
+            )
+          ''')
+          .eq('id', conversationId)
+          .single();
+
+      // Déterminer qui est l'autre personne
+      final conversationUserId = convData['user_id'];
+      final conversationSellerId = convData['seller_id'];
+
+      String otherPersonId;
+      if (allUserIds.contains(conversationUserId)) {
+        // L'utilisateur actuel est le demandeur → afficher le répondeur
+        otherPersonId = conversationSellerId;
+      } else {
+        // L'utilisateur actuel est le répondeur → afficher le demandeur
+        otherPersonId = conversationUserId;
+      }
+
+      // Charger les infos de l'autre personne
+      String sellerName = 'Autre personne';
+      String? sellerCompanyName;
+      String? sellerAvatarUrl;
+
+      try {
+        // Essayer d'abord dans sellers
+        final sellerData = await _supabase
+            .from('sellers')
+            .select('first_name, last_name, company_name, avatar_url')
+            .eq('id', otherPersonId)
+            .maybeSingle();
+
+        if (sellerData != null) {
+          // C'est un vendeur
+          sellerName =
+              '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                  .trim();
+          if (sellerName.isEmpty) sellerName = 'Vendeur';
+          sellerCompanyName = sellerData['company_name'];
+          sellerAvatarUrl = sellerData['avatar_url'];
+        } else {
+          // Sinon c'est un particulier
+          final particulierData = await _supabase
+              .from('particuliers')
+              .select('first_name, last_name, avatar_url')
+              .eq('id', otherPersonId)
+              .maybeSingle();
+
+          if (particulierData != null) {
+            final firstName = particulierData['first_name'];
+            final lastName = particulierData['last_name'];
+            sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+            if (sellerName.isEmpty) {
+              sellerName = 'Particulier';
+            }
+            sellerAvatarUrl = particulierData['avatar_url'];
+          } else {
+            sellerName = 'Particulier';
+          }
+        }
+      } catch (e) {
+        sellerName = 'Particulier';
+      }
+
+      // Construire l'objet PartRequest
+      final partRequestData = convData['part_requests'];
+      final partRequest = PartRequest(
+        id: partRequestData['id'],
+        partType: partRequestData['part_type'] ?? 'unknown',
+        partNames: List<String>.from(partRequestData['part_names'] ?? []),
+        vehicleBrand: partRequestData['vehicle_brand'],
+        vehicleModel: partRequestData['vehicle_model'],
+        vehicleYear: partRequestData['vehicle_year'],
+        vehiclePlate: partRequestData['vehicle_plate'],
+        createdAt: DateTime.parse(partRequestData['created_at']),
+        updatedAt: DateTime.parse(partRequestData['updated_at']),
+      );
+
+      // Déterminer si le particulier est le demandeur
+      final isRequester = allUserIds.contains(convData['user_id']);
+
+      // ✅ FIX: Utiliser le BON compteur selon le rôle
+      final int dbUnreadCount = isRequester
+          ? (convData['unread_count_for_user'] as int? ?? 0)
+          : (convData['unread_count_for_seller'] as int? ?? 0);
+
+      // Créer et retourner la conversation
       return ParticulierConversation(
-        id: conversationId,
-        partRequest: PartRequest(
-          id: 'dummy-part-request',
-          partType: 'engine',
-          partNames: ['dummy part'],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+        id: convData['id'],
+        partRequest: partRequest,
+        sellerName: sellerName,
+        sellerId: convData['seller_id'],
+        messages: [], // Messages chargés séparément à l'ouverture
+        lastMessageAt: convData['last_message_at'] != null
+            ? DateTime.parse(convData['last_message_at'])
+            : DateTime.parse(convData['created_at']),
+        status: ConversationStatus.values.firstWhere(
+          (status) => status.name == (convData['status'] ?? 'pending'),
+          orElse: () => ConversationStatus.active,
         ),
-        sellerName: 'Vendeur Test',
-        sellerId: 'seller-id',
-        messages: [],
-        lastMessageAt: DateTime.now(),
-        status: ConversationStatus.active,
-        vehiclePlate: 'AA-123-BB',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        sellerCompany: 'Entreprise Test',
+        hasUnreadMessages: dbUnreadCount > 0,
+        unreadCount: dbUnreadCount,
+        isRequester: isRequester,
+        vehiclePlate: partRequestData['vehicle_plate'],
+        partType: partRequestData['part_type'],
+        partNames: List<String>.from(partRequestData['part_names'] ?? []),
+        lastMessageContent: convData['last_message_content'],
+        createdAt: DateTime.parse(convData['created_at']),
+        updatedAt: DateTime.parse(convData['updated_at']),
+        sellerCompany: sellerCompanyName,
+        sellerAvatarUrl: sellerAvatarUrl,
       );
     } catch (e) {
       throw ServerException(e.toString());
@@ -1107,10 +1414,58 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      // ✅ FIX: Déterminer le rôle de l'utilisateur DANS CETTE CONVERSATION
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Récupérer la conversation pour déterminer notre rôle
+      final conversation = await _supabase
+          .from('conversations')
+          .select('user_id, seller_id')
+          .eq('id', conversationId)
+          .single();
+
+      final conversationUserId = conversation['user_id'] as String;
+      final conversationSellerId = conversation['seller_id'] as String;
+      final isRequester = allUserIds.contains(conversationUserId);
+
+      // ✅ FIX CRITIQUE: Utiliser l'ID particulier réel, pas l'auth ID
+      // Si on est le demandeur (user_id) → sender_id = conversationUserId
+      // Si on est le répondeur (seller_id) → sender_id = conversationSellerId
+      final String actualSenderId = isRequester ? conversationUserId : conversationSellerId;
+
+      debugPrint('📤 [sendParticulierMessage] Envoi message:');
+      debugPrint('   Auth ID: ${currentUser.id}');
+      debugPrint('   ID Particulier utilisé: $actualSenderId');
+      debugPrint('   isRequester: $isRequester');
+
       // Préparer les données du message
       final messageData = {
         'conversation_id': conversationId,
-        'sender_id': currentUser.id,
+        'sender_id': actualSenderId,  // ✅ ID particulier au lieu de l'auth ID
         'sender_type':
             'user', // Le particulier envoie toujours en tant que 'user'
         'content': content,
@@ -1126,14 +1481,27 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .select()
           .single();
 
-      // Mettre à jour la conversation avec le dernier message et incrémenter le compteur pour le vendeur
-      await _supabase.from('conversations').update({
+      // ✅ FIX: Incrémenter le BON compteur selon le rôle
+      // Si on est le demandeur (user_id) qui envoie → incrémenter unread_count_for_seller
+      // Si on est le répondeur (seller_id) qui envoie → incrémenter unread_count_for_user
+      final Map<String, dynamic> updateData = {
         'last_message_content': content,
         'last_message_sender_type': 'user',
         'last_message_created_at': response['created_at'],
         'updated_at': 'now()',
-        'unread_count_for_seller': 'unread_count_for_seller + 1',
-      }).eq('id', conversationId);
+      };
+
+      if (isRequester) {
+        // On est le demandeur → le vendeur doit voir le message
+        updateData['unread_count_for_seller'] = 'unread_count_for_seller + 1';
+        debugPrint('📤 [sendMessage] Demandeur envoie → incrémente unread_count_for_seller');
+      } else {
+        // On est le répondeur → le demandeur doit voir le message
+        updateData['unread_count_for_user'] = 'unread_count_for_user + 1';
+        debugPrint('📤 [sendMessage] Répondeur envoie → incrémente unread_count_for_user');
+      }
+
+      await _supabase.from('conversations').update(updateData).eq('id', conversationId);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -1147,17 +1515,54 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Vérifier si l'utilisateur actuel est un vendeur
-      final isSeller = await _checkIfUserIsSeller(currentUser.id);
+      // ✅ FIX: Déterminer le rôle DANS CETTE CONVERSATION (pas dans la table sellers)
+      // Récupérer tous les IDs du particulier (device_id + auth_id)
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Récupérer les infos de la conversation pour déterminer notre rôle
+      final conversation = await _supabase
+          .from('conversations')
+          .select('user_id, seller_id')
+          .eq('id', conversationId)
+          .single();
+
+      final conversationUserId = conversation['user_id'];
+
+      // ✅ Déterminer notre rôle dans CETTE conversation
+      bool isRequester = allUserIds.contains(conversationUserId);
 
       Map<String, dynamic> updateData = {};
 
-      if (isSeller) {
-        // Si c'est un vendeur qui lit, reset unread_count_for_seller
-        updateData['unread_count_for_seller'] = 0;
-      } else {
-        // Si c'est un particulier qui lit, reset unread_count_for_user
+      if (isRequester) {
+        // On est le demandeur (user_id) → reset unread_count_for_user
         updateData['unread_count_for_user'] = 0;
+      } else {
+        // On est le répondeur (seller_id) → reset unread_count_for_seller
+        updateData['unread_count_for_seller'] = 0;
       }
 
       await _supabase
@@ -1178,13 +1583,77 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Incrémenter le compteur côté particulier (unread_count_for_user)
+      // ✅ Utiliser RPC pour incrémentation atomique du compteur particulier
+      try {
+        await _supabase.rpc('increment_unread_count_for_user', params: {
+          'conversation_id_param': conversationId,
+        });
+      } catch (rpcError) {
+        // Fallback : récupérer et incrémenter manuellement
+        try {
+          final response = await _supabase
+              .from('conversations')
+              .select('unread_count_for_user')
+              .eq('id', conversationId)
+              .single();
+
+          final currentCount =
+              (response['unread_count_for_user'] as int?) ?? 0;
+
+          await _supabase.from('conversations').update({
+            'unread_count_for_user': currentCount + 1
+          }).eq('id', conversationId);
+        } catch (fallbackError) {
+          throw ServerException(
+              'Erreur lors de l\'incrémentation du compteur particulier: $fallbackError');
+        }
+      }
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
+  Future<void> incrementUnreadCountForSeller(
+      {required String conversationId}) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // ✅ Utiliser RPC pour incrémentation atomique du compteur vendeur
+      try {
+        await _supabase.rpc('increment_unread_count_for_seller', params: {
+          'conversation_id_param': conversationId,
+        });
+      } catch (rpcError) {
+        // Fallback : récupérer et incrémenter manuellement
+        try {
+          final response = await _supabase
+              .from('conversations')
+              .select('unread_count_for_seller')
+              .eq('id', conversationId)
+              .single();
+
+          final currentCount =
+              (response['unread_count_for_seller'] as int?) ?? 0;
+
+          await _supabase.from('conversations').update({
+            'unread_count_for_seller': currentCount + 1
+          }).eq('id', conversationId);
+        } catch (fallbackError) {
+          throw ServerException(
+              'Erreur lors de l\'incrémentation du compteur vendeur: $fallbackError');
+        }
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  // ✅ FIX: Simplification drastique - les 2 branches faisaient la même chose!
   Future<void> markParticulierMessagesAsRead(
       {required String conversationId}) async {
     try {
@@ -1195,91 +1664,23 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
 
       final userId = currentUser.id;
 
-      // Récupérer les infos de la conversation et de la demande pour déterminer le rôle
-      final conversation = await _supabase
-          .from('conversations')
-          .select('user_id, seller_id, request_id')
-          .eq('id', conversationId)
-          .single();
+      // ✅ SIMPLIFIÉ: Marquer TOUS les messages non-envoyés-par-nous comme lus
+      // Peu importe notre rôle (particulier ou vendeur), on marque les messages de l'autre personne
+      await _supabase
+          .from('messages')
+          .update({
+            'is_read': true,
+            'read_at': 'now()',
+          })
+          .eq('conversation_id', conversationId)
+          .neq('sender_id', userId) // Messages des autres (pas de nous)
+          .eq('is_read', false); // Seulement ceux non lus
 
-      final clientId = conversation['user_id'];
-      final sellerId = conversation['seller_id'];
-      final requestId = conversation['request_id'];
-
-      // Déterminer qui est le "particulier" (demandeur) et qui est le "vendeur" (répondeur)
-      String particulierId = clientId;
-      String vendeurId = sellerId;
-
-      // Pour les conversations vendeur-vendeur, le "particulier" est celui qui a fait la demande
-      if (requestId != null) {
-        try {
-          // Récupérer l'auteur de la demande depuis part_requests
-          final partRequest = await _supabase
-              .from('part_requests')
-              .select('user_id')
-              .eq('id', requestId)
-              .single();
-
-          final requestAuthorId = partRequest['user_id'];
-
-          // L'auteur de la demande agit comme "particulier", l'autre comme "vendeur"
-          particulierId = requestAuthorId;
-          vendeurId = (requestAuthorId == clientId) ? sellerId : clientId;
-        } catch (e) {
-          // Garder les rôles par défaut si erreur récupération part_request
-        }
-      }
-
-      bool isUserTheParticulier = (particulierId == userId);
-      bool isUserTheVendeur = (vendeurId == userId);
-
-      if (isUserTheParticulier) {
-        // L'utilisateur est le particulier → marquer les messages du vendeur comme lus
-        await _supabase
-            .from('messages')
-            .update({
-              'is_read': true,
-              'read_at': 'now()',
-            })
-            .eq('conversation_id', conversationId)
-            .neq('sender_id', userId) // Messages des autres (pas de lui)
-            .eq('is_read', false);
-      } else if (isUserTheVendeur) {
-        // L'utilisateur est le vendeur → marquer les messages du particulier comme lus
-        await _supabase
-            .from('messages')
-            .update({
-              'is_read': true,
-              'read_at': 'now()',
-            })
-            .eq('conversation_id', conversationId)
-            .neq('sender_id', userId) // Messages des autres (pas de lui)
-            .eq('is_read', false);
-      }
-
-      // Reset du compteur côté particulier (garde la logique existante)
-      try {
-        await markParticulierConversationAsRead(conversationId);
-      } catch (e) {
-        rethrow;
-      }
+      // Reset du compteur dans la table conversations
+      await markParticulierConversationAsRead(conversationId);
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
-  Future<bool> _checkIfUserIsSeller(String userId) async {
-    try {
-      final sellerResponse = await _supabase
-          .from('sellers')
-          .select('id')
-          .eq('id', userId)
-          .limit(1);
-
-      final isSeller = sellerResponse.isNotEmpty;
-      return isSeller;
-    } catch (e) {
-      return false;
-    }
-  }
 }

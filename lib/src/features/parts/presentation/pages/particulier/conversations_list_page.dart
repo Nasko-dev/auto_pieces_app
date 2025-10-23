@@ -11,6 +11,7 @@ import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/unread_filter_chip.dart'
     show ConversationFilterChips;
 import '../../widgets/particulier/particulier_conversation_group_card.dart';
+import '../../../../parts/domain/entities/particulier_conversation_group.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -20,24 +21,91 @@ class ConversationsListPage extends ConsumerStatefulWidget {
       _ConversationsListPageState();
 }
 
-class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
+class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   bool _showOnlyUnread = false;
+  late TabController _tabController;
+  bool _isRealtimeInitialized = false; // ✅ FIX: Protection contre appels multiples
+  bool _hasInitialized = false; // ✅ FIX: Éviter double appel _reloadIfNeeded
+
+  // ✅ KEEPALIVE: Garder la page en vie lors de la navigation
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    // Charger les conversations au démarrage et initialiser le realtime
+    _tabController = TabController(length: 2, vsync: this);
+
+    // ✅ LIFECYCLE: Écouter les changements de lifecycle de l'app
+    WidgetsBinding.instance.addObserver(this);
+
+    // ✅ SMART RELOAD: Charger seulement si nécessaire
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _hasInitialized = true; // ✅ FIX: Marquer comme initialisé
+      _reloadIfNeeded();
+
+      // ✅ OPTIMISATION: Le realtime est déjà initialisé dans main.dart au démarrage
+      // Initialiser seulement si pas encore fait (fallback de sécurité)
       final controller =
           ref.read(particulierConversationsControllerProvider.notifier);
-      controller.loadConversations();
-
-      // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
-      _initializeRealtimeWithCorrectIds(controller);
+      if (!controller.isRealtimeInitialized && !_isRealtimeInitialized) {
+        _initializeRealtimeWithCorrectIds(controller);
+      }
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // ✅ RELOAD: Recharger quand l'app revient au premier plan
+    if (state == AppLifecycleState.resumed && mounted) {
+      _reloadIfNeeded();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // ✅ FIX: Ne recharger que si déjà initialisé (éviter double appel au démarrage)
+    if (_hasInitialized) {
+      // ✅ RELOAD: Recharger si nécessaire quand la page redevient visible
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _reloadIfNeeded();
+        }
+      });
+    }
+  }
+
+  void _reloadIfNeeded() {
+    final controller =
+        ref.read(particulierConversationsControllerProvider.notifier);
+    final state = ref.read(particulierConversationsControllerProvider);
+
+    // Ne charger que si vide ou données anciennes (> 5 minutes)
+    if (state.shouldReload) {
+      controller.loadConversations();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tabController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
+    // ✅ FIX RACE CONDITION: Éviter les appels multiples concurrents
+    if (_isRealtimeInitialized) {
+      return;
+    }
+
+    _isRealtimeInitialized = true;
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final deviceService = DeviceService(prefs);
@@ -52,44 +120,45 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       final allUserIds =
           allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
+      // ✅ FIX DEVICE_ID: Passer le device_id pour comparaison fiable
       if (allUserIds.isNotEmpty) {
-        final primaryUserId = allUserIds.first;
-        controller.initializeRealtime(primaryUserId);
+        controller.initializeRealtime(allUserIds, deviceId: deviceId);
       }
 
       // Fallback vers auth ID si aucun trouvé
       if (allUserIds.isEmpty) {
         final authUserId = Supabase.instance.client.auth.currentUser?.id;
         if (authUserId != null) {
-          controller.initializeRealtime(authUserId);
+          controller.initializeRealtime([authUserId]);
         }
       }
     } catch (e) {
       // Fallback vers auth ID
       final authUserId = Supabase.instance.client.auth.currentUser?.id;
       if (authUserId != null) {
-        controller.initializeRealtime(authUserId);
+        controller.initializeRealtime([authUserId]);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // ✅ KEEPALIVE: Nécessaire pour AutomaticKeepAliveClientMixin
+
     final state = ref.watch(particulierConversationsControllerProvider);
-    final allConversationGroups =
-        ref.watch(particulierConversationGroupsProvider);
+    final demandesGroups = ref.watch(demandesConversationGroupsProvider);
+    final annoncesGroups = ref.watch(annoncesConversationGroupsProvider);
     final isLoading = state.isLoading;
     final error = state.error;
 
-    // Filtrer les groupes selon le filtre actif
-    final conversationGroups = _showOnlyUnread
-        ? allConversationGroups
-            .where((group) => group.hasUnreadMessages)
-            .toList()
-        : allConversationGroups;
+    // ✅ OPTIMISATION: Afficher onglets basés sur les counts au lieu des données chargées
+    final hasDemandes = state.demandesCount > 0;
+    final hasAnnonces = state.annoncesCount > 0;
+    final showTabs = hasDemandes && hasAnnonces;
 
     // Calculer le nombre total de messages non lus
-    final totalUnreadCount = allConversationGroups.fold<int>(
+    final allGroups = ref.watch(particulierConversationGroupsProvider);
+    final totalUnreadCount = allGroups.fold<int>(
       0,
       (sum, group) => sum + group.totalUnreadCount,
     );
@@ -111,7 +180,19 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               const AppMenu(),
             ],
           ),
-          // Widget de filtres (Tous / Non lus)
+          // TabBar conditionnelle (seulement si les 2 types existent)
+          if (showTabs)
+            TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: const [
+                Tab(text: 'Demandes'),
+                Tab(text: 'Annonces'),
+              ],
+            ),
+          // Widget de filtres (Tous / Non lus) - EN DESSOUS des onglets
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: ConversationFilterChips(
@@ -131,7 +212,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                     .read(particulierConversationsControllerProvider.notifier)
                     .loadConversations();
               },
-              child: _buildBody(conversationGroups, isLoading, error),
+              child: showTabs
+                  ? _buildTabBarView(
+                      demandesGroups, annoncesGroups, isLoading, error)
+                  : _buildSingleList(
+                      hasDemandes ? demandesGroups : annoncesGroups,
+                      isLoading,
+                      error),
             ),
           ),
         ],
@@ -139,13 +226,53 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
-  Widget _buildBody(List conversationGroups, bool isLoading, String? error) {
-    if (isLoading && conversationGroups.isEmpty) {
+  Widget _buildTabBarView(
+      List<ParticulierConversationGroup> demandesGroups,
+      List<ParticulierConversationGroup> annoncesGroups,
+      bool isLoading,
+      String? error) {
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        // Onglet Demandes
+        _buildConversationList(_filterByUnread(demandesGroups), isLoading, error),
+        // Onglet Annonces
+        _buildConversationList(_filterByUnread(annoncesGroups), isLoading, error),
+      ],
+    );
+  }
+
+  Widget _buildSingleList(
+      List<ParticulierConversationGroup> conversationGroups,
+      bool isLoading,
+      String? error) {
+    return _buildConversationList(
+        _filterByUnread(conversationGroups), isLoading, error);
+  }
+
+  // ✅ FIX: Typage fort pour type safety
+  List<ParticulierConversationGroup> _filterByUnread(List<ParticulierConversationGroup> groups) {
+    return _showOnlyUnread
+        ? groups.where((group) => group.hasUnreadMessages).toList()
+        : groups;
+  }
+
+  Widget _buildConversationList(
+      List<ParticulierConversationGroup> conversationGroups,
+      bool isLoading,
+      String? error) {
+    final state = ref.watch(particulierConversationsControllerProvider);
+
+    // Afficher loading si en cours de chargement général OU si annonces en cours de chargement
+    final isLoadingContent = (isLoading && conversationGroups.isEmpty) ||
+                             (state.isLoadingAnnonces && conversationGroups.isEmpty);
+
+    if (isLoadingContent) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingWidget(),
+            LoadingWidget(), // ✅ const via widget constructor
             SizedBox(height: 16),
             Text('Chargement de vos conversations...'),
           ],
@@ -191,6 +318,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       );
     }
 
+    // ✅ FIX: Tous les widgets const pour optimisation
     if (conversationGroups.isEmpty) {
       return const Center(
         child: Column(

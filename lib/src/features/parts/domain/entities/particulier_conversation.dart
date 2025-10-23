@@ -31,5 +31,7 @@ class ParticulierConversation with _$ParticulierConversation {
     String? sellerCompany,
     String? sellerAvatarUrl,
     String? sellerPhone,
+    // Dernier message pour affichage dans la liste (pas besoin de charger tous les messages)
+    String? lastMessageContent,
   }) = _ParticulierConversation;
 }

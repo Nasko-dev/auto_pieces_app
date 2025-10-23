@@ -53,8 +53,11 @@ abstract class PartRequestRepository {
       String sellerId);
 
   // Particulier - Conversations et messages
+  Future<Either<Failure, Map<String, int>>> getConversationsCounts();
   Future<Either<Failure, List<ParticulierConversation>>>
-      getParticulierConversations();
+      getParticulierConversations({
+    String? filterType, // 'demandes', 'annonces', ou null pour tout
+  });
   Future<Either<Failure, ParticulierConversation>>
       getParticulierConversationById(String conversationId);
   Future<Either<Failure, void>> sendParticulierMessage({
@@ -64,6 +67,8 @@ abstract class PartRequestRepository {
   Future<Either<Failure, void>> markParticulierConversationAsRead(
       String conversationId);
   Future<Either<Failure, void>> incrementUnreadCountForUser(
+      {required String conversationId});
+  Future<Either<Failure, void>> incrementUnreadCountForSeller(
       {required String conversationId});
   Future<Either<Failure, void>> incrementUnreadCountForRecipient({
     required String conversationId,

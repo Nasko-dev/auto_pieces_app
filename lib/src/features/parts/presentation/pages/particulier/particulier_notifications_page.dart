@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/providers/particulier_notifications_providers.dart';
 import '../../../../../core/providers/reject_part_request_provider.dart';
 import '../../../../../core/utils/haptic_helper.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../domain/usecases/reject_part_request.dart';
 import '../../controllers/seller_dashboard_controller.dart';
@@ -96,7 +98,7 @@ class _ParticulierNotificationsPageState
           icon: const Icon(Icons.chevron_left, color: AppTheme.white),
           onPressed: () {
             HapticHelper.light();
-            context.pop();
+            context.go('/home');
           },
         ),
         title: const Text(
@@ -242,7 +244,7 @@ class _ParticulierNotificationsPageState
           ElevatedButton.icon(
             onPressed: () {
               HapticHelper.light();
-              context.pop();
+              context.go('/home');
             },
             icon: const Icon(Icons.chevron_left),
             label: const Text('Retour'),
@@ -334,21 +336,54 @@ class _ParticulierNotificationsPageState
     debugPrint(
         '📋 [ParticulierNotifications] Pièces: ${partRequest.partNames.join(', ')}');
 
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      debugPrint(
-          '👤 [ParticulierNotifications] Current user ID (seller): $userId');
+    // ✅ Capturer le context AVANT tous les appels async
+    final currentContext = context;
 
-      if (userId == null) {
+    try {
+      // Récupérer le vrai ID du particulier basé sur le device_id (pas l'auth ID)
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      // Récupérer l'ID du particulier correspondant à ce device_id
+      final particulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id, first_name, last_name')
+          .eq('device_id', deviceId)
+          .maybeSingle();
+
+      if (particulierResponse == null) {
         debugPrint(
-            '❌ [ParticulierNotifications] Erreur: Utilisateur non connecté');
-        notificationService.error(context, 'Erreur : Utilisateur non connecté');
+            '❌ [ParticulierNotifications] Erreur: Particulier non trouvé pour ce device');
+        if (mounted) {
+          if (currentContext.mounted) {
+            notificationService.error(
+                currentContext, 'Erreur : Profil particulier non trouvé');
+          }
+        }
         return;
       }
 
+      final sellerId = particulierResponse['id'] as String;
+      final firstName = particulierResponse['first_name'];
+      final lastName = particulierResponse['last_name'];
+
+      debugPrint(
+          '👤 [ParticulierNotifications] Particulier ID (via device_id): $sellerId');
+      debugPrint('👤 [ParticulierNotifications] Device ID: $deviceId');
+
+      // Charger les infos du particulier répondeur
       String sellerName = 'Particulier';
-      String? sellerCompany;
+      if (firstName != null || lastName != null) {
+        sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+        if (sellerName.isEmpty) {
+          sellerName = 'Particulier';
+        }
+      }
+
       debugPrint('📝 [ParticulierNotifications] Seller name: $sellerName');
+
+      String? sellerCompany;
 
       final dataSource = ConversationsRemoteDataSourceImpl(
         supabaseClient: Supabase.instance.client,
@@ -364,12 +399,12 @@ class _ParticulierNotificationsPageState
           '🚀 [ParticulierNotifications] Appel createOrGetConversation...');
       debugPrint('   - requestId: ${partRequest.id}');
       debugPrint('   - userId (demandeur): ${partRequest.userId}');
-      debugPrint('   - sellerId (répondeur): $userId');
+      debugPrint('   - sellerId (répondeur): $sellerId');
 
       final conversation = await dataSource.createOrGetConversation(
         requestId: partRequest.id,
         userId: partRequest.userId!,
-        sellerId: userId,
+        sellerId: sellerId,
         sellerName: sellerName,
         sellerCompany: sellerCompany,
         requestTitle: partRequest.partNames.join(', '),
@@ -404,7 +439,7 @@ class _ParticulierNotificationsPageState
       debugPrint(
           '🧭 [ParticulierNotifications] Navigation vers conversation ${conversation.id}');
       // ignore: use_build_context_synchronously
-      context.push(
+      currentContext.push(
         '/conversations/${conversation.id}?prefilled=$encodedMessage',
       );
 
@@ -418,8 +453,9 @@ class _ParticulierNotificationsPageState
       debugPrint('   StackTrace: $stackTrace');
 
       if (mounted) {
-        if (context.mounted) {
-          notificationService.error(context, 'Erreur', subtitle: e.toString());
+        if (currentContext.mounted) {
+          // ignore: use_build_context_synchronously
+          notificationService.error(currentContext, 'Erreur', subtitle: e.toString());
         }
       }
     }

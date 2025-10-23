@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dartz/dartz.dart';
 import '../services/realtime_service.dart';
+import '../errors/failures.dart';
 import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/entities/particulier_conversation.dart';
 import '../../features/parts/domain/services/particulier_conversation_grouping_service.dart';
@@ -20,10 +22,25 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     @Default(false) bool isLoading,
     String? error,
     String? activeConversationId,
+    @Default(0) int demandesCount, // Count rapide des demandes
+    @Default(0) int annoncesCount, // Count rapide des annonces
+    @Default(false) bool isLoadingAnnonces, // Chargement en cours des annonces
+    DateTime? lastLoadedAt, // Timestamp du dernier chargement pour cache intelligent
+    @Default(false) bool needsReload, // Flag pour forcer le rechargement après invalidation
   }) = _ParticulierConversationsState;
 
   int get unreadCount =>
       conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
+
+  // ✅ CACHE: Vérifier si les données sont encore fraîches (< 5 minutes)
+  bool get isFresh {
+    if (lastLoadedAt == null) return false;
+    final age = DateTime.now().difference(lastLoadedAt!);
+    return age.inMinutes < 5;
+  }
+
+  // ✅ CACHE: Vérifier si on doit recharger
+  bool get shouldReload => conversations.isEmpty || !isFresh || needsReload;
 }
 
 class ParticulierConversationsController
@@ -34,6 +51,16 @@ class ParticulierConversationsController
   bool _isPollingActive = false;
 
   bool _isRealtimeInitialized = false;
+  RealtimeChannel? _realtimeChannel; // ✅ FIX: Garder référence pour unsubscribe
+
+  // ✅ FIX RACE CONDITION: Tracker les dernières incrémentations optimistes
+  final Map<String, DateTime> _recentOptimisticIncrements = {};
+
+  // ✅ FIX DEVICE_ID: Stocker notre device_id pour comparaison
+  String? _currentDeviceId;
+
+  // ✅ OPTIMISATION: Getter public pour vérifier si realtime est initialisé
+  bool get isRealtimeInitialized => _isRealtimeInitialized;
 
   ParticulierConversationsController({
     required PartRequestRepository repository,
@@ -50,27 +77,39 @@ class ParticulierConversationsController
   }
 
   // Abonnement global aux messages - même structure que le vendeur
-  void initializeRealtime(String userId) async {
+  // ✅ FIX RACE CONDITION: Fonction synchrone pour éviter appels concurrents
+  // ✅ FIX DEVICE_ID: Stocker le device_id pour comparaison fiable
+  void initializeRealtime(List<String> allUserIds, {String? deviceId}) {
     if (_isRealtimeInitialized) {
       return;
     }
 
+    _currentDeviceId = deviceId;
     _isRealtimeInitialized = true;
     _startIntelligentPolling();
-    _subscribeToGlobalMessages(userId);
+    _subscribeToGlobalMessages(allUserIds);
   }
 
   // S'abonner globalement aux messages - exactement comme le vendeur
-  void _subscribeToGlobalMessages(String userId) async {
+  // ✅ FIX MULTI-IDS: Accepte TOUS les IDs pour vérifier nos propres messages
+  void _subscribeToGlobalMessages(List<String> allUserIds) async {
+    // ✅ FIX: Unsubscribe ancien channel si existe
+    if (_realtimeChannel != null) {
+      await Supabase.instance.client.removeChannel(_realtimeChannel!);
+      _realtimeChannel = null;
+    }
+
+    final channelId = allUserIds.isNotEmpty ? allUserIds.first : 'unknown';
+
     // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
-    final channel = Supabase.instance.client
-        .channel('global_particulier_messages_$userId')
+    _realtimeChannel = Supabase.instance.client
+        .channel('global_particulier_messages_$channelId')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'messages',
           callback: (payload) {
-            _handleGlobalNewMessage(payload.newRecord, userId);
+            _handleGlobalNewMessage(payload.newRecord, allUserIds);
           },
         )
         .onPostgresChanges(
@@ -78,27 +117,64 @@ class ParticulierConversationsController
           schema: 'public',
           table: 'conversations',
           callback: (payload) {
-            // Refresh quand une conversation est mise à jour (ex: unread_count)
-            loadConversations();
+            // ✅ OPTIMISATION: Mettre à jour seulement la conversation concernée
+            final conversationId = payload.newRecord['id'] as String?;
+            if (conversationId != null) {
+              _loadSingleConversationQuietly(conversationId);
+            }
           },
         );
 
-    channel.subscribe();
+    _realtimeChannel!.subscribe();
+    debugPrint('📡 [Realtime] Channel subscribed pour ${allUserIds.length} IDs: $allUserIds');
   }
 
   // ✅ DB-BASED: Gérer un nouveau message reçu - incrémenter compteur DB
-  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
+  // ✅ FIX DEVICE_ID: Comparer par device_id au lieu de liste d'IDs
+  void _handleGlobalNewMessage(dynamic messageData, List<String> allUserIds) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
+    debugPrint('🔔 [Provider] _handleGlobalNewMessage appelé');
+    debugPrint('   conversationId: $conversationId');
+    debugPrint('   senderId: $senderId');
+    debugPrint('   senderType: $senderType');
+    debugPrint('   activeConversationId: ${state.activeConversationId}');
+
     if (conversationId == null || senderId == null || senderType == null) {
+      debugPrint('   ❌ Données manquantes - abandon');
       return;
     }
 
-    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
-    if (senderId == userId) {
-      return;
+    // ✅ CRITICAL FIX: Vérifier par device_id pour détecter nos propres messages
+    // Plus fiable que comparer des IDs car le device_id ne change jamais
+    if (_currentDeviceId != null && senderType == 'particulier') {
+      try {
+        final senderData = await Supabase.instance.client
+            .from('particuliers')
+            .select('device_id')
+            .eq('id', senderId)
+            .maybeSingle();
+
+        if (senderData != null) {
+          final senderDeviceId = senderData['device_id'] as String?;
+          debugPrint('   🔍 Comparaison device_id:');
+          debugPrint('      Notre device_id: $_currentDeviceId');
+          debugPrint('      Sender device_id: $senderDeviceId');
+
+          if (senderDeviceId == _currentDeviceId) {
+            debugPrint('   ❌ C\'est notre propre message (même device_id) - ignoré');
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('   ⚠️  Erreur récupération device_id du sender: $e');
+        // En cas d'erreur, on continue (fallback sur la logique suivante)
+      }
+    } else if (senderType == 'seller') {
+      // Pour les vendeurs, on ne compare pas (ce n'est jamais notre message)
+      debugPrint('   ℹ️  Message d\'un vendeur, pas de vérification device_id');
     }
 
     // ✅ DB-BASED: Déterminer si ce message nous est destiné selon notre rôle dans la conversation
@@ -106,16 +182,20 @@ class ParticulierConversationsController
       // Utiliser la logique intelligente - tous les messages non-propres peuvent nous être destinés
       if (state.activeConversationId == conversationId) {
         // Marquer le message comme lu immédiatement si la conversation est ouverte
+        debugPrint('   ✅ Conversation active → marquer comme lu');
         _markConversationAsReadInDB(conversationId);
       } else {
+        debugPrint('   ✅ Conversation inactive → incrémenter compteur');
         _incrementUnreadCountForUserOnly(conversationId);
       }
     } catch (e) {
-      // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
+      // En cas d'erreur, logger pour debug
+      debugPrint('   ❌ ERREUR dans _handleGlobalNewMessage: $e');
     }
   }
 
-  void _startIntelligentPolling() {
+  // ✅ FIX: Rendre public pour permettre start/stop depuis provider
+  void startPolling() {
     if (_isPollingActive) return;
 
     _isPollingActive = true;
@@ -125,32 +205,88 @@ class ParticulierConversationsController
         _loadConversationsQuietly();
       }
     });
+
+    debugPrint('🔄 [Polling] Démarré (toutes les 30s)');
   }
 
+  // ✅ FIX: Arrêter le polling proprement
+  void stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _isPollingActive = false;
+    debugPrint('⏸️ [Polling] Arrêté');
+  }
+
+  void _startIntelligentPolling() {
+    startPolling();
+  }
+
+  // ✅ OPTIMISATION: Charger demandes ET annonces en parallèle
   Future<void> loadConversations() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, needsReload: false);
 
-    final result = await _repository.getParticulierConversations();
+    try {
+      // ✅ PARALLEL LOADING: Charger counts, demandes ET annonces en parallèle
+      final results = await Future.wait([
+        _repository.getConversationsCounts(),
+        _repository.getParticulierConversations(filterType: 'demandes'),
+        _repository.getParticulierConversations(filterType: 'annonces'),
+      ]);
 
-    result.fold(
-      (failure) {
-        if (mounted) {
-          state = state.copyWith(
-            isLoading: false,
-            error: failure.message,
-          );
-        }
-      },
-      (conversations) {
-        if (mounted) {
-          state = state.copyWith(
-            conversations: conversations,
-            isLoading: false,
-            error: null,
-          );
-        }
-      },
-    );
+      // Extraire les résultats avec les bons types
+      final countsEither = results[0] as Either<Failure, Map<String, int>>;
+      final demandesEither = results[1] as Either<Failure, List<ParticulierConversation>>;
+      final annoncesEither = results[2] as Either<Failure, List<ParticulierConversation>>;
+
+      // Traiter les counts
+      final counts = countsEither.fold(
+        (failure) => {'demandes': 0, 'annonces': 0},
+        (counts) => counts,
+      );
+
+      // Traiter les demandes
+      final demandes = demandesEither.fold(
+        (failure) {
+          debugPrint('❌ Erreur chargement demandes: ${failure.message}');
+          return <ParticulierConversation>[];
+        },
+        (data) => data,
+      );
+
+      // Traiter les annonces
+      final annonces = annoncesEither.fold(
+        (failure) {
+          debugPrint('❌ Erreur chargement annonces: ${failure.message}');
+          return <ParticulierConversation>[];
+        },
+        (data) => data,
+      );
+
+      if (mounted) {
+        // Fusionner toutes les conversations
+        final allConversations = [...demandes, ...annonces];
+
+        state = state.copyWith(
+          conversations: allConversations,
+          demandesCount: counts['demandes'] ?? 0,
+          annoncesCount: counts['annonces'] ?? 0,
+          isLoading: false,
+          isLoadingAnnonces: false,
+          error: null,
+          lastLoadedAt: DateTime.now(),
+        );
+
+        debugPrint('✅ [Load] ${demandes.length} demandes + ${annonces.length} annonces chargées en parallèle');
+      }
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Erreur de chargement: $e',
+        );
+      }
+      debugPrint('❌ [Load] Erreur: $e');
+    }
   }
 
   Future<void> _loadConversationsQuietly() async {
@@ -160,12 +296,95 @@ class ParticulierConversationsController
       (failure) => null,
       (conversations) {
         if (mounted) {
+          // ✅ FIX: Merge intelligent pour préserver les unreadCount optimistes
+          final mergedConversations = conversations.map((newConv) {
+            // Vérifier si cette conversation a une protection active
+            final lastIncrement = _recentOptimisticIncrements[newConv.id];
+            final hasRecentIncrement = lastIncrement != null &&
+                DateTime.now().difference(lastIncrement).inSeconds < 2;
+
+            if (hasRecentIncrement) {
+              // Trouver la conversation actuelle dans le state
+              final currentConv = state.conversations.firstWhere(
+                (c) => c.id == newConv.id,
+                orElse: () => newConv,
+              );
+
+              debugPrint('🔄 [Polling Merge] ${newConv.id}: préserver unreadCount optimiste=${currentConv.unreadCount}');
+
+              // Merger: prendre tout de la DB SAUF unreadCount
+              return newConv.copyWith(
+                unreadCount: currentConv.unreadCount,
+                hasUnreadMessages: currentConv.hasUnreadMessages,
+              );
+            }
+
+            // Pas de protection: prendre les données DB telles quelles
+            return newConv;
+          }).toList();
+
           state = state.copyWith(
-            conversations: conversations,
+            conversations: mergedConversations,
           );
         }
       },
     );
+  }
+
+  // ✅ OPTIMISATION: Charger seulement une conversation spécifique
+  Future<void> _loadSingleConversationQuietly(String conversationId) async {
+    try {
+      // ✅ FIX RACE CONDITION: Vérifier si incrémentation optimiste en cours
+      final lastIncrement = _recentOptimisticIncrements[conversationId];
+      final hasRecentIncrement = lastIncrement != null &&
+          DateTime.now().difference(lastIncrement).inSeconds < 2;
+
+      if (hasRecentIncrement) {
+        debugPrint('🔄 [_loadSingleConversationQuietly] Protection active - merge intelligent des données');
+      } else if (lastIncrement != null) {
+        // Nettoyer l'entrée expirée
+        _recentOptimisticIncrements.remove(conversationId);
+      }
+
+      final result = await _repository.getParticulierConversationById(conversationId);
+
+      result.fold(
+        (failure) => null,
+        (updatedConversation) {
+          if (mounted) {
+            // ✅ FIX: Merger intelligent si protection active
+            ParticulierConversation finalConversation = updatedConversation;
+
+            if (hasRecentIncrement) {
+              // Préserver le unreadCount optimiste de la conversation actuelle
+              final currentConv = state.conversations.firstWhere(
+                (c) => c.id == conversationId,
+                orElse: () => updatedConversation,
+              );
+
+              debugPrint('   🔀 Merge: DB unreadCount=${updatedConversation.unreadCount}, Local unreadCount=${currentConv.unreadCount}');
+              debugPrint('   ✅ Conservation du unreadCount local (optimiste)');
+
+              // Prendre toutes les données de la DB SAUF le unreadCount
+              finalConversation = updatedConversation.copyWith(
+                unreadCount: currentConv.unreadCount,
+                hasUnreadMessages: currentConv.hasUnreadMessages,
+              );
+            }
+
+            // Mettre à jour seulement cette conversation dans la liste
+            final updatedList = state.conversations.map((conv) {
+              return conv.id == conversationId ? finalConversation : conv;
+            }).toList();
+
+            state = state.copyWith(conversations: updatedList);
+          }
+        },
+      );
+    } catch (e) {
+      // ✅ FIX: Logger les erreurs au lieu de les ignorer silencieusement
+      debugPrint('❌ [_loadSingleConversationQuietly] Erreur: $e');
+    }
   }
 
   Future<void> loadConversationDetails(String conversationId) async {
@@ -205,8 +424,9 @@ class ParticulierConversationsController
         throw Exception(failure.message);
       },
       (_) {
-        // Recharger la conversation pour voir le nouveau message
-        loadConversationDetails(conversationId);
+        // ✅ FIX: Ne pas recharger manuellement - le realtime UPDATE va le faire automatiquement
+        // Évite les double-reloads qui causent le clignotement du badge
+        debugPrint('✅ [sendMessage] Message envoyé, attente du reload realtime');
       },
     );
   }
@@ -222,15 +442,134 @@ class ParticulierConversationsController
 
   void _incrementUnreadCountForUserOnly(String conversationId) async {
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
+      debugPrint('📊 [Provider] _incrementUnreadCountForUserOnly appelé');
+      debugPrint('   conversationId: $conversationId');
 
-      await _repository.incrementUnreadCountForUser(
-        conversationId: conversationId,
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        debugPrint('   ❌ userId est null - abandon');
+        return;
+      }
+
+      // ✅ FIX: Déterminer le rôle et incrémenter le BON compteur
+      // Trouver la conversation dans le state pour savoir si on est le demandeur ou le répondeur
+      final conversationIndex = state.conversations.indexWhere((conv) => conv.id == conversationId);
+
+      debugPrint('   conversationIndex: $conversationIndex');
+      debugPrint('   Nombre total conversations: ${state.conversations.length}');
+
+      if (conversationIndex == -1) {
+        // ✅ FIX: Conversation pas trouvée → charger ET incrémenter pour ne pas perdre le message
+        debugPrint('   ⚠️ Conversation pas en mémoire - chargement + incrémentation');
+
+        // Charger la conversation pour déterminer le rôle et incrémenter le bon compteur
+        final result = await _repository.getParticulierConversationById(conversationId);
+
+        result.fold(
+          (failure) {
+            debugPrint('   ❌ Erreur chargement conversation: ${failure.message}');
+          },
+          (loadedConversation) async {
+            debugPrint('   ✅ Conversation chargée: ${loadedConversation.sellerName}');
+            debugPrint('   isRequester: ${loadedConversation.isRequester}');
+
+            // Incrémenter le bon compteur en DB
+            if (loadedConversation.isRequester) {
+              debugPrint('   📤 Incrémentation DB: unread_count_for_user');
+              await _repository.incrementUnreadCountForUser(conversationId: conversationId);
+            } else {
+              debugPrint('   📤 Incrémentation DB: unread_count_for_seller');
+              await _repository.incrementUnreadCountForSeller(conversationId: conversationId);
+            }
+
+            // Ajouter la conversation à la liste avec compteur incrémenté
+            final updatedConversation = loadedConversation.copyWith(
+              unreadCount: loadedConversation.unreadCount + 1,
+              hasUnreadMessages: true,
+            );
+
+            if (mounted) {
+              final updatedList = List<ParticulierConversation>.from(state.conversations);
+              updatedList.add(updatedConversation);
+              state = state.copyWith(conversations: updatedList);
+              debugPrint('   ✅ Conversation ajoutée à la liste avec unreadCount: ${updatedConversation.unreadCount}');
+
+              // ✅ FIX RACE CONDITION: Protéger aussi cette incrémentation
+              _recentOptimisticIncrements[conversationId] = DateTime.now();
+              debugPrint('   🔒 [Race Protection] Incrémentation optimiste protégée pour 2s');
+            }
+          },
+        );
+
+        return;
+      }
+
+      final conversation = state.conversations[conversationIndex];
+      debugPrint('   ✅ Conversation trouvée: ${conversation.sellerName}');
+      debugPrint('   unreadCount actuel: ${conversation.unreadCount}');
+      debugPrint('   isRequester: ${conversation.isRequester}');
+
+      // ✅ OPTIMISATION CRITIQUE: Mise à jour locale OPTIMISTE du compteur
+      // Incrémenter IMMÉDIATEMENT dans le state local pour que l'UI se mette à jour
+      final updatedConversation = conversation.copyWith(
+        unreadCount: conversation.unreadCount + 1,
+        hasUnreadMessages: true,
       );
-      loadConversations();
+
+      final updatedList = List<ParticulierConversation>.from(state.conversations);
+      updatedList[conversationIndex] = updatedConversation;
+
+      if (mounted) {
+        debugPrint('   ✅ MISE À JOUR STATE: unreadCount ${conversation.unreadCount} → ${updatedConversation.unreadCount}');
+        state = state.copyWith(conversations: updatedList);
+
+        // ✅ FIX RACE CONDITION: Enregistrer le timestamp de l'incrémentation optimiste
+        _recentOptimisticIncrements[conversationId] = DateTime.now();
+        debugPrint('   🔒 [Race Protection] Incrémentation optimiste protégée pour 2s');
+      } else {
+        debugPrint('   ❌ Provider not mounted - skip update');
+        return;
+      }
+
+      // ✅ FIX: BACKGROUND avec rollback si erreur DB
+      final dbIncrementFuture = conversation.isRequester
+          ? _repository.incrementUnreadCountForUser(conversationId: conversationId)
+          : _repository.incrementUnreadCountForSeller(conversationId: conversationId);
+
+      dbIncrementFuture.then((result) {
+        result.fold(
+          (failure) {
+            // ✅ ROLLBACK: Restaurer la valeur précédente si erreur DB
+            debugPrint('   ❌ ERREUR DB increment - ROLLBACK: ${failure.message}');
+
+            // Nettoyer la protection
+            _recentOptimisticIncrements.remove(conversationId);
+
+            if (mounted) {
+              final rollbackList = List<ParticulierConversation>.from(state.conversations);
+              final currentIndex = rollbackList.indexWhere((c) => c.id == conversationId);
+              if (currentIndex != -1) {
+                rollbackList[currentIndex] = conversation; // Restaurer valeur originale
+                state = state.copyWith(conversations: rollbackList);
+                debugPrint('   ✅ ROLLBACK effectué: unreadCount ${updatedConversation.unreadCount} → ${conversation.unreadCount}');
+              }
+            }
+          },
+          (_) {
+            // Succès - nettoyer la protection SANS recharger
+            debugPrint('   ✅ Incrémentation DB réussie');
+
+            // ✅ FIX: Ne PAS recharger immédiatement car ça écrase la valeur optimiste
+            // La valeur DB = valeur optimiste maintenant, donc pas besoin de reload
+            // Le polling fera la synchro plus tard si nécessaire
+            _recentOptimisticIncrements.remove(conversationId);
+            debugPrint('   🔓 [Race Protection] Protection levée - valeur stable');
+          },
+        );
+      });
     } catch (e) {
-      // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
+      // Logger l'erreur au lieu de l'ignorer silencieusement
+      debugPrint('   ❌ ERREUR dans _incrementUnreadCountForUserOnly: $e');
     }
   }
 
@@ -239,10 +578,11 @@ class ParticulierConversationsController
       await _repository.markParticulierMessagesAsRead(
         conversationId: conversationId,
       );
-      // Refresh pour récupérer le nouveau compteur
-      loadConversations();
+      // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
+      _loadSingleConversationQuietly(conversationId);
     } catch (e) {
-      // Ignorer les erreurs de lecture pour éviter de bloquer l'UI
+      // ✅ FIX: Logger les erreurs au lieu de les ignorer silencieusement
+      debugPrint('❌ [_markConversationAsReadInDB] Erreur: $e');
     }
   }
 
@@ -276,25 +616,60 @@ class ParticulierConversationsController
     }
   }
 
+  // ✅ RELOAD: Marquer qu'un rechargement est nécessaire (appelé après envoi de message)
+  void markNeedsReload() {
+    if (mounted) {
+      state = state.copyWith(needsReload: true);
+    }
+  }
+
   @override
-  void dispose() {
-    _pollingTimer?.cancel();
-    _isPollingActive = false;
-    _realtimeService.dispose();
+  void dispose() async {
+    stopPolling(); // ✅ FIX: Utiliser la méthode propre
+
+    // ✅ FIX: Unsubscribe du channel Realtime
+    if (_realtimeChannel != null) {
+      await Supabase.instance.client.removeChannel(_realtimeChannel!);
+      _realtimeChannel = null;
+      debugPrint('📡 [Realtime] Channel unsubscribed');
+    }
+
+    // ✅ FIX: NE PAS disposer le RealtimeService singleton - il doit rester vivant
+    // Le service gère lui-même ses ressources avec unsubscribe
+    // _realtimeService.dispose(); // ❌ SUPPRIMÉ: casse le singleton
+
     super.dispose();
   }
 }
 
-final particulierConversationsControllerProvider = StateNotifierProvider<
+// ✅ FIX: Utiliser autoDispose pour éviter fuites mémoire, avec gestion intelligente du polling
+final particulierConversationsControllerProvider = StateNotifierProvider.autoDispose<
     ParticulierConversationsController, ParticulierConversationsState>(
   (ref) {
     final repository = ref.read(partRequestRepositoryProvider);
     final realtimeService = ref.read(realtimeServiceProvider);
 
-    return ParticulierConversationsController(
+    final controller = ParticulierConversationsController(
       repository: repository,
       realtimeService: realtimeService,
     );
+
+    // ✅ FIX: Arrêter le polling quand plus de listeners actifs (économie batterie/data)
+    ref.onCancel(() {
+      debugPrint('📵 [Provider] Plus de listeners - arrêt polling');
+      controller.stopPolling();
+    });
+
+    // ✅ FIX: Redémarrer le polling quand nouveaux listeners
+    ref.onResume(() {
+      debugPrint('📱 [Provider] Nouveaux listeners - redémarrage polling');
+      controller.startPolling();
+    });
+
+    // ✅ FIX: Garder le provider en vie pour conserver le cache
+    ref.keepAlive();
+
+    return controller;
   },
 );
 
@@ -329,7 +704,46 @@ final particulierConversationUnreadCountProvider =
     );
     return conversation.unreadCount;
   } catch (e) {
-    // Si la conversation n'est pas trouvée, retourner 0
+    // ✅ FIX: Logger + retourner 0 si conversation non trouvée
+    debugPrint('⚠️ [particulierConversationUnreadCountProvider] Conversation $conversationId non trouvée');
     return 0;
   }
+});
+
+// Provider pour les conversations "Demandes" (isRequester = true)
+final demandesConversationsProvider = Provider((ref) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+
+  return conversationsState.conversations
+      .where((conv) => conv.isRequester)
+      .toList();
+});
+
+// Provider pour les conversations "Annonces" (isRequester = false)
+final annoncesConversationsProvider = Provider((ref) {
+  final conversationsState =
+      ref.watch(particulierConversationsControllerProvider);
+
+  return conversationsState.conversations
+      .where((conv) => !conv.isRequester)
+      .toList();
+});
+
+// Provider pour les groupes "Demandes"
+final demandesConversationGroupsProvider = Provider((ref) {
+  final demandesConversations = ref.watch(demandesConversationsProvider);
+  final groupingService =
+      ref.watch(particulierConversationGroupingServiceProvider);
+
+  return groupingService.groupConversations(demandesConversations);
+});
+
+// Provider pour les groupes "Annonces"
+final annoncesConversationGroupsProvider = Provider((ref) {
+  final annoncesConversations = ref.watch(annoncesConversationsProvider);
+  final groupingService =
+      ref.watch(particulierConversationGroupingServiceProvider);
+
+  return groupingService.groupConversations(annoncesConversations);
 });

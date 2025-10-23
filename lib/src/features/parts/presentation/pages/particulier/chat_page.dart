@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/message.dart';
 import 'package:cente_pice/src/features/parts/domain/entities/conversation_enums.dart';
 import '../../providers/conversations_providers.dart'
@@ -18,6 +19,7 @@ import '../../../../../core/providers/message_image_providers.dart';
 import '../../../../../core/providers/session_providers.dart';
 import '../../../../../core/services/global_message_notification_service.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/services/device_service.dart';
 import '../../../../../core/utils/haptic_helper.dart';
 import '../../../../../shared/presentation/widgets/ios_dialog.dart';
 import '../../../../../shared/presentation/widgets/context_menu.dart';
@@ -41,11 +43,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _messageController = TextEditingController();
   StreamSubscription? _messageSubscription;
-  int _previousMessageCount = 0;
 
   // Cache local pour les données vendeur
   Map<String, dynamic>? _sellerInfo;
   bool _isLoadingSellerInfo = false;
+
+  // ✅ FIX: Stocker l'ID particulier réel pour comparaison avec senderId
+  String? _currentParticulierId;
 
   @override
   void initState() {
@@ -60,24 +64,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _messageController.text = widget.prefilledMessage!;
     }
 
-    // Charger les messages au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // ✅ FIX: Charger d'abord l'ID particulier, PUIS les messages
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1. Charger les infos vendeur ET l'ID particulier (prioritaire)
+      await _loadSellerInfo();
+
+      // 2. Charger les messages (maintenant _currentParticulierId est disponible)
       ref
           .read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
 
-      // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
+      // 3. Marquer la conversation comme lue (remettre compteur local à 0)
       Future.microtask(() {
         ref
             .read(particulierConversationsControllerProvider.notifier)
             .markConversationAsRead(widget.conversationId);
       });
 
-      // S'abonner aux messages en temps réel via RealtimeService
+      // 4. S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
-
-      // Charger les infos vendeur
-      _loadSellerInfo();
     });
   }
 
@@ -129,14 +134,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
 
     try {
-      // Charger la conversation directement pour obtenir le sellerId
+      // Charger la conversation pour obtenir userId ET sellerId
       final convResponse = await Supabase.instance.client
           .from('conversations')
-          .select('seller_id')
+          .select('user_id, seller_id')
           .eq('id', widget.conversationId)
           .maybeSingle();
 
-      if (convResponse == null || convResponse['seller_id'] == null) {
+      if (convResponse == null) {
         if (mounted) {
           setState(() {
             _isLoadingSellerInfo = false;
@@ -145,17 +150,88 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         return;
       }
 
-      final sellerId = convResponse['seller_id'] as String;
+      final conversationUserId = convResponse['user_id'] as String;
+      final conversationSellerId = convResponse['seller_id'] as String;
+
+      // ✅ FIX: Récupérer TOUS les particuliers avec ce device_id (peut y en avoir plusieurs)
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      final allParticuliersWithDevice = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId);
+
+      final allUserIds =
+          allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+      // ✅ FIX CRITIQUE: Déterminer LEQUEL de nos IDs est dans cette conversation
+      // Ne PAS prendre systématiquement le user_id si les deux sont à nous !
+      String? currentParticulierId;
+
+      final userIdIsOurs = allUserIds.contains(conversationUserId);
+      final sellerIdIsOurs = allUserIds.contains(conversationSellerId);
+
+      if (userIdIsOurs && sellerIdIsOurs) {
+        // ⚠️ CAS SPÉCIAL: Les DEUX IDs sont à nous (2 particuliers sur même appareil)
+        // Prioriser user_id (demandeur) pour cohérence avec sendParticulierMessage
+        currentParticulierId = conversationUserId;
+        debugPrint('⚠️ [ChatPage] Les 2 IDs nous appartiennent, utilisation user_id (cohérence avec sendMessage)');
+      } else if (userIdIsOurs) {
+        // On est le demandeur
+        currentParticulierId = conversationUserId;
+        debugPrint('✅ [ChatPage] Nous sommes le demandeur (user_id)');
+      } else if (sellerIdIsOurs) {
+        // On est le répondeur
+        currentParticulierId = conversationSellerId;
+        debugPrint('✅ [ChatPage] Nous sommes le répondeur (seller_id)');
+      } else if (allUserIds.isNotEmpty) {
+        // Fallback
+        currentParticulierId = allUserIds.first;
+        debugPrint('⚠️ [ChatPage] Aucun ID ne match, fallback sur first');
+      }
+
+      // ✅ FIX: Stocker l'ID particulier pour l'affichage des bulles de message
+      if (currentParticulierId != null && mounted) {
+        setState(() {
+          _currentParticulierId = currentParticulierId;
+        });
+        debugPrint('✅ [ChatPage] ID particulier stocké: $_currentParticulierId');
+      }
+
+      // Déterminer qui est l'AUTRE personne (celle qu'on veut afficher)
+      String otherPersonId;
+      if (currentParticulierId == conversationUserId ||
+          currentParticulierId == conversationSellerId) {
+        // Vous êtes l'un des participants, afficher l'autre
+        if (currentParticulierId == conversationUserId) {
+          otherPersonId = conversationSellerId;
+          debugPrint(
+              '💡 Vous êtes le demandeur, affichage répondeur: $otherPersonId');
+        } else {
+          otherPersonId = conversationUserId;
+          debugPrint(
+              '💡 Vous êtes le répondeur, affichage demandeur: $otherPersonId');
+        }
+      } else {
+        // Fallback: afficher le sellerId par défaut
+        otherPersonId = conversationSellerId;
+        debugPrint('💡 Fallback: affichage sellerId: $otherPersonId');
+      }
 
       // Essayer d'abord dans sellers (vendeur pro)
       final sellerResponse = await Supabase.instance.client
           .from('sellers')
           .select('id, first_name, last_name, company_name, phone, avatar_url')
-          .eq('id', sellerId)
+          .eq('id', otherPersonId)
           .maybeSingle();
 
       if (sellerResponse != null && mounted) {
         // Vendeur pro trouvé
+        debugPrint(
+            '✅ Vendeur pro trouvé: ${sellerResponse['company_name'] ?? '${sellerResponse['first_name']} ${sellerResponse['last_name']}'}');
+        debugPrint('   Avatar URL: ${sellerResponse['avatar_url']}');
         setState(() {
           _sellerInfo = sellerResponse;
           _isLoadingSellerInfo = false;
@@ -166,25 +242,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       // Si pas trouvé dans sellers, chercher dans particuliers
       final particulierResponse = await Supabase.instance.client
           .from('particuliers')
-          .select('id, name, device_id')
-          .eq('id', sellerId)
+          .select('id, first_name, last_name, phone, avatar_url, device_id')
+          .eq('id', otherPersonId)
           .maybeSingle();
 
       if (particulierResponse != null && mounted) {
         // Particulier trouvé - formater les données comme un vendeur pour compatibilité
+        debugPrint(
+            '✅ Particulier trouvé: ${particulierResponse['first_name']} ${particulierResponse['last_name']}');
+        debugPrint('   Avatar URL: ${particulierResponse['avatar_url']}');
         setState(() {
           _sellerInfo = {
             'id': particulierResponse['id'],
-            'first_name': particulierResponse['name'],
-            'last_name': null,
+            'first_name': particulierResponse['first_name'],
+            'last_name': particulierResponse['last_name'],
             'company_name': null,
-            'phone': null,
-            'avatar_url': null,
+            'phone': particulierResponse['phone'],
+            'avatar_url': particulierResponse['avatar_url'],
             'is_particulier': true, // Flag pour identifier un particulier
           };
           _isLoadingSellerInfo = false;
         });
       } else if (mounted) {
+        debugPrint(
+            '⚠️ Aucun vendeur/particulier trouvé pour otherPersonId: $otherPersonId');
         setState(() {
           _isLoadingSellerInfo = false;
         });
@@ -226,16 +307,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isLoadingMessages = ref.watch(isLoadingMessagesProvider);
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
-
-    // Auto-scroll quand de nouveaux messages arrivent
-    if (messages.length > _previousMessageCount) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-      });
-      _previousMessageCount = messages.length;
-    }
 
     // Trouver la conversation pour le titre - gestion sécurisée
     final conversationsState =
@@ -405,32 +476,36 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ),
       );
     } else {
+      // ✅ FIX: Inverser l'ordre pour utiliser reverse: true
+      final reversedMessages = messages.reversed.toList();
+
       content = ListView.builder(
         controller: _scrollController,
+        reverse: true, // ✅ Les messages s'affichent naturellement en bas
         padding: const EdgeInsets.all(16),
-        itemCount: messages.length,
+        itemCount: reversedMessages.length,
         itemBuilder: (context, index) {
-          final message = messages[index];
-          final isLastMessage = index == messages.length - 1;
-          final showDateSeparator = _shouldShowDateSeparator(messages, index);
+          final message = reversedMessages[index];
+          // Le dernier message est maintenant le premier dans la liste inversée
+          final isLastMessage = index == 0;
+          final showDateSeparator = _shouldShowDateSeparator(reversedMessages, index);
 
           return Column(
             children: [
-              if (showDateSeparator) ...[
-                _buildDateSeparator(message.createdAt),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: 12), // Espacé en haut au lieu du bas
               MessageBubbleWidget(
                 message: message,
                 currentUserType: MessageSenderType.user, // Côté particulier
-                currentUserId:
-                    Supabase.instance.client.auth.currentUser?.id ?? '',
+                currentUserId: _currentParticulierId ?? '',
                 isLastMessage: isLastMessage,
                 otherUserName: _getSellerDisplayName(conversation),
                 otherUserAvatarUrl: _sellerInfo?['avatar_url'],
                 otherUserCompany: _sellerInfo?['company_name'],
               ),
-              const SizedBox(height: 12), // Plus d'espace entre messages
+              if (showDateSeparator) ...[
+                const SizedBox(height: 16),
+                _buildDateSeparator(message.createdAt),
+              ],
             ],
           );
         },
@@ -517,8 +592,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           content: content.trim(),
         );
 
-    // Invalider le provider de la liste des conversations pour rafraîchir l'affichage
-    ref.invalidate(particulierConversationsControllerProvider);
+    // ✅ RELOAD: Marquer qu'un rechargement est nécessaire au retour sur la liste
+    ref.read(particulierConversationsControllerProvider.notifier).markNeedsReload();
 
     _messageController.clear();
   }
@@ -638,6 +713,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final avatarUrl =
         _sellerInfo?['avatar_url'] ?? conversation?.sellerAvatarUrl;
 
+    debugPrint('🖼️ Avatar URL: $avatarUrl');
+    debugPrint('   _sellerInfo avatar: ${_sellerInfo?['avatar_url']}');
+    debugPrint('   conversation avatar: ${conversation?.sellerAvatarUrl}');
+
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       // Avatar style Instagram avec vraie photo
       return Container(
@@ -706,7 +785,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   String _getSellerDisplayName(dynamic conversation) {
-    // Priorité : données chargées directement > données de conversation
+    // Priorité 1 : données chargées en direct (_sellerInfo)
     final companyName = _sellerInfo?['company_name'];
     final firstName = _sellerInfo?['first_name'];
     final lastName = _sellerInfo?['last_name'];
@@ -714,15 +793,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     if (companyName != null && companyName.isNotEmpty) {
       return companyName;
-    } else if (firstName != null || lastName != null) {
-      return '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    } else if (firstName != null && firstName.isNotEmpty) {
+      final fullName = (lastName != null && lastName.isNotEmpty)
+          ? '$firstName $lastName'
+          : firstName;
+      return fullName;
+    }
+
+    // Priorité 2 : données de la conversation (fallback)
+    if (conversation?.sellerCompany != null &&
+        conversation!.sellerCompany!.isNotEmpty) {
+      return conversation!.sellerCompany!;
     } else if (conversation?.sellerName != null &&
         conversation!.sellerName!.isNotEmpty) {
       return conversation!.sellerName!;
-    } else {
-      // Si on sait que c'est un particulier, afficher "Particulier", sinon "Vendeur Professionnel"
-      return isParticulier ? 'Particulier' : 'Vendeur Professionnel';
     }
+
+    // Priorité 3 : valeur par défaut selon le type
+    final defaultName = isParticulier ? 'Particulier' : 'Vendeur Professionnel';
+    return defaultName;
   }
 
   Future<void> _makePhoneCall(dynamic conversation) async {
