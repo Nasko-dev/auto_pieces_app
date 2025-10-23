@@ -25,6 +25,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
   bool _showOnlyUnread = false;
   late TabController _tabController;
   bool _isRealtimeInitialized = false; // ✅ FIX: Protection contre appels multiples
+  bool _hasInitialized = false; // ✅ FIX: Éviter double appel _reloadIfNeeded
 
   // ✅ KEEPALIVE: Garder la page en vie lors de la navigation
   @override
@@ -40,6 +41,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
 
     // ✅ SMART RELOAD: Charger seulement si nécessaire
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _hasInitialized = true; // ✅ FIX: Marquer comme initialisé
       _reloadIfNeeded();
 
       // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
@@ -63,12 +65,15 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // ✅ RELOAD: Recharger si nécessaire quand la page redevient visible
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _reloadIfNeeded();
-      }
-    });
+    // ✅ FIX: Ne recharger que si déjà initialisé (éviter double appel au démarrage)
+    if (_hasInitialized) {
+      // ✅ RELOAD: Recharger si nécessaire quand la page redevient visible
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _reloadIfNeeded();
+        }
+      });
+    }
   }
 
   void _reloadIfNeeded() {
