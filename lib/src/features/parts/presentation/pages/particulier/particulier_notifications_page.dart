@@ -336,6 +336,9 @@ class _ParticulierNotificationsPageState
     debugPrint(
         '📋 [ParticulierNotifications] Pièces: ${partRequest.partNames.join(', ')}');
 
+    // ✅ Capturer le context AVANT tous les appels async
+    final currentContext = context;
+
     try {
       // Récupérer le vrai ID du particulier basé sur le device_id (pas l'auth ID)
       final prefs = await SharedPreferences.getInstance();
@@ -353,8 +356,10 @@ class _ParticulierNotificationsPageState
         debugPrint(
             '❌ [ParticulierNotifications] Erreur: Particulier non trouvé pour ce device');
         if (mounted) {
-          notificationService.error(
-              context, 'Erreur : Profil particulier non trouvé');
+          if (currentContext.mounted) {
+            notificationService.error(
+                currentContext, 'Erreur : Profil particulier non trouvé');
+          }
         }
         return;
       }
@@ -434,7 +439,7 @@ class _ParticulierNotificationsPageState
       debugPrint(
           '🧭 [ParticulierNotifications] Navigation vers conversation ${conversation.id}');
       // ignore: use_build_context_synchronously
-      context.push(
+      currentContext.push(
         '/conversations/${conversation.id}?prefilled=$encodedMessage',
       );
 
@@ -448,8 +453,9 @@ class _ParticulierNotificationsPageState
       debugPrint('   StackTrace: $stackTrace');
 
       if (mounted) {
-        if (context.mounted) {
-          notificationService.error(context, 'Erreur', subtitle: e.toString());
+        if (currentContext.mounted) {
+          // ignore: use_build_context_synchronously
+          notificationService.error(currentContext, 'Erreur', subtitle: e.toString());
         }
       }
     }
