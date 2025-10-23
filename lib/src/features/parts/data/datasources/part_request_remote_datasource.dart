@@ -8,7 +8,6 @@ import '../models/seller_rejection_model.dart';
 import '../../domain/entities/part_request.dart';
 import '../../domain/entities/seller_rejection.dart';
 import '../../domain/entities/particulier_conversation.dart';
-import '../../domain/entities/particulier_message.dart';
 import '../../domain/entities/conversation_enums.dart';
 
 abstract class PartRequestRemoteDataSource {
@@ -1203,26 +1202,163 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // TODO: Implémenter la récupération de la conversation depuis Supabase
-      // Pour l'instant, créer une conversation factice
+      // Récupérer l'ID persistant du particulier (même logique que getParticulierConversations)
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Charger la conversation avec les infos du part_request
+      final convData = await _supabase
+          .from('conversations')
+          .select('''
+            id,
+            user_id,
+            seller_id,
+            request_id,
+            status,
+            last_message_at,
+            last_message_content,
+            last_message_sender_type,
+            created_at,
+            updated_at,
+            unread_count_for_user,
+            part_requests!inner(
+              id,
+              part_type,
+              part_names,
+              vehicle_brand,
+              vehicle_model,
+              vehicle_year,
+              vehicle_plate,
+              created_at,
+              updated_at
+            )
+          ''')
+          .eq('id', conversationId)
+          .single();
+
+      // Déterminer qui est l'autre personne
+      final conversationUserId = convData['user_id'];
+      final conversationSellerId = convData['seller_id'];
+
+      String otherPersonId;
+      if (allUserIds.contains(conversationUserId)) {
+        // L'utilisateur actuel est le demandeur → afficher le répondeur
+        otherPersonId = conversationSellerId;
+      } else {
+        // L'utilisateur actuel est le répondeur → afficher le demandeur
+        otherPersonId = conversationUserId;
+      }
+
+      // Charger les infos de l'autre personne
+      String sellerName = 'Autre personne';
+      String? sellerCompanyName;
+      String? sellerAvatarUrl;
+
+      try {
+        // Essayer d'abord dans sellers
+        final sellerData = await _supabase
+            .from('sellers')
+            .select('first_name, last_name, company_name, avatar_url')
+            .eq('id', otherPersonId)
+            .maybeSingle();
+
+        if (sellerData != null) {
+          // C'est un vendeur
+          sellerName =
+              '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                  .trim();
+          if (sellerName.isEmpty) sellerName = 'Vendeur';
+          sellerCompanyName = sellerData['company_name'];
+          sellerAvatarUrl = sellerData['avatar_url'];
+        } else {
+          // Sinon c'est un particulier
+          final particulierData = await _supabase
+              .from('particuliers')
+              .select('first_name, last_name, avatar_url')
+              .eq('id', otherPersonId)
+              .maybeSingle();
+
+          if (particulierData != null) {
+            final firstName = particulierData['first_name'];
+            final lastName = particulierData['last_name'];
+            sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+            if (sellerName.isEmpty) {
+              sellerName = 'Particulier';
+            }
+            sellerAvatarUrl = particulierData['avatar_url'];
+          } else {
+            sellerName = 'Particulier';
+          }
+        }
+      } catch (e) {
+        sellerName = 'Particulier';
+      }
+
+      // Construire l'objet PartRequest
+      final partRequestData = convData['part_requests'];
+      final partRequest = PartRequest(
+        id: partRequestData['id'],
+        partType: partRequestData['part_type'] ?? 'unknown',
+        partNames: List<String>.from(partRequestData['part_names'] ?? []),
+        vehicleBrand: partRequestData['vehicle_brand'],
+        vehicleModel: partRequestData['vehicle_model'],
+        vehicleYear: partRequestData['vehicle_year'],
+        vehiclePlate: partRequestData['vehicle_plate'],
+        createdAt: DateTime.parse(partRequestData['created_at']),
+        updatedAt: DateTime.parse(partRequestData['updated_at']),
+      );
+
+      // Déterminer si le particulier est le demandeur
+      final isRequester = allUserIds.contains(convData['user_id']);
+
+      // Créer et retourner la conversation
       return ParticulierConversation(
-        id: conversationId,
-        partRequest: PartRequest(
-          id: 'dummy-part-request',
-          partType: 'engine',
-          partNames: ['dummy part'],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+        id: convData['id'],
+        partRequest: partRequest,
+        sellerName: sellerName,
+        sellerId: convData['seller_id'],
+        messages: [], // Messages chargés séparément à l'ouverture
+        lastMessageAt: convData['last_message_at'] != null
+            ? DateTime.parse(convData['last_message_at'])
+            : DateTime.parse(convData['created_at']),
+        status: ConversationStatus.values.firstWhere(
+          (status) => status.name == (convData['status'] ?? 'pending'),
+          orElse: () => ConversationStatus.active,
         ),
-        sellerName: 'Vendeur Test',
-        sellerId: 'seller-id',
-        messages: [],
-        lastMessageAt: DateTime.now(),
-        status: ConversationStatus.active,
-        vehiclePlate: 'AA-123-BB',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        sellerCompany: 'Entreprise Test',
+        hasUnreadMessages: (convData['unread_count_for_user'] as int? ?? 0) > 0,
+        unreadCount: convData['unread_count_for_user'] as int? ?? 0,
+        isRequester: isRequester,
+        vehiclePlate: partRequestData['vehicle_plate'],
+        partType: partRequestData['part_type'],
+        partNames: List<String>.from(partRequestData['part_names'] ?? []),
+        lastMessageContent: convData['last_message_content'],
+        createdAt: DateTime.parse(convData['created_at']),
+        updatedAt: DateTime.parse(convData['updated_at']),
+        sellerCompany: sellerCompanyName,
+        sellerAvatarUrl: sellerAvatarUrl,
       );
     } catch (e) {
       throw ServerException(e.toString());
