@@ -51,6 +51,9 @@ class ParticulierConversationsController
   bool _isRealtimeInitialized = false;
   RealtimeChannel? _realtimeChannel; // ✅ FIX: Garder référence pour unsubscribe
 
+  // ✅ FIX RACE CONDITION: Tracker les dernières incrémentations optimistes
+  final Map<String, DateTime> _recentOptimisticIncrements = {};
+
   ParticulierConversationsController({
     required PartRequestRepository repository,
     required RealtimeService realtimeService,
@@ -303,6 +306,18 @@ class ParticulierConversationsController
   // ✅ OPTIMISATION: Charger seulement une conversation spécifique
   Future<void> _loadSingleConversationQuietly(String conversationId) async {
     try {
+      // ✅ FIX RACE CONDITION: Ne pas recharger si incrémentation optimiste récente
+      final lastIncrement = _recentOptimisticIncrements[conversationId];
+      if (lastIncrement != null) {
+        final timeSinceIncrement = DateTime.now().difference(lastIncrement);
+        if (timeSinceIncrement.inSeconds < 2) {
+          debugPrint('⏭️ [_loadSingleConversationQuietly] Skip reload - incrémentation optimiste récente (${timeSinceIncrement.inMilliseconds}ms)');
+          return;
+        }
+        // Nettoyer l'entrée expirée
+        _recentOptimisticIncrements.remove(conversationId);
+      }
+
       final result = await _repository.getParticulierConversationById(conversationId);
 
       result.fold(
@@ -429,6 +444,10 @@ class ParticulierConversationsController
               updatedList.add(updatedConversation);
               state = state.copyWith(conversations: updatedList);
               debugPrint('   ✅ Conversation ajoutée à la liste avec unreadCount: ${updatedConversation.unreadCount}');
+
+              // ✅ FIX RACE CONDITION: Protéger aussi cette incrémentation
+              _recentOptimisticIncrements[conversationId] = DateTime.now();
+              debugPrint('   🔒 [Race Protection] Incrémentation optimiste protégée pour 2s');
             }
           },
         );
@@ -454,6 +473,10 @@ class ParticulierConversationsController
       if (mounted) {
         debugPrint('   ✅ MISE À JOUR STATE: unreadCount ${conversation.unreadCount} → ${updatedConversation.unreadCount}');
         state = state.copyWith(conversations: updatedList);
+
+        // ✅ FIX RACE CONDITION: Enregistrer le timestamp de l'incrémentation optimiste
+        _recentOptimisticIncrements[conversationId] = DateTime.now();
+        debugPrint('   🔒 [Race Protection] Incrémentation optimiste protégée pour 2s');
       } else {
         debugPrint('   ❌ Provider not mounted - skip update');
         return;
@@ -469,6 +492,10 @@ class ParticulierConversationsController
           (failure) {
             // ✅ ROLLBACK: Restaurer la valeur précédente si erreur DB
             debugPrint('   ❌ ERREUR DB increment - ROLLBACK: ${failure.message}');
+
+            // Nettoyer la protection
+            _recentOptimisticIncrements.remove(conversationId);
+
             if (mounted) {
               final rollbackList = List<ParticulierConversation>.from(state.conversations);
               final currentIndex = rollbackList.indexWhere((c) => c.id == conversationId);
@@ -480,8 +507,13 @@ class ParticulierConversationsController
             }
           },
           (_) {
-            // Succès - recharger depuis DB pour synchroniser
+            // Succès - nettoyer la protection puis recharger depuis DB pour synchroniser
             debugPrint('   ✅ Incrémentation DB réussie');
+
+            // ✅ FIX RACE CONDITION: Nettoyer la protection avant de recharger
+            _recentOptimisticIncrements.remove(conversationId);
+            debugPrint('   🔓 [Race Protection] Protection levée, rechargement autorisé');
+
             _loadSingleConversationQuietly(conversationId);
           },
         );
