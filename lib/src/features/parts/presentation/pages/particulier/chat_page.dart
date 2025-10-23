@@ -809,32 +809,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isParticulier = _sellerInfo?['is_particulier'] == true;
 
     if (companyName != null && companyName.isNotEmpty) {
-      debugPrint('📝 Nom vendeur (company): $companyName');
       return companyName;
     } else if (firstName != null && firstName.isNotEmpty) {
       final fullName = (lastName != null && lastName.isNotEmpty)
           ? '$firstName $lastName'
           : firstName;
-      debugPrint('📝 Nom vendeur (prénom/nom): $fullName');
       return fullName;
     }
 
     // Priorité 2 : données de la conversation (fallback)
     if (conversation?.sellerCompany != null &&
         conversation!.sellerCompany!.isNotEmpty) {
-      debugPrint(
-          '📝 Nom vendeur (conversation company): ${conversation!.sellerCompany}');
       return conversation!.sellerCompany!;
     } else if (conversation?.sellerName != null &&
         conversation!.sellerName!.isNotEmpty) {
-      debugPrint(
-          '📝 Nom vendeur (conversation name): ${conversation!.sellerName}');
       return conversation!.sellerName!;
     }
 
     // Priorité 3 : valeur par défaut selon le type
     final defaultName = isParticulier ? 'Particulier' : 'Vendeur Professionnel';
-    debugPrint('📝 Nom vendeur (défaut): $defaultName');
     return defaultName;
   }
 
