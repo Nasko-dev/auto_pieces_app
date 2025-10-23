@@ -110,12 +110,20 @@ class ParticulierConversationsController
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
 
+    debugPrint('🔔 [Provider] _handleGlobalNewMessage appelé');
+    debugPrint('   conversationId: $conversationId');
+    debugPrint('   senderId: $senderId');
+    debugPrint('   userId: $userId');
+    debugPrint('   activeConversationId: ${state.activeConversationId}');
+
     if (conversationId == null || senderId == null || senderType == null) {
+      debugPrint('   ❌ Données manquantes - abandon');
       return;
     }
 
     // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
     if (senderId == userId) {
+      debugPrint('   ❌ C\'est notre propre message - ignoré');
       return;
     }
 
@@ -124,12 +132,15 @@ class ParticulierConversationsController
       // Utiliser la logique intelligente - tous les messages non-propres peuvent nous être destinés
       if (state.activeConversationId == conversationId) {
         // Marquer le message comme lu immédiatement si la conversation est ouverte
+        debugPrint('   ✅ Conversation active → marquer comme lu');
         _markConversationAsReadInDB(conversationId);
       } else {
+        debugPrint('   ✅ Conversation inactive → incrémenter compteur');
         _incrementUnreadCountForUserOnly(conversationId);
       }
     } catch (e) {
-      // En cas d'erreur, ne rien faire pour éviter les incrémentations incorrectes
+      // En cas d'erreur, logger pour debug
+      debugPrint('   ❌ ERREUR dans _handleGlobalNewMessage: $e');
     }
   }
 
@@ -339,20 +350,33 @@ class ParticulierConversationsController
 
   void _incrementUnreadCountForUserOnly(String conversationId) async {
     try {
+      debugPrint('📊 [Provider] _incrementUnreadCountForUserOnly appelé');
+      debugPrint('   conversationId: $conversationId');
+
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
+      if (userId == null) {
+        debugPrint('   ❌ userId est null - abandon');
+        return;
+      }
 
       // ✅ FIX: Déterminer le rôle et incrémenter le BON compteur
       // Trouver la conversation dans le state pour savoir si on est le demandeur ou le répondeur
       final conversationIndex = state.conversations.indexWhere((conv) => conv.id == conversationId);
 
+      debugPrint('   conversationIndex: $conversationIndex');
+      debugPrint('   Nombre total conversations: ${state.conversations.length}');
+
       if (conversationIndex == -1) {
         // Conversation pas trouvée → charger depuis DB
+        debugPrint('   ❌ Conversation pas trouvée dans le state - chargement DB');
         _loadSingleConversationQuietly(conversationId);
         return;
       }
 
       final conversation = state.conversations[conversationIndex];
+      debugPrint('   ✅ Conversation trouvée: ${conversation.sellerName}');
+      debugPrint('   unreadCount actuel: ${conversation.unreadCount}');
+      debugPrint('   isRequester: ${conversation.isRequester}');
 
       // ✅ OPTIMISATION CRITIQUE: Mise à jour locale OPTIMISTE du compteur
       // Incrémenter IMMÉDIATEMENT dans le state local pour que l'UI se mette à jour
@@ -365,17 +389,22 @@ class ParticulierConversationsController
       updatedList[conversationIndex] = updatedConversation;
 
       if (mounted) {
+        debugPrint('   ✅ MISE À JOUR STATE: unreadCount ${conversation.unreadCount} → ${updatedConversation.unreadCount}');
         state = state.copyWith(conversations: updatedList);
+      } else {
+        debugPrint('   ❌ Provider not mounted - skip update');
       }
 
       // ✅ BACKGROUND: Incrémenter en DB en arrière-plan pour garantir la cohérence
       if (conversation.isRequester) {
         // On est le demandeur → incrémenter unread_count_for_user
+        debugPrint('   📤 Incrémentation DB: unread_count_for_user');
         _repository.incrementUnreadCountForUser(
           conversationId: conversationId,
         );
       } else {
         // On est le répondeur → incrémenter unread_count_for_seller
+        debugPrint('   📤 Incrémentation DB: unread_count_for_seller');
         _repository.incrementUnreadCountForSeller(
           conversationId: conversationId,
         );
@@ -384,7 +413,8 @@ class ParticulierConversationsController
       // ✅ BACKGROUND: Recharger depuis DB pour avoir les vraies valeurs (sans bloquer l'UI)
       _loadSingleConversationQuietly(conversationId);
     } catch (e) {
-      // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
+      // Logger l'erreur au lieu de l'ignorer silencieusement
+      debugPrint('   ❌ ERREUR dans _incrementUnreadCountForUserOnly: $e');
     }
   }
 
