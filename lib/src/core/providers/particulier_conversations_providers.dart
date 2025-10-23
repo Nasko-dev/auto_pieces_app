@@ -554,14 +554,14 @@ class ParticulierConversationsController
             }
           },
           (_) {
-            // Succès - nettoyer la protection puis recharger depuis DB pour synchroniser
+            // Succès - nettoyer la protection SANS recharger
             debugPrint('   ✅ Incrémentation DB réussie');
 
-            // ✅ FIX RACE CONDITION: Nettoyer la protection avant de recharger
+            // ✅ FIX: Ne PAS recharger immédiatement car ça écrase la valeur optimiste
+            // La valeur DB = valeur optimiste maintenant, donc pas besoin de reload
+            // Le polling fera la synchro plus tard si nécessaire
             _recentOptimisticIncrements.remove(conversationId);
-            debugPrint('   🔓 [Race Protection] Protection levée, rechargement autorisé');
-
-            _loadSingleConversationQuietly(conversationId);
+            debugPrint('   🔓 [Race Protection] Protection levée - valeur stable');
           },
         );
       });
