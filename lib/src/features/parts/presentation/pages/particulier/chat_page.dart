@@ -65,27 +65,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _messageController.text = widget.prefilledMessage!;
     }
 
-    // ✅ FIX: Charger l'ID particulier réel
-    _loadCurrentParticulierId();
+    // ✅ FIX: Charger d'abord l'ID particulier, PUIS les messages
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1. Charger les infos vendeur ET l'ID particulier (prioritaire)
+      await _loadSellerInfo();
 
-    // Charger les messages au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 2. Charger les messages (maintenant _currentParticulierId est disponible)
       ref
           .read(conversationsControllerProvider.notifier)
           .loadConversationMessages(widget.conversationId);
 
-      // ✅ SIMPLE: Marquer la conversation comme lue (remettre compteur local à 0)
+      // 3. Marquer la conversation comme lue (remettre compteur local à 0)
       Future.microtask(() {
         ref
             .read(particulierConversationsControllerProvider.notifier)
             .markConversationAsRead(widget.conversationId);
       });
 
-      // S'abonner aux messages en temps réel via RealtimeService
+      // 4. S'abonner aux messages en temps réel via RealtimeService
       _subscribeToRealtimeMessages();
-
-      // Charger les infos vendeur
-      _loadSellerInfo();
     });
   }
 
@@ -169,6 +167,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
       final currentParticulierId = currentParticulierResponse?['id'] as String?;
 
+      // ✅ FIX: Stocker l'ID particulier pour l'affichage des bulles de message
+      if (currentParticulierId != null && mounted) {
+        setState(() {
+          _currentParticulierId = currentParticulierId;
+        });
+        debugPrint('✅ [ChatPage] ID particulier stocké: $_currentParticulierId');
+      }
+
       // Déterminer qui est l'AUTRE personne (celle qu'on veut afficher)
       String otherPersonId;
       if (currentParticulierId == conversationUserId ||
@@ -246,34 +252,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _isLoadingSellerInfo = false;
         });
       }
-    }
-  }
-
-  // ✅ FIX: Charger l'ID particulier réel via device_id
-  Future<void> _loadCurrentParticulierId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final deviceService = DeviceService(prefs);
-      final deviceId = await deviceService.getDeviceId();
-
-      final particulierResponse = await Supabase.instance.client
-          .from('particuliers')
-          .select('id')
-          .eq('device_id', deviceId)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-
-      if (particulierResponse != null && mounted) {
-        setState(() {
-          _currentParticulierId = particulierResponse['id'] as String;
-        });
-        debugPrint('✅ [ChatPage] ID particulier chargé: $_currentParticulierId');
-      } else {
-        debugPrint('⚠️ [ChatPage] Aucun particulier trouvé pour device_id');
-      }
-    } catch (e) {
-      debugPrint('❌ [ChatPage] Erreur chargement ID particulier: $e');
     }
   }
 
