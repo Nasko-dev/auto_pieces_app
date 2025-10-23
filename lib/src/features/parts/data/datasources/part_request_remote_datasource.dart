@@ -1276,6 +1276,7 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
             created_at,
             updated_at,
             unread_count_for_user,
+            unread_count_for_seller,
             part_requests!inner(
               id,
               part_type,
