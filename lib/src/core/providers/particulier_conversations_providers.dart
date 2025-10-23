@@ -295,8 +295,35 @@ class ParticulierConversationsController
       (failure) => null,
       (conversations) {
         if (mounted) {
+          // ✅ FIX: Merge intelligent pour préserver les unreadCount optimistes
+          final mergedConversations = conversations.map((newConv) {
+            // Vérifier si cette conversation a une protection active
+            final lastIncrement = _recentOptimisticIncrements[newConv.id];
+            final hasRecentIncrement = lastIncrement != null &&
+                DateTime.now().difference(lastIncrement).inSeconds < 2;
+
+            if (hasRecentIncrement) {
+              // Trouver la conversation actuelle dans le state
+              final currentConv = state.conversations.firstWhere(
+                (c) => c.id == newConv.id,
+                orElse: () => newConv,
+              );
+
+              debugPrint('🔄 [Polling Merge] ${newConv.id}: préserver unreadCount optimiste=${currentConv.unreadCount}');
+
+              // Merger: prendre tout de la DB SAUF unreadCount
+              return newConv.copyWith(
+                unreadCount: currentConv.unreadCount,
+                hasUnreadMessages: currentConv.hasUnreadMessages,
+              );
+            }
+
+            // Pas de protection: prendre les données DB telles quelles
+            return newConv;
+          }).toList();
+
           state = state.copyWith(
-            conversations: conversations,
+            conversations: mergedConversations,
           );
         }
       },
