@@ -271,11 +271,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final isSendingMessage = ref.watch(isSendingMessageProvider);
     final error = ref.watch(conversationsErrorProvider);
 
-    // Auto-scroll quand de nouveaux messages arrivent
+    // ✅ FIX: Auto-scroll intelligent - seulement si déjà près du bas
     if (messages.length > _previousMessageCount) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          final position = _scrollController.position;
+          final maxScroll = position.maxScrollExtent;
+          final currentScroll = position.pixels;
+
+          // ✅ Scroll seulement si on est dans les 100px du bas (utilisateur suit la conversation)
+          // Sinon, l'utilisateur est en train de lire des anciens messages - ne pas déranger
+          const scrollThreshold = 100.0;
+          final isNearBottom = (maxScroll - currentScroll) < scrollThreshold;
+
+          if (isNearBottom) {
+            _scrollController.jumpTo(maxScroll);
+          }
         }
       });
       _previousMessageCount = messages.length;

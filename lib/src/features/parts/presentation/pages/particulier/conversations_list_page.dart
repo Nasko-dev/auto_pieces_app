@@ -11,6 +11,7 @@ import '../../../../../shared/presentation/widgets/app_menu.dart';
 import '../../../../../shared/presentation/widgets/unread_filter_chip.dart'
     show ConversationFilterChips;
 import '../../widgets/particulier/particulier_conversation_group_card.dart';
+import '../../../../parts/domain/entities/particulier_conversation_group.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -223,7 +224,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
   }
 
   Widget _buildTabBarView(
-      List demandesGroups, List annoncesGroups, bool isLoading, String? error) {
+      List<ParticulierConversationGroup> demandesGroups,
+      List<ParticulierConversationGroup> annoncesGroups,
+      bool isLoading,
+      String? error) {
     return TabBarView(
       controller: _tabController,
       children: [
@@ -236,19 +240,24 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
   }
 
   Widget _buildSingleList(
-      List conversationGroups, bool isLoading, String? error) {
+      List<ParticulierConversationGroup> conversationGroups,
+      bool isLoading,
+      String? error) {
     return _buildConversationList(
         _filterByUnread(conversationGroups), isLoading, error);
   }
 
-  List _filterByUnread(List groups) {
+  // ✅ FIX: Typage fort pour type safety
+  List<ParticulierConversationGroup> _filterByUnread(List<ParticulierConversationGroup> groups) {
     return _showOnlyUnread
         ? groups.where((group) => group.hasUnreadMessages).toList()
         : groups;
   }
 
   Widget _buildConversationList(
-      List conversationGroups, bool isLoading, String? error) {
+      List<ParticulierConversationGroup> conversationGroups,
+      bool isLoading,
+      String? error) {
     final state = ref.watch(particulierConversationsControllerProvider);
 
     // Afficher loading si en cours de chargement général OU si annonces en cours de chargement
@@ -260,7 +269,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingWidget(),
+            LoadingWidget(), // ✅ const via widget constructor
             SizedBox(height: 16),
             Text('Chargement de vos conversations...'),
           ],
@@ -306,6 +315,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
       );
     }
 
+    // ✅ FIX: Tous les widgets const pour optimisation
     if (conversationGroups.isEmpty) {
       return const Center(
         child: Column(
