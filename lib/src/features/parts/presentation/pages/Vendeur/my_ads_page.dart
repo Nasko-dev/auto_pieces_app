@@ -1185,6 +1185,10 @@ class _EditAdvertisementModalState extends ConsumerState<_EditAdvertisementModal
       return;
     }
 
+    // Capturer le context avant les appels async
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     // Sauvegarder via le controller
     final controller = ref.read(partAdvertisementControllerProvider.notifier);
     final success = await controller.updateAdvertisement(
@@ -1195,12 +1199,21 @@ class _EditAdvertisementModalState extends ConsumerState<_EditAdvertisementModal
     if (!mounted) return;
 
     if (success) {
-      Navigator.pop(context);
-      notificationService.success(context, 'Modifications enregistrées');
+      navigator.pop();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Modifications enregistrées'),
+          backgroundColor: AppTheme.success,
+          duration: Duration(seconds: 2),
+        ),
+      );
     } else {
-      notificationService.error(
-        context,
-        'Erreur lors de la sauvegarde',
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Erreur lors de la sauvegarde'),
+          backgroundColor: AppTheme.error,
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }

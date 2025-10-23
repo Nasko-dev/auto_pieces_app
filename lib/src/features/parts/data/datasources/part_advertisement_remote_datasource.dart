@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/device_service.dart';
@@ -141,7 +140,7 @@ class PartAdvertisementRemoteDataSourceImpl
 
       if (isAuthenticatedSeller) {
         // Vendeur authentifié: utiliser directement auth.uid()
-        userId = currentUser!.id;
+        userId = currentUser.id;
       } else {
         // Particulier non authentifié: utiliser device_id
         userId = particulierId ?? await getParticulierIdFromDeviceId();
