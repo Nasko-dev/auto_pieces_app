@@ -5,11 +5,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/presentation/widgets/seller_header.dart';
 import '../../../../../shared/presentation/widgets/seller_menu.dart';
+import '../../../../../shared/presentation/widgets/context_menu.dart';
 import '../../controllers/part_advertisement_controller.dart';
 import '../../controllers/part_request_controller.dart';
 import '../../../domain/entities/part_advertisement.dart';
 import '../../../domain/entities/part_request.dart';
 import '../../../../../core/services/notification_service.dart';
+import '../../../../../core/providers/providers.dart';
 
 part 'my_ads_page.freezed.dart';
 
@@ -41,23 +43,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     });
   }
 
-  String _selectedFilter = 'all';
-  // Variable supprimée car non utilisée
-
-  List<PartAdvertisement> get filteredAds {
-    final advertisements =
-        ref.watch(partAdvertisementControllerProvider).advertisements;
-
-    final filtered = switch (_selectedFilter) {
-      'active' => advertisements.where((ad) => ad.status == 'active').toList(),
-      'sold' => advertisements.where((ad) => ad.status == 'sold').toList(),
-      'paused' => advertisements.where((ad) => ad.status == 'paused').toList(),
-      _ => advertisements,
-    };
-
-    return filtered;
-  }
-
   List<PartRequest> get sellerRequests {
     final allRequests = ref.watch(partRequestControllerProvider).requests;
     final sellerRequests =
@@ -67,7 +52,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
 
   // Liste unifiée d'annonces et de demandes
   List<UnifiedItem> get unifiedItems {
-    final advertisements = filteredAds;
+    final advertisements = ref.watch(partAdvertisementControllerProvider).advertisements;
     final requests = sellerRequests;
 
     List<UnifiedItem> items = [];
@@ -120,65 +105,8 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 },
                 tooltip: 'Actualiser',
               ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline,
-                    color: AppTheme.darkGray),
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  // Navigation vers déposer une annonce
-                },
-                tooltip: 'Nouvelle annonce',
-              ),
               const SellerMenu(),
             ],
-          ),
-          // Filtres
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  const SizedBox(width: 4),
-                  _buildFilterChip(
-                      'Toutes',
-                      'all',
-                      ref
-                          .watch(partAdvertisementControllerProvider)
-                          .advertisements
-                          .length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                      'Actives',
-                      'active',
-                      ref
-                          .watch(partAdvertisementControllerProvider)
-                          .advertisements
-                          .where((a) => a.status == 'active')
-                          .length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                      'Vendues',
-                      'sold',
-                      ref
-                          .watch(partAdvertisementControllerProvider)
-                          .advertisements
-                          .where((a) => a.status == 'sold')
-                          .length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                      'Pausées',
-                      'paused',
-                      ref
-                          .watch(partAdvertisementControllerProvider)
-                          .advertisements
-                          .where((a) => a.status == 'paused')
-                          .length),
-                  const SizedBox(width: 4),
-                ],
-              ),
-            ),
           ),
 
           // Liste des annonces et demandes
@@ -223,7 +151,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                 }
 
                 // Check if both ads and requests are empty
-                if (filteredAds.isEmpty && sellerRequests.isEmpty) {
+                if (state.advertisements.isEmpty && sellerRequests.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -259,17 +187,6 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Section Annonces et Demandes
-                          Text(
-                            'Mes Annonces (${unifiedItems.length})',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.darkBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
                           // Liste unifiée des annonces et demandes
                           if (unifiedItems.isEmpty)
                             Container(
@@ -318,64 +235,7 @@ class _MyAdsPageState extends ConsumerState<MyAdsPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value, int count) {
-    final isSelected = _selectedFilter == value;
-
-    return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primaryBlue.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade300,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade600,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryBlue : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$count',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Méthodes supprimées car non utilisées (toggleAdStatus, markAsSold, showDeleteConfirmation, deleteAdvertisement)
+  // Méthodes supprimées car non utilisées (toggleAdStatus, markAsSold, showDeleteConfirmation, deleteAdvertisement, buildFilterChip)
 }
 
 // Widget unifié pour afficher une annonce ou une demande
@@ -399,81 +259,6 @@ class _AdvertisementCard extends ConsumerWidget {
   final PartAdvertisement advertisement;
 
   const _AdvertisementCard({required this.advertisement});
-
-  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
-    final buttonSize = button.size;
-
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(
-        position.dx + buttonSize.width - 160, // Aligner à droite du bouton
-        position.dy + buttonSize.height,
-        position.dx + buttonSize.width,
-        position.dy + buttonSize.height,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      items: [
-        // Bouton Modifier (fictif)
-        PopupMenuItem(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          onTap: () {
-            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
-            Future.delayed(Duration.zero, () {
-              if (context.mounted) {
-                notificationService.info(
-                  context,
-                  'Fonctionnalité à venir',
-                );
-              }
-            });
-          },
-          child: const Row(
-            children: [
-              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Modifier',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Bouton Supprimer
-        PopupMenuItem(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          onTap: () {
-            // Utiliser Future.delayed pour éviter le conflit avec Navigator.pop
-            Future.delayed(Duration.zero, () {
-              if (context.mounted) {
-                _showDeleteConfirmation(context, ref);
-              }
-            });
-          },
-          child: const Row(
-            children: [
-              Icon(Icons.delete_outline, color: Colors.red, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Supprimer',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -555,34 +340,19 @@ class _AdvertisementCard extends ConsumerWidget {
     );
   }
 
+  void _showEditModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return _EditAdvertisementModal(advertisement: advertisement);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    switch (advertisement.status) {
-      case 'active':
-        statusColor = AppTheme.success;
-        statusText = 'Active';
-        statusIcon = Icons.visibility;
-        break;
-      case 'sold':
-        statusColor = AppTheme.primaryBlue;
-        statusText = 'Vendue';
-        statusIcon = Icons.check_circle;
-        break;
-      case 'paused':
-        statusColor = AppTheme.warning;
-        statusText = 'Pausée';
-        statusIcon = Icons.pause_circle;
-        break;
-      default:
-        statusColor = AppTheme.gray;
-        statusText = 'Inconnue';
-        statusIcon = Icons.help;
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -600,12 +370,12 @@ class _AdvertisementCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge "ANNONCE" en haut à droite avec menu 3 points
+            // Titre avec menu 3 points
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    advertisement.partName,
+                    _buildVehicleInfo(advertisement),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -613,117 +383,45 @@ class _AdvertisementCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Badge ANNONCE
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.store, color: AppTheme.primaryBlue, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        'ANNONCE',
-                        style: TextStyle(
-                          color: AppTheme.primaryBlue,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Statut
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, color: statusColor, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusText,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 4),
                 // Menu 3 points
-                Builder(
-                  builder: (BuildContext buttonContext) {
-                    return IconButton(
-                      icon: Icon(Icons.more_vert,
-                          color: AppTheme.darkGray, size: 20),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        final button =
-                            buttonContext.findRenderObject() as RenderBox;
-                        _showOptionsMenu(context, ref, button);
-                      },
-                      tooltip: 'Options',
-                    );
-                  },
+                EditDeleteContextMenu(
+                  onEdit: () => _showEditModal(context, ref),
+                  onDelete: () => _showDeleteConfirmation(context, ref),
                 ),
               ],
             ),
 
             const SizedBox(height: 12),
 
-            // Prix et informations véhicule
-            Row(
-              children: [
-                Text(
-                  '${advertisement.price?.toStringAsFixed(0) ?? '0'}€',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryBlue,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _timeAgo(advertisement.createdAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // Informations véhicule
+            // Nom de la pièce
             Text(
-              _buildVehicleInfo(advertisement),
+              advertisement.partName,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
 
             const SizedBox(height: 12),
 
-            // Indicateur de stock
-            _buildStockIndicator(advertisement),
+            // Indicateur de stock et date
+            Row(
+              children: [
+                _buildStockIndicator(context, ref, advertisement),
+                const Spacer(),
+                Text(
+                  _timeAgo(advertisement.createdAt),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -731,6 +429,12 @@ class _AdvertisementCard extends ConsumerWidget {
   }
 
   String _buildVehicleInfo(PartAdvertisement ad) {
+    // Si un titre personnalisé existe, l'utiliser
+    if (ad.title != null && ad.title!.isNotEmpty) {
+      return ad.title!;
+    }
+
+    // Sinon, construire à partir des infos véhicule
     final parts = <String>[];
 
     if (ad.vehicleBrand != null && ad.vehicleBrand!.isNotEmpty) {
@@ -765,7 +469,7 @@ class _AdvertisementCard extends ConsumerWidget {
     }
   }
 
-  Widget _buildStockIndicator(PartAdvertisement ad) {
+  Widget _buildStockIndicator(BuildContext context, WidgetRef ref, PartAdvertisement ad) {
     Color stockColor;
     IconData stockIcon;
     String stockText;
@@ -796,49 +500,224 @@ class _AdvertisementCard extends ConsumerWidget {
         : 'En stock (${ad.availableQuantity})';
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: stockColor.withValues(alpha: 0.3),
-          width: 1,
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showStockStatusMenu(context, ref, ad);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: stockColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(stockIcon, color: stockColor, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              stockText,
+              style: TextStyle(
+                color: stockColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: stockColor,
+              size: 18,
+            ),
+            // Afficher info réservation si applicable
+            if (ad.reservedQuantity > 0 && ad.stockType != 'unlimited') ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${ad.reservedQuantity} réservé${ad.reservedQuantity > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    color: stockColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(stockIcon, color: stockColor, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            stockText,
-            style: TextStyle(
-              color: stockColor,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+    );
+  }
+
+  void _showStockStatusMenu(BuildContext context, WidgetRef ref, PartAdvertisement ad) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          // Afficher info réservation si applicable
-          if (ad.reservedQuantity > 0 && ad.stockType != 'unlimited') ...[
-            const SizedBox(width: 8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
+
+            // Titre
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Text(
-                '${ad.reservedQuantity} réservé${ad.reservedQuantity > 1 ? 's' : ''}',
-                style: TextStyle(
-                  color: stockColor,
-                  fontSize: 11,
+                'Modifier le statut',
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+
+            // Option: En stock
+            _buildStatusOption(
+              context: context,
+              icon: Icons.check_circle_outline,
+              label: 'En stock',
+              color: AppTheme.success,
+              isSelected: !ad.isOutOfStock && !ad.isLowStock,
+              onTap: () async {
+                Navigator.pop(context);
+                await _updateStockStatus(context, ref, ad, 'in_stock');
+              },
+            ),
+
+            const Divider(height: 1),
+
+            // Option: En attente
+            _buildStatusOption(
+              context: context,
+              icon: Icons.schedule,
+              label: 'En attente',
+              color: AppTheme.warning,
+              isSelected: ad.isLowStock,
+              onTap: () async {
+                Navigator.pop(context);
+                await _updateStockStatus(context, ref, ad, 'pending');
+              },
+            ),
+
+            const Divider(height: 1),
+
+            // Option: Épuisé
+            _buildStatusOption(
+              context: context,
+              icon: Icons.remove_circle_outline,
+              label: 'Épuisé',
+              color: AppTheme.error,
+              isSelected: ad.isOutOfStock,
+              onTap: () async {
+                Navigator.pop(context);
+                await _updateStockStatus(context, ref, ad, 'out_of_stock');
+              },
+            ),
+
+            const SizedBox(height: 20),
           ],
-        ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateStockStatus(
+    BuildContext context,
+    WidgetRef ref,
+    PartAdvertisement ad,
+    String status,
+  ) async {
+    Map<String, dynamic> updates = {};
+    String successMessage = '';
+
+    // Déterminer la quantité selon le statut
+    if (status == 'in_stock') {
+      // En stock : quantité supérieure au seuil
+      final newQuantity = (ad.lowStockThreshold + 5).clamp(1, 999);
+      updates['quantity'] = newQuantity;
+      successMessage = 'Statut mis à jour: En stock';
+    } else if (status == 'pending') {
+      // En attente : quantité égale au seuil (low stock)
+      updates['quantity'] = ad.lowStockThreshold;
+      successMessage = 'Statut mis à jour: En attente';
+    } else if (status == 'out_of_stock') {
+      // Épuisé : quantité = 0
+      updates['quantity'] = 0;
+      successMessage = 'Statut mis à jour: Épuisé';
+    }
+
+    // Mettre à jour via le controller
+    final controller = ref.read(partAdvertisementControllerProvider.notifier);
+    final success = await controller.updateAdvertisement(ad.id, updates);
+
+    if (!context.mounted) return;
+
+    if (success) {
+      notificationService.success(context, successMessage);
+    } else {
+      notificationService.error(
+        context,
+        'Erreur lors de la mise à jour du statut',
+      );
+    }
+  }
+
+  Widget _buildStatusOption({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? color : AppTheme.darkGray,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check, color: color, size: 24),
+          ],
+        ),
       ),
     );
   }
@@ -849,79 +728,6 @@ class _RequestCard extends ConsumerWidget {
   final PartRequest request;
 
   const _RequestCard({required this.request});
-
-  void _showOptionsMenu(BuildContext context, WidgetRef ref, RenderBox button) {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final position = button.localToGlobal(Offset.zero, ancestor: overlay);
-    final buttonSize = button.size;
-
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(
-        position.dx + buttonSize.width - 160,
-        position.dy + buttonSize.height,
-        position.dx + buttonSize.width,
-        position.dy + buttonSize.height,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      items: [
-        // Bouton Modifier (fictif)
-        PopupMenuItem(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          onTap: () {
-            Future.delayed(Duration.zero, () {
-              if (context.mounted) {
-                notificationService.info(
-                  context,
-                  'Fonctionnalité à venir',
-                );
-              }
-            });
-          },
-          child: const Row(
-            children: [
-              Icon(Icons.edit_outlined, color: AppTheme.primaryBlue, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Modifier',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Bouton Supprimer
-        PopupMenuItem(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          onTap: () {
-            Future.delayed(Duration.zero, () {
-              if (context.mounted) {
-                _showDeleteConfirmation(context, ref);
-              }
-            });
-          },
-          child: const Row(
-            children: [
-              Icon(Icons.delete_outline, color: Colors.red, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Supprimer',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -1063,22 +869,14 @@ class _RequestCard extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               // Menu 3 points
-              Builder(
-                builder: (BuildContext buttonContext) {
-                  return IconButton(
-                    icon: Icon(Icons.more_vert,
-                        color: AppTheme.darkGray, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      final button =
-                          buttonContext.findRenderObject() as RenderBox;
-                      _showOptionsMenu(context, ref, button);
-                    },
-                    tooltip: 'Options',
+              EditDeleteContextMenu(
+                onEdit: () {
+                  notificationService.info(
+                    context,
+                    'Fonctionnalité à venir',
                   );
                 },
+                onDelete: () => _showDeleteConfirmation(context, ref),
               ),
             ],
           ),
@@ -1145,5 +943,800 @@ class _RequestCard extends ConsumerWidget {
     } else {
       return '${difference.inMinutes}min';
     }
+  }
+}
+
+// Modal d'édition style iOS
+class _EditAdvertisementModal extends ConsumerStatefulWidget {
+  final PartAdvertisement advertisement;
+
+  const _EditAdvertisementModal({required this.advertisement});
+
+  @override
+  ConsumerState<_EditAdvertisementModal> createState() => _EditAdvertisementModalState();
+}
+
+class _EditAdvertisementModalState extends ConsumerState<_EditAdvertisementModal> {
+  late TextEditingController _titleController;
+  late TextEditingController _searchController;
+  final FocusNode _searchFocusNode = FocusNode();
+  final List<String> _selectedParts = [];
+  List<String> _suggestions = [];
+  bool _showSuggestions = false;
+  bool _isSearching = false;
+  late int _initialPartsCount;
+  late List<String> _initialParts;
+  late List<String> _initialSelectedParts; // État initial de _selectedParts
+  late String _initialTitle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialiser avec les infos du véhicule comme titre par défaut
+    final vehicleInfo = _buildVehicleInfo(widget.advertisement);
+    _initialTitle = vehicleInfo;
+    _titleController = TextEditingController(text: vehicleInfo);
+    _searchController = TextEditingController();
+
+    _searchController.addListener(_onSearchChanged);
+    _searchFocusNode.addListener(() {
+      if (!_searchFocusNode.hasFocus && mounted) {
+        setState(() {
+          _showSuggestions = false;
+        });
+      }
+    });
+
+    // Initialiser avec les pièces du partName actuel
+    if (widget.advertisement.partName.isNotEmpty) {
+      final partNameLower = widget.advertisement.partName.toLowerCase();
+
+      // Détecter si c'est une catégorie large (moteur complet, ensemble, kit, etc.)
+      final isLargeCategory = partNameLower.contains('complet') ||
+          partNameLower.contains('ensemble') ||
+          partNameLower.contains('kit') ||
+          partNameLower.contains('tout') ||
+          partNameLower.contains('intégral') ||
+          partNameLower.contains('total');
+
+      if (isLargeCategory) {
+        // Pour les catégories larges : NE PAS afficher le nom comme chip
+        // Forcer l'input de recherche pour sélectionner les pièces spécifiques
+        _initialParts = [];
+        _initialPartsCount = 999; // Force l'affichage de l'input
+        _initialSelectedParts = [];
+        // Ne pas pré-remplir _selectedParts
+      } else {
+        // Pour les annonces normales : parser le part_name
+        final parsedParts = widget.advertisement.partName
+            .split(',')
+            .map((p) => p.trim())
+            .where((p) => p.isNotEmpty)
+            .toList();
+
+        // _initialParts contient TOUJOURS les pièces du partName (pour l'affichage)
+        _initialParts = parsedParts;
+        _initialPartsCount = _initialParts.length;
+
+        // Mais _selectedParts ne contient que les pièces disponibles (quantity > 0)
+        if (widget.advertisement.quantity != null && widget.advertisement.quantity! > 0) {
+          _selectedParts.addAll(_initialParts);
+        } else {
+          // _selectedParts reste vide = toutes les pièces décochées
+        }
+
+        // Mémoriser l'état initial de _selectedParts pour la comparaison
+        _initialSelectedParts = List.from(_selectedParts);
+      }
+    } else {
+      _initialParts = [];
+      _initialPartsCount = 0;
+      _initialSelectedParts = [];
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() async {
+    final query = _searchController.text.trim();
+
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _showSuggestions = true;
+    });
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final response = await supabase.rpc(
+        'search_parts',
+        params: {
+          'search_query': query,
+          'filter_category': null,
+          'limit_results': 10,
+        },
+      );
+
+      if (response != null && mounted) {
+        final parts = (response as List)
+            .cast<Map<String, dynamic>>()
+            .map((data) => data['name'] as String?)
+            .where((name) => name != null && name.isNotEmpty)
+            .cast<String>()
+            .toList();
+
+        setState(() {
+          _suggestions = parts;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _isSearching = false;
+        });
+      }
+    }
+  }
+
+  void _addPart(String part) {
+    if (!_selectedParts.contains(part)) {
+      setState(() {
+        _selectedParts.add(part);
+        _searchController.clear();
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      HapticFeedback.mediumImpact();
+      _searchFocusNode.unfocus();
+    }
+  }
+
+  String _buildVehicleInfo(PartAdvertisement ad) {
+    // Si un titre personnalisé existe, l'utiliser
+    if (ad.title != null && ad.title!.isNotEmpty) {
+      return ad.title!;
+    }
+
+    // Sinon, construire à partir des infos véhicule
+    final parts = <String>[];
+    if (ad.vehicleBrand != null && ad.vehicleBrand!.isNotEmpty) {
+      parts.add(ad.vehicleBrand!);
+    }
+    if (ad.vehicleModel != null && ad.vehicleModel!.isNotEmpty) {
+      parts.add(ad.vehicleModel!);
+    }
+    if (ad.vehicleYear != null) {
+      parts.add(ad.vehicleYear.toString());
+    }
+    if (ad.vehicleEngine != null && ad.vehicleEngine!.isNotEmpty) {
+      parts.add(ad.vehicleEngine!);
+    }
+    return parts.isNotEmpty ? parts.join(' ') : 'Véhicule non spécifié';
+  }
+
+  Future<void> _saveAdvertisementChanges(BuildContext context, WidgetRef ref) async {
+    // Préparer les updates
+    Map<String, dynamic> updates = {};
+
+    // Debug: afficher l'état actuel
+    // Vérifier si le titre a changé
+    final currentTitle = _titleController.text.trim();
+    final hasTitleChanged = currentTitle != _initialTitle && currentTitle.isNotEmpty;
+
+    if (hasTitleChanged) {
+      // Sauvegarder le titre personnalisé dans le champ title
+      updates['title'] = currentTitle;
+    }
+
+    // Vérifier si les pièces ont changé (comparer avec l'état INITIAL de _selectedParts)
+    final selectedPartsSorted = _selectedParts.toList()..sort();
+    final initialSelectedPartsSorted = _initialSelectedParts.toList()..sort();
+
+    final hasPartsChanged = selectedPartsSorted.length != initialSelectedPartsSorted.length ||
+        !selectedPartsSorted.every((part) => initialSelectedPartsSorted.contains(part));
+
+    if (hasPartsChanged) {
+      if (_initialPartsCount < 5) {
+        // Cas < 5 pièces : mettre à jour avec les pièces encore disponibles (cochées)
+        if (_selectedParts.isNotEmpty) {
+          updates['part_name'] = _selectedParts.join(', ');
+          // Mettre à jour la quantity selon le nombre de pièces sélectionnées
+          final currentQuantity = widget.advertisement.quantity ?? 0;
+          if (currentQuantity == 0 || _selectedParts.length != _initialSelectedParts.length) {
+            updates['quantity'] = _selectedParts.length;
+          }
+        } else {
+          // Toutes les pièces ont été vendues, marquer comme épuisé
+          updates['part_name'] = widget.advertisement.partName; // Garder le nom original
+          updates['quantity'] = 0; // Marquer comme épuisé
+        }
+      } else {
+        // Cas >= 5 pièces : les pièces sélectionnées sont celles vendues
+        // On met à jour pour indiquer les pièces vendues
+        if (_selectedParts.isNotEmpty) {
+          // Créer une note des pièces vendues dans le part_name
+          final soldPartsText = 'Pièces vendues: ${_selectedParts.join(', ')}';
+          updates['part_name'] = '${widget.advertisement.partName} ($soldPartsText)';
+        }
+      }
+    }
+
+    // Si aucune modification, fermer simplement
+    if (updates.isEmpty) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      notificationService.info(context, 'Aucune modification à enregistrer');
+      return;
+    }
+
+    // Sauvegarder via le controller
+    final controller = ref.read(partAdvertisementControllerProvider.notifier);
+    final success = await controller.updateAdvertisement(
+      widget.advertisement.id,
+      updates,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context);
+      notificationService.success(context, 'Modifications enregistrées');
+    } else {
+      notificationService.error(
+        context,
+        'Erreur lors de la sauvegarde',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        color: Colors.transparent,
+        child: GestureDetector(
+          onTap: () {}, // Empêche la fermeture en tapant sur le contenu
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.8,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            builder: (_, controller) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Handle (barre de glissement)
+                    Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text(
+                              'Annuler',
+                              style: TextStyle(
+                                color: AppTheme.error,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          const Text(
+                            'Modifier l\'annonce',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () async {
+                              HapticFeedback.mediumImpact();
+                              await _saveAdvertisementChanges(context, ref);
+                            },
+                            child: const Text(
+                              'Enregistrer',
+                              style: TextStyle(
+                                color: AppTheme.primaryBlue,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Divider(height: 1),
+
+                    // Contenu scrollable
+                    Expanded(
+                      child: ListView(
+                        controller: controller,
+                        padding: const EdgeInsets.all(20),
+                        children: [
+                          // Section Titre
+                          const Text(
+                            'Titre de l\'annonce',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.darkBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _titleController,
+                            decoration: InputDecoration(
+                              hintText: 'Ex: Renault Clio 2015 1.5 dCi',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppTheme.primaryBlue,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          // Section Pièces - Affichage conditionnel
+                          Text(
+                            _initialPartsCount < 5
+                                ? 'Veuillez décocher les pièces que vous avez vendues'
+                                : 'Veuillez sélectionner les pièces que vous avez vendues',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.darkBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Cas 1: Moins de 5 pièces - Afficher seulement les pièces initiales
+                          if (_initialPartsCount < 5) ...[
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _initialParts.map((part) {
+                                final isSelected = _selectedParts.contains(part);
+                                return GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedParts.remove(part);
+                                      } else {
+                                        _selectedParts.add(part);
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.success.withValues(alpha: 0.1)
+                                          : Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.success
+                                            : Colors.grey[300]!,
+                                        width: isSelected ? 2 : 1.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isSelected)
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: 6),
+                                            child: Icon(
+                                              Icons.check_circle,
+                                              size: 16,
+                                              color: AppTheme.success,
+                                            ),
+                                          ),
+                                        Flexible(
+                                          child: Text(
+                                            part,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? AppTheme.success
+                                                  : AppTheme.darkGray,
+                                              fontSize: 14,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          isSelected ? Icons.expand_less : Icons.expand_more,
+                                          size: 16,
+                                          color: isSelected
+                                              ? AppTheme.success
+                                              : Colors.grey[600],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+
+                          // Cas 2: 5 pièces ou plus - Afficher l'input de recherche
+                          if (_initialPartsCount >= 5) ...[
+                            // Champ de recherche Supabase
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextField(
+                                  controller: _searchController,
+                                  focusNode: _searchFocusNode,
+                                  decoration: InputDecoration(
+                                    hintText: 'Rechercher une pièce...',
+                                    prefixIcon: const Icon(
+                                      Icons.search,
+                                      color: AppTheme.primaryBlue,
+                                    ),
+                                    suffixIcon: _isSearching
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(12.0),
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                  AppTheme.primaryBlue,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        : _searchController.text.isNotEmpty
+                                            ? IconButton(
+                                                icon: const Icon(Icons.clear),
+                                                onPressed: () {
+                                                  _searchController.clear();
+                                                  setState(() {
+                                                    _suggestions = [];
+                                                    _showSuggestions = false;
+                                                  });
+                                                },
+                                              )
+                                            : null,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                        color: AppTheme.primaryBlue,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey[50],
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+
+                                // Liste des suggestions
+                                if (_showSuggestions && _suggestions.isNotEmpty)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey[300]!,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      maxHeight: 250,
+                                    ),
+                                    child: ListView.separated(
+                                      shrinkWrap: true,
+                                      itemCount: _suggestions.length,
+                                      separatorBuilder: (context, index) => Divider(
+                                        height: 1,
+                                        color: Colors.grey[200],
+                                      ),
+                                      itemBuilder: (context, index) {
+                                        final suggestion = _suggestions[index];
+                                        final isAlreadySelected = _selectedParts.contains(suggestion);
+
+                                        return ListTile(
+                                          dense: true,
+                                          title: Text(
+                                            suggestion,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: isAlreadySelected
+                                                  ? Colors.grey[400]
+                                                  : Colors.black87,
+                                              fontWeight: isAlreadySelected
+                                                  ? FontWeight.w400
+                                                  : FontWeight.w500,
+                                            ),
+                                          ),
+                                          trailing: isAlreadySelected
+                                              ? Icon(
+                                                  Icons.check_circle,
+                                                  color: AppTheme.success,
+                                                  size: 20,
+                                                )
+                                              : const Icon(
+                                                  Icons.add_circle_outline,
+                                                  color: AppTheme.primaryBlue,
+                                                  size: 20,
+                                                ),
+                                          onTap: isAlreadySelected
+                                              ? null
+                                              : () => _addPart(suggestion),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+
+                          // Pièces vendues/épuisées - Affichage conditionnel
+                          // Pour < 5 pièces : afficher les pièces DÉCOCHÉES (vendues)
+                          // Pour >= 5 pièces : afficher les pièces AJOUTÉES (vendues)
+                          if (_initialPartsCount < 5) ...[
+                            // Cas < 5 : Afficher les pièces décochées
+                            () {
+                              final soldParts = _initialParts.where((part) => !_selectedParts.contains(part)).toList();
+                              if (soldParts.isNotEmpty) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      'Pièces vendues (${soldParts.length})',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: soldParts.map((part) {
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.error.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: AppTheme.error,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.remove_circle,
+                                                size: 14,
+                                                color: AppTheme.error,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  part,
+                                                  style: const TextStyle(
+                                                    color: AppTheme.error,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }(),
+                          ] else if (_initialPartsCount >= 5 && _selectedParts.isNotEmpty) ...[
+                            // Cas >= 5 : Afficher les pièces ajoutées
+                            const SizedBox(height: 24),
+                            Text(
+                              'Pièces vendues (${_selectedParts.length})',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _selectedParts.map((part) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.error.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppTheme.error,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.remove_circle,
+                                        size: 14,
+                                        color: AppTheme.error,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          part,
+                                          style: const TextStyle(
+                                            color: AppTheme.error,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          setState(() {
+                                            _selectedParts.remove(part);
+                                          });
+                                        },
+                                        child: const Icon(
+                                          Icons.close,
+                                          size: 16,
+                                          color: AppTheme.error,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+
+                          const SizedBox(height: 32),
+
+                          // Info sélection
+                          if (_selectedParts.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline,
+                                    color: AppTheme.primaryBlue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '${_selectedParts.length} pièce${_selectedParts.length > 1 ? 's' : ''} sélectionnée${_selectedParts.length > 1 ? 's' : ''}',
+                                      style: const TextStyle(
+                                        color: AppTheme.primaryBlue,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 }

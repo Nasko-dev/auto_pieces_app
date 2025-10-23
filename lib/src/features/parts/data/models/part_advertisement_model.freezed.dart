@@ -25,6 +25,7 @@ mixin _$PartAdvertisementModel {
   String get userId => throw _privateConstructorUsedError;
   String get partType => throw _privateConstructorUsedError;
   String get partName => throw _privateConstructorUsedError;
+  String? get title => throw _privateConstructorUsedError;
   String? get vehiclePlate => throw _privateConstructorUsedError;
   String? get vehicleBrand => throw _privateConstructorUsedError;
   String? get vehicleModel => throw _privateConstructorUsedError;
@@ -77,6 +78,7 @@ abstract class $PartAdvertisementModelCopyWith<$Res> {
       String userId,
       String partType,
       String partName,
+      String? title,
       String? vehiclePlate,
       String? vehicleBrand,
       String? vehicleModel,
@@ -128,6 +130,7 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
     Object? userId = null,
     Object? partType = null,
     Object? partName = null,
+    Object? title = freezed,
     Object? vehiclePlate = freezed,
     Object? vehicleBrand = freezed,
     Object? vehicleModel = freezed,
@@ -175,6 +178,10 @@ class _$PartAdvertisementModelCopyWithImpl<$Res,
           ? _value.partName
           : partName // ignore: cast_nullable_to_non_nullable
               as String,
+      title: freezed == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String?,
       vehiclePlate: freezed == vehiclePlate
           ? _value.vehiclePlate
           : vehiclePlate // ignore: cast_nullable_to_non_nullable
@@ -309,6 +316,7 @@ abstract class _$$PartAdvertisementModelImplCopyWith<$Res>
       String userId,
       String partType,
       String partName,
+      String? title,
       String? vehiclePlate,
       String? vehicleBrand,
       String? vehicleModel,
@@ -359,6 +367,7 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? partType = null,
     Object? partName = null,
+    Object? title = freezed,
     Object? vehiclePlate = freezed,
     Object? vehicleBrand = freezed,
     Object? vehicleModel = freezed,
@@ -406,6 +415,10 @@ class __$$PartAdvertisementModelImplCopyWithImpl<$Res>
           ? _value.partName
           : partName // ignore: cast_nullable_to_non_nullable
               as String,
+      title: freezed == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String?,
       vehiclePlate: freezed == vehiclePlate
           ? _value.vehiclePlate
           : vehiclePlate // ignore: cast_nullable_to_non_nullable
@@ -534,6 +547,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
       required this.userId,
       required this.partType,
       required this.partName,
+      this.title,
       this.vehiclePlate,
       this.vehicleBrand,
       this.vehicleModel,
@@ -577,6 +591,8 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
   final String partType;
   @override
   final String partName;
+  @override
+  final String? title;
   @override
   final String? vehiclePlate;
   @override
@@ -656,7 +672,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
 
   @override
   String toString() {
-    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, stockType: $stockType, quantity: $quantity, initialQuantity: $initialQuantity, soldQuantity: $soldQuantity, reservedQuantity: $reservedQuantity, lowStockThreshold: $lowStockThreshold, autoDisableWhenEmpty: $autoDisableWhenEmpty, stockAlertEnabled: $stockAlertEnabled, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
+    return 'PartAdvertisementModel(id: $id, userId: $userId, partType: $partType, partName: $partName, title: $title, vehiclePlate: $vehiclePlate, vehicleBrand: $vehicleBrand, vehicleModel: $vehicleModel, vehicleYear: $vehicleYear, vehicleEngine: $vehicleEngine, description: $description, price: $price, condition: $condition, images: $images, status: $status, isNegotiable: $isNegotiable, contactPhone: $contactPhone, contactEmail: $contactEmail, city: $city, zipCode: $zipCode, department: $department, viewCount: $viewCount, contactCount: $contactCount, stockType: $stockType, quantity: $quantity, initialQuantity: $initialQuantity, soldQuantity: $soldQuantity, reservedQuantity: $reservedQuantity, lowStockThreshold: $lowStockThreshold, autoDisableWhenEmpty: $autoDisableWhenEmpty, stockAlertEnabled: $stockAlertEnabled, createdAt: $createdAt, updatedAt: $updatedAt, expiresAt: $expiresAt)';
   }
 
   @override
@@ -670,6 +686,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
                 other.partType == partType) &&
             (identical(other.partName, partName) ||
                 other.partName == partName) &&
+            (identical(other.title, title) || other.title == title) &&
             (identical(other.vehiclePlate, vehiclePlate) ||
                 other.vehiclePlate == vehiclePlate) &&
             (identical(other.vehicleBrand, vehicleBrand) ||
@@ -733,6 +750,7 @@ class _$PartAdvertisementModelImpl extends _PartAdvertisementModel {
         userId,
         partType,
         partName,
+        title,
         vehiclePlate,
         vehicleBrand,
         vehicleModel,
@@ -787,6 +805,7 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
       required final String userId,
       required final String partType,
       required final String partName,
+      final String? title,
       final String? vehiclePlate,
       final String? vehicleBrand,
       final String? vehicleModel,
@@ -829,6 +848,8 @@ abstract class _PartAdvertisementModel extends PartAdvertisementModel {
   String get partType;
   @override
   String get partName;
+  @override
+  String? get title;
   @override
   String? get vehiclePlate;
   @override

@@ -5,6 +5,7 @@ class PartAdvertisement extends Equatable {
   final String userId;
   final String partType; // 'moteur', 'carrosserie', 'lesdeux'
   final String partName;
+  final String? title; // Titre personnalisé (optionnel)
   final String? vehiclePlate;
   final String? vehicleBrand;
   final String? vehicleModel;
@@ -34,6 +35,7 @@ class PartAdvertisement extends Equatable {
     required this.userId,
     required this.partType,
     required this.partName,
+    this.title,
     this.vehiclePlate,
     this.vehicleBrand,
     this.vehicleModel,
@@ -61,6 +63,7 @@ class PartAdvertisement extends Equatable {
     String? userId,
     String? partType,
     String? partName,
+    String? title,
     String? vehiclePlate,
     String? vehicleBrand,
     String? vehicleModel,
@@ -87,6 +90,7 @@ class PartAdvertisement extends Equatable {
       userId: userId ?? this.userId,
       partType: partType ?? this.partType,
       partName: partName ?? this.partName,
+      title: title ?? this.title,
       vehiclePlate: vehiclePlate ?? this.vehiclePlate,
       vehicleBrand: vehicleBrand ?? this.vehicleBrand,
       vehicleModel: vehicleModel ?? this.vehicleModel,
@@ -116,6 +120,7 @@ class PartAdvertisement extends Equatable {
         userId,
         partType,
         partName,
+        title,
         vehiclePlate,
         vehicleBrand,
         vehicleModel,
