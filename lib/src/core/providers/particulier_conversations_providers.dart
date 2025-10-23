@@ -306,14 +306,14 @@ class ParticulierConversationsController
   // ✅ OPTIMISATION: Charger seulement une conversation spécifique
   Future<void> _loadSingleConversationQuietly(String conversationId) async {
     try {
-      // ✅ FIX RACE CONDITION: Ne pas recharger si incrémentation optimiste récente
+      // ✅ FIX RACE CONDITION: Vérifier si incrémentation optimiste en cours
       final lastIncrement = _recentOptimisticIncrements[conversationId];
-      if (lastIncrement != null) {
-        final timeSinceIncrement = DateTime.now().difference(lastIncrement);
-        if (timeSinceIncrement.inSeconds < 2) {
-          debugPrint('⏭️ [_loadSingleConversationQuietly] Skip reload - incrémentation optimiste récente (${timeSinceIncrement.inMilliseconds}ms)');
-          return;
-        }
+      final hasRecentIncrement = lastIncrement != null &&
+          DateTime.now().difference(lastIncrement).inSeconds < 2;
+
+      if (hasRecentIncrement) {
+        debugPrint('🔄 [_loadSingleConversationQuietly] Protection active - merge intelligent des données');
+      } else if (lastIncrement != null) {
         // Nettoyer l'entrée expirée
         _recentOptimisticIncrements.remove(conversationId);
       }
@@ -324,9 +324,29 @@ class ParticulierConversationsController
         (failure) => null,
         (updatedConversation) {
           if (mounted) {
+            // ✅ FIX: Merger intelligent si protection active
+            ParticulierConversation finalConversation = updatedConversation;
+
+            if (hasRecentIncrement) {
+              // Préserver le unreadCount optimiste de la conversation actuelle
+              final currentConv = state.conversations.firstWhere(
+                (c) => c.id == conversationId,
+                orElse: () => updatedConversation,
+              );
+
+              debugPrint('   🔀 Merge: DB unreadCount=${updatedConversation.unreadCount}, Local unreadCount=${currentConv.unreadCount}');
+              debugPrint('   ✅ Conservation du unreadCount local (optimiste)');
+
+              // Prendre toutes les données de la DB SAUF le unreadCount
+              finalConversation = updatedConversation.copyWith(
+                unreadCount: currentConv.unreadCount,
+                hasUnreadMessages: currentConv.hasUnreadMessages,
+              );
+            }
+
             // Mettre à jour seulement cette conversation dans la liste
             final updatedList = state.conversations.map((conv) {
-              return conv.id == conversationId ? updatedConversation : conv;
+              return conv.id == conversationId ? finalConversation : conv;
             }).toList();
 
             state = state.copyWith(conversations: updatedList);
