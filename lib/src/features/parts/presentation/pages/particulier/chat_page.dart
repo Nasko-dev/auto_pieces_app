@@ -49,6 +49,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Map<String, dynamic>? _sellerInfo;
   bool _isLoadingSellerInfo = false;
 
+  // ✅ FIX: Stocker l'ID particulier réel pour comparaison avec senderId
+  String? _currentParticulierId;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +64,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (widget.prefilledMessage != null) {
       _messageController.text = widget.prefilledMessage!;
     }
+
+    // ✅ FIX: Charger l'ID particulier réel
+    _loadCurrentParticulierId();
 
     // Charger les messages au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -240,6 +246,34 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _isLoadingSellerInfo = false;
         });
       }
+    }
+  }
+
+  // ✅ FIX: Charger l'ID particulier réel via device_id
+  Future<void> _loadCurrentParticulierId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      final particulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (particulierResponse != null && mounted) {
+        setState(() {
+          _currentParticulierId = particulierResponse['id'] as String;
+        });
+        debugPrint('✅ [ChatPage] ID particulier chargé: $_currentParticulierId');
+      } else {
+        debugPrint('⚠️ [ChatPage] Aucun particulier trouvé pour device_id');
+      }
+    } catch (e) {
+      debugPrint('❌ [ChatPage] Erreur chargement ID particulier: $e');
     }
   }
 
@@ -478,8 +512,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               MessageBubbleWidget(
                 message: message,
                 currentUserType: MessageSenderType.user, // Côté particulier
-                currentUserId:
-                    Supabase.instance.client.auth.currentUser?.id ?? '',
+                currentUserId: _currentParticulierId ?? '',
                 isLastMessage: isLastMessage,
                 otherUserName: _getSellerDisplayName(conversation),
                 otherUserAvatarUrl: _sellerInfo?['avatar_url'],
