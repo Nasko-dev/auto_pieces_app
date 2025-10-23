@@ -1448,13 +1448,24 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .eq('id', conversationId)
           .single();
 
-      final conversationUserId = conversation['user_id'];
+      final conversationUserId = conversation['user_id'] as String;
+      final conversationSellerId = conversation['seller_id'] as String;
       final isRequester = allUserIds.contains(conversationUserId);
+
+      // ✅ FIX CRITIQUE: Utiliser l'ID particulier réel, pas l'auth ID
+      // Si on est le demandeur (user_id) → sender_id = conversationUserId
+      // Si on est le répondeur (seller_id) → sender_id = conversationSellerId
+      final String actualSenderId = isRequester ? conversationUserId : conversationSellerId;
+
+      debugPrint('📤 [sendParticulierMessage] Envoi message:');
+      debugPrint('   Auth ID: ${currentUser.id}');
+      debugPrint('   ID Particulier utilisé: $actualSenderId');
+      debugPrint('   isRequester: $isRequester');
 
       // Préparer les données du message
       final messageData = {
         'conversation_id': conversationId,
-        'sender_id': currentUser.id,
+        'sender_id': actualSenderId,  // ✅ ID particulier au lieu de l'auth ID
         'sender_type':
             'user', // Le particulier envoie toujours en tant que 'user'
         'content': content,
