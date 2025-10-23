@@ -154,18 +154,28 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final conversationUserId = convResponse['user_id'] as String;
       final conversationSellerId = convResponse['seller_id'] as String;
 
-      // Déterminer qui est l'utilisateur actuel (vous) via device_id
+      // ✅ FIX: Récupérer TOUS les particuliers avec ce device_id (peut y en avoir plusieurs)
       final prefs = await SharedPreferences.getInstance();
       final deviceService = DeviceService(prefs);
       final deviceId = await deviceService.getDeviceId();
 
-      final currentParticulierResponse = await Supabase.instance.client
+      final allParticuliersWithDevice = await Supabase.instance.client
           .from('particuliers')
           .select('id')
-          .eq('device_id', deviceId)
-          .maybeSingle();
+          .eq('device_id', deviceId);
 
-      final currentParticulierId = currentParticulierResponse?['id'] as String?;
+      final allUserIds =
+          allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+      // Prendre le premier ID trouvé (ou le user_id/seller_id de la conversation)
+      String? currentParticulierId;
+      if (allUserIds.contains(conversationUserId)) {
+        currentParticulierId = conversationUserId;
+      } else if (allUserIds.contains(conversationSellerId)) {
+        currentParticulierId = conversationSellerId;
+      } else if (allUserIds.isNotEmpty) {
+        currentParticulierId = allUserIds.first;
+      }
 
       // ✅ FIX: Stocker l'ID particulier pour l'affichage des bulles de message
       if (currentParticulierId != null && mounted) {
