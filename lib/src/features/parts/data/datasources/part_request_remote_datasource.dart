@@ -1421,17 +1421,54 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Vérifier si l'utilisateur actuel est un vendeur
-      final isSeller = await _checkIfUserIsSeller(currentUser.id);
+      // ✅ FIX: Déterminer le rôle DANS CETTE CONVERSATION (pas dans la table sellers)
+      // Récupérer tous les IDs du particulier (device_id + auth_id)
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Récupérer les infos de la conversation pour déterminer notre rôle
+      final conversation = await _supabase
+          .from('conversations')
+          .select('user_id, seller_id')
+          .eq('id', conversationId)
+          .single();
+
+      final conversationUserId = conversation['user_id'];
+
+      // ✅ Déterminer notre rôle dans CETTE conversation
+      bool isRequester = allUserIds.contains(conversationUserId);
 
       Map<String, dynamic> updateData = {};
 
-      if (isSeller) {
-        // Si c'est un vendeur qui lit, reset unread_count_for_seller
-        updateData['unread_count_for_seller'] = 0;
-      } else {
-        // Si c'est un particulier qui lit, reset unread_count_for_user
+      if (isRequester) {
+        // On est le demandeur (user_id) → reset unread_count_for_user
         updateData['unread_count_for_user'] = 0;
+      } else {
+        // On est le répondeur (seller_id) → reset unread_count_for_seller
+        updateData['unread_count_for_seller'] = 0;
       }
 
       await _supabase
@@ -1605,18 +1642,4 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
     }
   }
 
-  Future<bool> _checkIfUserIsSeller(String userId) async {
-    try {
-      final sellerResponse = await _supabase
-          .from('sellers')
-          .select('id')
-          .eq('id', userId)
-          .limit(1);
-
-      final isSeller = sellerResponse.isNotEmpty;
-      return isSeller;
-    } catch (e) {
-      return false;
-    }
-  }
 }
