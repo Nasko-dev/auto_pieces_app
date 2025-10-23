@@ -344,37 +344,44 @@ class ParticulierConversationsController
 
       // ✅ FIX: Déterminer le rôle et incrémenter le BON compteur
       // Trouver la conversation dans le state pour savoir si on est le demandeur ou le répondeur
-      final conversation = state.conversations.firstWhere(
-        (conv) => conv.id == conversationId,
-        orElse: () {
-          // Si conversation pas trouvée, charger depuis DB pour déterminer le rôle
-          _loadSingleConversationQuietly(conversationId);
-          // Fallback: incrémenter user par défaut
-          return state.conversations.first; // Dummy, ne sera pas utilisé
-        },
+      final conversationIndex = state.conversations.indexWhere((conv) => conv.id == conversationId);
+
+      if (conversationIndex == -1) {
+        // Conversation pas trouvée → charger depuis DB
+        _loadSingleConversationQuietly(conversationId);
+        return;
+      }
+
+      final conversation = state.conversations[conversationIndex];
+
+      // ✅ OPTIMISATION CRITIQUE: Mise à jour locale OPTIMISTE du compteur
+      // Incrémenter IMMÉDIATEMENT dans le state local pour que l'UI se mette à jour
+      final updatedConversation = conversation.copyWith(
+        unreadCount: conversation.unreadCount + 1,
+        hasUnreadMessages: true,
       );
 
-      if (state.conversations.any((conv) => conv.id == conversationId)) {
-        // Conversation trouvée - utiliser isRequester pour déterminer le compteur
-        if (conversation.isRequester) {
-          // On est le demandeur → incrémenter unread_count_for_user
-          await _repository.incrementUnreadCountForUser(
-            conversationId: conversationId,
-          );
-        } else {
-          // On est le répondeur → incrémenter unread_count_for_seller
-          await _repository.incrementUnreadCountForSeller(
-            conversationId: conversationId,
-          );
-        }
+      final updatedList = List<ParticulierConversation>.from(state.conversations);
+      updatedList[conversationIndex] = updatedConversation;
+
+      if (mounted) {
+        state = state.copyWith(conversations: updatedList);
+      }
+
+      // ✅ BACKGROUND: Incrémenter en DB en arrière-plan pour garantir la cohérence
+      if (conversation.isRequester) {
+        // On est le demandeur → incrémenter unread_count_for_user
+        _repository.incrementUnreadCountForUser(
+          conversationId: conversationId,
+        );
       } else {
-        // Conversation pas trouvée → fallback unread_count_for_user
-        await _repository.incrementUnreadCountForUser(
+        // On est le répondeur → incrémenter unread_count_for_seller
+        _repository.incrementUnreadCountForSeller(
           conversationId: conversationId,
         );
       }
 
-      // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
+      // ✅ BACKGROUND: Recharger depuis DB pour avoir les vraies valeurs (sans bloquer l'UI)
       _loadSingleConversationQuietly(conversationId);
     } catch (e) {
       // Ignorer les erreurs d'incrémentation pour éviter de bloquer l'UI
