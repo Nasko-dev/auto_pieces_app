@@ -225,11 +225,15 @@ class ParticulierConversationsController
             },
             (demandes) {
               if (mounted) {
-                // ✅ FIX: Vérifier AVANT de modifier le state si annonces déjà chargées
-                final currentAnnoncesLoaded = state.conversations.where((c) => !c.isRequester).length;
+                // ✅ FIX: Préserver les annonces existantes lors du rechargement des demandes
+                final existingAnnonces = state.conversations.where((c) => !c.isRequester).toList();
+                final currentAnnoncesLoaded = existingAnnonces.length;
+
+                // ✅ FIX: Fusionner demandes + annonces existantes pour éviter la perte
+                final allConversations = [...demandes, ...existingAnnonces];
 
                 state = state.copyWith(
-                  conversations: demandes,
+                  conversations: allConversations,
                   isLoading: false,
                   error: null,
                   lastLoadedAt: DateTime.now(), // ✅ CACHE: Timestamp du chargement
