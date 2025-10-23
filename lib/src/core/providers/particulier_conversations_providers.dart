@@ -130,9 +130,11 @@ class ParticulierConversationsController
       return;
     }
 
-    // ✅ CRITICAL: Vérifier que ce n'est pas notre propre message AVANT tout traitement
-    if (senderId == userId) {
-      debugPrint('   ❌ C\'est notre propre message - ignoré');
+    // ✅ CRITICAL FIX: Vérifier que ce n'est pas notre propre message
+    // Le senderId est l'auth ID, il faut comparer avec l'auth ID actuel
+    final currentAuthId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentAuthId != null && senderId == currentAuthId) {
+      debugPrint('   ❌ C\'est notre propre message (auth ID match) - ignoré');
       return;
     }
 
