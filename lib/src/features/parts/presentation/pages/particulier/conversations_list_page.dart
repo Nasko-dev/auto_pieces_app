@@ -24,6 +24,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   bool _showOnlyUnread = false;
   late TabController _tabController;
+  bool _isRealtimeInitialized = false; // ✅ FIX: Protection contre appels multiples
 
   // ✅ KEEPALIVE: Garder la page en vie lors de la navigation
   @override
@@ -89,6 +90,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
   }
 
   Future<void> _initializeRealtimeWithCorrectIds(dynamic controller) async {
+    // ✅ FIX RACE CONDITION: Éviter les appels multiples concurrents
+    if (_isRealtimeInitialized) {
+      return;
+    }
+
+    _isRealtimeInitialized = true;
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final deviceService = DeviceService(prefs);

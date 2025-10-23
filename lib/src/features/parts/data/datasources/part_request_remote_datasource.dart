@@ -1048,6 +1048,52 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       debugPrint(
           '🔍 [GetParticulierConversations] IDs conversations: ${conversations.map((c) => c['id']).toList()}');
 
+      // ✅ OPTIMISATION CRITIQUE: Précharger TOUS les vendeurs et particuliers en 2 requêtes
+      // Au lieu de N+2 requêtes (1 sellers + 1 particuliers par conversation)
+      final Set<String> allOtherPersonIds = {};
+
+      for (final convData in conversations) {
+        final conversationUserId = convData['user_id'];
+        final conversationSellerId = convData['seller_id'];
+
+        // Déterminer qui est l'autre personne
+        if (allUserIds.contains(conversationUserId)) {
+          allOtherPersonIds.add(conversationSellerId);
+        } else {
+          allOtherPersonIds.add(conversationUserId);
+        }
+      }
+
+      debugPrint('🚀 [OPTIMISATION] Préchargement ${allOtherPersonIds.length} personnes en 2 requêtes au lieu de ${allOtherPersonIds.length * 2}');
+
+      // Précharger TOUS les vendeurs en UNE requête
+      final Map<String, Map<String, dynamic>> sellersMap = {};
+      if (allOtherPersonIds.isNotEmpty) {
+        final allSellers = await _supabase
+            .from('sellers')
+            .select('id, first_name, last_name, company_name, avatar_url')
+            .inFilter('id', allOtherPersonIds.toList());
+
+        for (final seller in allSellers) {
+          sellersMap[seller['id']] = seller;
+        }
+        debugPrint('✅ [OPTIMISATION] ${sellersMap.length} vendeurs préchargés');
+      }
+
+      // Précharger TOUS les particuliers en UNE requête
+      final Map<String, Map<String, dynamic>> particuliersMap = {};
+      if (allOtherPersonIds.isNotEmpty) {
+        final allParticuliers = await _supabase
+            .from('particuliers')
+            .select('id, first_name, last_name, avatar_url')
+            .inFilter('id', allOtherPersonIds.toList());
+
+        for (final particulier in allParticuliers) {
+          particuliersMap[particulier['id']] = particulier;
+        }
+        debugPrint('✅ [OPTIMISATION] ${particuliersMap.length} particuliers préchargés');
+      }
+
       List<ParticulierConversation> result = [];
 
       for (final convData in conversations) {
@@ -1083,50 +1129,36 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           String? sellerCompanyName;
           String? sellerAvatarUrl;
 
-          try {
-            // Essayer d'abord dans la table sellers
-            final sellerData = await _supabase
-                .from('sellers')
-                .select('first_name, last_name, company_name, avatar_url')
-                .eq('id', otherPersonId)
-                .maybeSingle();
+          // ✅ OPTIMISATION: Lookup O(1) au lieu de requête DB
+          final sellerData = sellersMap[otherPersonId];
+          if (sellerData != null) {
+            // C'est un vendeur
+            sellerName =
+                '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
+                    .trim();
+            if (sellerName.isEmpty) sellerName = 'Vendeur';
+            sellerCompanyName = sellerData['company_name'];
+            sellerAvatarUrl = sellerData['avatar_url'];
+            debugPrint(
+                '   ✅ [Liste Conv] Vendeur trouvé (cache): $sellerName (company: $sellerCompanyName)');
+          } else {
+            // Sinon c'est un particulier
+            final particulierData = particuliersMap[otherPersonId];
 
-            if (sellerData != null) {
-              // C'est un vendeur
-              sellerName =
-                  '${sellerData['first_name'] ?? ''} ${sellerData['last_name'] ?? ''}'
-                      .trim();
-              if (sellerName.isEmpty) sellerName = 'Vendeur';
-              sellerCompanyName = sellerData['company_name'];
-              sellerAvatarUrl = sellerData['avatar_url'];
-              debugPrint(
-                  '   ✅ [Liste Conv] Vendeur trouvé: $sellerName (company: $sellerCompanyName)');
-            } else {
-              // Sinon c'est un particulier
-              final particulierData = await _supabase
-                  .from('particuliers')
-                  .select('first_name, last_name, avatar_url')
-                  .eq('id', otherPersonId)
-                  .maybeSingle();
-
-              if (particulierData != null) {
-                final firstName = particulierData['first_name'];
-                final lastName = particulierData['last_name'];
-                sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
-                if (sellerName.isEmpty) {
-                  sellerName = 'Particulier';
-                }
-                sellerAvatarUrl = particulierData['avatar_url'];
-                debugPrint(
-                    '   ✅ [Liste Conv] Particulier trouvé: $sellerName');
-              } else {
+            if (particulierData != null) {
+              final firstName = particulierData['first_name'];
+              final lastName = particulierData['last_name'];
+              sellerName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+              if (sellerName.isEmpty) {
                 sellerName = 'Particulier';
-                debugPrint('   ❌ [Liste Conv] Personne non trouvée pour ID: $otherPersonId');
               }
+              sellerAvatarUrl = particulierData['avatar_url'];
+              debugPrint(
+                  '   ✅ [Liste Conv] Particulier trouvé (cache): $sellerName');
+            } else {
+              sellerName = 'Particulier';
+              debugPrint('   ❌ [Liste Conv] Personne non trouvée pour ID: $otherPersonId');
             }
-          } catch (e) {
-            // En cas d'erreur, on met une valeur par défaut
-            sellerName = 'Particulier';
           }
 
           // Récupérer les infos de la demande de pièce

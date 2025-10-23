@@ -49,6 +49,7 @@ class ParticulierConversationsController
   bool _isPollingActive = false;
 
   bool _isRealtimeInitialized = false;
+  RealtimeChannel? _realtimeChannel; // ✅ FIX: Garder référence pour unsubscribe
 
   ParticulierConversationsController({
     required PartRequestRepository repository,
@@ -65,7 +66,8 @@ class ParticulierConversationsController
   }
 
   // Abonnement global aux messages - même structure que le vendeur
-  void initializeRealtime(String userId) async {
+  // ✅ FIX RACE CONDITION: Fonction synchrone pour éviter appels concurrents
+  void initializeRealtime(String userId) {
     if (_isRealtimeInitialized) {
       return;
     }
@@ -77,8 +79,14 @@ class ParticulierConversationsController
 
   // S'abonner globalement aux messages - exactement comme le vendeur
   void _subscribeToGlobalMessages(String userId) async {
+    // ✅ FIX: Unsubscribe ancien channel si existe
+    if (_realtimeChannel != null) {
+      await Supabase.instance.client.removeChannel(_realtimeChannel!);
+      _realtimeChannel = null;
+    }
+
     // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
-    final channel = Supabase.instance.client
+    _realtimeChannel = Supabase.instance.client
         .channel('global_particulier_messages_$userId')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
@@ -101,7 +109,8 @@ class ParticulierConversationsController
           },
         );
 
-    channel.subscribe();
+    _realtimeChannel!.subscribe();
+    debugPrint('📡 [Realtime] Channel subscribed: global_particulier_messages_$userId');
   }
 
   // ✅ DB-BASED: Gérer un nouveau message reçu - incrémenter compteur DB
@@ -144,7 +153,8 @@ class ParticulierConversationsController
     }
   }
 
-  void _startIntelligentPolling() {
+  // ✅ FIX: Rendre public pour permettre start/stop depuis provider
+  void startPolling() {
     if (_isPollingActive) return;
 
     _isPollingActive = true;
@@ -154,6 +164,20 @@ class ParticulierConversationsController
         _loadConversationsQuietly();
       }
     });
+
+    debugPrint('🔄 [Polling] Démarré (toutes les 30s)');
+  }
+
+  // ✅ FIX: Arrêter le polling proprement
+  void stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _isPollingActive = false;
+    debugPrint('⏸️ [Polling] Arrêté');
+  }
+
+  void _startIntelligentPolling() {
+    startPolling();
   }
 
   // ✅ OPTIMISATION OPTION C: Charger d'abord les counts, puis les données
@@ -367,9 +391,44 @@ class ParticulierConversationsController
       debugPrint('   Nombre total conversations: ${state.conversations.length}');
 
       if (conversationIndex == -1) {
-        // Conversation pas trouvée → charger depuis DB
-        debugPrint('   ❌ Conversation pas trouvée dans le state - chargement DB');
-        _loadSingleConversationQuietly(conversationId);
+        // ✅ FIX: Conversation pas trouvée → charger ET incrémenter pour ne pas perdre le message
+        debugPrint('   ⚠️ Conversation pas en mémoire - chargement + incrémentation');
+
+        // Charger la conversation pour déterminer le rôle et incrémenter le bon compteur
+        final result = await _repository.getParticulierConversationById(conversationId);
+
+        result.fold(
+          (failure) {
+            debugPrint('   ❌ Erreur chargement conversation: ${failure.message}');
+          },
+          (loadedConversation) async {
+            debugPrint('   ✅ Conversation chargée: ${loadedConversation.sellerName}');
+            debugPrint('   isRequester: ${loadedConversation.isRequester}');
+
+            // Incrémenter le bon compteur en DB
+            if (loadedConversation.isRequester) {
+              debugPrint('   📤 Incrémentation DB: unread_count_for_user');
+              await _repository.incrementUnreadCountForUser(conversationId: conversationId);
+            } else {
+              debugPrint('   📤 Incrémentation DB: unread_count_for_seller');
+              await _repository.incrementUnreadCountForSeller(conversationId: conversationId);
+            }
+
+            // Ajouter la conversation à la liste avec compteur incrémenté
+            final updatedConversation = loadedConversation.copyWith(
+              unreadCount: loadedConversation.unreadCount + 1,
+              hasUnreadMessages: true,
+            );
+
+            if (mounted) {
+              final updatedList = List<ParticulierConversation>.from(state.conversations);
+              updatedList.add(updatedConversation);
+              state = state.copyWith(conversations: updatedList);
+              debugPrint('   ✅ Conversation ajoutée à la liste avec unreadCount: ${updatedConversation.unreadCount}');
+            }
+          },
+        );
+
         return;
       }
 
@@ -468,24 +527,52 @@ class ParticulierConversationsController
   }
 
   @override
-  void dispose() {
-    _pollingTimer?.cancel();
-    _isPollingActive = false;
-    _realtimeService.dispose();
+  void dispose() async {
+    stopPolling(); // ✅ FIX: Utiliser la méthode propre
+
+    // ✅ FIX: Unsubscribe du channel Realtime
+    if (_realtimeChannel != null) {
+      await Supabase.instance.client.removeChannel(_realtimeChannel!);
+      _realtimeChannel = null;
+      debugPrint('📡 [Realtime] Channel unsubscribed');
+    }
+
+    // ✅ FIX: NE PAS disposer le RealtimeService singleton - il doit rester vivant
+    // Le service gère lui-même ses ressources avec unsubscribe
+    // _realtimeService.dispose(); // ❌ SUPPRIMÉ: casse le singleton
+
     super.dispose();
   }
 }
 
-final particulierConversationsControllerProvider = StateNotifierProvider<
+// ✅ FIX: Utiliser autoDispose pour éviter fuites mémoire, avec gestion intelligente du polling
+final particulierConversationsControllerProvider = StateNotifierProvider.autoDispose<
     ParticulierConversationsController, ParticulierConversationsState>(
   (ref) {
     final repository = ref.read(partRequestRepositoryProvider);
     final realtimeService = ref.read(realtimeServiceProvider);
 
-    return ParticulierConversationsController(
+    final controller = ParticulierConversationsController(
       repository: repository,
       realtimeService: realtimeService,
     );
+
+    // ✅ FIX: Arrêter le polling quand plus de listeners actifs (économie batterie/data)
+    ref.onCancel(() {
+      debugPrint('📵 [Provider] Plus de listeners - arrêt polling');
+      controller.stopPolling();
+    });
+
+    // ✅ FIX: Redémarrer le polling quand nouveaux listeners
+    ref.onResume(() {
+      debugPrint('📱 [Provider] Nouveaux listeners - redémarrage polling');
+      controller.startPolling();
+    });
+
+    // ✅ FIX: Garder le provider en vie pour conserver le cache
+    ref.keepAlive();
+
+    return controller;
   },
 );
 
