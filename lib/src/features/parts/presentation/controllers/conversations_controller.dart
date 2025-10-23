@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/conversation.dart';
 import '../../domain/entities/message.dart';
 import '../../domain/entities/conversation_enums.dart';
@@ -12,6 +13,7 @@ import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/manage_conversation.dart';
 import '../../data/datasources/conversations_remote_datasource.dart';
 import '../../../../core/services/realtime_service.dart';
+import '../../../../core/services/device_service.dart';
 import '../../../../core/utils/logger.dart';
 import 'base_conversation_controller.dart';
 
@@ -404,16 +406,70 @@ class ConversationsController
     String? offerAvailability,
     int? offerDeliveryDays,
   }) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
+    final authId = Supabase.instance.client.auth.currentUser?.id;
+    if (authId == null) {
       return;
     }
+
+    // ✅ FIX CRITIQUE: Récupérer l'ID particulier réel au lieu de l'auth ID
+    String actualSenderId = authId; // Fallback sur auth ID par défaut
+
+    try {
+      // Récupérer le device_id
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      // Récupérer TOUS les particuliers avec ce device_id
+      final allParticuliersWithDevice = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId);
+
+      final allUserIds =
+          allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+      // Récupérer la conversation pour savoir qui est qui
+      final conversation = await Supabase.instance.client
+          .from('conversations')
+          .select('user_id, seller_id')
+          .eq('id', conversationId)
+          .maybeSingle();
+
+      if (conversation != null) {
+        final conversationUserId = conversation['user_id'] as String;
+        final conversationSellerId = conversation['seller_id'] as String;
+
+        final userIdIsOurs = allUserIds.contains(conversationUserId);
+        final sellerIdIsOurs = allUserIds.contains(conversationSellerId);
+
+        // Déterminer quel ID utiliser
+        if (userIdIsOurs && sellerIdIsOurs) {
+          // Les 2 sont à nous, prioriser user_id (demandeur)
+          actualSenderId = conversationUserId;
+          debugPrint('✅ [ConversationsController] Les 2 IDs nous appartiennent, utilisation user_id');
+        } else if (userIdIsOurs) {
+          actualSenderId = conversationUserId;
+          debugPrint('✅ [ConversationsController] Nous sommes le demandeur (user_id): $actualSenderId');
+        } else if (sellerIdIsOurs) {
+          actualSenderId = conversationSellerId;
+          debugPrint('✅ [ConversationsController] Nous sommes le répondeur (seller_id): $actualSenderId');
+        } else {
+          debugPrint('⚠️ [ConversationsController] Aucun ID ne match, fallback sur auth ID');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [ConversationsController] Erreur récupération ID particulier: $e');
+      // Fallback sur auth ID
+    }
+
+    debugPrint('📤 [ConversationsController] Envoi message avec sender_id: $actualSenderId');
 
     state = state.copyWith(isSendingMessage: true);
 
     final result = await _sendMessage(SendMessageParams(
       conversationId: conversationId,
-      senderId: userId,
+      senderId: actualSenderId,  // ✅ ID particulier au lieu de l'auth ID
       content: content,
       messageType: messageType,
       attachments: attachments,

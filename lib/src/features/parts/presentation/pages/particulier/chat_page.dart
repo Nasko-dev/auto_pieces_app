@@ -167,14 +167,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final allUserIds =
           allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
-      // Prendre le premier ID trouvé (ou le user_id/seller_id de la conversation)
+      // ✅ FIX CRITIQUE: Déterminer LEQUEL de nos IDs est dans cette conversation
+      // Ne PAS prendre systématiquement le user_id si les deux sont à nous !
       String? currentParticulierId;
-      if (allUserIds.contains(conversationUserId)) {
+
+      final userIdIsOurs = allUserIds.contains(conversationUserId);
+      final sellerIdIsOurs = allUserIds.contains(conversationSellerId);
+
+      if (userIdIsOurs && sellerIdIsOurs) {
+        // ⚠️ CAS SPÉCIAL: Les DEUX IDs sont à nous (2 particuliers sur même appareil)
+        // Prioriser user_id (demandeur) pour cohérence avec sendParticulierMessage
         currentParticulierId = conversationUserId;
-      } else if (allUserIds.contains(conversationSellerId)) {
+        debugPrint('⚠️ [ChatPage] Les 2 IDs nous appartiennent, utilisation user_id (cohérence avec sendMessage)');
+      } else if (userIdIsOurs) {
+        // On est le demandeur
+        currentParticulierId = conversationUserId;
+        debugPrint('✅ [ChatPage] Nous sommes le demandeur (user_id)');
+      } else if (sellerIdIsOurs) {
+        // On est le répondeur
         currentParticulierId = conversationSellerId;
+        debugPrint('✅ [ChatPage] Nous sommes le répondeur (seller_id)');
       } else if (allUserIds.isNotEmpty) {
+        // Fallback
         currentParticulierId = allUserIds.first;
+        debugPrint('⚠️ [ChatPage] Aucun ID ne match, fallback sur first');
       }
 
       // ✅ FIX: Stocker l'ID particulier pour l'affichage des bulles de message
