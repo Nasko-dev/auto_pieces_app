@@ -220,6 +220,9 @@ class ParticulierConversationsController
             },
             (demandes) {
               if (mounted) {
+                // ✅ FIX: Vérifier AVANT de modifier le state si annonces déjà chargées
+                final currentAnnoncesLoaded = state.conversations.where((c) => !c.isRequester).length;
+
                 state = state.copyWith(
                   conversations: demandes,
                   isLoading: false,
@@ -229,13 +232,11 @@ class ParticulierConversationsController
 
                 // 3. Précharger les "Annonces" après 2 secondes si elles existent ET pas déjà chargées
                 final annoncesCount = counts['annonces'] ?? 0;
-                // Vérifier dans l'état actuel combien d'annonces on a déjà
-                final currentAnnoncesLoaded = state.conversations.where((c) => !c.isRequester).length;
 
                 debugPrint('📊 [Preload] Annonces count: $annoncesCount, déjà chargées: $currentAnnoncesLoaded');
 
                 if (annoncesCount > 0 && currentAnnoncesLoaded == 0) {
-                  // Précharger seulement si aucune annonce n'est encore chargée
+                  // ✅ FIX: Précharger seulement si aucune annonce n'était chargée dans l'état précédent
                   Future.delayed(const Duration(seconds: 2), () {
                     if (mounted) {
                       debugPrint('🔄 [Preload] Lancement préchargement annonces');
@@ -316,7 +317,8 @@ class ParticulierConversationsController
         },
       );
     } catch (e) {
-      // Ignorer les erreurs pour éviter de bloquer le realtime
+      // ✅ FIX: Logger les erreurs au lieu de les ignorer silencieusement
+      debugPrint('❌ [_loadSingleConversationQuietly] Erreur: $e');
     }
   }
 
@@ -452,25 +454,36 @@ class ParticulierConversationsController
         state = state.copyWith(conversations: updatedList);
       } else {
         debugPrint('   ❌ Provider not mounted - skip update');
+        return;
       }
 
-      // ✅ BACKGROUND: Incrémenter en DB en arrière-plan pour garantir la cohérence
-      if (conversation.isRequester) {
-        // On est le demandeur → incrémenter unread_count_for_user
-        debugPrint('   📤 Incrémentation DB: unread_count_for_user');
-        _repository.incrementUnreadCountForUser(
-          conversationId: conversationId,
-        );
-      } else {
-        // On est le répondeur → incrémenter unread_count_for_seller
-        debugPrint('   📤 Incrémentation DB: unread_count_for_seller');
-        _repository.incrementUnreadCountForSeller(
-          conversationId: conversationId,
-        );
-      }
+      // ✅ FIX: BACKGROUND avec rollback si erreur DB
+      final dbIncrementFuture = conversation.isRequester
+          ? _repository.incrementUnreadCountForUser(conversationId: conversationId)
+          : _repository.incrementUnreadCountForSeller(conversationId: conversationId);
 
-      // ✅ BACKGROUND: Recharger depuis DB pour avoir les vraies valeurs (sans bloquer l'UI)
-      _loadSingleConversationQuietly(conversationId);
+      dbIncrementFuture.then((result) {
+        result.fold(
+          (failure) {
+            // ✅ ROLLBACK: Restaurer la valeur précédente si erreur DB
+            debugPrint('   ❌ ERREUR DB increment - ROLLBACK: ${failure.message}');
+            if (mounted) {
+              final rollbackList = List<ParticulierConversation>.from(state.conversations);
+              final currentIndex = rollbackList.indexWhere((c) => c.id == conversationId);
+              if (currentIndex != -1) {
+                rollbackList[currentIndex] = conversation; // Restaurer valeur originale
+                state = state.copyWith(conversations: rollbackList);
+                debugPrint('   ✅ ROLLBACK effectué: unreadCount ${updatedConversation.unreadCount} → ${conversation.unreadCount}');
+              }
+            }
+          },
+          (_) {
+            // Succès - recharger depuis DB pour synchroniser
+            debugPrint('   ✅ Incrémentation DB réussie');
+            _loadSingleConversationQuietly(conversationId);
+          },
+        );
+      });
     } catch (e) {
       // Logger l'erreur au lieu de l'ignorer silencieusement
       debugPrint('   ❌ ERREUR dans _incrementUnreadCountForUserOnly: $e');
@@ -485,7 +498,8 @@ class ParticulierConversationsController
       // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
       _loadSingleConversationQuietly(conversationId);
     } catch (e) {
-      // Ignorer les erreurs de lecture pour éviter de bloquer l'UI
+      // ✅ FIX: Logger les erreurs au lieu de les ignorer silencieusement
+      debugPrint('❌ [_markConversationAsReadInDB] Erreur: $e');
     }
   }
 
@@ -607,7 +621,8 @@ final particulierConversationUnreadCountProvider =
     );
     return conversation.unreadCount;
   } catch (e) {
-    // Si la conversation n'est pas trouvée, retourner 0
+    // ✅ FIX: Logger + retourner 0 si conversation non trouvée
+    debugPrint('⚠️ [particulierConversationUnreadCountProvider] Conversation $conversationId non trouvée');
     return 0;
   }
 });
