@@ -1413,6 +1413,43 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
+      // ✅ FIX: Déterminer le rôle de l'utilisateur DANS CETTE CONVERSATION
+      List<String> allUserIds = [];
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deviceService = DeviceService(prefs);
+        final deviceId = await deviceService.getDeviceId();
+
+        final allParticuliersWithDevice = await _supabase
+            .from('particuliers')
+            .select('id')
+            .eq('device_id', deviceId);
+
+        allUserIds =
+            allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+        if (!allUserIds.contains(currentUser.id)) {
+          allUserIds.add(currentUser.id);
+        }
+
+        if (allUserIds.isEmpty) {
+          allUserIds = [currentUser.id];
+        }
+      } catch (e) {
+        allUserIds = [currentUser.id];
+      }
+
+      // Récupérer la conversation pour déterminer notre rôle
+      final conversation = await _supabase
+          .from('conversations')
+          .select('user_id, seller_id')
+          .eq('id', conversationId)
+          .single();
+
+      final conversationUserId = conversation['user_id'];
+      final isRequester = allUserIds.contains(conversationUserId);
+
       // Préparer les données du message
       final messageData = {
         'conversation_id': conversationId,
@@ -1432,14 +1469,27 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           .select()
           .single();
 
-      // Mettre à jour la conversation avec le dernier message et incrémenter le compteur pour le vendeur
-      await _supabase.from('conversations').update({
+      // ✅ FIX: Incrémenter le BON compteur selon le rôle
+      // Si on est le demandeur (user_id) qui envoie → incrémenter unread_count_for_seller
+      // Si on est le répondeur (seller_id) qui envoie → incrémenter unread_count_for_user
+      final Map<String, dynamic> updateData = {
         'last_message_content': content,
         'last_message_sender_type': 'user',
         'last_message_created_at': response['created_at'],
         'updated_at': 'now()',
-        'unread_count_for_seller': 'unread_count_for_seller + 1',
-      }).eq('id', conversationId);
+      };
+
+      if (isRequester) {
+        // On est le demandeur → le vendeur doit voir le message
+        updateData['unread_count_for_seller'] = 'unread_count_for_seller + 1';
+        debugPrint('📤 [sendMessage] Demandeur envoie → incrémente unread_count_for_seller');
+      } else {
+        // On est le répondeur → le demandeur doit voir le message
+        updateData['unread_count_for_user'] = 'unread_count_for_user + 1';
+        debugPrint('📤 [sendMessage] Répondeur envoie → incrémente unread_count_for_user');
+      }
+
+      await _supabase.from('conversations').update(updateData).eq('id', conversationId);
     } catch (e) {
       throw ServerException(e.toString());
     }
