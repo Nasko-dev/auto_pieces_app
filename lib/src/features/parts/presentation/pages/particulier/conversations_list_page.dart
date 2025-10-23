@@ -117,23 +117,23 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
       final allUserIds =
           allParticuliersWithDevice.map((p) => p['id'] as String).toList();
 
+      // ✅ FIX DEVICE_ID: Passer le device_id pour comparaison fiable
       if (allUserIds.isNotEmpty) {
-        final primaryUserId = allUserIds.first;
-        controller.initializeRealtime(primaryUserId);
+        controller.initializeRealtime(allUserIds, deviceId: deviceId);
       }
 
       // Fallback vers auth ID si aucun trouvé
       if (allUserIds.isEmpty) {
         final authUserId = Supabase.instance.client.auth.currentUser?.id;
         if (authUserId != null) {
-          controller.initializeRealtime(authUserId);
+          controller.initializeRealtime([authUserId]);
         }
       }
     } catch (e) {
       // Fallback vers auth ID
       final authUserId = Supabase.instance.client.auth.currentUser?.id;
       if (authUserId != null) {
-        controller.initializeRealtime(authUserId);
+        controller.initializeRealtime([authUserId]);
       }
     }
   }

@@ -54,6 +54,9 @@ class ParticulierConversationsController
   // ✅ FIX RACE CONDITION: Tracker les dernières incrémentations optimistes
   final Map<String, DateTime> _recentOptimisticIncrements = {};
 
+  // ✅ FIX DEVICE_ID: Stocker notre device_id pour comparaison
+  String? _currentDeviceId;
+
   ParticulierConversationsController({
     required PartRequestRepository repository,
     required RealtimeService realtimeService,
@@ -70,33 +73,38 @@ class ParticulierConversationsController
 
   // Abonnement global aux messages - même structure que le vendeur
   // ✅ FIX RACE CONDITION: Fonction synchrone pour éviter appels concurrents
-  void initializeRealtime(String userId) {
+  // ✅ FIX DEVICE_ID: Stocker le device_id pour comparaison fiable
+  void initializeRealtime(List<String> allUserIds, {String? deviceId}) {
     if (_isRealtimeInitialized) {
       return;
     }
 
+    _currentDeviceId = deviceId;
     _isRealtimeInitialized = true;
     _startIntelligentPolling();
-    _subscribeToGlobalMessages(userId);
+    _subscribeToGlobalMessages(allUserIds);
   }
 
   // S'abonner globalement aux messages - exactement comme le vendeur
-  void _subscribeToGlobalMessages(String userId) async {
+  // ✅ FIX MULTI-IDS: Accepte TOUS les IDs pour vérifier nos propres messages
+  void _subscribeToGlobalMessages(List<String> allUserIds) async {
     // ✅ FIX: Unsubscribe ancien channel si existe
     if (_realtimeChannel != null) {
       await Supabase.instance.client.removeChannel(_realtimeChannel!);
       _realtimeChannel = null;
     }
 
+    final channelId = allUserIds.isNotEmpty ? allUserIds.first : 'unknown';
+
     // Créer un channel pour écouter TOUS les messages où l'utilisateur est impliqué
     _realtimeChannel = Supabase.instance.client
-        .channel('global_particulier_messages_$userId')
+        .channel('global_particulier_messages_$channelId')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'messages',
           callback: (payload) {
-            _handleGlobalNewMessage(payload.newRecord, userId);
+            _handleGlobalNewMessage(payload.newRecord, allUserIds);
           },
         )
         .onPostgresChanges(
@@ -113,11 +121,12 @@ class ParticulierConversationsController
         );
 
     _realtimeChannel!.subscribe();
-    debugPrint('📡 [Realtime] Channel subscribed: global_particulier_messages_$userId');
+    debugPrint('📡 [Realtime] Channel subscribed pour ${allUserIds.length} IDs: $allUserIds');
   }
 
   // ✅ DB-BASED: Gérer un nouveau message reçu - incrémenter compteur DB
-  void _handleGlobalNewMessage(dynamic messageData, String userId) async {
+  // ✅ FIX DEVICE_ID: Comparer par device_id au lieu de liste d'IDs
+  void _handleGlobalNewMessage(dynamic messageData, List<String> allUserIds) async {
     final conversationId = messageData['conversation_id'] as String?;
     final senderId = messageData['sender_id'] as String?;
     final senderType = messageData['sender_type'] as String?;
@@ -125,7 +134,7 @@ class ParticulierConversationsController
     debugPrint('🔔 [Provider] _handleGlobalNewMessage appelé');
     debugPrint('   conversationId: $conversationId');
     debugPrint('   senderId: $senderId');
-    debugPrint('   userId: $userId');
+    debugPrint('   senderType: $senderType');
     debugPrint('   activeConversationId: ${state.activeConversationId}');
 
     if (conversationId == null || senderId == null || senderType == null) {
@@ -133,12 +142,34 @@ class ParticulierConversationsController
       return;
     }
 
-    // ✅ CRITICAL FIX: Vérifier que ce n'est pas notre propre message
-    // Le senderId dans la table messages est l'ID particulier (pas l'auth ID)
-    // Le userId passé en paramètre est notre ID particulier
-    if (senderId == userId) {
-      debugPrint('   ❌ C\'est notre propre message (particulier ID match) - ignoré');
-      return;
+    // ✅ CRITICAL FIX: Vérifier par device_id pour détecter nos propres messages
+    // Plus fiable que comparer des IDs car le device_id ne change jamais
+    if (_currentDeviceId != null && senderType == 'particulier') {
+      try {
+        final senderData = await Supabase.instance.client
+            .from('particuliers')
+            .select('device_id')
+            .eq('id', senderId)
+            .maybeSingle();
+
+        if (senderData != null) {
+          final senderDeviceId = senderData['device_id'] as String?;
+          debugPrint('   🔍 Comparaison device_id:');
+          debugPrint('      Notre device_id: $_currentDeviceId');
+          debugPrint('      Sender device_id: $senderDeviceId');
+
+          if (senderDeviceId == _currentDeviceId) {
+            debugPrint('   ❌ C\'est notre propre message (même device_id) - ignoré');
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('   ⚠️  Erreur récupération device_id du sender: $e');
+        // En cas d'erreur, on continue (fallback sur la logique suivante)
+      }
+    } else if (senderType == 'seller') {
+      // Pour les vendeurs, on ne compare pas (ce n'est jamais notre message)
+      debugPrint('   ℹ️  Message d\'un vendeur, pas de vérification device_id');
     }
 
     // ✅ DB-BASED: Déterminer si ce message nous est destiné selon notre rôle dans la conversation
