@@ -427,8 +427,9 @@ class ParticulierConversationsController
         throw Exception(failure.message);
       },
       (_) {
-        // Recharger la conversation pour voir le nouveau message
-        loadConversationDetails(conversationId);
+        // ✅ FIX: Ne pas recharger manuellement - le realtime UPDATE va le faire automatiquement
+        // Évite les double-reloads qui causent le clignotement du badge
+        debugPrint('✅ [sendMessage] Message envoyé, attente du reload realtime');
       },
     );
   }
