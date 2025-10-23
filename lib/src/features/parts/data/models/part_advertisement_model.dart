@@ -11,6 +11,7 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
     required String userId,
     required String partType,
     required String partName,
+    String? title,
     String? vehiclePlate,
     String? vehicleBrand,
     String? vehicleModel,
@@ -29,6 +30,15 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
     String? department,
     @Default(0) int viewCount,
     @Default(0) int contactCount,
+    // Gestion de stock
+    @Default('single') String stockType,
+    int? quantity,
+    int? initialQuantity,
+    @Default(0) int soldQuantity,
+    @Default(0) int reservedQuantity,
+    @Default(1) int lowStockThreshold,
+    @Default(true) bool autoDisableWhenEmpty,
+    @Default(true) bool stockAlertEnabled,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? expiresAt,
@@ -46,6 +56,7 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       userId: userId,
       partType: partType,
       partName: partName,
+      title: title,
       vehiclePlate: vehiclePlate,
       vehicleBrand: vehicleBrand,
       vehicleModel: vehicleModel,
@@ -56,6 +67,14 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       condition: condition,
       images: images,
       status: status,
+      stockType: stockType,
+      quantity: quantity,
+      initialQuantity: initialQuantity,
+      soldQuantity: soldQuantity,
+      reservedQuantity: reservedQuantity,
+      lowStockThreshold: lowStockThreshold,
+      autoDisableWhenEmpty: autoDisableWhenEmpty,
+      stockAlertEnabled: stockAlertEnabled,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -68,6 +87,7 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       userId: entity.userId,
       partType: entity.partType,
       partName: entity.partName,
+      title: entity.title,
       vehiclePlate: entity.vehiclePlate,
       vehicleBrand: entity.vehicleBrand,
       vehicleModel: entity.vehicleModel,
@@ -78,6 +98,14 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       condition: entity.condition,
       images: entity.images,
       status: entity.status,
+      stockType: entity.stockType,
+      quantity: entity.quantity,
+      initialQuantity: entity.initialQuantity,
+      soldQuantity: entity.soldQuantity,
+      reservedQuantity: entity.reservedQuantity,
+      lowStockThreshold: entity.lowStockThreshold,
+      autoDisableWhenEmpty: entity.autoDisableWhenEmpty,
+      stockAlertEnabled: entity.stockAlertEnabled,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt ?? entity.createdAt,
     );
@@ -90,6 +118,7 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       userId: data['user_id'] as String,
       partType: data['part_type'] as String,
       partName: data['part_name'] as String,
+      title: data['title'] as String?,
       vehiclePlate: data['vehicle_plate'] as String?,
       vehicleBrand: data['vehicle_brand'] as String?,
       vehicleModel: data['vehicle_model'] as String?,
@@ -108,6 +137,15 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       department: data['department'] as String?,
       viewCount: data['view_count'] as int? ?? 0,
       contactCount: data['contact_count'] as int? ?? 0,
+      // Gestion de stock
+      stockType: data['stock_type'] as String? ?? 'single',
+      quantity: data['quantity'] as int?,
+      initialQuantity: data['initial_quantity'] as int?,
+      soldQuantity: data['sold_quantity'] as int? ?? 0,
+      reservedQuantity: data['reserved_quantity'] as int? ?? 0,
+      lowStockThreshold: data['low_stock_threshold'] as int? ?? 1,
+      autoDisableWhenEmpty: data['auto_disable_when_empty'] as bool? ?? true,
+      stockAlertEnabled: data['stock_alert_enabled'] as bool? ?? true,
       createdAt: DateTime.parse(data['created_at'] as String),
       updatedAt: DateTime.parse(data['updated_at'] as String),
       expiresAt: data['expires_at'] != null
@@ -135,6 +173,15 @@ class PartAdvertisementModel with _$PartAdvertisementModel {
       'city': city,
       'zip_code': zipCode,
       'department': department,
+      // Gestion de stock
+      'stock_type': stockType,
+      'quantity': quantity,
+      'initial_quantity': initialQuantity ?? quantity,
+      'sold_quantity': soldQuantity,
+      'reserved_quantity': reservedQuantity,
+      'low_stock_threshold': lowStockThreshold,
+      'auto_disable_when_empty': autoDisableWhenEmpty,
+      'stock_alert_enabled': stockAlertEnabled,
     };
   }
 }
@@ -157,6 +204,11 @@ class CreatePartAdvertisementParams with _$CreatePartAdvertisementParams {
     @Default([]) List<String> images,
     String? contactPhone,
     String? contactEmail,
+    // Gestion de stock
+    @Default('single') String stockType, // 'single', 'multiple', 'unlimited'
+    int? quantity, // Obligatoire si stockType = 'multiple'
+    @Default(1) int lowStockThreshold,
+    @Default(true) bool autoDisableWhenEmpty,
   }) = _CreatePartAdvertisementParams;
 
   factory CreatePartAdvertisementParams.fromJson(Map<String, dynamic> json) =>

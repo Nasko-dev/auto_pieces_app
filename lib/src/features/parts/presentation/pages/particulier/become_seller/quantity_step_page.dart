@@ -115,15 +115,15 @@ class _QuantityStepPageState extends State<QuantityStepPage> {
     return [
       _buildQuantityCard(
         quantityType: 'multiple',
-        title: 'J\'ai plus de 5 pièces',
-        subtitle: 'Vous avez plusieurs pièces à vendre (plus de 5)',
+        title: 'J\'ai toutes les pièces ou presque',
+        subtitle: 'Vous avez plusieurs pièces à vendre',
         icon: Icons.inventory_outlined,
       ),
       const SizedBox(height: 16),
       _buildQuantityCard(
         quantityType: 'few',
-        title: 'J\'ai moins de 5 pièces',
-        subtitle: 'Vous avez quelques pièces à vendre (moins de 5)',
+        title: 'J\'ai peu de pièces',
+        subtitle: 'Vous avez quelques pièces à vendre',
         icon: Icons.settings_outlined,
       ),
     ];

@@ -13,6 +13,7 @@ _$PartAdvertisementModelImpl _$$PartAdvertisementModelImplFromJson(
       userId: json['userId'] as String,
       partType: json['partType'] as String,
       partName: json['partName'] as String,
+      title: json['title'] as String?,
       vehiclePlate: json['vehiclePlate'] as String?,
       vehicleBrand: json['vehicleBrand'] as String?,
       vehicleModel: json['vehicleModel'] as String?,
@@ -34,6 +35,14 @@ _$PartAdvertisementModelImpl _$$PartAdvertisementModelImplFromJson(
       department: json['department'] as String?,
       viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
       contactCount: (json['contactCount'] as num?)?.toInt() ?? 0,
+      stockType: json['stockType'] as String? ?? 'single',
+      quantity: (json['quantity'] as num?)?.toInt(),
+      initialQuantity: (json['initialQuantity'] as num?)?.toInt(),
+      soldQuantity: (json['soldQuantity'] as num?)?.toInt() ?? 0,
+      reservedQuantity: (json['reservedQuantity'] as num?)?.toInt() ?? 0,
+      lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt() ?? 1,
+      autoDisableWhenEmpty: json['autoDisableWhenEmpty'] as bool? ?? true,
+      stockAlertEnabled: json['stockAlertEnabled'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       expiresAt: json['expiresAt'] == null
@@ -48,6 +57,7 @@ Map<String, dynamic> _$$PartAdvertisementModelImplToJson(
       'userId': instance.userId,
       'partType': instance.partType,
       'partName': instance.partName,
+      'title': instance.title,
       'vehiclePlate': instance.vehiclePlate,
       'vehicleBrand': instance.vehicleBrand,
       'vehicleModel': instance.vehicleModel,
@@ -66,6 +76,14 @@ Map<String, dynamic> _$$PartAdvertisementModelImplToJson(
       'department': instance.department,
       'viewCount': instance.viewCount,
       'contactCount': instance.contactCount,
+      'stockType': instance.stockType,
+      'quantity': instance.quantity,
+      'initialQuantity': instance.initialQuantity,
+      'soldQuantity': instance.soldQuantity,
+      'reservedQuantity': instance.reservedQuantity,
+      'lowStockThreshold': instance.lowStockThreshold,
+      'autoDisableWhenEmpty': instance.autoDisableWhenEmpty,
+      'stockAlertEnabled': instance.stockAlertEnabled,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'expiresAt': instance.expiresAt?.toIso8601String(),
@@ -91,6 +109,10 @@ _$CreatePartAdvertisementParamsImpl
               const [],
           contactPhone: json['contactPhone'] as String?,
           contactEmail: json['contactEmail'] as String?,
+          stockType: json['stockType'] as String? ?? 'single',
+          quantity: (json['quantity'] as num?)?.toInt(),
+          lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt() ?? 1,
+          autoDisableWhenEmpty: json['autoDisableWhenEmpty'] as bool? ?? true,
         );
 
 Map<String, dynamic> _$$CreatePartAdvertisementParamsImplToJson(
@@ -110,6 +132,10 @@ Map<String, dynamic> _$$CreatePartAdvertisementParamsImplToJson(
       'images': instance.images,
       'contactPhone': instance.contactPhone,
       'contactEmail': instance.contactEmail,
+      'stockType': instance.stockType,
+      'quantity': instance.quantity,
+      'lowStockThreshold': instance.lowStockThreshold,
+      'autoDisableWhenEmpty': instance.autoDisableWhenEmpty,
     };
 
 _$SearchPartAdvertisementsParamsImpl

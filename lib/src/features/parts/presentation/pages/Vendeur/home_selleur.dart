@@ -854,7 +854,9 @@ class _ModernNotificationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          partRequest.partNames.join(', '),
+                          partRequest.vehicleInfo.isNotEmpty
+                              ? partRequest.vehicleInfo
+                              : 'Véhicule non spécifié',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -863,9 +865,7 @@ class _ModernNotificationCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          partRequest.vehicleInfo.isNotEmpty
-                              ? partRequest.vehicleInfo
-                              : 'Véhicule non spécifié',
+                          partRequest.partNames.join(', '),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
