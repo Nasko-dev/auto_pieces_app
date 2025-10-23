@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dartz/dartz.dart';
 import '../services/realtime_service.dart';
+import '../errors/failures.dart';
 import '../../features/parts/domain/repositories/part_request_repository.dart';
 import '../../features/parts/domain/entities/particulier_conversation.dart';
 import '../../features/parts/domain/services/particulier_conversation_grouping_service.dart';
@@ -56,6 +58,9 @@ class ParticulierConversationsController
 
   // ✅ FIX DEVICE_ID: Stocker notre device_id pour comparaison
   String? _currentDeviceId;
+
+  // ✅ OPTIMISATION: Getter public pour vérifier si realtime est initialisé
+  bool get isRealtimeInitialized => _isRealtimeInitialized;
 
   ParticulierConversationsController({
     required PartRequestRepository repository,
@@ -216,111 +221,72 @@ class ParticulierConversationsController
     startPolling();
   }
 
-  // ✅ OPTIMISATION OPTION C: Charger d'abord les counts, puis les données
+  // ✅ OPTIMISATION: Charger demandes ET annonces en parallèle
   Future<void> loadConversations() async {
     state = state.copyWith(isLoading: true, error: null, needsReload: false);
 
-    // 1. Charger rapidement les counts pour savoir quels onglets afficher
-    final countsResult = await _repository.getConversationsCounts();
+    try {
+      // ✅ PARALLEL LOADING: Charger counts, demandes ET annonces en parallèle
+      final results = await Future.wait([
+        _repository.getConversationsCounts(),
+        _repository.getParticulierConversations(filterType: 'demandes'),
+        _repository.getParticulierConversations(filterType: 'annonces'),
+      ]);
 
-    await countsResult.fold(
-      (failure) async {
-        if (mounted) {
-          state = state.copyWith(
-            isLoading: false,
-            error: failure.message,
-          );
-        }
-      },
-      (counts) async {
-        if (mounted) {
-          // Mettre à jour les counts immédiatement
-          state = state.copyWith(
-            demandesCount: counts['demandes'] ?? 0,
-            annoncesCount: counts['annonces'] ?? 0,
-          );
+      // Extraire les résultats avec les bons types
+      final countsEither = results[0] as Either<Failure, Map<String, int>>;
+      final demandesEither = results[1] as Either<Failure, List<ParticulierConversation>>;
+      final annoncesEither = results[2] as Either<Failure, List<ParticulierConversation>>;
 
-          // 2. Charger les vraies données des demandes en priorité
-          final demandesResult = await _repository.getParticulierConversations(
-            filterType: 'demandes',
-          );
+      // Traiter les counts
+      final counts = countsEither.fold(
+        (failure) => {'demandes': 0, 'annonces': 0},
+        (counts) => counts,
+      );
 
-          demandesResult.fold(
-            (failure) {
-              if (mounted) {
-                state = state.copyWith(
-                  isLoading: false,
-                  error: failure.message,
-                );
-              }
-            },
-            (demandes) {
-              if (mounted) {
-                // ✅ FIX: Préserver les annonces existantes lors du rechargement des demandes
-                final existingAnnonces = state.conversations.where((c) => !c.isRequester).toList();
-                final currentAnnoncesLoaded = existingAnnonces.length;
+      // Traiter les demandes
+      final demandes = demandesEither.fold(
+        (failure) {
+          debugPrint('❌ Erreur chargement demandes: ${failure.message}');
+          return <ParticulierConversation>[];
+        },
+        (data) => data,
+      );
 
-                // ✅ FIX: Fusionner demandes + annonces existantes pour éviter la perte
-                final allConversations = [...demandes, ...existingAnnonces];
+      // Traiter les annonces
+      final annonces = annoncesEither.fold(
+        (failure) {
+          debugPrint('❌ Erreur chargement annonces: ${failure.message}');
+          return <ParticulierConversation>[];
+        },
+        (data) => data,
+      );
 
-                state = state.copyWith(
-                  conversations: allConversations,
-                  isLoading: false,
-                  error: null,
-                  lastLoadedAt: DateTime.now(), // ✅ CACHE: Timestamp du chargement
-                );
+      if (mounted) {
+        // Fusionner toutes les conversations
+        final allConversations = [...demandes, ...annonces];
 
-                // 3. Précharger les "Annonces" après 2 secondes si elles existent ET pas déjà chargées
-                final annoncesCount = counts['annonces'] ?? 0;
+        state = state.copyWith(
+          conversations: allConversations,
+          demandesCount: counts['demandes'] ?? 0,
+          annoncesCount: counts['annonces'] ?? 0,
+          isLoading: false,
+          isLoadingAnnonces: false,
+          error: null,
+          lastLoadedAt: DateTime.now(),
+        );
 
-                debugPrint('📊 [Preload] Annonces count: $annoncesCount, déjà chargées: $currentAnnoncesLoaded');
-
-                if (annoncesCount > 0 && currentAnnoncesLoaded == 0) {
-                  // ✅ FIX: Précharger seulement si aucune annonce n'était chargée dans l'état précédent
-                  Future.delayed(const Duration(seconds: 2), () {
-                    if (mounted) {
-                      debugPrint('🔄 [Preload] Lancement préchargement annonces');
-                      _preloadAnnonces(demandes);
-                    }
-                  });
-                } else {
-                  debugPrint('⏭️ [Preload] Skip préchargement, annonces déjà présentes');
-                }
-              }
-            },
-          );
-        }
-      },
-    );
-  }
-
-  // ✅ OPTIMISATION: Précharger les annonces en arrière-plan
-  Future<void> _preloadAnnonces(List<ParticulierConversation> demandes) async {
-    if (mounted) {
-      state = state.copyWith(isLoadingAnnonces: true);
+        debugPrint('✅ [Load] ${demandes.length} demandes + ${annonces.length} annonces chargées en parallèle');
+      }
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Erreur de chargement: $e',
+        );
+      }
+      debugPrint('❌ [Load] Erreur: $e');
     }
-
-    final annoncesResult = await _repository.getParticulierConversations(
-      filterType: 'annonces',
-    );
-
-    annoncesResult.fold(
-      (failure) {
-        if (mounted) {
-          state = state.copyWith(isLoadingAnnonces: false);
-        }
-      },
-      (annonces) {
-        if (mounted) {
-          // Fusionner demandes + annonces
-          final allConversations = [...demandes, ...annonces];
-          state = state.copyWith(
-            conversations: allConversations,
-            isLoadingAnnonces: false,
-          );
-        }
-      },
-    );
   }
 
   Future<void> _loadConversationsQuietly() async {

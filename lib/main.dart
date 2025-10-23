@@ -16,6 +16,7 @@ import 'src/core/services/device_service.dart';
 import 'src/core/services/notification_manager.dart';
 import 'src/core/services/notification_navigation_service.dart';
 import 'src/core/services/push_notification_service.dart';
+import 'src/core/providers/particulier_conversations_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -122,11 +123,92 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  bool _hasPreloadedConversations = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     PushNotificationService.instance.setAppState(true);
+
+    // ✅ PRÉCHARGEMENT: Charger les conversations dès le démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadConversationsIfNeeded();
+    });
+  }
+
+  /// Précharger les conversations si l'utilisateur est connecté en tant que particulier
+  Future<void> _preloadConversationsIfNeeded() async {
+    if (_hasPreloadedConversations) return;
+
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      // Vérifier si c'est un particulier (pas un vendeur)
+      final isParticulier = await _checkIfParticulier();
+      if (!isParticulier) return;
+
+      debugPrint('🚀 [App Init] Préchargement des conversations particulier...');
+
+      // Charger les conversations en arrière-plan
+      final controller = ref.read(particulierConversationsControllerProvider.notifier);
+
+      // Initialiser le realtime avec device_id
+      await _initializeRealtimeForParticulier(controller);
+
+      // Charger les conversations
+      await controller.loadConversations();
+
+      _hasPreloadedConversations = true;
+      debugPrint('✅ [App Init] Conversations préchargées avec succès');
+    } catch (e) {
+      debugPrint('⚠️  [App Init] Erreur préchargement conversations: $e');
+      // Continuer silencieusement - l'utilisateur pourra toujours les charger manuellement
+    }
+  }
+
+  /// Vérifier si l'utilisateur connecté est un particulier
+  Future<bool> _checkIfParticulier() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      final particulierResponse = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId)
+          .limit(1)
+          .maybeSingle();
+
+      return particulierResponse != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Initialiser le realtime pour un particulier
+  Future<void> _initializeRealtimeForParticulier(dynamic controller) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceService = DeviceService(prefs);
+      final deviceId = await deviceService.getDeviceId();
+
+      final allParticuliersWithDevice = await Supabase.instance.client
+          .from('particuliers')
+          .select('id')
+          .eq('device_id', deviceId);
+
+      final allUserIds =
+          allParticuliersWithDevice.map((p) => p['id'] as String).toList();
+
+      if (allUserIds.isNotEmpty) {
+        controller.initializeRealtime(allUserIds, deviceId: deviceId);
+      }
+    } catch (e) {
+      debugPrint('⚠️  [App Init] Erreur initialisation realtime: $e');
+    }
   }
 
   @override

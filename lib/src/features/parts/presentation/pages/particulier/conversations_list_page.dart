@@ -45,10 +45,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
       _hasInitialized = true; // ✅ FIX: Marquer comme initialisé
       _reloadIfNeeded();
 
-      // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
+      // ✅ OPTIMISATION: Le realtime est déjà initialisé dans main.dart au démarrage
+      // Initialiser seulement si pas encore fait (fallback de sécurité)
       final controller =
           ref.read(particulierConversationsControllerProvider.notifier);
-      _initializeRealtimeWithCorrectIds(controller);
+      if (!controller.isRealtimeInitialized && !_isRealtimeInitialized) {
+        _initializeRealtimeWithCorrectIds(controller);
+      }
     });
   }
 
