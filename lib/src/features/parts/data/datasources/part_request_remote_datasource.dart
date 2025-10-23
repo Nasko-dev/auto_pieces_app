@@ -78,6 +78,7 @@ abstract class PartRequestRemoteDataSource {
   });
   Future<void> markParticulierConversationAsRead(String conversationId);
   Future<void> incrementUnreadCountForUser({required String conversationId});
+  Future<void> incrementUnreadCountForSeller({required String conversationId});
   Future<void> markParticulierMessagesAsRead({required String conversationId});
 }
 
@@ -1146,6 +1147,13 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           final userId = convData['user_id'];
           final isRequester = allUserIds.contains(userId);
 
+          // ✅ FIX: Utiliser le BON compteur selon le rôle
+          // Si on est le demandeur (user_id) → lire unread_count_for_user
+          // Si on est le répondeur (seller_id) → lire unread_count_for_seller
+          final int dbUnreadCount = isRequester
+              ? (convData['unread_count_for_user'] as int? ?? 0)
+              : (convData['unread_count_for_seller'] as int? ?? 0);
+
           // Créer la conversation
           final conversation = ParticulierConversation(
             id: convData['id'],
@@ -1160,16 +1168,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
               (status) => status.name == (convData['status'] ?? 'pending'),
               orElse: () => ConversationStatus.active,
             ),
-            hasUnreadMessages: () {
-              final dbUnreadCount =
-                  convData['unread_count_for_user'] as int? ?? 0;
-              return dbUnreadCount > 0;
-            }(),
-            unreadCount: () {
-              final dbUnreadCount =
-                  convData['unread_count_for_user'] as int? ?? 0;
-              return dbUnreadCount;
-            }(),
+            hasUnreadMessages: dbUnreadCount > 0,
+            unreadCount: dbUnreadCount,
             isRequester: isRequester, // true = demandeur, false = répondeur
             vehiclePlate: partRequestData['vehicle_plate'],
             partType: partRequestData['part_type'],
@@ -1334,6 +1334,11 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
       // Déterminer si le particulier est le demandeur
       final isRequester = allUserIds.contains(convData['user_id']);
 
+      // ✅ FIX: Utiliser le BON compteur selon le rôle
+      final int dbUnreadCount = isRequester
+          ? (convData['unread_count_for_user'] as int? ?? 0)
+          : (convData['unread_count_for_seller'] as int? ?? 0);
+
       // Créer et retourner la conversation
       return ParticulierConversation(
         id: convData['id'],
@@ -1348,8 +1353,8 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
           (status) => status.name == (convData['status'] ?? 'pending'),
           orElse: () => ConversationStatus.active,
         ),
-        hasUnreadMessages: (convData['unread_count_for_user'] as int? ?? 0) > 0,
-        unreadCount: convData['unread_count_for_user'] as int? ?? 0,
+        hasUnreadMessages: dbUnreadCount > 0,
+        unreadCount: dbUnreadCount,
         isRequester: isRequester,
         vehiclePlate: partRequestData['vehicle_plate'],
         partType: partRequestData['part_type'],
@@ -1447,7 +1452,70 @@ class PartRequestRemoteDataSourceImpl implements PartRequestRemoteDataSource {
         throw UnauthorizedException('User not authenticated');
       }
 
-      // Incrémenter le compteur côté particulier (unread_count_for_user)
+      // ✅ Utiliser RPC pour incrémentation atomique du compteur particulier
+      try {
+        await _supabase.rpc('increment_unread_count_for_user', params: {
+          'conversation_id_param': conversationId,
+        });
+      } catch (rpcError) {
+        // Fallback : récupérer et incrémenter manuellement
+        try {
+          final response = await _supabase
+              .from('conversations')
+              .select('unread_count_for_user')
+              .eq('id', conversationId)
+              .single();
+
+          final currentCount =
+              (response['unread_count_for_user'] as int?) ?? 0;
+
+          await _supabase.from('conversations').update({
+            'unread_count_for_user': currentCount + 1
+          }).eq('id', conversationId);
+        } catch (fallbackError) {
+          throw ServerException(
+              'Erreur lors de l\'incrémentation du compteur particulier: $fallbackError');
+        }
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> incrementUnreadCountForSeller(
+      {required String conversationId}) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw UnauthorizedException('User not authenticated');
+      }
+
+      // ✅ Utiliser RPC pour incrémentation atomique du compteur vendeur
+      try {
+        await _supabase.rpc('increment_unread_count_for_seller', params: {
+          'conversation_id_param': conversationId,
+        });
+      } catch (rpcError) {
+        // Fallback : récupérer et incrémenter manuellement
+        try {
+          final response = await _supabase
+              .from('conversations')
+              .select('unread_count_for_seller')
+              .eq('id', conversationId)
+              .single();
+
+          final currentCount =
+              (response['unread_count_for_seller'] as int?) ?? 0;
+
+          await _supabase.from('conversations').update({
+            'unread_count_for_seller': currentCount + 1
+          }).eq('id', conversationId);
+        } catch (fallbackError) {
+          throw ServerException(
+              'Erreur lors de l\'incrémentation du compteur vendeur: $fallbackError');
+        }
+      }
     } catch (e) {
       throw ServerException(e.toString());
     }

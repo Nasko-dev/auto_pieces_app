@@ -548,6 +548,18 @@ class PartRequestRepositoryImpl implements PartRequestRepository {
   }
 
   @override
+  Future<Either<Failure, void>> incrementUnreadCountForSeller(
+      {required String conversationId}) async {
+    return ErrorHandler.handleVoidAsync(
+      () => _remoteDataSource.incrementUnreadCountForSeller(
+          conversationId: conversationId),
+      checkNetwork: true,
+      networkCheck: () => _networkInfo.isConnected,
+      context: 'incrementUnreadCountForSeller',
+    );
+  }
+
+  @override
   Future<Either<Failure, void>> incrementUnreadCountForRecipient({
     required String conversationId,
     required String recipientId,

@@ -342,9 +342,38 @@ class ParticulierConversationsController
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
 
-      await _repository.incrementUnreadCountForUser(
-        conversationId: conversationId,
+      // ✅ FIX: Déterminer le rôle et incrémenter le BON compteur
+      // Trouver la conversation dans le state pour savoir si on est le demandeur ou le répondeur
+      final conversation = state.conversations.firstWhere(
+        (conv) => conv.id == conversationId,
+        orElse: () {
+          // Si conversation pas trouvée, charger depuis DB pour déterminer le rôle
+          _loadSingleConversationQuietly(conversationId);
+          // Fallback: incrémenter user par défaut
+          return state.conversations.first; // Dummy, ne sera pas utilisé
+        },
       );
+
+      if (state.conversations.any((conv) => conv.id == conversationId)) {
+        // Conversation trouvée - utiliser isRequester pour déterminer le compteur
+        if (conversation.isRequester) {
+          // On est le demandeur → incrémenter unread_count_for_user
+          await _repository.incrementUnreadCountForUser(
+            conversationId: conversationId,
+          );
+        } else {
+          // On est le répondeur → incrémenter unread_count_for_seller
+          await _repository.incrementUnreadCountForSeller(
+            conversationId: conversationId,
+          );
+        }
+      } else {
+        // Conversation pas trouvée → fallback unread_count_for_user
+        await _repository.incrementUnreadCountForUser(
+          conversationId: conversationId,
+        );
+      }
+
       // ✅ OPTIMISATION: Mettre à jour seulement cette conversation
       _loadSingleConversationQuietly(conversationId);
     } catch (e) {

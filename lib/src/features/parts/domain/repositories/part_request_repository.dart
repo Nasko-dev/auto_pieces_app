@@ -68,6 +68,8 @@ abstract class PartRequestRepository {
       String conversationId);
   Future<Either<Failure, void>> incrementUnreadCountForUser(
       {required String conversationId});
+  Future<Either<Failure, void>> incrementUnreadCountForSeller(
+      {required String conversationId});
   Future<Either<Failure, void>> incrementUnreadCountForRecipient({
     required String conversationId,
     required String recipientId,
