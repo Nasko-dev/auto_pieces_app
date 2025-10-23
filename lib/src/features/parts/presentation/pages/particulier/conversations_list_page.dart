@@ -21,7 +21,7 @@ class ConversationsListPage extends ConsumerStatefulWidget {
 }
 
 class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   bool _showOnlyUnread = false;
   late TabController _tabController;
 
@@ -34,24 +34,56 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
+    // ✅ LIFECYCLE: Écouter les changements de lifecycle de l'app
+    WidgetsBinding.instance.addObserver(this);
+
     // ✅ SMART RELOAD: Charger seulement si nécessaire
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller =
-          ref.read(particulierConversationsControllerProvider.notifier);
-      final state = ref.read(particulierConversationsControllerProvider);
-
-      // Ne charger que si vide ou données anciennes (> 5 minutes)
-      if (state.shouldReload) {
-        controller.loadConversations();
-      }
+      _reloadIfNeeded();
 
       // Initialiser le realtime avec les vrais IDs particulier (pas auth ID)
+      final controller =
+          ref.read(particulierConversationsControllerProvider.notifier);
       _initializeRealtimeWithCorrectIds(controller);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // ✅ RELOAD: Recharger quand l'app revient au premier plan
+    if (state == AppLifecycleState.resumed && mounted) {
+      _reloadIfNeeded();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // ✅ RELOAD: Recharger si nécessaire quand la page redevient visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _reloadIfNeeded();
+      }
+    });
+  }
+
+  void _reloadIfNeeded() {
+    final controller =
+        ref.read(particulierConversationsControllerProvider.notifier);
+    final state = ref.read(particulierConversationsControllerProvider);
+
+    // Ne charger que si vide ou données anciennes (> 5 minutes)
+    if (state.shouldReload) {
+      controller.loadConversations();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
   }

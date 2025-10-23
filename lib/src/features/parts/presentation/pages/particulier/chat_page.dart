@@ -561,8 +561,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           content: content.trim(),
         );
 
-    // Invalider le provider de la liste des conversations pour rafraîchir l'affichage
-    ref.invalidate(particulierConversationsControllerProvider);
+    // ✅ RELOAD: Marquer qu'un rechargement est nécessaire au retour sur la liste
+    ref.read(particulierConversationsControllerProvider.notifier).markNeedsReload();
 
     _messageController.clear();
   }

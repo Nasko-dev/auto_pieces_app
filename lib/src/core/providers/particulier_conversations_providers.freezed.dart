@@ -27,7 +27,9 @@ mixin _$ParticulierConversationsState {
       throw _privateConstructorUsedError; // Count rapide des annonces
   bool get isLoadingAnnonces =>
       throw _privateConstructorUsedError; // Chargement en cours des annonces
-  DateTime? get lastLoadedAt => throw _privateConstructorUsedError;
+  DateTime? get lastLoadedAt =>
+      throw _privateConstructorUsedError; // Timestamp du dernier chargement pour cache intelligent
+  bool get needsReload => throw _privateConstructorUsedError;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -52,7 +54,8 @@ abstract class $ParticulierConversationsStateCopyWith<$Res> {
       int demandesCount,
       int annoncesCount,
       bool isLoadingAnnonces,
-      DateTime? lastLoadedAt});
+      DateTime? lastLoadedAt,
+      bool needsReload});
 }
 
 /// @nodoc
@@ -79,6 +82,7 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
     Object? annoncesCount = null,
     Object? isLoadingAnnonces = null,
     Object? lastLoadedAt = freezed,
+    Object? needsReload = null,
   }) {
     return _then(_value.copyWith(
       conversations: null == conversations
@@ -113,6 +117,10 @@ class _$ParticulierConversationsStateCopyWithImpl<$Res,
           ? _value.lastLoadedAt
           : lastLoadedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      needsReload: null == needsReload
+          ? _value.needsReload
+          : needsReload // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -134,7 +142,8 @@ abstract class _$$ParticulierConversationsStateImplCopyWith<$Res>
       int demandesCount,
       int annoncesCount,
       bool isLoadingAnnonces,
-      DateTime? lastLoadedAt});
+      DateTime? lastLoadedAt,
+      bool needsReload});
 }
 
 /// @nodoc
@@ -160,6 +169,7 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
     Object? annoncesCount = null,
     Object? isLoadingAnnonces = null,
     Object? lastLoadedAt = freezed,
+    Object? needsReload = null,
   }) {
     return _then(_$ParticulierConversationsStateImpl(
       conversations: null == conversations
@@ -194,6 +204,10 @@ class __$$ParticulierConversationsStateImplCopyWithImpl<$Res>
           ? _value.lastLoadedAt
           : lastLoadedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      needsReload: null == needsReload
+          ? _value.needsReload
+          : needsReload // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -210,7 +224,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       this.demandesCount = 0,
       this.annoncesCount = 0,
       this.isLoadingAnnonces = false,
-      this.lastLoadedAt})
+      this.lastLoadedAt,
+      this.needsReload = false})
       : _conversations = conversations,
         super._();
 
@@ -244,10 +259,14 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
 // Chargement en cours des annonces
   @override
   final DateTime? lastLoadedAt;
+// Timestamp du dernier chargement pour cache intelligent
+  @override
+  @JsonKey()
+  final bool needsReload;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount, isLoadingAnnonces: $isLoadingAnnonces, lastLoadedAt: $lastLoadedAt)';
+    return 'ParticulierConversationsState(conversations: $conversations, isLoading: $isLoading, error: $error, activeConversationId: $activeConversationId, demandesCount: $demandesCount, annoncesCount: $annoncesCount, isLoadingAnnonces: $isLoadingAnnonces, lastLoadedAt: $lastLoadedAt, needsReload: $needsReload)';
   }
 
   @override
@@ -262,7 +281,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       ..add(DiagnosticsProperty('demandesCount', demandesCount))
       ..add(DiagnosticsProperty('annoncesCount', annoncesCount))
       ..add(DiagnosticsProperty('isLoadingAnnonces', isLoadingAnnonces))
-      ..add(DiagnosticsProperty('lastLoadedAt', lastLoadedAt));
+      ..add(DiagnosticsProperty('lastLoadedAt', lastLoadedAt))
+      ..add(DiagnosticsProperty('needsReload', needsReload));
   }
 
   @override
@@ -284,7 +304,9 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
             (identical(other.isLoadingAnnonces, isLoadingAnnonces) ||
                 other.isLoadingAnnonces == isLoadingAnnonces) &&
             (identical(other.lastLoadedAt, lastLoadedAt) ||
-                other.lastLoadedAt == lastLoadedAt));
+                other.lastLoadedAt == lastLoadedAt) &&
+            (identical(other.needsReload, needsReload) ||
+                other.needsReload == needsReload));
   }
 
   @override
@@ -297,7 +319,8 @@ class _$ParticulierConversationsStateImpl extends _ParticulierConversationsState
       demandesCount,
       annoncesCount,
       isLoadingAnnonces,
-      lastLoadedAt);
+      lastLoadedAt,
+      needsReload);
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.
@@ -320,7 +343,8 @@ abstract class _ParticulierConversationsState
       final int demandesCount,
       final int annoncesCount,
       final bool isLoadingAnnonces,
-      final DateTime? lastLoadedAt}) = _$ParticulierConversationsStateImpl;
+      final DateTime? lastLoadedAt,
+      final bool needsReload}) = _$ParticulierConversationsStateImpl;
   const _ParticulierConversationsState._() : super._();
 
   @override
@@ -338,7 +362,10 @@ abstract class _ParticulierConversationsState
   @override
   bool get isLoadingAnnonces; // Chargement en cours des annonces
   @override
-  DateTime? get lastLoadedAt;
+  DateTime?
+      get lastLoadedAt; // Timestamp du dernier chargement pour cache intelligent
+  @override
+  bool get needsReload;
 
   /// Create a copy of ParticulierConversationsState
   /// with the given fields replaced by the non-null parameter values.

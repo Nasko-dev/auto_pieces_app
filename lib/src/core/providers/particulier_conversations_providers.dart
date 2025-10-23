@@ -24,6 +24,7 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
     @Default(0) int annoncesCount, // Count rapide des annonces
     @Default(false) bool isLoadingAnnonces, // Chargement en cours des annonces
     DateTime? lastLoadedAt, // Timestamp du dernier chargement pour cache intelligent
+    @Default(false) bool needsReload, // Flag pour forcer le rechargement après invalidation
   }) = _ParticulierConversationsState;
 
   int get unreadCount =>
@@ -37,7 +38,7 @@ class ParticulierConversationsState with _$ParticulierConversationsState {
   }
 
   // ✅ CACHE: Vérifier si on doit recharger
-  bool get shouldReload => conversations.isEmpty || !isFresh;
+  bool get shouldReload => conversations.isEmpty || !isFresh || needsReload;
 }
 
 class ParticulierConversationsController
@@ -146,7 +147,7 @@ class ParticulierConversationsController
 
   // ✅ OPTIMISATION OPTION C: Charger d'abord les counts, puis les données
   Future<void> loadConversations() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, needsReload: false);
 
     // 1. Charger rapidement les counts pour savoir quels onglets afficher
     final countsResult = await _repository.getConversationsCounts();
@@ -390,6 +391,13 @@ class ParticulierConversationsController
 
     if (mounted) {
       state = state.copyWith(conversations: updatedConversations);
+    }
+  }
+
+  // ✅ RELOAD: Marquer qu'un rechargement est nécessaire (appelé après envoi de message)
+  void markNeedsReload() {
+    if (mounted) {
+      state = state.copyWith(needsReload: true);
     }
   }
 
