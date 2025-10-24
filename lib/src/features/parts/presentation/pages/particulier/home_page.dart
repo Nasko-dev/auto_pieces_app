@@ -1146,16 +1146,29 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: const TextStyle(fontSize: 16),
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
-              hintText: 'Tapez le nom de la pièce puis ajoutez avec +',
+              hintText: 'Entrez vos pièces',
               hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
               suffixIcon: _partController.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(
-                        Icons.add_circle,
-                        color: AppTheme.primaryBlue,
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: AppTheme.primaryBlue,
+                          size: 16,
+                        ),
                       ),
                       onPressed: () {
                         if (_partController.text.isNotEmpty &&
