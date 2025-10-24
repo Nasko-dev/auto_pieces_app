@@ -994,12 +994,13 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedDriveType != null &&
           _selectedDriveType!.isNotEmpty;
     } else if (widget.selectedSubType == 'body_parts') {
-      // Pour la carrosserie : marque + modèle + année requis
+      // Pour la carrosserie : marque + modèle + année requis (4 chiffres)
       return _selectedBrand != null &&
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _yearController.text.isNotEmpty;
+          _yearController.text.length == 4 &&
+          int.tryParse(_yearController.text) != null;
     } else if (widget.selectedSubType == 'both') {
       // Moteur + Boîte : TOUS les champs requis
       final engineValid = _selectedCylinder != null &&
@@ -1026,7 +1027,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _yearController.text.isNotEmpty;
+          _yearController.text.length == 4 &&
+          int.tryParse(_yearController.text) != null;
 
       return engineValid && vehicleValid;
     } else if (widget.selectedSubType == 'transmission_body') {
@@ -1042,7 +1044,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _yearController.text.isNotEmpty;
+          _yearController.text.length == 4 &&
+          int.tryParse(_yearController.text) != null;
 
       return transmissionValid && vehicleValid;
     } else if (widget.selectedSubType == 'all_three') {
@@ -1063,7 +1066,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _yearController.text.isNotEmpty;
+          _yearController.text.length == 4 &&
+          int.tryParse(_yearController.text) != null;
 
       return engineValid && transmissionValid && vehicleValid;
     }

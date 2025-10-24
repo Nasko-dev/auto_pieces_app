@@ -857,12 +857,13 @@ class _HomePageState extends ConsumerState<HomePage> {
           _selectedDriveType != null &&
           _selectedDriveType!.isNotEmpty;
     } else {
-      // Pièces carrosserie/intérieur : marque, modèle, année requises
+      // Pièces carrosserie/intérieur : marque, modèle, année requises (4 chiffres)
       return _selectedMarque != null &&
           _selectedMarque!.isNotEmpty &&
           _selectedModele != null &&
           _selectedModele!.isNotEmpty &&
-          _anneeController.text.isNotEmpty;
+          _anneeController.text.length == 4 &&
+          int.tryParse(_anneeController.text) != null;
     }
   }
 
