@@ -779,6 +779,24 @@ class _SellerCreateRequestPageState
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.all(16),
+              suffixIcon: _partController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.check_circle,
+                        color: AppTheme.primaryBlue,
+                      ),
+                      onPressed: () {
+                        if (_partController.text.isNotEmpty &&
+                            !_selectedParts.contains(_partController.text)) {
+                          setState(() {
+                            _selectedParts.add(_partController.text);
+                            _partController.clear();
+                            _showSuggestions = false;
+                          });
+                        }
+                      },
+                    )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(_radius),
                 borderSide: const BorderSide(color: AppColors.grey200),
