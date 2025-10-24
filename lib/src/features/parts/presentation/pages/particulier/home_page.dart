@@ -46,7 +46,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   // Pour le mode manuel avec dropdowns
   String? _selectedMarque;
   String? _selectedModele;
-  int? _selectedAnnee;
+  final TextEditingController _anneeController = TextEditingController();
 
   // Pour les pièces moteur - mode manuel avec 2 dropdowns + chevaux optionnel
   String? _selectedCylindree;
@@ -118,6 +118,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _partController.removeListener(_onTextChanged);
     _partController.dispose();
     _horsepowerController.dispose();
+    _anneeController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -500,7 +501,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     _selectedMarque = value;
                     // Reset modèle et année quand marque change
                     _selectedModele = null;
-                    _selectedAnnee = null;
+                    _anneeController.clear();
                   });
                 },
                 enabled: true,
@@ -540,7 +541,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   setState(() {
                     _selectedModele = value;
                     // Reset année quand modèle change
-                    _selectedAnnee = null;
+                    _anneeController.clear();
                   });
                 },
                 enabled: _selectedMarque != null && _selectedMarque!.isNotEmpty,
@@ -564,44 +565,13 @@ class _HomePageState extends ConsumerState<HomePage> {
           },
         ),
         const SizedBox(height: 16),
-        // Dropdown Année
-        Consumer(
-          builder: (context, ref, child) {
-            // Créer une clé stable : "brand|model"
-            final brandModel =
-                '${_selectedMarque ?? ''}|${_selectedModele ?? ''}';
-            final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
-            return yearsAsync.when(
-              data: (years) => SearchableDropdown<int>(
-                label: 'Année',
-                hint: 'Sélectionnez une année',
-                icon: Icons.calendar_today,
-                value: _selectedAnnee,
-                items: years,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedAnnee = value;
-                  });
-                },
-                enabled: _selectedModele != null && _selectedModele!.isNotEmpty,
-                enableSearch: true,
-              ),
-              loading: () => _buildLoadingDropdown(
-                label: 'Année',
-                hint: 'Chargement...',
-                icon: Icons.calendar_today,
-              ),
-              error: (_, __) => SearchableDropdown<int>(
-                label: 'Année',
-                hint: 'Erreur de chargement',
-                icon: Icons.calendar_today,
-                value: null,
-                items: const [],
-                onChanged: null,
-                enabled: false,
-              ),
-            );
-          },
+        // Champ Année
+        _buildTextField(
+          label: 'Année',
+          hint: 'Ex: 2018',
+          icon: Icons.calendar_today,
+          controller: _anneeController,
+          keyboardType: TextInputType.number,
         ),
       ],
     ];
@@ -890,7 +860,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           _selectedMarque!.isNotEmpty &&
           _selectedModele != null &&
           _selectedModele!.isNotEmpty &&
-          _selectedAnnee != null;
+          _anneeController.text.isNotEmpty;
     }
   }
 
@@ -1048,7 +1018,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         // Carrosserie : marque + modèle + année seulement
         vehicleBrand = _selectedMarque;
         vehicleModel = _selectedModele;
-        vehicleYear = _selectedAnnee;
+        vehicleYear = _anneeController.text.isNotEmpty
+            ? int.tryParse(_anneeController.text)
+            : null;
       } else if (_selectedType == 'engine') {
         // Moteur : construire motorisation à partir des 2 champs + chevaux optionnel
         final engineParts = <String>[];
@@ -1137,7 +1109,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _selectedParts.clear();
       _selectedMarque = null;
       _selectedModele = null;
-      _selectedAnnee = null;
+      _anneeController.clear();
       _selectedCylindree = null;
       _selectedFuelType = null;
       _horsepowerController.clear();
@@ -1297,7 +1269,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         final parts = <String>[];
         if (_selectedMarque != null) parts.add(_selectedMarque!);
         if (_selectedModele != null) parts.add(_selectedModele!);
-        if (_selectedAnnee != null) parts.add(_selectedAnnee!.toString());
+        if (_anneeController.text.isNotEmpty) parts.add(_anneeController.text);
         return parts.isNotEmpty ? parts.join(' - ') : '';
       }
     } else {
@@ -1353,8 +1325,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             _buildInfoRow('Marque', _selectedMarque!),
           if (_selectedModele != null && _selectedModele!.isNotEmpty)
             _buildInfoRow('Modèle', _selectedModele!),
-          if (_selectedAnnee != null)
-            _buildInfoRow('Année', _selectedAnnee!.toString()),
+          if (_anneeController.text.isNotEmpty)
+            _buildInfoRow('Année', _anneeController.text),
         ];
       }
     } else {

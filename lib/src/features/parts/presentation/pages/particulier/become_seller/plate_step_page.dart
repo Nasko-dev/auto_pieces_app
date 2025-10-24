@@ -39,7 +39,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   // Pour les dropdowns véhicule (carrosserie, transmission, body)
   String? _selectedBrand;
   String? _selectedModel;
-  int? _selectedYear;
+  final TextEditingController _yearController = TextEditingController();
 
   // Pour les dropdowns moteur
   String? _selectedCylinder;
@@ -55,6 +55,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   void dispose() {
     _plateController.dispose();
     _horsepowerController.dispose();
+    _yearController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -135,7 +136,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         final parts = <String>[];
         if (_selectedBrand != null) parts.add(_selectedBrand!);
         if (_selectedModel != null) parts.add(_selectedModel!);
-        if (_selectedYear != null) parts.add(_selectedYear.toString());
+        if (_yearController.text.isNotEmpty) parts.add(_yearController.text);
         return parts.isNotEmpty ? parts.join(' ') : 'Véhicule manuel';
       } else if (widget.selectedSubType == 'both') {
         // Moteur + Boîte
@@ -184,7 +185,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         final vehicleParts = <String>[];
         if (_selectedBrand != null) vehicleParts.add(_selectedBrand!);
         if (_selectedModel != null) vehicleParts.add(_selectedModel!);
-        if (_selectedYear != null) vehicleParts.add(_selectedYear.toString());
+        if (_yearController.text.isNotEmpty)
+          vehicleParts.add(_yearController.text);
 
         final allParts = <String>[];
         if (vehicleParts.isNotEmpty) allParts.add(vehicleParts.join(' '));
@@ -217,8 +219,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         if (_selectedModel != null) {
           vehicleParts.add(_selectedModel!);
         }
-        if (_selectedYear != null) {
-          vehicleParts.add(_selectedYear.toString());
+        if (_yearController.text.isNotEmpty) {
+          vehicleParts.add(_yearController.text);
         }
 
         final allParts = <String>[];
@@ -263,8 +265,8 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         if (_selectedModel != null) {
           vehicleParts.add(_selectedModel!);
         }
-        if (_selectedYear != null) {
-          vehicleParts.add(_selectedYear.toString());
+        if (_yearController.text.isNotEmpty) {
+          vehicleParts.add(_yearController.text);
         }
 
         final allParts = <String>[];
@@ -500,7 +502,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 // Reset des champs manuels
                 _selectedBrand = null;
                 _selectedModel = null;
-                _selectedYear = null;
+                _yearController.clear();
                 _selectedCylinder = null;
                 _selectedFuelType = null;
                 _horsepowerController.clear();
@@ -747,7 +749,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                   setState(() {
                     _selectedBrand = value;
                     _selectedModel = null;
-                    _selectedYear = null;
+                    _yearController.clear();
                   });
                 },
                 enabled: true,
@@ -786,7 +788,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedModel = value;
-                    _selectedYear = null;
+                    _yearController.clear();
                   });
                 },
                 enabled: _selectedBrand != null && _selectedBrand!.isNotEmpty,
@@ -810,43 +812,13 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           },
         ),
         const SizedBox(height: 16),
-        // Dropdown Année
-        Consumer(
-          builder: (context, ref, child) {
-            final brandModel =
-                '${_selectedBrand ?? ''}|${_selectedModel ?? ''}';
-            final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
-            return yearsAsync.when(
-              data: (years) => SearchableDropdown<int>(
-                label: 'Année',
-                hint: 'Sélectionnez une année',
-                icon: Icons.calendar_today,
-                value: _selectedYear,
-                items: years,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedYear = value;
-                  });
-                },
-                enabled: _selectedModel != null && _selectedModel!.isNotEmpty,
-                enableSearch: true,
-              ),
-              loading: () => _buildLoadingDropdown(
-                label: 'Année',
-                hint: 'Chargement...',
-                icon: Icons.calendar_today,
-              ),
-              error: (_, __) => SearchableDropdown<int>(
-                label: 'Année',
-                hint: 'Erreur de chargement',
-                icon: Icons.calendar_today,
-                value: null,
-                items: const [],
-                onChanged: null,
-                enabled: false,
-              ),
-            );
-          },
+        // Champ Année
+        _buildTextField(
+          label: 'Année',
+          hint: 'Ex: 2018',
+          icon: Icons.calendar_today,
+          controller: _yearController,
+          keyboardType: TextInputType.number,
         ),
       ],
     );
@@ -1012,7 +984,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _selectedYear != null;
+          _yearController.text.isNotEmpty;
     } else if (widget.selectedSubType == 'both') {
       // Moteur + Boîte : TOUS les champs requis
       final engineValid = _selectedCylinder != null &&
@@ -1039,7 +1011,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _selectedYear != null;
+          _yearController.text.isNotEmpty;
 
       return engineValid && vehicleValid;
     } else if (widget.selectedSubType == 'transmission_body') {
@@ -1055,7 +1027,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _selectedYear != null;
+          _yearController.text.isNotEmpty;
 
       return transmissionValid && vehicleValid;
     } else if (widget.selectedSubType == 'all_three') {
@@ -1076,7 +1048,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           _selectedBrand!.isNotEmpty &&
           _selectedModel != null &&
           _selectedModel!.isNotEmpty &&
-          _selectedYear != null;
+          _yearController.text.isNotEmpty;
 
       return engineValid && transmissionValid && vehicleValid;
     }
