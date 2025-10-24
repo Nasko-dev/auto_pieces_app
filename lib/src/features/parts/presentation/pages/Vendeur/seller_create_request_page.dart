@@ -769,8 +769,9 @@ class _SellerCreateRequestPageState
             controller: _partController,
             focusNode: _focusNode,
             style: const TextStyle(fontSize: 16),
+            textInputAction: TextInputAction.done,
             decoration: InputDecoration(
-              hintText: 'Tapez le nom de la pièce (ex: moteur, phare...)',
+              hintText: 'Tapez le nom de la pièce puis validez avec ✓',
               hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
@@ -784,6 +785,7 @@ class _SellerCreateRequestPageState
                       onPressed: () {
                         if (_partController.text.isNotEmpty &&
                             !_selectedParts.contains(_partController.text)) {
+                          HapticHelper.light();
                           setState(() {
                             _selectedParts.add(_partController.text);
                             _partController.clear();
@@ -808,9 +810,40 @@ class _SellerCreateRequestPageState
               ),
             ),
             onChanged: (value) => setState(() {}),
+            onSubmitted: (value) {
+              if (value.isNotEmpty && !_selectedParts.contains(value)) {
+                HapticHelper.light();
+                setState(() {
+                  _selectedParts.add(value);
+                  _partController.clear();
+                  _showSuggestions = false;
+                });
+              }
+            },
           ),
         ),
         if (_showSuggestions) _buildSuggestionsList(),
+        if (_selectedParts.isEmpty && !_showSuggestions)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: AppTheme.gray.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Aucune pièce sélectionnée - tapez puis validez avec ✓ ou Entrée',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.gray.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
