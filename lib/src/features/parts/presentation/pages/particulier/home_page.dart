@@ -226,6 +226,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                               _isManualMode = true;
                               _showDescription = false;
                             });
+                            Future.delayed(const Duration(milliseconds: 100),
+                                () {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            });
                           },
                           showManualOption: true,
                           autoSearch: true,
@@ -242,7 +250,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                       // Bouton continuer
                       if (!_showDescription) ...[
-                        const SizedBox(height: 96),
+                        const SizedBox(height: 256),
                         SizedBox(
                           width: double.infinity,
                           height: 56,
