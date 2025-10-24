@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/providers/providers.dart';
+import '../../../../../../core/utils/haptic_helper.dart';
 
 class SellPartStepPage extends ConsumerStatefulWidget {
   final String selectedCategory;
@@ -345,7 +346,7 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
               color: AppTheme.darkGray,
             ),
             decoration: InputDecoration(
-              hintText: 'Ex: Moteur, Pare-choc avant, Phare...',
+              hintText: 'Entrez vos pièces',
               hintStyle: TextStyle(
                 color: AppTheme.gray.withValues(alpha: 0.6),
               ),
@@ -354,6 +355,40 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                 color: _getCategoryColor(),
                 size: 22,
               ),
+              suffixIcon: widget.hasMultiple && _partController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '+',
+                            style: TextStyle(
+                              color: AppTheme.primaryBlue,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w400,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (_partController.text.isNotEmpty &&
+                            !_selectedParts.contains(_partController.text)) {
+                          HapticHelper.light();
+                          setState(() {
+                            _selectedParts.add(_partController.text);
+                            _partController.clear();
+                            _showSuggestions = false;
+                          });
+                        }
+                      },
+                    )
+                  : null,
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
@@ -382,9 +417,46 @@ class _SellPartStepPageState extends ConsumerState<SellPartStepPage> {
                 ),
               ),
             ),
+            onSubmitted: (value) {
+              if (widget.hasMultiple &&
+                  value.isNotEmpty &&
+                  !_selectedParts.contains(value)) {
+                HapticHelper.light();
+                setState(() {
+                  _selectedParts.add(value);
+                  _partController.clear();
+                  _showSuggestions = false;
+                });
+              }
+            },
           ),
         ),
         if (_showSuggestions) _buildSuggestionsList(),
+        if (widget.hasMultiple && _selectedParts.isEmpty && !_showSuggestions)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: AppTheme.gray.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Aucune pièce sélectionnée - tapez puis ajoutez avec + ou Entrée',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.gray.withValues(alpha: 0.7),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
