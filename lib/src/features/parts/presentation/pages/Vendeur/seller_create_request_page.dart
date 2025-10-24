@@ -52,6 +52,7 @@ class _SellerCreateRequestPageState
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
+    _anneeController.addListener(_onYearChanged);
 
     // Vérifier les demandes actives de manière asynchrone sans bloquer
     // Délai pour laisser l'UI se charger d'abord
@@ -543,10 +544,11 @@ class _SellerCreateRequestPageState
   }
 
   bool _canContinueManual() {
-    // Pour tous les types : marque, modèle, année requises
+    // Pour tous les types : marque, modèle, année requises (4 chiffres)
     final hasBasicInfo = _marqueController.text.isNotEmpty &&
         _modeleController.text.isNotEmpty &&
-        _anneeController.text.isNotEmpty;
+        _anneeController.text.length == 4 &&
+        int.tryParse(_anneeController.text) != null;
 
     if (_selectedType == 'engine') {
       // Pièces moteur : marque + modèle + année + motorisation requises
@@ -617,6 +619,12 @@ class _SellerCreateRequestPageState
     });
   }
 
+  void _onYearChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   void _selectSuggestion(String suggestion) {
     if (!_selectedParts.contains(suggestion)) {
       setState(() {
@@ -670,7 +678,8 @@ class _SellerCreateRequestPageState
           _marqueController.text.isNotEmpty ? _marqueController.text : null;
       vehicleModel =
           _modeleController.text.isNotEmpty ? _modeleController.text : null;
-      vehicleYear = _anneeController.text.isNotEmpty
+      vehicleYear = _anneeController.text.length == 4 &&
+              int.tryParse(_anneeController.text) != null
           ? int.tryParse(_anneeController.text)
           : null;
 
@@ -912,7 +921,8 @@ class _SellerCreateRequestPageState
           _buildInfoRow('Marque', _marqueController.text),
         if (_modeleController.text.isNotEmpty)
           _buildInfoRow('Modèle', _modeleController.text),
-        if (_anneeController.text.isNotEmpty)
+        if (_anneeController.text.length == 4 &&
+            int.tryParse(_anneeController.text) != null)
           _buildInfoRow('Année', _anneeController.text),
         if (_motorisationController.text.isNotEmpty)
           _buildInfoRow('Motorisation', _motorisationController.text),
