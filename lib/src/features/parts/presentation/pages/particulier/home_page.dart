@@ -1154,20 +1154,26 @@ class _HomePageState extends ConsumerState<HomePage> {
               suffixIcon: _partController.text.isNotEmpty
                   ? IconButton(
                       icon: Container(
-                        width: 24,
-                        height: 24,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: AppTheme.primaryBlue,
-                            width: 2,
+                            width: 2.5,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.add,
-                          color: AppTheme.primaryBlue,
-                          size: 16,
+                        child: const Center(
+                          child: Text(
+                            '+',
+                            style: TextStyle(
+                              color: AppTheme.primaryBlue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              height: 1.0,
+                            ),
+                          ),
                         ),
                       ),
                       onPressed: () {
