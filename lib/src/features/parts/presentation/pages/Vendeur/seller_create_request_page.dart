@@ -771,7 +771,7 @@ class _SellerCreateRequestPageState
             style: const TextStyle(fontSize: 16),
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
-              hintText: 'Tapez le nom de la pièce puis validez avec ✓',
+              hintText: 'Tapez le nom de la pièce puis ajoutez avec +',
               hintStyle: TextStyle(color: AppTheme.gray.withValues(alpha: 0.7)),
               filled: true,
               fillColor: Colors.white,
@@ -779,7 +779,7 @@ class _SellerCreateRequestPageState
               suffixIcon: _partController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(
-                        Icons.check_circle,
+                        Icons.add_circle,
                         color: AppTheme.primaryBlue,
                       ),
                       onPressed: () {
@@ -834,11 +834,15 @@ class _SellerCreateRequestPageState
                   color: AppTheme.gray.withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  'Aucune pièce sélectionnée - tapez puis validez avec ✓ ou Entrée',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.gray.withValues(alpha: 0.7),
+                Expanded(
+                  child: Text(
+                    'Aucune pièce sélectionnée - tapez puis ajoutez avec + ou Entrée',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.gray.withValues(alpha: 0.7),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ),
               ],
