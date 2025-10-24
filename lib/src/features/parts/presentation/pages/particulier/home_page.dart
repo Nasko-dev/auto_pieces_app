@@ -868,7 +868,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   bool _canSubmit() {
-    return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
+    return _selectedParts.isNotEmpty;
   }
 
   void _onYearChanged() {
@@ -1000,10 +1000,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     final allParts = _selectedParts.toList();
-    if (_partController.text.isNotEmpty &&
-        !allParts.contains(_partController.text)) {
-      allParts.add(_partController.text);
-    }
 
     if (allParts.isEmpty) {
       notificationService.error(

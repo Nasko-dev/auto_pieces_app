@@ -560,7 +560,7 @@ class _SellerCreateRequestPageState
   }
 
   bool _canSubmit() {
-    return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
+    return _selectedParts.isNotEmpty;
   }
 
   void _onTextChanged() async {
@@ -650,10 +650,6 @@ class _SellerCreateRequestPageState
 
   Future<void> _submitRequest() async {
     final allParts = _selectedParts.toList();
-    if (_partController.text.isNotEmpty &&
-        !allParts.contains(_partController.text)) {
-      allParts.add(_partController.text);
-    }
 
     if (allParts.isEmpty) {
       notificationService.error(
