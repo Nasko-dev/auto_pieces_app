@@ -781,21 +781,17 @@ class _SellerCreateRequestPageState
                       icon: Container(
                         width: 28,
                         height: 28,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppTheme.primaryBlue,
-                            width: 2.5,
-                          ),
                         ),
                         child: const Center(
                           child: Text(
                             '+',
                             style: TextStyle(
                               color: AppTheme.primaryBlue,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w400,
                               height: 1.0,
                             ),
                           ),
