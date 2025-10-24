@@ -265,16 +265,16 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       children: [
         Text(
           widget.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 16,
-            color: _textDark,
+            color:
+                widget.enabled ? _textDark : _textGray.withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(height: 8),
         Material(
-          color:
-              widget.enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
+          color: widget.enabled ? Colors.white : AppColors.grey100,
           borderRadius: BorderRadius.circular(_radius),
           child: InkWell(
             borderRadius: BorderRadius.circular(_radius),
@@ -286,7 +286,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                 border: Border.all(
                   color: widget.enabled
                       ? _border
-                      : _textGray.withValues(alpha: 0.2),
+                      : _textGray.withValues(alpha: 0.3),
                 ),
                 boxShadow: widget.enabled
                     ? const [
@@ -306,7 +306,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       widget.icon,
                       color: widget.enabled
                           ? _blue
-                          : _textGray.withValues(alpha: 0.5),
+                          : _textGray.withValues(alpha: 0.4),
                       size: 20,
                     ),
                   ),
@@ -319,8 +319,9 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         color: displayText != null
                             ? (widget.enabled
                                 ? _textDark
-                                : _textGray.withValues(alpha: 0.5))
-                            : _textGray.withValues(alpha: 0.7),
+                                : _textGray.withValues(alpha: 0.4))
+                            : _textGray.withValues(
+                                alpha: widget.enabled ? 0.7 : 0.5),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -331,7 +332,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       Icons.arrow_drop_down,
                       color: widget.enabled
                           ? _textGray
-                          : _textGray.withValues(alpha: 0.5),
+                          : _textGray.withValues(alpha: 0.4),
                       size: 24,
                     ),
                   ),
