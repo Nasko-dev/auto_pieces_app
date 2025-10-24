@@ -6,6 +6,7 @@ import '../../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../../core/providers/vehicle_catalog_providers.dart';
 import '../../../../../../core/providers/engine_catalog_providers.dart';
 import '../../../../../../shared/presentation/widgets/license_plate_input.dart';
+import '../../../../../../shared/presentation/widgets/searchable_dropdown.dart';
 import 'shared_widgets.dart';
 
 class PlateStepPage extends ConsumerStatefulWidget {
@@ -558,7 +559,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         builder: (context, ref, child) {
           final cylindersAsync = ref.watch(engineCylindersProvider);
           return cylindersAsync.when(
-            data: (cylinders) => _buildDropdown<String>(
+            data: (cylinders) => SearchableDropdown<String>(
               label: 'Cylindrée',
               hint: 'Sélectionnez une cylindrée',
               icon: Icons.speed,
@@ -571,13 +572,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 });
               },
               enabled: true,
+              enableSearch: true,
             ),
             loading: () => _buildLoadingDropdown(
               label: 'Cylindrée',
               hint: 'Chargement...',
               icon: Icons.speed,
             ),
-            error: (error, stackTrace) => _buildDropdown<String>(
+            error: (error, stackTrace) => SearchableDropdown<String>(
               label: 'Cylindrée',
               hint: 'Erreur de chargement',
               icon: Icons.speed,
@@ -595,7 +597,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         builder: (context, ref, child) {
           final fuelTypesAsync = ref.watch(engineFuelTypesProvider);
           return fuelTypesAsync.when(
-            data: (fuelTypes) => _buildDropdown<String>(
+            data: (fuelTypes) => SearchableDropdown<String>(
               label: 'Type de carburant',
               hint: 'Sélectionnez un type de carburant',
               icon: Icons.local_gas_station,
@@ -608,13 +610,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               },
               enabled:
                   _selectedCylinder != null && _selectedCylinder!.isNotEmpty,
+              enableSearch: true,
             ),
             loading: () => _buildLoadingDropdown(
               label: 'Type de carburant',
               hint: 'Chargement...',
               icon: Icons.local_gas_station,
             ),
-            error: (_, __) => _buildDropdown<String>(
+            error: (_, __) => SearchableDropdown<String>(
               label: 'Type de carburant',
               hint: 'Erreur de chargement',
               icon: Icons.local_gas_station,
@@ -664,7 +667,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
       ),
       const SizedBox(height: 16),
       // Dropdown Type de boîte de vitesse
-      _buildDropdown<String>(
+      SearchableDropdown<String>(
         label: 'Type de boîte de vitesse',
         hint: 'Sélectionnez un type',
         icon: Icons.settings_input_composite,
@@ -676,10 +679,11 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           });
         },
         enabled: true,
+        enableSearch: false,
       ),
       const SizedBox(height: 16),
       // Dropdown Nombre de rapports
-      _buildDropdown<String>(
+      SearchableDropdown<String>(
         label: 'Nombre de rapports',
         hint: 'Sélectionnez le nombre de vitesses',
         icon: Icons.linear_scale,
@@ -692,10 +696,11 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         },
         enabled: _selectedTransmissionType != null &&
             _selectedTransmissionType!.isNotEmpty,
+        enableSearch: false,
       ),
       const SizedBox(height: 16),
       // Dropdown Type de transmission
-      _buildDropdown<String>(
+      SearchableDropdown<String>(
         label: 'Type de transmission',
         hint: 'Sélectionnez un type',
         icon: Icons.sync_alt,
@@ -707,6 +712,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           });
         },
         enabled: _selectedGears != null && _selectedGears!.isNotEmpty,
+        enableSearch: false,
       ),
     ];
   }
@@ -731,7 +737,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
           builder: (context, ref, child) {
             final brandsAsync = ref.watch(vehicleBrandsProvider);
             return brandsAsync.when(
-              data: (brands) => _buildDropdown<String>(
+              data: (brands) => SearchableDropdown<String>(
                 label: 'Marque',
                 hint: 'Sélectionnez une marque',
                 icon: Icons.directions_car,
@@ -745,13 +751,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                   });
                 },
                 enabled: true,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Marque',
                 hint: 'Chargement...',
                 icon: Icons.directions_car,
               ),
-              error: (_, __) => _buildDropdown<String>(
+              error: (_, __) => SearchableDropdown<String>(
                 label: 'Marque',
                 hint: 'Erreur de chargement',
                 icon: Icons.directions_car,
@@ -770,7 +777,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
             final modelsAsync =
                 ref.watch(vehicleModelsProvider(_selectedBrand ?? ''));
             return modelsAsync.when(
-              data: (models) => _buildDropdown<String>(
+              data: (models) => SearchableDropdown<String>(
                 label: 'Modèle',
                 hint: 'Sélectionnez un modèle',
                 icon: Icons.model_training,
@@ -783,13 +790,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                   });
                 },
                 enabled: _selectedBrand != null && _selectedBrand!.isNotEmpty,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Modèle',
                 hint: 'Chargement...',
                 icon: Icons.model_training,
               ),
-              error: (_, __) => _buildDropdown<String>(
+              error: (_, __) => SearchableDropdown<String>(
                 label: 'Modèle',
                 hint: 'Erreur de chargement',
                 icon: Icons.model_training,
@@ -809,7 +817,7 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                 '${_selectedBrand ?? ''}|${_selectedModel ?? ''}';
             final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
             return yearsAsync.when(
-              data: (years) => _buildDropdown<int>(
+              data: (years) => SearchableDropdown<int>(
                 label: 'Année',
                 hint: 'Sélectionnez une année',
                 icon: Icons.calendar_today,
@@ -821,13 +829,14 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
                   });
                 },
                 enabled: _selectedModel != null && _selectedModel!.isNotEmpty,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Année',
                 hint: 'Chargement...',
                 icon: Icons.calendar_today,
               ),
-              error: (_, __) => _buildDropdown<int>(
+              error: (_, __) => SearchableDropdown<int>(
                 label: 'Année',
                 hint: 'Erreur de chargement',
                 icon: Icons.calendar_today,
@@ -838,108 +847,6 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
               ),
             );
           },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdown<T>({
-    required String label,
-    required String hint,
-    required IconData icon,
-    required T? value,
-    required List<T> items,
-    required void Function(T?)? onChanged,
-    required bool enabled,
-  }) {
-    const double radius = 10;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: AppTheme.darkGray,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(radius),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownMenu<T>(
-            enabled: enabled,
-            enableFilter: true,
-            enableSearch: true,
-            requestFocusOnTap: true,
-            width: MediaQuery.of(context).size.width - 48,
-            initialSelection: value,
-            hintText: hint,
-            leadingIcon: Icon(
-              icon,
-              color: enabled
-                  ? AppTheme.primaryBlue
-                  : AppTheme.gray.withValues(alpha: 0.5),
-              size: 20,
-            ),
-            textStyle: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: enabled
-                  ? AppTheme.darkGray
-                  : AppTheme.gray.withValues(alpha: 0.5),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: enabled
-                  ? Colors.white
-                  : AppTheme.gray.withValues(alpha: 0.05),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(radius),
-                borderSide: const BorderSide(color: AppColors.grey200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(radius),
-                borderSide: const BorderSide(color: AppColors.grey200),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(radius),
-                borderSide:
-                    BorderSide(color: AppTheme.gray.withValues(alpha: 0.2)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(radius),
-                borderSide:
-                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
-              ),
-            ),
-            dropdownMenuEntries: items
-                .map((item) => DropdownMenuEntry<T>(
-                      value: item,
-                      label: item.toString(),
-                      style: MenuItemButton.styleFrom(
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ))
-                .toList(),
-            onSelected: enabled ? onChanged : null,
-          ),
         ),
       ],
     );
