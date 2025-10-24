@@ -273,70 +273,72 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           ),
         ),
         const SizedBox(height: 8),
-        Material(
-          color: widget.enabled ? Colors.white : AppColors.grey100,
-          borderRadius: BorderRadius.circular(_radius),
-          child: InkWell(
+        Container(
+          decoration: BoxDecoration(
+            color: widget.enabled ? Colors.white : AppColors.grey100,
             borderRadius: BorderRadius.circular(_radius),
-            onTap: widget.enabled ? _showDropdown : null,
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_radius),
-                border: Border.all(
-                  color: widget.enabled
-                      ? _border
-                      : _textGray.withValues(alpha: 0.3),
-                ),
-                boxShadow: widget.enabled
-                    ? const [
-                        BoxShadow(
-                          color: Color(0x0A000000),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Icon(
-                      widget.icon,
-                      color: widget.enabled
-                          ? _blue
-                          : _textGray.withValues(alpha: 0.4),
-                      size: 20,
+            border: Border.all(
+              color:
+                  widget.enabled ? _border : _textGray.withValues(alpha: 0.3),
+            ),
+            boxShadow: widget.enabled
+                ? const [
+                    BoxShadow(
+                      color: Color(0x0A000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
                     ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      displayText ?? widget.hint,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: displayText != null
-                            ? (widget.enabled
-                                ? _textDark
-                                : _textGray.withValues(alpha: 0.4))
-                            : _textGray.withValues(
-                                alpha: widget.enabled ? 0.7 : 0.5),
+                  ]
+                : null,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(_radius),
+              onTap: widget.enabled ? _showDropdown : null,
+              child: Container(
+                height: 56,
+                padding: EdgeInsets.zero,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Icon(
+                        widget.icon,
+                        color: widget.enabled
+                            ? _blue
+                            : _textGray.withValues(alpha: 0.4),
+                        size: 20,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Icon(
-                      Icons.arrow_drop_down,
-                      color: widget.enabled
-                          ? _textGray
-                          : _textGray.withValues(alpha: 0.4),
-                      size: 24,
+                    Expanded(
+                      child: Text(
+                        displayText ?? widget.hint,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: displayText != null
+                              ? (widget.enabled
+                                  ? _textDark
+                                  : _textGray.withValues(alpha: 0.4))
+                              : _textGray.withValues(
+                                  alpha: widget.enabled ? 0.7 : 0.5),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Icon(
+                        Icons.arrow_drop_down,
+                        color: widget.enabled
+                            ? _textGray
+                            : _textGray.withValues(alpha: 0.4),
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
