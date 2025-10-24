@@ -52,12 +52,26 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
   String? _selectedDriveType;
 
   @override
+  void initState() {
+    super.initState();
+    _yearController.addListener(_onYearChanged);
+  }
+
+  @override
   void dispose() {
+    _yearController.removeListener(_onYearChanged);
     _plateController.dispose();
     _horsepowerController.dispose();
     _yearController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onYearChanged() {
+    // Déclencher un rebuild pour activer/désactiver le bouton
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   String _getIntroText() {
@@ -185,8 +199,9 @@ class _PlateStepPageState extends ConsumerState<PlateStepPage> {
         final vehicleParts = <String>[];
         if (_selectedBrand != null) vehicleParts.add(_selectedBrand!);
         if (_selectedModel != null) vehicleParts.add(_selectedModel!);
-        if (_yearController.text.isNotEmpty)
+        if (_yearController.text.isNotEmpty) {
           vehicleParts.add(_yearController.text);
+        }
 
         final allParts = <String>[];
         if (vehicleParts.isNotEmpty) allParts.add(vehicleParts.join(' '));

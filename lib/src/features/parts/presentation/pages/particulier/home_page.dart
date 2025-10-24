@@ -70,6 +70,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
     _partController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
+    _anneeController.addListener(_onYearChanged);
 
     // Charger les paramètres utilisateur pour récupérer l'avatar
     _loadUserSettings();
@@ -118,6 +119,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _partController.removeListener(_onTextChanged);
     _partController.dispose();
     _horsepowerController.dispose();
+    _anneeController.removeListener(_onYearChanged);
     _anneeController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -866,6 +868,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   bool _canSubmit() {
     return _selectedParts.isNotEmpty || _partController.text.isNotEmpty;
+  }
+
+  void _onYearChanged() {
+    // Déclencher un rebuild pour activer/désactiver le bouton Continuer
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onTextChanged() async {
