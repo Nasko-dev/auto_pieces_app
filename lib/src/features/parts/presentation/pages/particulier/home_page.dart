@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../shared/presentation/widgets/app_header.dart';
 import '../../../../../shared/presentation/widgets/license_plate_input.dart';
+import '../../../../../shared/presentation/widgets/searchable_dropdown.dart';
 import '../../../../../core/providers/immatriculation_providers.dart';
 import '../../../../../core/providers/particulier_auth_providers.dart';
 import '../../../../../core/providers/user_settings_providers.dart';
@@ -338,7 +339,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           builder: (context, ref, child) {
             final cylindersAsync = ref.watch(engineCylindersProvider);
             return cylindersAsync.when(
-              data: (cylinders) => _buildDropdown<String>(
+              data: (cylinders) => SearchableDropdown<String>(
                 label: 'Cylindrée',
                 hint: 'Sélectionnez une cylindrée',
                 icon: Icons.speed,
@@ -352,13 +353,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                   });
                 },
                 enabled: true,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Cylindrée',
                 hint: 'Chargement...',
                 icon: Icons.speed,
               ),
-              error: (error, stackTrace) => _buildDropdown<String>(
+              error: (error, stackTrace) => SearchableDropdown<String>(
                 label: 'Cylindrée',
                 hint: 'Erreur de chargement',
                 icon: Icons.speed,
@@ -376,7 +378,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           builder: (context, ref, child) {
             final fuelTypesAsync = ref.watch(engineFuelTypesProvider);
             return fuelTypesAsync.when(
-              data: (fuelTypes) => _buildDropdown<String>(
+              data: (fuelTypes) => SearchableDropdown<String>(
                 label: 'Type de carburant',
                 hint: 'Sélectionnez un type de carburant',
                 icon: Icons.local_gas_station,
@@ -389,13 +391,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
                 enabled: _selectedCylindree != null &&
                     _selectedCylindree!.isNotEmpty,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Type de carburant',
                 hint: 'Chargement...',
                 icon: Icons.local_gas_station,
               ),
-              error: (_, __) => _buildDropdown<String>(
+              error: (_, __) => SearchableDropdown<String>(
                 label: 'Type de carburant',
                 hint: 'Erreur de chargement',
                 icon: Icons.local_gas_station,
@@ -418,7 +421,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ] else if (_selectedType == 'transmission') ...[
         // Pièces boîte de vitesse : type de boîte et nombre de rapports
-        _buildDropdown<String>(
+        SearchableDropdown<String>(
           label: 'Type de boîte de vitesse',
           hint: 'Sélectionnez un type',
           icon: Icons.settings_input_composite,
@@ -433,9 +436,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             });
           },
           enabled: true,
+          enableSearch: false, // Seulement 2 items, pas besoin de recherche
         ),
         const SizedBox(height: 16),
-        _buildDropdown<String>(
+        SearchableDropdown<String>(
           label: 'Nombre de rapports',
           hint: 'Sélectionnez le nombre de vitesses',
           icon: Icons.linear_scale,
@@ -448,9 +452,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           },
           enabled: _selectedTransmissionType != null &&
               _selectedTransmissionType!.isNotEmpty,
+          enableSearch: false, // Peu d'items, pas besoin de recherche
         ),
         const SizedBox(height: 16),
-        _buildDropdown<String>(
+        SearchableDropdown<String>(
           label: 'Type de transmission',
           hint: 'Sélectionnez un type',
           icon: Icons.sync_alt,
@@ -467,94 +472,88 @@ class _HomePageState extends ConsumerState<HomePage> {
             });
           },
           enabled: _selectedGearCount != null && _selectedGearCount!.isNotEmpty,
+          enableSearch: false, // Peu d'items, pas besoin de recherche
         ),
       ] else ...[
         // Pièces carrosserie/intérieur : marque, modèle, année avec dropdowns
-        Row(
-          children: [
-            // Dropdown Marque
-            Expanded(
-              child: Consumer(
-                builder: (context, ref, child) {
-                  final brandsAsync = ref.watch(vehicleBrandsProvider);
-                  return brandsAsync.when(
-                    data: (brands) => _buildDropdown<String>(
-                      label: 'Marque',
-                      hint: 'Sélectionnez une marque',
-                      icon: Icons.directions_car,
-                      value: _selectedMarque,
-                      items: brands,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedMarque = value;
-                          // Reset modèle et année quand marque change
-                          _selectedModele = null;
-                          _selectedAnnee = null;
-                        });
-                      },
-                      enabled: true,
-                    ),
-                    loading: () => _buildLoadingDropdown(
-                      label: 'Marque',
-                      hint: 'Chargement...',
-                      icon: Icons.directions_car,
-                    ),
-                    error: (_, __) => _buildDropdown<String>(
-                      label: 'Marque',
-                      hint: 'Erreur de chargement',
-                      icon: Icons.directions_car,
-                      value: null,
-                      items: const [],
-                      onChanged: null,
-                      enabled: false,
-                    ),
-                  );
+        // Dropdown Marque
+        Consumer(
+          builder: (context, ref, child) {
+            final brandsAsync = ref.watch(vehicleBrandsProvider);
+            return brandsAsync.when(
+              data: (brands) => SearchableDropdown<String>(
+                label: 'Marque',
+                hint: 'Sélectionnez une marque',
+                icon: Icons.directions_car,
+                value: _selectedMarque,
+                items: brands,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedMarque = value;
+                    // Reset modèle et année quand marque change
+                    _selectedModele = null;
+                    _selectedAnnee = null;
+                  });
                 },
+                enabled: true,
+                enableSearch: true,
               ),
-            ),
-            const SizedBox(width: 16),
-            // Dropdown Modèle
-            Expanded(
-              child: Consumer(
-                builder: (context, ref, child) {
-                  final modelsAsync =
-                      ref.watch(vehicleModelsProvider(_selectedMarque ?? ''));
-                  return modelsAsync.when(
-                    data: (models) => _buildDropdown<String>(
-                      label: 'Modèle',
-                      hint: 'Sélectionnez un modèle',
-                      icon: Icons.model_training,
-                      value: _selectedModele,
-                      items: models,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedModele = value;
-                          // Reset année quand modèle change
-                          _selectedAnnee = null;
-                        });
-                      },
-                      enabled: _selectedMarque != null &&
-                          _selectedMarque!.isNotEmpty,
-                    ),
-                    loading: () => _buildLoadingDropdown(
-                      label: 'Modèle',
-                      hint: 'Chargement...',
-                      icon: Icons.model_training,
-                    ),
-                    error: (_, __) => _buildDropdown<String>(
-                      label: 'Modèle',
-                      hint: 'Erreur de chargement',
-                      icon: Icons.model_training,
-                      value: null,
-                      items: const [],
-                      onChanged: null,
-                      enabled: false,
-                    ),
-                  );
+              loading: () => _buildLoadingDropdown(
+                label: 'Marque',
+                hint: 'Chargement...',
+                icon: Icons.directions_car,
+              ),
+              error: (_, __) => SearchableDropdown<String>(
+                label: 'Marque',
+                hint: 'Erreur de chargement',
+                icon: Icons.directions_car,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // Dropdown Modèle
+        Consumer(
+          builder: (context, ref, child) {
+            final modelsAsync =
+                ref.watch(vehicleModelsProvider(_selectedMarque ?? ''));
+            return modelsAsync.when(
+              data: (models) => SearchableDropdown<String>(
+                label: 'Modèle',
+                hint: 'Sélectionnez un modèle',
+                icon: Icons.model_training,
+                value: _selectedModele,
+                items: models,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedModele = value;
+                    // Reset année quand modèle change
+                    _selectedAnnee = null;
+                  });
                 },
+                enabled: _selectedMarque != null && _selectedMarque!.isNotEmpty,
+                enableSearch: true,
               ),
-            ),
-          ],
+              loading: () => _buildLoadingDropdown(
+                label: 'Modèle',
+                hint: 'Chargement...',
+                icon: Icons.model_training,
+              ),
+              error: (_, __) => SearchableDropdown<String>(
+                label: 'Modèle',
+                hint: 'Erreur de chargement',
+                icon: Icons.model_training,
+                value: null,
+                items: const [],
+                onChanged: null,
+                enabled: false,
+              ),
+            );
+          },
         ),
         const SizedBox(height: 16),
         // Dropdown Année
@@ -565,7 +564,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 '${_selectedMarque ?? ''}|${_selectedModele ?? ''}';
             final yearsAsync = ref.watch(vehicleYearsProvider(brandModel));
             return yearsAsync.when(
-              data: (years) => _buildDropdown<int>(
+              data: (years) => SearchableDropdown<int>(
                 label: 'Année',
                 hint: 'Sélectionnez une année',
                 icon: Icons.calendar_today,
@@ -577,13 +576,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                   });
                 },
                 enabled: _selectedModele != null && _selectedModele!.isNotEmpty,
+                enableSearch: true,
               ),
               loading: () => _buildLoadingDropdown(
                 label: 'Année',
                 hint: 'Chargement...',
                 icon: Icons.calendar_today,
               ),
-              error: (_, __) => _buildDropdown<int>(
+              error: (_, __) => SearchableDropdown<int>(
                 label: 'Année',
                 hint: 'Erreur de chargement',
                 icon: Icons.calendar_today,
@@ -597,101 +597,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ],
     ];
-  }
-
-  Widget _buildDropdown<T>({
-    required String label,
-    required String hint,
-    required IconData icon,
-    required T? value,
-    required List<T> items,
-    required void Function(T?)? onChanged,
-    required bool enabled,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-            color: AppTheme.darkGray,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownMenu<T>(
-            enabled: enabled,
-            enableFilter: true,
-            enableSearch: true,
-            requestFocusOnTap: true,
-            width: MediaQuery.of(context).size.width - 48, // padding horizontal
-            initialSelection: value,
-            hintText: hint,
-            leadingIcon: Icon(
-              icon,
-              color: enabled ? _blue : _textGray.withValues(alpha: 0.5),
-              size: 20,
-            ),
-            textStyle: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: enabled ? _textDark : _textGray.withValues(alpha: 0.5),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor:
-                  enabled ? Colors.white : _textGray.withValues(alpha: 0.05),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppColors.grey200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: const BorderSide(color: AppColors.grey200),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide: BorderSide(color: _textGray.withValues(alpha: 0.2)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_radius),
-                borderSide:
-                    const BorderSide(color: AppTheme.primaryBlue, width: 2),
-              ),
-            ),
-            dropdownMenuEntries: items
-                .map((item) => DropdownMenuEntry<T>(
-                      value: item,
-                      label: item.toString(),
-                      style: MenuItemButton.styleFrom(
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ))
-                .toList(),
-            onSelected: enabled ? onChanged : null,
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildLoadingDropdown({
