@@ -242,7 +242,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                       // Bouton continuer
                       if (!_showDescription) ...[
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 48),
                         SizedBox(
                           width: double.infinity,
                           height: 56,
